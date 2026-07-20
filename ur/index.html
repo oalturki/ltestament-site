@@ -149,4 +149,471 @@
   .topics{ padding:110px 6vw; }
   .topics-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(27,27,24,0.12); border:1px solid rgba(27,27,24,0.12); }
   @media (max-width:760px){ .topics-grid{ grid-template-columns:1fr; } }
-  .topic-cell{ background:var(--parchment); padding:34px 28
+  .topic-cell{ background:var(--parchment); padding:34px 28px; transition:background 0.3s; }
+  .topic-cell:hover{ background:#EADFC1; }
+  .topic-cell .num{ font-family:'Noto Nastaliq Urdu',serif; color:var(--teal); font-size:0.9rem; margin-bottom:10px; font-weight:700; }
+  .topic-cell h3{ font-size:1.15rem; margin-bottom:10px; font-weight:800; }
+  .topic-cell p{ font-size:0.92rem; color:#544f42; }
+
+  .cta{ background:var(--gold); color:var(--night-deep); padding:90px 6vw; text-align:center; }
+  .cta h2{ font-size:clamp(1.6rem,3vw,2.2rem); max-width:600px; margin:0 auto 20px; font-weight:800; }
+  .cta p{ max-width:480px; margin:0 auto 34px; opacity:0.85; }
+  .cta-buttons{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  .btn{ padding:14px 30px; border-radius:2px; font-size:0.92rem; display:inline-block; transition:all 0.25s; font-weight:600; }
+  .btn-primary{ background:var(--night); color:var(--cream); }
+  .btn-primary:hover{ background:var(--night-deep); }
+  .btn-outline{ border:1px solid var(--night-deep); color:var(--night-deep); }
+  .btn-outline:hover{ background:var(--night-deep); color:var(--cream); }
+
+  footer{ background:var(--night-deep); color:var(--cream); opacity:0.7; padding:40px 6vw; font-size:0.85rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+
+  /* ---------- QURAN READER ---------- */
+  .reader-overlay{ position:fixed; inset:0; background:var(--night-deep); z-index:300; display:flex; flex-direction:column; opacity:0; pointer-events:none; transition:opacity 0.3s; }
+  .reader-overlay.open{ opacity:1; pointer-events:auto; }
+  .reader-header{ display:flex; align-items:center; gap:14px; padding:18px 5vw; border-bottom:1px solid rgba(200,155,60,0.2); flex-wrap:wrap; }
+  .reader-close{ width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.06); color:var(--cream); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.3rem; flex-shrink:0; }
+  .reader-close:hover{ background:rgba(255,255,255,0.14); }
+  .reader-select{ background:rgba(255,255,255,0.06); color:var(--cream); border:1px solid rgba(200,155,60,0.3); border-radius:6px; padding:9px 12px; font-family:'Noto Nastaliq Urdu',serif; font-size:0.9rem; flex:1; min-width:140px; }
+  .reader-select option{ background:var(--night); color:var(--cream); }
+  .reader-lang-toggle{ display:flex; gap:6px; }
+  .reader-lang-btn{ padding:9px 16px; border-radius:6px; border:1px solid rgba(200,155,60,0.3); background:transparent; color:var(--cream); font-family:'Noto Nastaliq Urdu',serif; font-size:0.85rem; cursor:pointer; }
+  .reader-lang-btn.active{ background:var(--gold); color:var(--night-deep); font-weight:700; border-color:var(--gold); }
+  .reader-body{ flex:1; overflow-y:auto; padding:30px 6vw 80px; }
+  .reader-surah-title{ text-align:center; margin-bottom:30px; }
+  .reader-surah-title h3{ font-family:'Amiri',serif; font-size:2rem; color:var(--gold-soft); margin-bottom:6px; }
+  .reader-surah-title p{ color:#a89f83; font-size:0.85rem; }
+  .reader-verse{ max-width:820px; margin:0 auto 28px; padding-bottom:22px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .reader-verse-num{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:rgba(200,155,60,0.18); color:var(--gold-soft); font-size:0.75rem; margin-bottom:10px; }
+  .reader-verse-ar{ font-family:'Amiri',serif; font-size:1.5rem; color:var(--parchment); line-height:2.1; direction:rtl; margin-bottom:10px; }
+  .reader-verse-en{ font-family:'Georgia',serif; font-style:italic; font-size:1rem; color:#b8b0a0; line-height:1.7; direction:ltr; text-align:left; }
+  .reader-loading{ text-align:center; color:#a89f83; padding:60px 0; font-size:0.95rem; }
+  .reader-error{ text-align:center; color:#d99; padding:60px 0; font-size:0.95rem; }
+  @media (max-width:640px){ .reader-header{ padding:14px 4vw; } .reader-body{ padding:24px 4vw 60px; } .reader-verse-ar{ font-size:1.25rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#C89B3C" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+    آخری عہد نامہ
+  </div>
+  <div class="nav-links">
+    <a href="#timeline">تین صحیفے</a>
+    <a href="#paths">شروع کریں</a>
+    <a href="#talk">سوال پوچھیں</a>
+    <span class="lang-switch">
+      <a href="/">عربی</a>
+      <a href="/en/">EN</a>
+      <a href="/ur/" class="active">اردو</a>
+      <a href="/fr/">FR</a>
+      <a href="/es/">ES</a>
+    </span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="glow"></div>
+  <svg class="star-motif" viewBox="0 0 100 100" fill="none" stroke="#C89B3C" stroke-width="1">
+    <path d="M50 5 L58 35 L90 35 L64 54 L74 85 L50 66 L26 85 L36 54 L10 35 L42 35 Z"/>
+  </svg>
+  <p class="brand-mark">آخری <em>عہد نامہ</em></p>
+  <p class="brand-sub">پرانا عہد نامہ · نیا عہد نامہ · آخری عہد نامہ</p>
+  <p class="ayah-arabic">مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ الْكِتَابِ وَمُهَيْمِنًا عَلَيْهِ</p>
+  <p class="ayah-ref">سورۃ المائدہ، آیت 48</p>
+  <div class="scroll-cue"><span class="line"></span>نیچے سکرول کریں</div>
+</section>
+
+<div class="divider">
+  <svg viewBox="0 0 100 100" fill="none" stroke="#3E7C74" stroke-width="1.2"><path d="M50 5 L58 35 L90 35 L64 54 L74 85 L50 66 L26 85 L36 54 L10 35 L42 35 Z"/></svg>
+</div>
+
+<section class="timeline" id="timeline">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <p class="eyebrow">ایک ہی مقصد کی کہانی، تین عہد ناموں میں مکمل ہوتی ہوئی</p>
+      <h2>قرآن کریم پچھلے صحیفوں کے پیغام کی تصدیق کرتا ہے — موسیٰ اور مسیح علیہما السلام کے پیغام کی</h2>
+      <p>قرآن کریم ہی آخری عہد نامہ ہے، جو خود کو انبیاء کے پیغامات کی تصدیق کرنے والا بتاتا ہے — ایمان کے اُس سفر میں جو تخلیقِ انسان سے جاری ہے۔</p>
+    </div>
+    <div class="timeline-track reveal">
+      <div class="timeline-line"></div>
+      <div class="timeline-nodes">
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <div class="t-name">پرانا عہد نامہ</div>
+          <span class="t-subname">(تورات)</span>
+          <div class="t-era">تقریباً 1400 ق.م</div>
+          <p class="t-quote" onclick="openModal('torah')">فِيهَا هُدًى وَنُورٌ</p>
+          <p class="t-desc">قرآن نے تورات کو یوں بیان کیا — المائدہ 44</p>
+          <p class="t-hint">مکمل سیاق پڑھنے کے لیے دبائیں</p>
+        </div>
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <div class="t-name">نیا عہد نامہ</div>
+          <span class="t-subname">(انجیل)</span>
+          <div class="t-era">پہلی صدی عیسوی</div>
+          <p class="t-quote" onclick="openModal('injil')">فِيهِ هُدًى وَنُورٌ وَمُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ التَّوْرَاةِ</p>
+          <p class="t-desc">قرآن نے انجیل کو یوں بیان کیا — المائدہ 46</p>
+          <p class="t-hint">مکمل سیاق پڑھنے کے لیے دبائیں</p>
+        </div>
+        <div class="t-node">
+          <div class="t-dot"></div>
+          <div class="t-name">آخری عہد نامہ</div>
+          <span class="t-subname">(قرآن)</span>
+          <div class="t-era">ساتویں صدی عیسوی</div>
+          <p class="t-quote" onclick="openModal('quran')">مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ يَهْدِي إِلَى الْحَقِّ وَإِلَى طَرِيقٍ مُسْتَقِيمٍ</p>
+          <p class="t-desc">قرآن نے خود اپنے بارے میں یوں فرمایا — الأحقاف 30</p>
+          <p class="t-hint">مکمل سیاق پڑھنے کے لیے دبائیں</p>
+        </div>
+      </div>
+    </div>
+    <p class="timeline-note-title reveal">کئی رسول، ایک ہی پیغام</p>
+    <p class="timeline-note reveal">
+      قُولُوا آمَنَّا بِاللَّهِ وَمَا أُنزِلَ إِلَيْنَا وَمَا أُنزِلَ إِلَىٰ إِبْرَاهِيمَ وَإِسْمَاعِيلَ وَإِسْحَاقَ وَيَعْقُوبَ وَالْأَسْبَاطِ وَمَا أُوتِيَ مُوسَىٰ وَعِيسَىٰ وَمَا أُوتِيَ النَّبِيُّونَ مِن رَّبِّهِمْ
+      <span class="timeline-note-ref">— سورۃ البقرہ، آیت 136</span>
+    </p>
+  </div>
+</section>
+
+<section class="paths" id="paths">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <p class="eyebrow">آپ کے نام ایک خاص پیغام</p>
+      <h2>اگر آپ کائنات کے خالق پر ایمان رکھتے ہیں.. تو اُس کا پیغام پڑھیں</h2>
+      <p>جب سے انسان زمین پر آیا ہے، وہ وجودی سوالات پوچھتا رہا ہے جن کا جواب اُسے حیران کرتا ہے: میں کہاں سے آیا، کیوں آیا، اور موت کے بعد میرا انجام کیا ہے؟ "آخری عہد نامہ" میں جوابات پڑھیں۔</p>
+    </div>
+    <div class="paths-grid">
+      <div class="path-card featured reveal">
+        <span class="path-tag">یہاں سے شروع کریں</span>
+        <h3>آخری عہد نامہ — آسمانی پیغامات کی تکمیل</h3>
+        <p>اللہ نے موسیٰ علیہ السلام کو بنی اسرائیل کی طرف تورات "پرانا عہد نامہ" دے کر بھیجا، پھر عیسیٰ ابن مریم علیہما السلام کو انجیل "نیا عہد نامہ" دے کر بھیجا، اور اُن کے بعد آخری عہد نامہ "قرآن کریم" آیا جو محمد صلی اللہ علیہ وسلم پر نازل ہوا — انبیاء کے پیغامات کی آخری کڑی کے طور پر۔ یہ تمام رسول ابو الانبیاء ابراہیم علیہ السلام کی نسل سے ہیں؛ موسیٰ اور عیسیٰ علیہما السلام یعقوب بن اسحاق بن ابراہیم کی نسل سے، اور محمد صلی اللہ علیہ وسلم اسماعیل بن ابراہیم کی نسل سے — یعنی وہ سب ابراہیم علیہ السلام کی نسل سے آپس میں قریبی رشتہ رکھتے ہیں۔</p>
+        <a class="go" href="#" onclick="openReader(); return false;">متن اور ترجمہ پڑھیں <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <div class="path-card reveal">
+        <span class="path-tag">بات کرنا چاہتے ہیں</span>
+        <h3>کسی حقیقی شخص سے پوچھیں</h3>
+        <p>اپنا سوال بھیجیں، بغیر کسی دباؤ اور بغیر رجسٹریشن کے۔ آپ کی زبان اور پس منظر جاننے والا رضاکار آپ کو جواب دے گا۔</p>
+        <a class="go" href="#talk">سوال پوچھیں <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="facts">
+  <div class="facts-grid">
+    <div class="reveal"><div class="fact-num">3</div><div class="fact-label">صحیفے، ایک ہی مسلسل دعویٰ</div></div>
+    <div class="reveal"><div class="fact-num">114</div><div class="fact-label">قرآن میں سورتیں</div></div>
+    <div class="reveal"><div class="fact-num">+25</div><div class="fact-label">انبیاء جو بائبل اور قرآن دونوں میں مشترک ہیں</div></div>
+    <div class="reveal"><div class="fact-num">+40</div><div class="fact-label">دستیاب زبانیں</div></div>
+  </div>
+</section>
+
+<section class="figures" id="figures">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <p class="eyebrow">مشترکہ چہرے</p>
+      <h2>وہ شخصیات جنہیں یہودی اور عیسائی جانتے ہیں — قرآن کی نظر سے</h2>
+      <p>وہی انبیاء، مگر ایسی تفصیلات کے ساتھ جو آپ کو حیران کر سکتی ہیں۔ آیت پڑھنے کے لیے کسی بھی کارڈ پر دبائیں۔</p>
+    </div>
+    <div class="figures-scroll">
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">ابراہیم علیہ السلام</p>
+        <p class="figure-name">انبیاء کے باپ، اور تینوں عہد ناموں کے رسولوں کے جدِّ امجد</p>
+        <p class="figure-fact">اُن ہی کی نسل سے موسیٰ، عیسیٰ اور محمد ﷺ آئے — یعنی تینوں پیغامات لانے والے سب اُن سے نسبت رکھتے ہیں۔ قرآن نے اُنہیں "اللہ کا خلیل" کہا، یہ لقب کسی اور نبی کو نہیں دیا گیا۔</p>
+        <span class="figure-link" onclick="openModal('abraham')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">اسماعیل، اسحاق اور یعقوب علیہم السلام</p>
+        <p class="figure-name">ابراہیم کے بیٹے اور پوتے، اور یعقوب ہی "اسرائیل" ہیں</p>
+        <p class="figure-fact">اسماعیل نے اپنے والد ابراہیم کے ساتھ کعبہ کی تعمیر میں حصہ لیا، جبکہ اسحاق اور یعقوب نے اُن کے بعد نبوت کا سلسلہ جاری رکھا۔ یعقوب ہی وہ ہیں جنہیں "اسرائیل" کہا جاتا ہے، اور اُن کے بارہ بیٹے "اسباط" کہلاتے ہیں۔</p>
+        <span class="figure-link" onclick="openModal('patriarchs')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">موسیٰ علیہ السلام</p>
+        <p class="figure-name">قرآن کریم میں کھلے نام سے سب سے زیادہ ذکر ہونے والی شخصیت</p>
+        <p class="figure-fact">اُن کا نام "موسیٰ" کھلے طور پر تقریباً 136 بار آیا ہے — کسی اور شخصیت کے نام سے زیادہ۔ نبی محمد ﷺ کا اپنا نام کھلے طور پر صرف 4 بار آیا، حالانکہ قرآن ہزاروں آیات میں براہِ راست ضمیر سے اُن سے مخاطب ہوتا ہے بغیر نام لیے۔</p>
+        <span class="figure-link" onclick="openModal('moses')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">داؤد علیہ السلام</p>
+        <p class="figure-name">اللہ نے اُنہیں بادشاہت، حکمت اور علم عطا کیا</p>
+        <p class="figure-fact">وہ بہادر جنگجو نبی تھے جو بنی اسرائیل کی فتح کا سبب بنے، جب اُنہوں نے اُن کے دشمن جالوت کو قتل کیا۔ اُس کے بعد اللہ نے اُنہیں بادشاہت اور حکمت عطا کی، اور جو چاہا سکھایا — بشمول کچھ دستکاریاں۔</p>
+        <span class="figure-link" onclick="openModal('david')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">سلیمان علیہ السلام</p>
+        <p class="figure-name">پرندوں اور چیونٹیوں کی زبان سمجھتے تھے</p>
+        <p class="figure-fact">ہوا اور جن اُن کے تابع کر دیے گئے، اور اُنہیں پرندوں کی بولی سکھائی گئی — اور ملکہ سبا کے ساتھ اُن کا مکمل واقعہ قرآن میں تفصیل سے مذکور ہے۔</p>
+        <span class="figure-link" onclick="openModal('solomon')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">مریم علیہا السلام</p>
+        <p class="figure-name">وہ واحد خاتون جن کا نام لے کر ذکر ہوا، اور جنہیں تمام جہانوں کی عورتوں پر برگزیدہ کیا گیا</p>
+        <p class="figure-fact">قرآن کی تمام خواتین میں سے صرف مریم کا نام کھلے طور پر لیا گیا (34 بار)، اور اُن کے نام سے ایک پوری سورت ہے — اور خود فرشتے اُن سے کہتے ہیں کہ اللہ نے اُنہیں تمام جہانوں کی عورتوں پر برگزیدہ کیا۔</p>
+        <span class="figure-link" onclick="openModal('mary')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">عیسیٰ علیہ السلام</p>
+        <p class="figure-name">کنواری سے پیدا ہوئے، اور اللہ کے حکم سے مردوں کو زندہ کیا</p>
+        <p class="figure-fact">قرآن اُن کی معجزانہ پیدائش کی تصدیق کرتا ہے کہ وہ کنواری مریم سے پیدا ہوئے، اور اللہ نے اُن کے ہاتھوں عظیم معجزات ظاہر کیں: پیدائشی اندھے اور کوڑھی کو شفا دینا، اور مردوں کو زندہ کرنا — اللہ کے حکم سے۔</p>
+        <span class="figure-link" onclick="openModal('jesus')">آیت پڑھیں ←</span>
+      </div>
+      <div class="figure-card reveal">
+        <p class="figure-eyebrow">محمد ﷺ</p>
+        <p class="figure-name">خاتم الانبیاء، اور تمام جہانوں کے لیے رحمت</p>
+        <p class="figure-fact">قرآن اُنہیں "خاتم النبیین" کہتا ہے — ابراہیم سے عیسیٰ تک اِس طویل سلسلے کی آخری کڑی، اور تاکید کرتا ہے کہ اُن کا پیغام کسی ایک قوم کے لیے نہیں بلکہ "تمام جہانوں کے لیے رحمت" ہے۔</p>
+        <span class="figure-link" onclick="openModal('muhammad')">آیت پڑھیں ←</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="topics" id="topics">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <p class="eyebrow">پڑھنا کہاں سے شروع کریں</p>
+      <h2>وہ موضوعات جو لوگ سب سے پہلے پوچھتے ہیں</h2>
+    </div>
+    <div class="topics-grid">
+      <div class="topic-cell reveal"><div class="num">01</div><h3>وہی خدا، مختلف نام؟</h3><p>"اللہ" کا تعلق تورات اور انجیل کے خدا سے کیسے ہے۔</p></div>
+      <div class="topic-cell reveal"><div class="num">02</div><h3>قرآن میں عیسیٰ</h3><p>کنواری سے پیدا ہوئے، مسیح کہلائے، نبی کے طور پر عزت دی گئی — خود آیات پڑھیں۔</p></div>
+      <div class="topic-cell reveal"><div class="num">03</div><h3>کیا بدلا اور کیا نہیں بدلا</h3><p>کہاں قرآن پچھلی کتابوں کی تصدیق کرتا ہے، اور کہاں اصلاح۔</p></div>
+      <div class="topic-cell reveal"><div class="num">04</div><h3>تیسرا عہد نامہ کیوں؟</h3><p>یہ اسلامی دلیل کہ وحی انجیل پر ختم کیوں نہیں ہوئی۔</p></div>
+      <div class="topic-cell reveal"><div class="num">05</div><h3>جنگ، امن اور تشدد</h3><p>وہ آیات جو سیاق سے کاٹی جاتی ہیں، یہاں اُن کے پس منظر کے ساتھ پڑھیں۔</p></div>
+      <div class="topic-cell reveal"><div class="num">06</div><h3>روزمرہ زندگی اور اخلاق</h3><p>قرآن انسان سے روزانہ کیا چاہتا ہے — نماز، سچائی، سخاوت۔</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="talk">
+  <div class="reveal">
+    <h2>کیا آپ کے پاس ایسا سوال ہے جو آپ اونچی آواز میں نہیں پوچھ سکے؟</h2>
+    <p>بغیر رجسٹریشن، بغیر کسی پابندی کے۔ اپنے الفاظ میں لکھیں — ہم آپ کو سوچا سمجھا جواب بھیجیں گے، بغیر جلدی کے۔</p>
+    <div class="cta-buttons">
+      <a href="#" class="btn btn-primary">اپنا سوال پوچھیں</a>
+      <a href="#" class="btn btn-outline">اس کے بجائے متن پڑھیں</a>
+    </div>
+  </div>
+</section>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeModal()">
+  <div class="modal-box">
+    <div class="modal-close" onclick="closeModal()">×</div>
+    <p class="modal-eyebrow" id="modalEyebrow"></p>
+    <p class="modal-arabic" id="modalArabic"></p>
+    <p class="modal-closing" id="modalClosing" style="display:none;"></p>
+    <p class="modal-tree-label" id="modalTreeLabel" style="display:none;"></p>
+    <div class="modal-tree" id="modalTree"></div>
+    <p class="modal-ref" id="modalRef"></p>
+    <p class="modal-note" id="modalNote"></p>
+  </div>
+</div>
+
+<div class="reader-overlay" id="readerOverlay">
+  <div class="reader-header">
+    <div class="reader-close" onclick="closeReader()">×</div>
+    <select class="reader-select" id="surahSelect" onchange="loadSurah()"></select>
+    <div class="reader-lang-toggle">
+      <button class="reader-lang-btn active" id="btnAr" onclick="setLang('ar')">عربی</button>
+      <button class="reader-lang-btn" id="btnEn" onclick="setLang('en')">English</button>
+      <button class="reader-lang-btn" id="btnBoth" onclick="setLang('both')">دونوں</button>
+    </div>
+  </div>
+  <div class="reader-body" id="readerBody">
+    <div class="reader-loading">لوڈ ہو رہا ہے...</div>
+  </div>
+</div>
+
+<footer>
+  <span>آخری عہد نامہ — ایک خودمختار منصوبہ، کسی ادارے سے وابستہ نہیں۔</span>
+  <span>سمجھانے کے لیے بنایا گیا، دباؤ ڈالنے کے لیے نہیں۔</span>
+</footer>
+
+<script>
+  const ayahData = {
+    torah: {
+      eyebrow: "تورات — قرآن نے اسے کیسے بیان کیا",
+      arabic: "وَكَيْفَ يُحَكِّمُونَكَ وَعِنْدَهُمُ التَّوْرَاةُ فِيهَا حُكْمُ اللَّهِ ثُمَّ يَتَوَلَّوْنَ مِنْ بَعْدِ ذَلِكَ وَمَا أُولَئِكَ بِالْمُؤْمِنِينَ (٤٣) إِنَّا أَنْزَلْنَا التَّوْرَاةَ فِيهَا هُدًى وَنُورٌ يَحْكُمُ بِهَا النَّبِيُّونَ الَّذِينَ أَسْلَمُوا لِلَّذِينَ هَادُوا وَالرَّبَّانِيُّونَ وَالْأَحْبَارُ بِمَا اسْتُحْفِظُوا مِنْ كِتَابِ اللَّهِ وَكَانُوا عَلَيْهِ شُهَدَاءَ فَلَا تَخْشَوُا النَّاسَ وَاخْشَوْنِ وَلَا تَشْتَرُوا بِآيَاتِي ثَمَنًا قَلِيلًا وَمَنْ لَمْ يَحْكُمْ بِمَا أَنْزَلَ اللَّهُ فَأُولَئِكَ هُمُ الْكَافِرُونَ (٤٤)",
+      ref: "سورۃ المائدہ، آیات 43-44",
+      note: "یہاں سیاق ایک فیصلے کا ہے: قرآن یہودیوں کو یاد دلاتا ہے کہ اُن کے پاس تورات ہے جس میں اللہ کا حکم موجود ہے، اور اِسے \"اُس میں ہدایت اور نور ہے\" کہہ کر بیان کرتا ہے — یہ بیان اُس وقت دیا گیا جب تورات ایک زندہ شرعی حوالہ تھی جس کی طرف رجوع کیا جاتا تھا۔"
+    },
+    injil: {
+      eyebrow: "انجیل — قرآن نے اسے کیسے بیان کیا",
+      arabic: "وَقَفَّيْنَا عَلَى آثَارِهِمْ بِعِيسَى ابْنِ مَرْيَمَ مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ التَّوْرَاةِ وَآتَيْنَاهُ الْإِنْجِيلَ فِيهِ هُدًى وَنُورٌ وَمُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ التَّوْرَاةِ وَهُدًى وَمَوْعِظَةً لِلْمُتَّقِينَ",
+      ref: "سورۃ المائدہ، آیت 46",
+      note: "یہاں انجیل کو تورات جیسے ہی الفاظ (\"ہدایت اور نور\") سے بیان کیا گیا، ساتھ ہی یہ اضافہ کہ وہ اپنے سے پہلے کی تصدیق کرتی ہوئی آئی — \"سلسلہ وار تصدیق\" کے تصور کا پہلا ظہور جس پر قرآن بعد میں اپنے بارے میں بنیاد رکھتا ہے۔"
+    },
+    quran: {
+      eyebrow: "قرآن — اُس نے خود اپنے بارے میں کیا کہا",
+      arabic: "وَإِذْ صَرَفْنَا إِلَيْكَ نَفَرًا مِنَ الْجِنِّ يَسْتَمِعُونَ الْقُرْآنَ فَلَمَّا حَضَرُوهُ قَالُوا أَنْصِتُوا فَلَمَّا قُضِيَ وَلَّوْا إِلَى قَوْمِهِمْ مُنْذِرِينَ (٢٩) قَالُوا يَاقَوْمَنَا إِنَّا سَمِعْنَا كِتَابًا أُنْزِلَ مِنْ بَعْدِ مُوسَى مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ يَهْدِي إِلَى الْحَقِّ وَإِلَى طَرِيقٍ مُسْتَقِيمٍ (٣٠)",
+      ref: "سورۃ الأحقاف، آیات 29-30",
+      note: "یہ بیان کچھ جنوں کی زبانی ہے جنہوں نے قرآن سنا، نبی ﷺ کی اپنی زبانی نہیں — یہ ایک بیرونی گواہی ہے جو خود قرآنی متن کے اندر درج ہے۔"
+    },
+    moses: {
+      eyebrow: "موسیٰ — کلیم اللہ",
+      arabic: "قَالَ يَامُوسَى إِنِّي اصْطَفَيْتُكَ عَلَى النَّاسِ بِرِسَالَاتِي وَبِكَلَامِي فَخُذْ مَا آتَيْتُكَ وَكُنْ مِنَ الشَّاكِرِينَ ﴿١٤٤﴾ وَكَتَبْنَا لَهُ فِي الْأَلْوَاحِ مِنْ كُلِّ شَيْءٍ مَوْعِظَةً وَتَفْصِيلًا لِكُلِّ شَيْءٍ فَخُذْهَا بِقُوَّةٍ وَأْمُرْ قَوْمَكَ يَأْخُذُوا بِأَحْسَنِهَا ﴿١٤٥﴾",
+      ref: "سورۃ الأعراف، آیات 144-145",
+      note: "یہی آیت \"کلیم اللہ\" کے لقب کی اصل ہے — یہاں برگزیدگی \"پیغامات\" اور \"کلام\" دونوں کے ذریعے ہوئی۔ اور مذکور \"تختیاں\" وہی ہیں جنہیں یہودی اور عیسائی دس احکام کے نام سے جانتے ہیں — یہ اُن کا براہِ راست قرآنی اعتراف ہے کہ اُن میں نصیحت اور تفصیل ہے۔"
+    },
+    jesus: {
+      eyebrow: "عیسیٰ — اللہ کے حکم سے معجزات",
+      arabic: "وَرَسُولًا إِلَى بَنِي إِسْرَائِيلَ أَنِّي قَدْ جِئْتُكُمْ بِآيَةٍ مِنْ رَبِّكُمْ أَنِّي أَخْلُقُ لَكُمْ مِنَ الطِّينِ كَهَيْئَةِ الطَّيْرِ فَأَنْفُخُ فِيهِ فَيَكُونُ طَيْرًا بِإِذْنِ اللَّهِ وَأُبْرِئُ الْأَكْمَهَ وَالْأَبْرَصَ وَأُحْيِي الْمَوْتَى بِإِذْنِ اللَّهِ",
+      ref: "سورۃ آل عمران، آیت 49",
+      note: "یہاں عیسیٰ کے معجزات انجیل میں مذکور معجزات سے بہت ملتے جلتے ہیں — پیدائشی اندھے اور کوڑھی کو شفا دینا، اور مردوں کو زندہ کرنا۔ عقیدے کا واحد فرق یہ ہے کہ قرآن ہر معجزے میں \"اللہ کے حکم سے\" دہراتا ہے، اِس تاکید کے ساتھ کہ قدرت صرف اللہ کی ہے۔"
+    },
+    mary: {
+      eyebrow: "مریم — تمام جہانوں کی عورتوں پر برگزیدہ",
+      arabic: "وَإِذْ قَالَتِ الْمَلَائِكَةُ يَامَرْيَمُ إِنَّ اللَّهَ اصْطَفَاكِ وَطَهَّرَكِ وَاصْطَفَاكِ عَلَى نِسَاءِ الْعَالَمِينَ",
+      ref: "سورۃ آل عمران، آیت 42",
+      note: "فرشتوں کی طرف سے مریم سے براہِ راست خطاب — یہ اُن اسباب میں سے ہے جن کی وجہ سے کچھ علماء نے انبیاء اور صالحین کے درمیان اُن کے بلند مقام پر غور کیا ہے۔"
+    },
+    abraham: {
+      eyebrow: "ابراہیم — اللہ کے خلیل اور رسولوں کے جدِّ امجد",
+      arabic: "وَمَنْ أَحْسَنُ دِينًا مِمَّنْ أَسْلَمَ وَجْهَهُ لِلَّهِ وَهُوَ مُحْسِنٌ وَاتَّبَعَ مِلَّةَ إِبْرَاهِيمَ حَنِيفًا وَاتَّخَذَ اللَّهُ إِبْرَاهِيمَ خَلِيلًا",
+      ref: "سورۃ النساء، آیت 125",
+      note: "یہ آیت ابراہیم کو صرف \"اللہ کا خلیل\" کہنے پر اکتفا نہیں کرتی — یہ لقب کسی اور نبی کو نہیں دیا گیا — بلکہ بہترین دین کو اُن کی \"ملّت\" (خالص توحید کے طریقے) کی پیروی قرار دیتی ہے، اور وہی وہ جدِّ امجد ہیں جن سے موسیٰ، عیسیٰ اور محمد ﷺ کی نسبت ہے۔",
+      treeLabel: "سورۃ الانعام 83-86 کے مطابق، اُن کی نسل یا اُن کے راستے پر چلنے والے:",
+      tree: ["اسحاق","یعقوب","نوح","داؤد","سلیمان","ایوب","یوسف","موسیٰ","ہارون","زکریا","یحییٰ","عیسیٰ","الیاس","اسماعیل","الیسع","یونس","لوط"],
+      closing: "قُلْ لَا أَسْأَلُكُمْ عَلَيْهِ أَجْرًا إِنْ هُوَ إِلَّا ذِكْرَى لِلْعَالَمِينَ — الأنعام 90"
+    },
+    david: {
+      eyebrow: "داؤد — جالوت کے قاتل اور زبور کے حامل",
+      arabic: "وَقَتَلَ دَاوُودُ جَالُوتَ وَآتَاهُ اللَّهُ الْمُلْكَ وَالْحِكْمَةَ وَعَلَّمَهُ مِمَّا يَشَاءُ",
+      ref: "سورۃ البقرہ، آیت 251",
+      note: "داؤد اور جالوت (Goliath) کا واقعہ مذہبی دائرے سے باہر بھی معروف ہے — قاری کے لیے فوری شناسائی کا نکتہ۔ ایک اور مقام (سبأ 10) میں قرآن بیان کرتا ہے کہ کیسے پہاڑ اور پرندے اُن کے ساتھ \"تسبیح\" کرتے تھے، اور لوہا اُن کے ہاتھوں میں نرم ہو جاتا تھا۔"
+    },
+    solomon: {
+      eyebrow: "سلیمان — پرندوں کی زبان",
+      arabic: "وَوَرِثَ سُلَيْمَانُ دَاوُودَ وَقَالَ يَاأَيُّهَا النَّاسُ عُلِّمْنَا مَنْطِقَ الطَّيْرِ وَأُوتِينَا مِنْ كُلِّ شَيْءٍ إِنَّ هَذَا لَهُوَ الْفَضْلُ الْمُبِينُ",
+      ref: "سورۃ النمل، آیت 16",
+      note: "یہ پہلی آیت ہے جو اعلان کرتی ہے کہ سلیمان کو پرندوں کی زبان سکھائی گئی — ہدہد اور ملکہ سبا کے واقعے کی تمہید جو باقی سورت میں تفصیل سے بیان ہوا ہے۔"
+    },
+    patriarchs: {
+      eyebrow: "اسماعیل، اسحاق اور یعقوب — نبوت کا تسلسل",
+      arabic: "أَمْ كُنْتُمْ شُهَدَاءَ إِذْ حَضَرَ يَعْقُوبَ الْمَوْتُ إِذْ قَالَ لِبَنِيهِ مَا تَعْبُدُونَ مِنْ بَعْدِي قَالُوا نَعْبُدُ إِلَهَكَ وَإِلَهَ آبَائِكَ إِبْرَاهِيمَ وَإِسْمَاعِيلَ وَإِسْحَاقَ إِلَهًا وَاحِدًا وَنَحْنُ لَهُ مُسْلِمُونَ",
+      ref: "سورۃ البقرہ، آیت 133",
+      note: "ایک ہی آیت میں چاروں جمع ہو گئے: یعقوب اپنی وفات کے وقت اپنے بیٹوں سے پوچھتے ہیں، اور وہ اپنے آباء ابراہیم، اسماعیل اور اسحاق کے خالص ایک خدا پر ایمان کا جواب دیتے ہیں — یہاں تک کہ لفظ \"مسلمون\" کا مطلب یہاں صرف اللہ کے سامنے سرِ تسلیم خم کرنے والے ہے، ابھی کسی مخصوص دین کا نام نہیں۔"
+    },
+    muhammad: {
+      eyebrow: "محمد ﷺ — خاتم النبیین",
+      arabic: "مَا كَانَ مُحَمَّدٌ أَبَا أَحَدٍ مِنْ رِجَالِكُمْ وَلَكِنْ رَسُولَ اللَّهِ وَخَاتَمَ النَّبِيِّينَ ﴿٤٠﴾ ... وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِلْعَالَمِينَ ﴿١٠٧﴾",
+      ref: "سورۃ الأحزاب 40، اور سورۃ الأنبیاء 107",
+      note: "\"خاتم النبیین\" ہی اِس ویب سائٹ کے نام \"آخری عہد نامہ\" کی اصل ہے — قرآن خود کو نبوت کے اُس سلسلے کا اختتام قرار دیتا ہے جو ابراہیم سے شروع ہوا، جبکہ دوسری آیت تاکید کرتی ہے کہ یہ پیغام کسی ایک قوم یا زمانے تک محدود نہیں بلکہ تمام جہانوں کے لیے ہے۔"
+    }
+  };
+
+  function openModal(key){
+    const d = ayahData[key];
+    document.getElementById('modalEyebrow').textContent = d.eyebrow;
+    document.getElementById('modalArabic').textContent = d.arabic;
+    document.getElementById('modalRef').textContent = d.ref;
+    document.getElementById('modalNote').textContent = d.note;
+
+    const closingEl = document.getElementById('modalClosing');
+    const treeLabelEl = document.getElementById('modalTreeLabel');
+    const treeEl = document.getElementById('modalTree');
+    treeEl.innerHTML = '';
+    if(d.closing){
+      closingEl.textContent = d.closing;
+      closingEl.style.display = 'block';
+    } else { closingEl.style.display = 'none'; }
+    if(d.tree){
+      treeLabelEl.textContent = d.treeLabel;
+      treeLabelEl.style.display = 'block';
+      d.tree.forEach(name=>{
+        const span = document.createElement('span');
+        span.textContent = name;
+        treeEl.appendChild(span);
+      });
+    } else { treeLabelEl.style.display = 'none'; }
+
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+  function closeModal(){
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
+
+  // ---------- QURAN READER ----------
+  const surahNames = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
+  let currentLang = 'ar';
+  let currentSurah = 1;
+  const ARABIC_EDITION = 'ara-quranuthmanihaf';
+  const ENGLISH_EDITION = 'eng-mustafakhattabg';
+
+  function fetchWithTimeout(url, ms=12000){
+    const controller = new AbortController();
+    const timer = setTimeout(()=>controller.abort(), ms);
+    return fetch(url, {signal: controller.signal}).then(r=>{
+      clearTimeout(timer);
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).finally(()=>clearTimeout(timer));
+  }
+
+  function populateSurahSelect(){
+    const sel = document.getElementById('surahSelect');
+    sel.innerHTML = surahNames.map((name,i)=>`<option value="${i+1}">${i+1}. ${name}</option>`).join('');
+  }
+
+  function openReader(){
+    if(document.getElementById('surahSelect').options.length === 0) populateSurahSelect();
+    document.getElementById('readerOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if(!document.getElementById('readerBody').dataset.loaded){
+      loadSurah();
+    }
+  }
+  function closeReader(){
+    document.getElementById('readerOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function setLang(lang){
+    currentLang = lang;
+    document.getElementById('btnAr').classList.toggle('active', lang==='ar');
+    document.getElementById('btnEn').classList.toggle('active', lang==='en');
+    document.getElementById('btnBoth').classList.toggle('active', lang==='both');
+    loadSurah();
+  }
+
+  async function loadSurah(){
+    const sel = document.getElementById('surahSelect');
+    currentSurah = sel.value || 1;
+    const body = document.getElementById('readerBody');
+    body.dataset.loaded = '1';
+    body.innerHTML = '<div class="reader-loading">لوڈ ہو رہا ہے...</div>';
+    try{
+      const needsAr = currentLang === 'ar' || currentLang === 'both';
+      const needsEn = currentLang === 'en' || currentLang === 'both';
+      const [arData, enData] = await Promise.all([
+        needsAr ? fetchWithTimeout(`https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/${ARABIC_EDITION}/${currentSurah}.json`) : null,
+        needsEn ? fetchWithTimeout(`https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/${ENGLISH_EDITION}/${currentSurah}.json`) : null
+      ]);
+      const arAyahs = arData ? arData.chapter : null;
+      const enAyahs = enData ? enData.chapter : null;
+      const count = (arAyahs || enAyahs).length;
+      let html = `<div class="reader-surah-title"><h3>${surahNames[currentSurah-1]}</h3><p>سورت نمبر ${currentSurah} — ${count} آیات</p></div>`;
+      for(let i=0;i<count;i++){
+        html += `<div class="reader-verse"><span class="reader-verse-num">${i+1}</span>`;
+        if(arAyahs) html += `<p class="reader-verse-ar">${arAyahs[i].text}</p>`;
+        if(enAyahs) html += `<p class="reader-verse-en">${enAyahs[i].text}</p>`;
+        html += `</div>`;
+      }
+      body.innerHTML = html;
+    }catch(err){
+      body.innerHTML = '<div class="reader-error">متن لوڈ نہیں ہو سکا۔ اپنے انٹرنیٹ کنکشن کو چیک کریں یا تھوڑی دیر بعد دوبارہ کوشش کریں۔</div>';
+    }
+  }
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeReader(); });
+
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+
+</body>
+</html>
