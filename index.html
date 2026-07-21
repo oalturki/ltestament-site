@@ -42,7 +42,7 @@
   .lang-switch a{ font-size:0.78rem; padding:4px 9px; border:1px solid rgba(200,155,60,0.35); border-radius:4px; color:var(--cream); opacity:0.75; }
   .lang-switch a.active{ background:var(--gold); color:var(--night-deep); opacity:1; border-color:var(--gold); font-weight:700; }
   .dev-banner{ background:var(--gold); color:var(--night-deep); text-align:center; font-size:0.8rem; font-weight:700; padding:8px 12px; letter-spacing:0.3px; position:fixed; top:0; left:0; right:0; z-index:60; }
-  @media (max-width:760px){ .nav-links{display:none;} }
+  @media (max-width:760px){ .nav-links>a{display:none;} .hero{padding-top:112px;} }
 
   .hero{ position:relative; min-height:100vh; background:radial-gradient(ellipse 80% 60% at 50% 35%, var(--night) 0%, var(--night-deep) 70%); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:156px 6vw 80px; overflow:hidden; }
   .glow{ position:absolute; width:900px; height:900px; top:50%; left:50%; transform:translate(-50%,-55%); background:radial-gradient(circle, rgba(200,155,60,0.22) 0%, rgba(200,155,60,0) 65%); animation:pulse 6s ease-in-out infinite; }
@@ -183,11 +183,8 @@
   .timeline-note{ text-align:center; max-width:680px; margin:14px auto 0; font-size:1.15rem; color:#6b644f; font-family:'Amiri',serif; line-height:2.1; }
   .timeline-note-ref{ display:block; margin-top:10px; font-family:'Tajawal',sans-serif; font-size:0.82rem; color:var(--teal); font-weight:600; }
 
-  /* ملاحظة: البطاقات مرتبة بترتيب زمني في HTML (القديم → الجديد → الأخير)
-     في RTL يبدأ العرض من اليمين، لذلك نعكس اتجاه الشبكة ليبقى "القديم" في أقصى اليمين */
-  .timeline-nodes{ direction:ltr; }
-  .t-node{ direction:rtl; }
-  .timeline-line{ background:linear-gradient(90deg, #C9BBA0 0%, #A9A691 33%, var(--gold) 66%, var(--gold) 100%); }
+  /* البطاقات مرتبة بترتيب زمني في HTML (القديم ثم الجديد ثم الأخير)،
+     والشبكة تتبع اتجاه الصفحة الطبيعي RTL: فيظهر "القديم" أقصى اليمين و"الأخير" أقصى اليسار */
 
   .paths{ padding-bottom:100px; }
   .paths-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:22px; }
@@ -262,7 +259,6 @@
 <nav>
   <div class="logo">
     <svg viewBox="0 0 24 24" fill="none" stroke="#C89B3C" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
-    العهد الأخير
   </div>
   <div class="nav-links">
     <a href="#timeline">الكتب الثلاثة</a>
@@ -360,7 +356,7 @@
       </div>
       <div class="path-card reveal">
         <span class="path-tag">أريد أتحدث</span>
-        <h3>اسأل شخصاً حقيقياً</h3>
+        <h3>اسأل عن العهد الأخير ورسالته بكل حرية</h3>
         <p>أرسل سؤالك، بدون ضغط وبدون تسجيل. متطوع يعرف لغتك وخلفيتك سيردّ عليك.</p>
         <a class="go" href="#talk">اسأل سؤالاً <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
@@ -381,7 +377,7 @@
   <div class="section-inner">
     <div class="section-head reveal">
       <p class="eyebrow">وجوه مشتركة</p>
-      <h2>شخصيات يعرفها اليهودي والمسيحي — بعين القرآن</h2>
+      <h2>كيف تحدث العهد الأخير عن شخصيات العهود السابقة؟</h2>
       <p>نفس الأنبياء، لكن بتفاصيل قد تفاجئك. اضغط على أي بطاقة لقراءة الآية.</p>
     </div>
     <div class="figures-scroll">
@@ -441,7 +437,7 @@
   <div class="section-inner">
     <div class="section-head reveal">
       <p class="eyebrow">من وين تبدأ القراءة</p>
-      <h2>مواضيع يسأل عنها الناس أول شي</h2>
+      <h2>موضوعات مختارة من العهد الأخير</h2>
     </div>
     <div class="topics-grid">
       <div class="topic-cell reveal"><div class="num">01</div><h3>نفس الإله، باسم مختلف؟</h3><p>كيف يرتبط "الله" بإله التوراة والإنجيل.</p></div>
