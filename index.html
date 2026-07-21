@@ -130,7 +130,7 @@
   .figures-scroll::-webkit-scrollbar{ height:6px; }
   .figures-scroll::-webkit-scrollbar-track{ background:rgba(27,27,24,0.08); }
   .figures-scroll::-webkit-scrollbar-thumb{ background:var(--gold); border-radius:3px; }
-  .figure-card{ flex:0 0 250px; scroll-snap-align:start; background:#FBF4E3; border-top:3px solid var(--gold); padding:28px 24px; display:flex; flex-direction:column; min-height:260px; }
+  .figure-card{ flex:0 0 250px; scroll-snap-align:start; background:#FBF4E3; border-top:3px solid var(--gold); padding:28px 24px; display:flex; flex-direction:column; min-height:260px; cursor:pointer; }
   .figure-eyebrow{ font-size:0.78rem; color:var(--teal); font-weight:700; margin-bottom:6px; }
   .figure-name{ font-family:'Amiri',serif; font-size:1.5rem; color:var(--ink); margin-bottom:14px; }
   .figure-fact{ font-size:0.92rem; color:#544f42; flex-grow:1; line-height:1.85; }
@@ -149,7 +149,7 @@
   .timeline-line{ position:absolute; top:38px; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--gold) 0%, var(--gold) 34%, #A9A691 67%, #C9BBA0 100%); }
   .timeline-nodes{ position:relative; display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
   @media (max-width:820px){ .timeline-nodes{ grid-template-columns:1fr; } .timeline-line{ display:none; } }
-  .t-node{ display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .t-node{ display:flex; flex-direction:column; align-items:center; text-align:center; cursor:pointer; }
   .t-dot{ width:16px; height:16px; border-radius:50%; background:var(--torah); margin-bottom:22px; position:relative; z-index:2; box-shadow:0 0 0 6px var(--parchment); }
   .t-node:nth-child(2) .t-dot{ background:var(--gospel); }
   .t-node:nth-child(3) .t-dot{ width:20px; height:20px; background:var(--gold); box-shadow:0 0 0 6px var(--parchment), 0 0 22px 4px rgba(200,155,60,0.55); }
@@ -303,30 +303,30 @@
     <div class="timeline-track reveal">
       <div class="timeline-line"></div>
       <div class="timeline-nodes">
-        <div class="t-node">
+        <div class="t-node" onclick="openModal('torah')">
           <div class="t-dot"></div>
           <div class="t-name">العهد القديم</div>
           <span class="t-subname">(التوراة)</span>
           <div class="t-era">نحو 1400 ق.م</div>
-          <p class="t-quote" onclick="openModal('torah')">فِيهَا هُدًى وَنُورٌ</p>
+          <p class="t-quote">فِيهَا هُدًى وَنُورٌ</p>
           <p class="t-desc">هكذا وصف القرآن التوراة — المائدة 44</p>
           <p class="t-hint">اضغط لقراءة السياق الكامل</p>
         </div>
-        <div class="t-node">
+        <div class="t-node" onclick="openModal('injil')">
           <div class="t-dot"></div>
           <div class="t-name">العهد الجديد</div>
           <span class="t-subname">(الإنجيل)</span>
           <div class="t-era">القرن الأول الميلادي</div>
-          <p class="t-quote" onclick="openModal('injil')">فِيهِ هُدًى وَنُورٌ وَمُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ التَّوْرَاةِ</p>
+          <p class="t-quote">فِيهِ هُدًى وَنُورٌ وَمُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ مِنَ التَّوْرَاةِ</p>
           <p class="t-desc">هكذا وصف القرآن الإنجيل — المائدة 46</p>
           <p class="t-hint">اضغط لقراءة السياق الكامل</p>
         </div>
-        <div class="t-node">
+        <div class="t-node" onclick="openModal('quran')">
           <div class="t-dot"></div>
           <div class="t-name">العهد الأخير</div>
           <span class="t-subname">(القرآن)</span>
           <div class="t-era">القرن السابع الميلادي</div>
-          <p class="t-quote" onclick="openModal('quran')">مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ يَهْدِي إِلَى الْحَقِّ وَإِلَى طَرِيقٍ مُسْتَقِيمٍ</p>
+          <p class="t-quote">مُصَدِّقًا لِمَا بَيْنَ يَدَيْهِ يَهْدِي إِلَى الْحَقِّ وَإِلَى طَرِيقٍ مُسْتَقِيمٍ</p>
           <p class="t-desc">هكذا وصف القرآن نفسه — الأحقاف 30</p>
           <p class="t-hint">اضغط لقراءة السياق الكامل</p>
         </div>
@@ -381,49 +381,49 @@
       <p>نفس الأنبياء، لكن بتفاصيل قد تفاجئك. اضغط على أي بطاقة لقراءة الآية.</p>
     </div>
     <div class="figures-scroll">
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('abraham')">
         <p class="figure-eyebrow">إبراهيم عليه السلام</p>
         <p class="figure-name">أبو الأنبياء، وجدّ رسل العهود الثلاثة</p>
         <p class="figure-fact">من نسله جاء موسى وعيسى ومحمد ﷺ — أي أن حاملي الرسالات الثلاث كلهم ينتسبون إليه. ووصفه القرآن بـ"خليل الله"، وهو لقب لم يُعطَ لأي نبي آخر.</p>
         <span class="figure-link" onclick="openModal('abraham')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('patriarchs')">
         <p class="figure-eyebrow">إسماعيل وإسحاق ويعقوب عليهم السلام</p>
         <p class="figure-name">أبناء إبراهيم وحفيده، ويعقوب هو "إسرائيل" نفسه</p>
         <p class="figure-fact">إسماعيل شارك أباه إبراهيم في بناء الكعبة، وإسحاق ويعقوب استمرا بخط النبوة من بعده. يعقوب هو نفسه من يُلقّب بـ"إسرائيل"، وأبناؤه الاثنا عشر هم "الأسباط".</p>
         <span class="figure-link" onclick="openModal('patriarchs')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('moses')">
         <p class="figure-eyebrow">موسى عليه السلام</p>
         <p class="figure-name">أكثر الشخصيات التي ذكرت بالاسم الصريح في القرآن الكريم</p>
         <p class="figure-fact">اسمه "موسى" مذكور صراحة نحو 136 مرة — أكثر من أي شخصية أخرى بالاسم. النبي محمد ﷺ نفسه لم يُذكر باسمه الصريح إلا 4 مرات فقط، رغم أن القرآن يخاطبه مباشرة بالضمير في آلاف الآيات دون تسميته.</p>
         <span class="figure-link" onclick="openModal('moses')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('david')">
         <p class="figure-eyebrow">داود عليه السلام</p>
         <p class="figure-name">آتاه الله الملك والحكمة والعلم</p>
         <p class="figure-fact">النبي الفارس الشجاع الذي كان سبباً في نصر بني إسرائيل، إذ قتل عدوّهم جالوت. آتاه الله بعدها الملك والحكمة، وعلّمه مما يشاء — بما في ذلك بعض الصناعات.</p>
         <span class="figure-link" onclick="openModal('david')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('solomon')">
         <p class="figure-eyebrow">سليمان عليه السلام</p>
         <p class="figure-name">يفهم لغة الطير والنمل</p>
         <p class="figure-fact">سُخّرت له الريح والجن، وعُلّم منطق الطير — وقصته الكاملة مع ملكة سبأ مذكورة بتفاصيل داخل القرآن.</p>
         <span class="figure-link" onclick="openModal('solomon')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('mary')">
         <p class="figure-eyebrow">مريم عليها السلام</p>
         <p class="figure-name">المرأة الوحيدة المذكورة باسمها، والمصطفاة على نساء العالمين</p>
         <p class="figure-fact">من بين كل النساء في القرآن، مريم وحدها ذُكرت باسمها الصريح (34 مرة)، ولها سورة كاملة باسمها — والملائكة نفسها تخاطبها بأن الله اصطفاها على نساء العالمين.</p>
         <span class="figure-link" onclick="openModal('mary')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('jesus')">
         <p class="figure-eyebrow">عيسى عليه السلام</p>
         <p class="figure-name">وُلد من عذراء، وأحيا الموتى بإذن الله</p>
         <p class="figure-fact">يؤكد القرآن ولادته المعجزة من مريم العذراء، وأن الله أجرى على يديه معجزات عظيمة: يبرئ الأكمه والأبرص، ويُحيي الموتى — بإذن الله.</p>
         <span class="figure-link" onclick="openModal('jesus')">اقرأ الآية ←</span>
       </div>
-      <div class="figure-card reveal">
+      <div class="figure-card reveal" onclick="openModal('muhammad')">
         <p class="figure-eyebrow">محمد ﷺ</p>
         <p class="figure-name">خاتم الأنبياء، ورحمة للعالمين</p>
         <p class="figure-fact">يصفه القرآن بـ"خاتم النبيين" — آخر حلقة في هذه السلسلة الطويلة من إبراهيم إلى عيسى، ويؤكد أن رسالته ليست لقوم بعينهم بل "رحمة للعالمين" كافة.</p>
