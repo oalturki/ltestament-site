@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>لوحة المشرف — العهد الأخير</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Work+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --night:#101B33; --deep:#0A1425; --parch:#F3E8D0; --gold:#C89B3C; --gold2:#DCC078; --teal:#3E7C74; --ink:#1B1B18; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{ font-family:'Tajawal',sans-serif; background:var(--parch); color:var(--ink); line-height:1.7; }
+  header{ background:var(--deep); color:var(--parch); padding:18px 5vw; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1{ font-size:1.2rem; font-weight:800; } header h1 span{ color:var(--gold2); }
+  header .who{ font-size:0.85rem; opacity:0.8; display:flex; gap:12px; align-items:center; }
+  main{ max-width:1000px; margin:0 auto; padding:30px 5vw 80px; }
+  button{ font:inherit; cursor:pointer; }
+  .btn{ border:0; padding:8px 18px; border-radius:3px; font-weight:700; font-size:0.88rem; }
+  .btn-gold{ background:var(--gold); color:var(--deep); } .btn-gold:hover{ background:var(--gold2); }
+  .btn-ghost{ background:transparent; border:1px solid rgba(27,27,24,0.25); color:var(--ink); }
+  .btn-ok{ background:var(--teal); color:#fff; } .btn-no{ background:#a24b4b; color:#fff; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  header .btn-ghost{ color:var(--parch); border-color:rgba(243,232,208,0.35); }
+  .card{ background:#FBF4E3; border-top:3px solid var(--gold); padding:24px; margin-bottom:24px; }
+  .login{ max-width:380px; margin:60px auto; }
+  .login label{ display:block; font-weight:700; font-size:0.9rem; margin:14px 0 6px; }
+  .login input{ width:100%; padding:10px 12px; border:1px solid rgba(27,27,24,0.2); border-radius:3px; font:inherit; direction:ltr; text-align:left; background:#fff; }
+  .login .btn{ margin-top:20px; width:100%; padding:11px; }
+  .msg{ margin-top:12px; font-size:0.9rem; color:#a24b4b; min-height:1.3em; }
+  h2{ font-size:1.15rem; margin-bottom:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.92rem; }
+  th, td{ padding:8px 10px; border-bottom:1px solid rgba(27,27,24,0.1); text-align:center; }
+  th{ color:var(--teal); font-weight:700; }
+  tr.total td{ font-weight:800; background:rgba(200,155,60,0.12); }
+  .avg{ color:var(--gold); font-weight:800; }
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+  .tab{ background:transparent; border:1px solid rgba(27,27,24,0.2); padding:6px 14px; border-radius:20px; font-size:0.85rem; }
+  .tab.on{ background:var(--night); color:var(--parch); border-color:var(--night); }
+  select{ font:inherit; padding:6px 10px; border-radius:4px; border:1px solid rgba(27,27,24,0.2); background:#fff; }
+  .item{ background:#fff; border:1px solid rgba(27,27,24,0.08); border-inline-start:4px solid #ccc; padding:16px 18px; margin-bottom:12px; }
+  .item.pending{ border-inline-start-color:var(--gold); } .item.approved{ border-inline-start-color:var(--teal); } .item.rejected{ border-inline-start-color:#a24b4b; }
+  .meta{ display:flex; gap:14px; flex-wrap:wrap; font-size:0.82rem; color:#6b644f; margin-bottom:8px; }
+  .stars{ color:var(--gold); letter-spacing:2px; direction:ltr; }
+  .comment{ white-space:pre-line; margin:6px 0 12px; unicode-bidi:plaintext; }
+  .comment.empty{ color:#999; font-style:italic; }
+  .actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .note{ font-size:0.8rem; color:#a24b4b; }
+  .tag{ display:inline-block; padding:1px 8px; border-radius:10px; font-size:0.75rem; font-weight:700; }
+  .tag.pending{ background:rgba(200,155,60,0.18); color:#7a5a17; } .tag.approved{ background:rgba(62,124,116,0.15); color:var(--teal); } .tag.rejected{ background:rgba(162,75,75,0.12); color:#a24b4b; }
+  .empty-list{ text-align:center; color:#8a836e; padding:30px 0; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>العهد الأخير <span>· لوحة المشرف</span></h1>
+  <div class="who" id="who" hidden><span id="whoEmail"></span><button class="btn btn-ghost" id="logout">خروج</button></div>
+</header>
+
+<main>
+  <section class="card login" id="loginBox" hidden>
+    <h2>تسجيل دخول المشرف</h2>
+    <form id="loginForm">
+      <label for="email">البريد الإلكتروني</label>
+      <input id="email" type="email" autocomplete="username" required>
+      <label for="password">كلمة المرور</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+      <button class="btn btn-gold" type="submit">دخول</button>
+      <p class="msg" id="loginMsg"></p>
+    </form>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="card">
+      <h2>التقييمات (لا تظهر إلا للمشرفين)</h2>
+      <table>
+        <thead><tr><th>اللغة</th><th>العدد</th><th>المتوسط</th><th>★1</th><th>★2</th><th>★3</th><th>★4</th><th>★5</th></tr></thead>
+        <tbody id="stats"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>الآراء والانطباعات</h2>
+      <div class="filters">
+        <button class="tab on" data-status="pending">بانتظار المراجعة <span id="cPending"></span></button>
+        <button class="tab" data-status="approved">منشورة</button>
+        <button class="tab" data-status="rejected">مرفوضة</button>
+        <button class="tab" data-status="all">الكل</button>
+        <select id="langFilter">
+          <option value="">كل اللغات</option>
+          <option value="ar">العربية</option><option value="en">English</option><option value="ur">اردو</option>
+          <option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option>
+        </select>
+      </div>
+      <div id="list"></div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  const sb = supabase.createClient('https://nikwwjswwlwcqekbnpzq.supabase.co', 'sb_publishable_k8fRjG4b4EMj5TH9yXR3qQ_w-fqi76l');
+  const LANG = { ar:'العربية', en:'English', ur:'اردو', fr:'Français', es:'Español', ru:'Русский', all:'المجموع' };
+  const STATUS = { pending:'بانتظار المراجعة', approved:'منشور', rejected:'مرفوض' };
+  const $ = (id) => document.getElementById(id);
+  const esc = (t) => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  let status = 'pending';
+
+  async function start(){
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){ $('loginBox').hidden = false; $('panel').hidden = true; $('who').hidden = true; return; }
+    const { data:isAdmin, error } = await sb.rpc('is_admin');
+    if(error || !isAdmin){
+      await sb.auth.signOut();
+      $('loginBox').hidden = false; $('loginMsg').textContent = 'هذا الحساب ليس من المشرفين.';
+      return;
+    }
+    $('loginBox').hidden = true; $('panel').hidden = false; $('who').hidden = false;
+    $('whoEmail').textContent = session.user.email;
+    loadStats(); loadList();
+  }
+
+  $('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    $('loginMsg').textContent = '';
+    const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
+    if(error){ $('loginMsg').textContent = 'البريد أو كلمة المرور غير صحيحة.'; return; }
+    start();
+  });
+  $('logout').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+  async function loadStats(){
+    const { data, error } = await sb.rpc('rating_stats');
+    if(error){ $('stats').innerHTML = `<tr><td colspan="8">${esc(error.message)}</td></tr>`; return; }
+    if(!data.length){ $('stats').innerHTML = '<tr><td colspan="8">لا توجد تقييمات بعد.</td></tr>'; return; }
+    $('stats').innerHTML = data.map(r => `<tr class="${r.lang==='all'?'total':''}"><td>${LANG[r.lang]||esc(r.lang)}</td><td>${r.entries}</td><td class="avg">${r.avg_rating}</td><td>${r.stars_1}</td><td>${r.stars_2}</td><td>${r.stars_3}</td><td>${r.stars_4}</td><td>${r.stars_5}</td></tr>`).join('');
+  }
+
+  async function loadList(){
+    let q = sb.from('feedback').select('*').order('created_at', { ascending:false }).limit(200);
+    if(status !== 'all') q = q.eq('status', status);
+    if($('langFilter').value) q = q.eq('lang', $('langFilter').value);
+    const { data, error } = await q;
+    const { count } = await sb.from('feedback').select('id', { count:'exact', head:true }).eq('status','pending');
+    $('cPending').textContent = count ? `(${count})` : '';
+    if(error){ $('list').innerHTML = `<p class="empty-list">${esc(error.message)}</p>`; return; }
+    if(!data.length){ $('list').innerHTML = '<p class="empty-list">لا توجد آراء هنا.</p>'; return; }
+    $('list').innerHTML = data.map(f => `
+      <div class="item ${f.status}">
+        <div class="meta">
+          <span class="tag ${f.status}">${STATUS[f.status]}</span>
+          <span class="stars">${'★'.repeat(f.rating)}${'☆'.repeat(5-f.rating)}</span>
+          <span>${LANG[f.lang]||esc(f.lang)}</span>
+          <span>${new Date(f.created_at).toLocaleString('ar-SA-u-ca-gregory', { dateStyle:'medium', timeStyle:'short' })}</span>
+          <span>${esc(f.display_name || 'بلا اسم')}${f.country ? ' · '+esc(f.country) : ''}</span>
+        </div>
+        <p class="comment ${f.comment?'':'empty'}">${f.comment ? esc(f.comment) : 'تقييم بالنجوم فقط، بلا تعليق'}</p>
+        <div class="actions">
+          ${f.status!=='approved' ? `<button class="btn btn-ok" data-id="${f.id}" data-s="approved" ${(!f.consent_publish||!f.comment)?'disabled':''}>اعتماد للنشر</button>` : ''}
+          ${f.status!=='rejected' ? `<button class="btn btn-no" data-id="${f.id}" data-s="rejected">${f.status==='approved'?'إلغاء النشر':'رفض'}</button>` : ''}
+          ${f.status!=='pending' ? `<button class="btn btn-ghost" data-id="${f.id}" data-s="pending">إعادة للمراجعة</button>` : ''}
+          ${!f.consent_publish ? '<span class="note">صاحب الرأي لم يوافق على النشر</span>' : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  $('list').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-id]'); if(!b) return;
+    b.disabled = true;
+    const { error } = await sb.rpc('moderate_feedback', { p_id: +b.dataset.id, p_status: b.dataset.s });
+    if(error){ alert(error.message); b.disabled = false; return; }
+    loadList();
+  });
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+    status = t.dataset.status; loadList();
+  }));
+  $('langFilter').addEventListener('change', loadList);
+  start();
+</script>
+</body>
+</html>

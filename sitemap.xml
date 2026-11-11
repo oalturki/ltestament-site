@@ -50,4 +50,16 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/"/>
   </url>
+  <url>
+    <loc>https://ltestament.com/feedback/</loc>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+  <url>
+    <loc>https://ltestament.com/en/feedback/</loc>
+    <lastmod>2026-11-12</lastmod>
+  </url>
+  <url>
+    <loc>https://ltestament.com/ur/feedback/</loc>
+    <lastmod>2026-11-12</lastmod>
+  </url>
 </urlset>

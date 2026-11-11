@@ -316,6 +316,7 @@
   .reader-credit{ font-size:0.78rem; color:#8f8775; margin-top:8px; }
   .reader-credit a{ color:var(--gold-soft); }
 </style>
+<link rel="stylesheet" href="/css/feedback.css">
 </head>
 <body>
 
@@ -329,6 +330,7 @@
     <a href="#timeline">The Three Books</a>
     <a href="#paths">Begin</a>
     <a href="#talk">Ask a Question</a>
+    <a href="/en/feedback/">Your Opinion</a>
     <span class="lang-switch">
       <a href="/">عربي</a>
       <a href="/en/" class="active">EN</a>
@@ -514,11 +516,17 @@
   </div>
 </section>
 
+<section class="tm" data-testimonials hidden>
+  <h2 class="tm-title">What people say about the site</h2>
+  <div class="tm-list"></div>
+</section>
+
 <section class="cta" id="talk">
   <div class="reveal">
     <div class="cta-buttons">
       <a href="#" class="btn btn-primary">Ask your question</a>
       <a href="#" class="btn btn-outline" onclick="openReader(); return false;">Browse the text instead</a>
+      <a href="/en/feedback/" class="btn btn-outline">Share your opinion</a>
     </div>
   </div>
 </section>
@@ -784,5 +792,6 @@
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 </script>
 
+<script src="/js/feedback.js"></script>
 </body>
 </html>

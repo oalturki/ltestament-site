@@ -278,6 +278,7 @@
   .reader-error{ text-align:center; color:#d99; padding:60px 0; font-size:0.95rem; }
   @media (max-width:640px){ .reader-header{ padding:14px 4vw; } .reader-body{ padding:24px 4vw 60px; } .reader-verse-ar{ font-size:1.25rem; } }
 </style>
+<link rel="stylesheet" href="/css/feedback.css">
 </head>
 <body>
 
@@ -291,6 +292,7 @@
     <a href="#timeline">الكتب الثلاثة</a>
     <a href="#paths">ابدأ</a>
     <a href="#talk">اسأل سؤالاً</a>
+    <a href="/feedback/">رأيك يهمنا</a>
     <span class="lang-switch">
       <a href="/" class="active">عربي</a>
       <a href="/en/">EN</a>
@@ -471,11 +473,17 @@
   </div>
 </section>
 
+<section class="tm" data-testimonials hidden>
+  <h2 class="tm-title">قالوا عن الموقع</h2>
+  <div class="tm-list"></div>
+</section>
+
 <section class="cta" id="talk">
   <div class="reveal">
     <div class="cta-buttons">
       <a href="#" class="btn btn-primary">اسأل سؤالك</a>
       <a href="#" class="btn btn-outline" onclick="openReader(); return false;">تصفّح النص بدلاً من ذلك</a>
+      <a href="/feedback/" class="btn btn-outline">رأيك يهمنا</a>
     </div>
   </div>
 </section>
@@ -716,5 +724,6 @@
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 </script>
 
+<script src="/js/feedback.js"></script>
 </body>
 </html>
