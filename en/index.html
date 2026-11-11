@@ -28,6 +28,7 @@
 <link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/">
 <link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/">
 <link rel="alternate" hreflang="es" href="https://ltestament.com/es/">
+<link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/">
 <link rel="alternate" hreflang="x-default" href="https://ltestament.com/">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -264,16 +265,23 @@
   .reader-verse-num{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border-radius:50%; background:rgba(200,155,60,0.18); color:var(--gold-soft); font-size:0.75rem; margin-bottom:10px; }
   .reader-verse-ar{ font-family:'Amiri',serif; font-size:1.5rem; color:var(--parchment); line-height:2.1; direction:rtl; margin-bottom:10px; }
   .reader-verse-en{ font-family:'Georgia',serif; font-style:italic; font-size:1rem; color:#b8b0a0; line-height:1.7; direction:ltr; text-align:left; }
+  .reader-verse-en sup{ color:var(--gold-soft); font-size:0.7em; margin-left:1px; }
+  .reader-fn{ margin-top:6px; }
+  .reader-fn summary{ cursor:pointer; color:var(--gold-soft); font-size:0.75rem; list-style:none; display:inline-block; padding:2px 10px; border:1px solid rgba(200,155,60,0.3); border-radius:12px; }
+  .reader-fn summary::-webkit-details-marker{ display:none; }
+  .reader-fn p{ font-family:'Georgia',serif; font-size:0.85rem; color:#9d9580; line-height:1.7; margin-top:8px; white-space:pre-line; direction:ltr; text-align:left; }
+  .reader-credit{ font-size:0.78rem; color:#8f8775; margin-top:8px; }
+  .reader-credit a{ color:var(--gold-soft); }
   .reader-loading{ text-align:center; color:#a89f83; padding:60px 0; font-size:0.95rem; }
   .reader-error{ text-align:center; color:#d99; padding:60px 0; font-size:0.95rem; }
   @media (max-width:640px){ .reader-header{ padding:14px 4vw; } .reader-body{ padding:24px 4vw 60px; } .reader-verse-ar{ font-size:1.25rem; } }
 
-  /* ---------- ENGLISH (LTR) OVERRIDES ---------- */
+  /* ---------- LTR LANGUAGE OVERRIDES ---------- */
   body{ font-family:'Work Sans',sans-serif; line-height:1.7; }
   h1,h2,h3{ font-family:'Fraunces',serif; font-weight:500; letter-spacing:-0.01em; }
   .nav-links{ font-size:0.85rem; letter-spacing:0.04em; }
   .lang-switch{ margin-inline-start:24px; }
-  .brand-mark{ font-family:'Fraunces',serif; font-weight:500; font-size:clamp(2.6rem,7.5vw,4.8rem); letter-spacing:-0.01em; }
+  .brand-mark{ font-family:'Fraunces',serif; font-weight:500; font-size:clamp(2.4rem,7vw,4.6rem); letter-spacing:-0.01em; }
   .brand-mark em{ font-style:italic; }
   .brand-sub{ font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; margin-bottom:22px; }
   .ayah-arabic{ direction:rtl; }
@@ -337,6 +345,7 @@
       <a href="/ur/">اردو</a>
       <a href="/fr/">FR</a>
       <a href="/es/">ES</a>
+      <a href="/ru/">RU</a>
     </span>
   </div>
 </nav>
@@ -505,7 +514,7 @@
   </div>
 </section>
 
-<!-- القسم مخفي حتى تكتمل الموضوعات: احذف كلمة hidden لإظهاره -->
+<!-- Hidden until the topics are ready: remove "hidden" to show it -->
 <section class="topics" id="topics" hidden>
   <div class="section-inner">
     <div class="section-head reveal">
@@ -698,18 +707,15 @@
   // ---------- QURAN READER ----------
   // Arabic text: Uthmani (Hafs) via fawazahmed0/quran-api, with QuranEnc's Arabic text as a fallback.
   // Translation of the meanings: QuranEnc.com (reviewed translations), fetched per surah.
-  const READER = {
-    arabicEdition: 'ara-quranuthmanihaf',
-    translationKey: 'english_saheeh',
-    credit: 'English translation of the meanings: Saheeh International — Noor International Center. Source: <a href="https://quranenc.com/en/browse/english_saheeh" target="_blank" rel="noopener">QuranEnc.com</a>'
-  };
+  const READER = {"arabicEdition": "ara-quranuthmanihaf", "translationKey": "english_saheeh", "credit": "English translation of the meanings: Saheeh International — Noor International Center. Source: <a href=\"https://quranenc.com/en/browse/english_saheeh\" target=\"_blank\" rel=\"noopener\">QuranEnc.com</a>"};
+  const UI = {"loading": "Loading…", "surah": "Surah", "verses": "verses", "note": "Note", "error": "The text could not be loaded. Please check your internet connection, or try again in a moment."};
   const surahNames = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
-  const surahNamesEn = ["Al-Fatihah", "Al-Baqarah", "Al Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "'Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat", "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"];
+  const surahNamesTr = ["Al-Fatihah", "Al-Baqarah", "Al Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadilah", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "'Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat", "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"];
   let currentLang = 'both';
   let currentSurah = 1;
 
   const esc = (t)=> String(t||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const fnMarks = (t)=> esc(t).replace(/\[(\d+)\]/g, '<sup>$1</sup>');
+  const fnMarks = (t)=> esc(t).replace(/^\s*\d+\.\s+/, '').replace(/\[(\d+)\]/g, '<sup>$1</sup>');
   const trUrl = (s)=> `https://quranenc.com/api/v1/translation/sura/${READER.translationKey}/${s}`;
 
   function fetchWithTimeout(url, ms=12000){
@@ -732,7 +738,7 @@
 
   function populateSurahSelect(){
     const sel = document.getElementById('surahSelect');
-    sel.innerHTML = surahNamesEn.map((name,i)=>`<option value="${i+1}">${i+1}. ${name} · ${surahNames[i]}</option>`).join('');
+    sel.innerHTML = surahNamesTr.map((name,i)=>`<option value="${i+1}">${i+1}. ${name} · ${surahNames[i]}</option>`).join('');
   }
   function openReader(){
     if(document.getElementById('surahSelect').options.length === 0) populateSurahSelect();
@@ -757,7 +763,7 @@
     currentSurah = sel.value || 1;
     const body = document.getElementById('readerBody');
     body.dataset.loaded = '1';
-    body.innerHTML = '<div class="reader-loading">Loading…</div>';
+    body.innerHTML = `<div class="reader-loading">${UI.loading}</div>`;
     try{
       const needsAr = currentLang === 'ar' || currentLang === 'both';
       const needsTr = currentLang === 'tr' || currentLang === 'both';
@@ -767,7 +773,7 @@
       ]);
       const trAyahs = trData ? [...trData.result].sort((a,b)=>a.aya-b.aya) : null;
       const count = (arAyahs || trAyahs).length;
-      let html = `<div class="reader-surah-title"><h3>${surahNames[currentSurah-1]}</h3><p class="en">${surahNamesEn[currentSurah-1]}</p><p>Surah ${currentSurah} — ${count} verses</p>`;
+      let html = `<div class="reader-surah-title"><h3>${surahNames[currentSurah-1]}</h3><p class="en">${surahNamesTr[currentSurah-1]}</p><p>${UI.surah} ${currentSurah} — ${count} ${UI.verses}</p>`;
       if(trAyahs) html += `<p class="reader-credit">${READER.credit}</p>`;
       html += `</div>`;
       for(let i=0;i<count;i++){
@@ -775,13 +781,13 @@
         if(arAyahs) html += `<p class="reader-verse-ar">${arAyahs[i]}</p>`;
         if(trAyahs){
           html += `<p class="reader-verse-tr">${fnMarks(trAyahs[i].translation)}</p>`;
-          if(trAyahs[i].footnotes) html += `<details class="reader-fn"><summary>Note</summary><p>${fnMarks(trAyahs[i].footnotes)}</p></details>`;
+          if(trAyahs[i].footnotes) html += `<details class="reader-fn"><summary>${UI.note}</summary><p>${fnMarks(trAyahs[i].footnotes)}</p></details>`;
         }
         html += `</div>`;
       }
       body.innerHTML = html;
     }catch(err){
-      body.innerHTML = '<div class="reader-error">The text could not be loaded. Please check your internet connection, or try again in a moment.</div>';
+      body.innerHTML = `<div class="reader-error">${UI.error}</div>`;
     }
   }
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeReader(); });
