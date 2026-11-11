@@ -98,8 +98,15 @@
   </section>
 </main>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/vendor/supabase-2.119.0.js"></script>
 <script>
+  window.addEventListener('error', () => {
+    const box = document.getElementById('loginBox');
+    if (box && box.hidden && document.getElementById('panel').hidden) {
+      box.hidden = false;
+      document.getElementById('loginMsg').textContent = 'تعذّر تحميل اللوحة. حدّث الصفحة، وإن تكرر الخطأ فأبلغ الدعم الفني.';
+    }
+  });
   const sb = supabase.createClient('https://nikwwjswwlwcqekbnpzq.supabase.co', 'sb_publishable_k8fRjG4b4EMj5TH9yXR3qQ_w-fqi76l');
   const LANG = { ar:'العربية', en:'English', ur:'اردو', fr:'Français', es:'Español', ru:'Русский', all:'المجموع' };
   const STATUS = { pending:'بانتظار المراجعة', approved:'منشور', rejected:'مرفوض' };
