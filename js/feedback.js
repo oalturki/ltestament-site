@@ -14,6 +14,7 @@
     ar: {
       ratingLabel: 'كيف تقيّم الموقع؟',
       stars: ['ضعيف', 'مقبول', 'جيد', 'جيد جدًا', 'ممتاز'],
+      scale: (n) => `${n} من 5`,
       commentLabel: 'انطباعك ومقترحاتك',
       commentPh: 'ما الذي أعجبك؟ وما الذي تقترح إضافته أو تحسينه؟',
       nameLabel: 'الاسم أو اللقب (اختياري)',
@@ -31,6 +32,7 @@
     en: {
       ratingLabel: 'How would you rate the site?',
       stars: ['Poor', 'Fair', 'Good', 'Very good', 'Excellent'],
+      scale: (n) => `${n} of 5`,
       commentLabel: 'Your impressions and suggestions',
       commentPh: 'What did you like? What would you suggest we add or improve?',
       nameLabel: 'Name or nickname (optional)',
@@ -48,6 +50,7 @@
     ur: {
       ratingLabel: 'آپ اس ویب سائٹ کو کیسا درجہ دیں گے؟',
       stars: ['کمزور', 'قابلِ قبول', 'اچھی', 'بہت اچھی', 'بہترین'],
+      scale: (n) => `5 میں سے ${n}`,
       commentLabel: 'آپ کے تاثرات اور تجاویز',
       commentPh: 'آپ کو کیا پسند آیا؟ آپ کیا اضافہ یا بہتری تجویز کرتے ہیں؟',
       nameLabel: 'نام یا لقب (اختیاری)',
@@ -81,7 +84,7 @@
       <fieldset class="fb-stars-wrap">
         <legend class="fb-label">${t.ratingLabel}</legend>
         <div class="fb-stars" role="radiogroup">
-          ${[1, 2, 3, 4, 5].map(n => `<button type="button" class="fb-star" data-v="${n}" role="radio" aria-checked="false" aria-label="${n} — ${t.stars[n - 1]}">★</button>`).join('')}
+          ${[1, 2, 3, 4, 5].map(n => `<span class="fb-star-col"><button type="button" class="fb-star" data-v="${n}" role="radio" aria-checked="false" aria-label="${t.scale(n)} — ${t.stars[n - 1]}">★</button><small aria-hidden="true">${n === 1 || n === 5 ? t.scale(n) : ''}</small></span>`).join('')}
         </div>
         <p class="fb-star-word" aria-live="polite"></p>
       </fieldset>

@@ -10,6 +10,8 @@
 .fb-stars-wrap{ border:0; padding:0; margin:0; }
 .fb-stars-wrap .fb-label{ margin-top:0; }
 .fb-stars{ display:flex; gap:6px; }
+.fb-star-col{ display:flex; flex-direction:column; align-items:center; }
+.fb-star-col small{ font-size:0.72rem; color:#a89f83; min-height:1.3em; white-space:nowrap; }
 .fb-star{ background:none; border:0; font-size:2.4rem; line-height:1; color:rgba(239,230,216,0.22); cursor:pointer; padding:2px; transition:color 0.15s, transform 0.15s; }
 .fb-star.on{ color:#C89B3C; }
 .fb-star:hover{ transform:scale(1.12); }
