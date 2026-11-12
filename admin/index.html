@@ -67,6 +67,15 @@
   .notes form{ display:flex; gap:8px; margin-top:6px; }
   .notes textarea{ flex:1; font:inherit; font-size:0.88rem; padding:6px 10px; border:1px solid rgba(27,27,24,0.2); border-radius:4px; min-height:38px; }
   .inline-msg{ font-size:0.82rem; color:#a24b4b; }
+  .set-row{ display:grid; grid-template-columns:110px 1fr auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid rgba(27,27,24,0.08); }
+  .set-row input[type=url]{ width:100%; padding:8px 10px; border:1px solid rgba(27,27,24,0.2); border-radius:3px; font:inherit; font-size:0.88rem; direction:ltr; text-align:left; background:#fff; }
+  .set-row b{ font-size:0.92rem; }
+  .switch{ display:inline-flex; gap:6px; align-items:center; font-size:0.88rem; cursor:pointer; white-space:nowrap; }
+  .switch input{ width:18px; height:18px; accent-color:var(--teal); }
+  .hint{ font-size:0.82rem; color:#6b644f; margin:-6px 0 12px; }
+  .save-row{ display:flex; gap:12px; align-items:center; margin-top:16px; }
+  .ok-msg{ font-size:0.85rem; color:var(--teal); font-weight:700; }
+  @media (max-width:560px){ .set-row{ grid-template-columns:1fr auto; } .set-row input[type=url]{ grid-column:1 / -1; grid-row:2; } }
   [hidden]{ display:none !important; }
 </style>
 </head>
@@ -93,6 +102,7 @@
     <nav class="maintabs">
       <button class="maintab on" data-view="viewQuestions">الأسئلة <span class="badge" id="cNew" hidden></span></button>
       <button class="maintab" data-view="viewFeedback" id="tabFeedbackBtn">الآراء والتقييمات</button>
+      <button class="maintab" data-view="viewSettings" id="tabSettingsBtn">إعدادات الموقع</button>
     </nav>
 
     <div id="viewQuestions">
@@ -139,6 +149,24 @@
       <div id="list"></div>
     </div>
     </div>
+
+    <div id="viewSettings" hidden>
+      <div class="card">
+        <h2>شريط «الموقع تحت التطوير»</h2>
+        <p class="hint">الشريط الذهبي أعلى الصفحات الرئيسية في اللغات الست.</p>
+        <label class="switch"><input type="checkbox" id="setBanner"> ظاهر للزوار</label>
+      </div>
+      <div class="card">
+        <h2>حسابات التواصل الاجتماعي</h2>
+        <p class="hint">تظهر أيقوناتها في تذييل الصفحات الرئيسية بكل اللغات. اكتب الرابط كاملًا يبدأ بـ https://، وفعّل «ظاهر» عند الجاهزية.</p>
+        <div id="setSocial"></div>
+      </div>
+      <div class="save-row">
+        <button class="btn btn-gold" id="setSave">حفظ الإعدادات</button>
+        <span id="setMsg"></span>
+      </div>
+      <p class="hint" id="setInfo" style="margin-top:10px"></p>
+    </div>
   </section>
 </main>
 
@@ -177,6 +205,7 @@
       loadStats(); loadList();
     } else {
       $('tabFeedbackBtn').hidden = true;
+      $('tabSettingsBtn').hidden = true;
       $('qTitle').textContent = 'الأسئلة المسندة إليك';
       qStatus = 'assigned';
       document.querySelectorAll('.qtab').forEach(x => x.classList.toggle('on', x.dataset.q === 'assigned'));
@@ -272,6 +301,8 @@
     document.querySelectorAll('.maintab').forEach(x => x.classList.toggle('on', x === t));
     $('viewQuestions').hidden = t.dataset.view !== 'viewQuestions';
     $('viewFeedback').hidden = t.dataset.view !== 'viewFeedback';
+    $('viewSettings').hidden = t.dataset.view !== 'viewSettings';
+    if(t.dataset.view === 'viewSettings') loadSettings();
   }));
 
   $('loginForm').addEventListener('submit', async (e) => {
@@ -336,6 +367,43 @@
     status = t.dataset.status; loadList();
   }));
   $('langFilter').addEventListener('change', loadList);
+
+  /* ---------- Site settings (admin only) ---------- */
+  const PLATFORMS = [ ['x','X (تويتر)'], ['youtube','يوتيوب'], ['telegram','تيليجرام'], ['instagram','إنستغرام'],
+                      ['tiktok','تيك توك'], ['facebook','فيسبوك'], ['whatsapp','واتساب'] ];
+  async function loadSettings(){
+    $('setMsg').textContent = '';
+    const { data, error } = await sb.from('site_settings').select('key, value, updated_at, updated_by');
+    if(error){ $('setMsg').innerHTML = `<span class="inline-msg">${esc(error.message)}</span>`; return; }
+    const s = {}; data.forEach(r => s[r.key] = r);
+    $('setBanner').checked = !(s.dev_banner && s.dev_banner.value.show === false);
+    const soc = (s.social && s.social.value) || {};
+    $('setSocial').innerHTML = PLATFORMS.map(([id, name]) => {
+      const it = soc[id] || {};
+      return `<div class="set-row"><b>${name}</b><input type="url" data-url="${id}" placeholder="https://" value="${esc(it.url || '')}"><label class="switch"><input type="checkbox" data-show="${id}" ${it.show ? 'checked' : ''}> ظاهر</label></div>`;
+    }).join('');
+    const last = data.map(r => r.updated_at).sort().pop();
+    $('setInfo').textContent = last ? 'آخر تعديل: ' + fmt(last) : '';
+  }
+  $('setSave').addEventListener('click', async () => {
+    $('setMsg').textContent = '';
+    const social = {};
+    for(const [id, name] of PLATFORMS){
+      const url = document.querySelector(`[data-url="${id}"]`).value.trim();
+      const show = document.querySelector(`[data-show="${id}"]`).checked;
+      if(url && !/^https:\/\/[^\s"<>]+$/.test(url)){ $('setMsg').innerHTML = `<span class="inline-msg">رابط ${name} غير صحيح؛ يجب أن يبدأ بـ https://</span>`; return; }
+      if(show && !url){ $('setMsg').innerHTML = `<span class="inline-msg">لا يمكن إظهار ${name} بلا رابط.</span>`; return; }
+      if(url || show) social[id] = { url, show };
+    }
+    $('setSave').disabled = true;
+    const r1 = await sb.from('site_settings').update({ value: { show: $('setBanner').checked } }).eq('key', 'dev_banner').select();
+    const r2 = await sb.from('site_settings').update({ value: social }).eq('key', 'social').select();
+    $('setSave').disabled = false;
+    const err = r1.error || r2.error || (!r1.data?.length || !r2.data?.length ? { message:'لا تملك صلاحية التعديل.' } : null);
+    if(err){ $('setMsg').innerHTML = `<span class="inline-msg">تعذّر الحفظ: ${esc(err.message)}</span>`; return; }
+    $('setMsg').innerHTML = '<span class="ok-msg">✓ حُفظت الإعدادات، وتظهر للزوار عند فتح الصفحة.</span>';
+    loadSettings();
+  });
   start();
 </script>
 </body>

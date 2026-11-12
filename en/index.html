@@ -323,6 +323,12 @@
   .reader-fn p{ font-size:0.85rem; color:#9d9580; line-height:1.7; margin-top:8px; white-space:pre-line; }
   .reader-credit{ font-size:0.78rem; color:#8f8775; margin-top:8px; }
   .reader-credit a{ color:var(--gold-soft); }
+  .footer-social{ display:flex; gap:16px; align-items:center; direction:ltr; }
+  .footer-social[hidden]{ display:none; }
+  .footer-social a{ color:inherit; display:inline-flex; transition:color .2s; }
+  .footer-social a:hover{ color:var(--gold); }
+  .no-dev-banner .dev-banner{ display:none; }
+  .no-dev-banner nav{ top:0; }
 </style>
 <link rel="stylesheet" href="/css/feedback.css">
 </head>
@@ -573,6 +579,7 @@
 
 <footer>
   <span>The Last Testament: an independent project that aims to introduce the Creator’s message to all people — from the beginning of creation and humanity’s presence on earth, through its historical sequence, to the Last Testament and its message, the seal of all the messages.</span>
+  <span class="footer-social" data-social hidden></span>
 </footer>
 
 <script>
@@ -799,5 +806,6 @@
 </script>
 
 <script src="/js/feedback.js"></script>
+<script src="/js/site.js" defer></script>
 </body>
 </html>

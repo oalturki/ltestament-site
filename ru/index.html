@@ -325,6 +325,12 @@
   .reader-credit a{ color:var(--gold-soft); }
 
   .ayah-translation, .t-quote-tr, .timeline-note-tr, .modal-translation, .modal-closing-tr{ font-weight:400; }
+  .footer-social{ display:flex; gap:16px; align-items:center; direction:ltr; }
+  .footer-social[hidden]{ display:none; }
+  .footer-social a{ color:inherit; display:inline-flex; transition:color .2s; }
+  .footer-social a:hover{ color:var(--gold); }
+  .no-dev-banner .dev-banner{ display:none; }
+  .no-dev-banner nav{ top:0; }
 </style>
 <link rel="stylesheet" href="/css/feedback.css">
 </head>
@@ -575,6 +581,7 @@
 
 <footer>
   <span>Последний Завет: независимый проект, цель которого — донести до всех людей послание Творца: от начала творения и появления человека на земле, через его историческую последовательность, до Последнего Завета и его послания — печати всех посланий.</span>
+  <span class="footer-social" data-social hidden></span>
 </footer>
 
 <script>
@@ -801,5 +808,6 @@
 </script>
 
 <script src="/js/feedback.js"></script>
+<script src="/js/site.js" defer></script>
 </body>
 </html>

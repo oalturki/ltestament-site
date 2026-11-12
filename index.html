@@ -278,6 +278,12 @@
   .reader-loading{ text-align:center; color:#a89f83; padding:60px 0; font-size:0.95rem; }
   .reader-error{ text-align:center; color:#d99; padding:60px 0; font-size:0.95rem; }
   @media (max-width:640px){ .reader-header{ padding:14px 4vw; } .reader-body{ padding:24px 4vw 60px; } .reader-verse-ar{ font-size:1.25rem; } }
+  .footer-social{ display:flex; gap:16px; align-items:center; direction:ltr; }
+  .footer-social[hidden]{ display:none; }
+  .footer-social a{ color:inherit; display:inline-flex; transition:color .2s; }
+  .footer-social a:hover{ color:var(--gold); }
+  .no-dev-banner .dev-banner{ display:none; }
+  .no-dev-banner nav{ top:0; }
 </style>
 <link rel="stylesheet" href="/css/feedback.css">
 </head>
@@ -520,6 +526,7 @@
 
 <footer>
   <span>العهد الأخير: مشروع مستقل، يهدف للتعريف برسالة الخالق إلى الناس جميعاً، منذ بدء الخلق، ووجود الإنسان على الأرض، وتسلسلها التاريخي، وصولاً إلى العهد الأخير، ورسالته الخاتمة للرسالات.</span>
+  <span class="footer-social" data-social hidden></span>
 </footer>
 
 <script>
@@ -727,5 +734,6 @@
 </script>
 
 <script src="/js/feedback.js"></script>
+<script src="/js/site.js" defer></script>
 </body>
 </html>
