@@ -7,6 +7,8 @@ Change HANDLE here and re-run to update every page:
 import pathlib, re
 
 HANDLE = 'ltestament4u'
+# False = hidden (account not ready yet). Set True and re-run to show it again.
+SHOW = False
 URL = f'https://x.com/{HANDLE}'
 # Accessible label per language ("Follow us on X")
 LABEL = {
@@ -26,15 +28,19 @@ def apply(path, lang):
     orig = s
     meta = f'<meta name="twitter:site" content="@{HANDLE}">'
     s = re.sub(r'<meta name="twitter:site" content="[^"]*">\n?', '', s)
+    s = re.sub(r'\s*<a class="footer-x"[^>]*>.*?</a>', '', s, flags=re.S)
+    s = s.replace(CSS, '')
+    if not SHOW:
+        if s != orig:
+            p.write_text(s, encoding='utf-8')
+        return s != orig
     s = s.replace('<meta name="twitter:card" content="summary_large_image">',
                   '<meta name="twitter:card" content="summary_large_image">\n' + meta, 1)
-    s = re.sub(r'\s*<a class="footer-x"[^>]*>.*?</a>', '', s, flags=re.S)
     link = (f'\n  <a class="footer-x" href="{URL}" target="_blank" rel="noopener me" '
             f'aria-label="{LABEL[lang]}" title="{LABEL[lang]}">{ICON}<span>@{HANDLE}</span></a>')
     assert s.count('</footer>') == 1, path
     s = s.replace('\n</footer>', link + '\n</footer>', 1)
-    if '.footer-x{' not in s:
-        s = s.replace('</style>', CSS + '</style>', 1)
+    s = s.replace('</style>', CSS + '</style>', 1)
     if s != orig:
         p.write_text(s, encoding='utf-8')
     return s != orig
