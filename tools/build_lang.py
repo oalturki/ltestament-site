@@ -447,6 +447,8 @@ def build(code):
     import feedback_hooks
     if code in feedback_hooks.LABELS:
         feedback_hooks.apply(out, code)
+    import social_hooks
+    social_hooks.apply(out, code)
     print('built', out)
 
 if __name__ == '__main__':
