@@ -24,7 +24,7 @@ def apply(path, lang):
         s = s.replace(old, new)
     once('</head>', '<link rel="stylesheet" href="/css/feedback.css">\n</head>')
     # nav: add after the "#talk" nav link (first one, in <nav>)
-    m = re.search(r'(<div class="nav-links">\s*(?:<a [^>]*>[^<]*</a>\s*)*?<a href="#talk">[^<]*</a>)', s)
+    m = re.search(r'(<div class="nav-links">\s*(?:<a [^>]*>[^<]*</a>\s*)*?<a href="(?:#talk|/(?:[a-z]{2}/)?ask/)">[^<]*</a>)', s)
     s = s[:m.end()] + f'\n    <a href="{L["href"]}">{L["nav"]}</a>' + s[m.end():]
     # CTA: feedback button after the existing buttons
     m = re.search(r'(<div class="cta-buttons">.*?)(\n    </div>)', s, re.S)

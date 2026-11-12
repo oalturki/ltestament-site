@@ -52,6 +52,21 @@
   .tag{ display:inline-block; padding:1px 8px; border-radius:10px; font-size:0.75rem; font-weight:700; }
   .tag.pending{ background:rgba(200,155,60,0.18); color:#7a5a17; } .tag.approved{ background:rgba(62,124,116,0.15); color:var(--teal); } .tag.rejected{ background:rgba(162,75,75,0.12); color:#a24b4b; }
   .empty-list{ text-align:center; color:#8a836e; padding:30px 0; }
+  .maintabs{ display:flex; gap:6px; margin-bottom:22px; border-bottom:2px solid rgba(27,27,24,0.1); }
+  .maintab{ background:none; border:0; padding:10px 22px; font-weight:800; font-size:1rem; color:#6b644f; border-bottom:3px solid transparent; margin-bottom:-2px; }
+  .maintab.on{ color:var(--ink); border-bottom-color:var(--gold); }
+  .maintab .badge{ background:var(--gold); color:var(--deep); border-radius:10px; padding:0 7px; font-size:0.75rem; margin-inline-start:4px; }
+  .tag.new{ background:rgba(200,155,60,0.18); color:#7a5a17; } .tag.assigned{ background:rgba(16,27,51,0.1); color:var(--night); } .tag.answered{ background:rgba(62,124,116,0.15); color:var(--teal); } .tag.closed{ background:rgba(27,27,24,0.08); color:#6b644f; }
+  .item.new{ border-inline-start-color:var(--gold); } .item.assigned{ border-inline-start-color:var(--night); } .item.answered{ border-inline-start-color:var(--teal); } .item.closed{ border-inline-start-color:#bbb; }
+  .contact{ display:inline-flex; gap:8px; align-items:center; background:rgba(62,124,116,0.08); padding:4px 12px; border-radius:14px; font-size:0.85rem; margin-bottom:10px; direction:ltr; }
+  .contact a{ color:var(--teal); font-weight:700; text-decoration:none; }
+  .qrow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+  .notes{ margin-top:12px; border-top:1px dashed rgba(27,27,24,0.15); padding-top:10px; }
+  .notes .n{ font-size:0.85rem; background:#FBF4E3; padding:8px 12px; margin-bottom:6px; white-space:pre-line; unicode-bidi:plaintext; }
+  .notes .n small{ display:block; color:#8a836e; font-size:0.75rem; }
+  .notes form{ display:flex; gap:8px; margin-top:6px; }
+  .notes textarea{ flex:1; font:inherit; font-size:0.88rem; padding:6px 10px; border:1px solid rgba(27,27,24,0.2); border-radius:4px; min-height:38px; }
+  .inline-msg{ font-size:0.82rem; color:#a24b4b; }
   [hidden]{ display:none !important; }
 </style>
 </head>
@@ -75,6 +90,31 @@
   </section>
 
   <section id="panel" hidden>
+    <nav class="maintabs">
+      <button class="maintab on" data-view="viewQuestions">الأسئلة <span class="badge" id="cNew" hidden></span></button>
+      <button class="maintab" data-view="viewFeedback" id="tabFeedbackBtn">الآراء والتقييمات</button>
+    </nav>
+
+    <div id="viewQuestions">
+      <div class="card">
+        <h2 id="qTitle">أسئلة الزوار</h2>
+        <div class="filters">
+          <button class="tab qtab on" data-q="new">جديدة</button>
+          <button class="tab qtab" data-q="assigned">مُسندة</button>
+          <button class="tab qtab" data-q="answered">تم الرد</button>
+          <button class="tab qtab" data-q="closed">مغلقة</button>
+          <button class="tab qtab" data-q="all">الكل</button>
+          <select id="qLang">
+            <option value="">كل اللغات</option>
+            <option value="ar">العربية</option><option value="en">English</option><option value="ur">اردو</option>
+            <option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option>
+          </select>
+        </div>
+        <div id="qList"></div>
+      </div>
+    </div>
+
+    <div id="viewFeedback" hidden>
     <div class="card">
       <h2>التقييمات (لا تظهر إلا للمشرفين)</h2>
       <table>
@@ -86,10 +126,10 @@
     <div class="card">
       <h2>الآراء والانطباعات</h2>
       <div class="filters">
-        <button class="tab on" data-status="pending">بانتظار المراجعة <span id="cPending"></span></button>
-        <button class="tab" data-status="approved">منشورة</button>
-        <button class="tab" data-status="rejected">مرفوضة</button>
-        <button class="tab" data-status="all">الكل</button>
+        <button class="tab ftab on" data-status="pending">بانتظار المراجعة <span id="cPending"></span></button>
+        <button class="tab ftab" data-status="approved">منشورة</button>
+        <button class="tab ftab" data-status="rejected">مرفوضة</button>
+        <button class="tab ftab" data-status="all">الكل</button>
         <select id="langFilter">
           <option value="">كل اللغات</option>
           <option value="ar">العربية</option><option value="en">English</option><option value="ur">اردو</option>
@@ -97,6 +137,7 @@
         </select>
       </div>
       <div id="list"></div>
+    </div>
     </div>
   </section>
 </main>
@@ -117,19 +158,121 @@
   const esc = (t) => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   let status = 'pending';
 
+  let role = null, me = null, staff = [], qStatus = 'new';
+
   async function start(){
     const { data:{ session } } = await sb.auth.getSession();
     if(!session){ $('loginBox').hidden = false; $('panel').hidden = true; $('who').hidden = true; return; }
-    const { data:isAdmin, error } = await sb.rpc('is_admin');
-    if(error || !isAdmin){
+    const { data:r, error } = await sb.rpc('my_role');
+    if(error || !r){
       await sb.auth.signOut();
-      $('loginBox').hidden = false; $('loginMsg').textContent = 'هذا الحساب ليس من المشرفين.';
+      $('loginBox').hidden = false; $('loginMsg').textContent = 'هذا الحساب ليس من فريق الموقع.';
       return;
     }
+    role = r; me = session.user.id;
     $('loginBox').hidden = true; $('panel').hidden = false; $('who').hidden = false;
-    $('whoEmail').textContent = session.user.email;
-    loadStats(); loadList();
+    $('whoEmail').textContent = session.user.email + (role === 'volunteer' ? ' · متطوع' : ' · مشرف');
+    if(role === 'admin'){
+      const { data:st } = await sb.rpc('list_staff'); staff = st || [];
+      loadStats(); loadList();
+    } else {
+      $('tabFeedbackBtn').hidden = true;
+      $('qTitle').textContent = 'الأسئلة المسندة إليك';
+      qStatus = 'assigned';
+      document.querySelectorAll('.qtab').forEach(x => x.classList.toggle('on', x.dataset.q === 'assigned'));
+      document.querySelector('.qtab[data-q="new"]').hidden = true;
+    }
+    loadQuestions();
   }
+
+  /* ---------- Questions ---------- */
+  const QSTATUS = { new:'جديد', assigned:'مُسند', answered:'تم الرد', closed:'مغلق' };
+  const BG = { christian:'مسيحي', jewish:'يهودي', none:'بلا دين', other:'دين آخر', muslim:'مسلم', undisclosed:'لم يحدد' };
+  const METHOD = { email:'بريد', whatsapp:'واتساب', telegram:'تيليجرام' };
+  const fmt = (d) => new Date(d).toLocaleString('ar-SA-u-ca-gregory', { dateStyle:'medium', timeStyle:'short' });
+  const staffName = (id) => { const s = staff.find(x => x.user_id === id); return s ? (s.display_name || s.email) : (id === me ? 'أنت' : '—'); };
+
+  function contactLink(m, v){
+    const val = esc(v);
+    if(m === 'email') return `<a href="mailto:${encodeURIComponent(v)}">${val}</a>`;
+    if(m === 'whatsapp'){ const d = v.replace(/[^0-9]/g, ''); return `<a href="https://wa.me/${d}" target="_blank" rel="noopener">${val}</a>`; }
+    const u = v.trim().replace(/^@/, '');
+    return /^\+?[0-9 ]+$/.test(u) ? val : `<a href="https://t.me/${encodeURIComponent(u)}" target="_blank" rel="noopener">${val}</a>`;
+  }
+
+  async function loadQuestions(){
+    let q = sb.from('questions').select('*, question_notes(id, body, created_at, author)').order('created_at', { ascending:false }).limit(200);
+    if(qStatus !== 'all') q = q.eq('status', qStatus);
+    if($('qLang').value) q = q.eq('lang', $('qLang').value);
+    const { data, error } = await q;
+    if(role === 'admin'){
+      const { count } = await sb.from('questions').select('id', { count:'exact', head:true }).eq('status','new');
+      $('cNew').hidden = !count; $('cNew').textContent = count || '';
+    }
+    if(error){ $('qList').innerHTML = `<p class="empty-list">${esc(error.message)}</p>`; return; }
+    if(!data.length){ $('qList').innerHTML = '<p class="empty-list">لا توجد أسئلة هنا.</p>'; return; }
+    $('qList').innerHTML = data.map(x => {
+      const notes = (x.question_notes || []).sort((a,b) => a.created_at.localeCompare(b.created_at));
+      const assign = role === 'admin' ? `<select data-assign="${x.id}"><option value="">— بلا إسناد —</option>${staff.map(s => `<option value="${s.user_id}" ${s.user_id===x.assigned_to?'selected':''}>${esc(s.display_name || s.email)}${s.languages && s.languages.length ? ' ('+s.languages.join('، ')+')' : ''}</option>`).join('')}</select>` : '';
+      const btn = (st, label, cls) => x.status !== st ? `<button class="btn ${cls}" data-qid="${x.id}" data-qs="${st}">${label}</button>` : '';
+      return `
+      <div class="item ${x.status}">
+        <div class="meta">
+          <span class="tag ${x.status}">${QSTATUS[x.status]}</span>
+          <span>${LANG[x.lang] || esc(x.lang)}</span>
+          <span>${fmt(x.created_at)}</span>
+          <span>${esc(x.name || 'بلا اسم')}</span>
+          ${x.background ? `<span>الخلفية: ${BG[x.background] || esc(x.background)}</span>` : ''}
+          ${x.assigned_to ? `<span>المسؤول: ${esc(staffName(x.assigned_to))}</span>` : ''}
+        </div>
+        <p class="comment">${esc(x.question)}</p>
+        <div class="contact">${METHOD[x.contact_method] || ''}: ${contactLink(x.contact_method, x.contact_value)}</div>
+        <div class="qrow">
+          ${assign}
+          ${btn('answered', 'تم الرد', 'btn-ok')}
+          ${btn('closed', 'إغلاق', 'btn-ghost')}
+          ${x.status === 'answered' || x.status === 'closed' ? `<button class="btn btn-ghost" data-qid="${x.id}" data-qs="${x.assigned_to ? 'assigned' : 'new'}">إعادة فتح</button>` : ''}
+          <span class="inline-msg" id="qmsg${x.id}"></span>
+        </div>
+        <div class="notes">
+          ${notes.map(n => `<div class="n">${esc(n.body)}<small>${esc(staffName(n.author))} · ${fmt(n.created_at)}</small></div>`).join('')}
+          <form data-note="${x.id}"><textarea placeholder="ملاحظة داخلية (لا يراها السائل)…" maxlength="4000"></textarea><button class="btn btn-gold" type="submit">حفظ</button></form>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  $('qList').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-qid]'); if(!b) return;
+    b.disabled = true;
+    const { error } = await sb.rpc('set_question_status', { p_id: +b.dataset.qid, p_status: b.dataset.qs });
+    if(error){ $('qmsg'+b.dataset.qid).textContent = error.message; b.disabled = false; return; }
+    loadQuestions();
+  });
+  $('qList').addEventListener('change', async (e) => {
+    const sel = e.target.closest('select[data-assign]'); if(!sel) return;
+    const { error } = await sb.rpc('assign_question', { p_id: +sel.dataset.assign, p_user: sel.value || null });
+    if(error){ $('qmsg'+sel.dataset.assign).textContent = error.message; return; }
+    loadQuestions();
+  });
+  $('qList').addEventListener('submit', async (e) => {
+    const f = e.target.closest('form[data-note]'); if(!f) return;
+    e.preventDefault();
+    const body = f.querySelector('textarea').value.trim(); if(!body) return;
+    const { error } = await sb.from('question_notes').insert({ question_id: +f.dataset.note, body });
+    if(error){ $('qmsg'+f.dataset.note).textContent = error.message; return; }
+    loadQuestions();
+  });
+  document.querySelectorAll('.qtab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.qtab').forEach(x => x.classList.toggle('on', x === t));
+    qStatus = t.dataset.q; loadQuestions();
+  }));
+  $('qLang').addEventListener('change', loadQuestions);
+  document.querySelectorAll('.maintab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.maintab').forEach(x => x.classList.toggle('on', x === t));
+    $('viewQuestions').hidden = t.dataset.view !== 'viewQuestions';
+    $('viewFeedback').hidden = t.dataset.view !== 'viewFeedback';
+  }));
 
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -185,11 +328,11 @@
     const b = e.target.closest('button[data-id]'); if(!b) return;
     b.disabled = true;
     const { error } = await sb.rpc('moderate_feedback', { p_id: +b.dataset.id, p_status: b.dataset.s });
-    if(error){ alert(error.message); b.disabled = false; return; }
+    if(error){ b.disabled = false; b.textContent = 'تعذّر: ' + error.message; return; }
     loadList();
   });
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  document.querySelectorAll('.ftab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.ftab').forEach(x => x.classList.toggle('on', x === t));
     status = t.dataset.status; loadList();
   }));
   $('langFilter').addEventListener('change', loadList);

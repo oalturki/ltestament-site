@@ -77,7 +77,8 @@ def page(lang):
 </html>
 '''
 
-for lang in PAGES:
+if __name__ == '__main__':
+  for lang in PAGES:
     out = REPO / PAGES[lang]['path'].strip('/') / 'index.html'
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page(lang), encoding='utf-8')

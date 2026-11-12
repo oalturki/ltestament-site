@@ -41,3 +41,14 @@
 .tm-card figcaption{ color:#3E7C74; font-size:0.88rem; font-weight:600; }
 .fb-page .tm{ padding:70px 0 0; }
 .fb-page .tm-title{ color:#F3E8D0; }
+
+/* "Ask your question" form (shares the feedback page styles above) */
+.q-methods{ border:0; padding:0; margin:0; }
+.q-method-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.q-method{ display:flex; align-items:center; gap:8px; padding:8px 16px; border:1px solid rgba(200,155,60,0.35); border-radius:20px; cursor:pointer; color:#EFE6D8; font-size:0.92rem; }
+.q-method input{ accent-color:#C89B3C; }
+.q-method:has(input:checked){ background:rgba(200,155,60,0.18); border-color:#C89B3C; }
+.fb-card select{ width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(200,155,60,0.3); border-radius:4px; color:#F3E8D0; padding:12px 14px; font:inherit; font-size:0.98rem; }
+.fb-card select option{ color:#1B1B18; }
+.q-hint{ font-size:0.8rem; color:#8f8775; margin-top:6px; }
+.q-privacy{ font-size:0.82rem; color:#a89f83; line-height:1.7; margin:4px 0 0; }

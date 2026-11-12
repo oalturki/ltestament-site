@@ -91,6 +91,7 @@ def lang_switch(cur):
 def build(code):
     L = importlib.import_module('content_' + code).L
     path = f'/{code}/'
+    ask = f'/{code}/ask/'
     head = f'''<!DOCTYPE html>
 <html lang="{code}" dir="ltr">
 <head>
@@ -156,7 +157,7 @@ def build(code):
   <div class="nav-links">
     <a href="#timeline">{nav[0]}</a>
     <a href="#paths">{nav[1]}</a>
-    <a href="#talk">{nav[2]}</a>
+    <a href="{ask}">{nav[2]}</a>
     <span class="lang-switch">
 {lang_switch(code)}
     </span>
@@ -222,7 +223,7 @@ def build(code):
         <span class="path-tag">{L['c2_tag']}</span>
         <h3>{L['c2_h3']}</h3>
         <p>{L['c2_p']}</p>
-        <a class="go" href="#talk">{L['c2_link']} {ARROW}</a>
+        <a class="go" href="{ask}">{L['c2_link']} {ARROW}</a>
       </div>
     </div>
   </div>
@@ -261,7 +262,7 @@ def build(code):
 <section class="cta" id="talk">
   <div class="reveal">
     <div class="cta-buttons">
-      <a href="#" class="btn btn-primary">{L['cta_ask']}</a>
+      <a href="{ask}" class="btn btn-primary">{L['cta_ask']}</a>
       <a href="#" class="btn btn-outline" onclick="openReader(); return false;">{L['cta_browse']}</a>
     </div>
   </div>

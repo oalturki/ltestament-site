@@ -67,6 +67,66 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/"/>
   </url>
   <url>
+    <loc>https://ltestament.com/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/en/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/ur/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/fr/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/es/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/ru/ask/</loc>
+    <lastmod>2026-11-12</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/ask/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/ask/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/ask/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/ask/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/ask/"/>
+  </url>
+  <url>
     <loc>https://ltestament.com/feedback/</loc>
     <lastmod>2026-11-12</lastmod>
     <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/feedback/"/>
