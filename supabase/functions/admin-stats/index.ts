@@ -49,14 +49,19 @@ async function cfStats(since: string, until: string) {
   if (!token) return { status: "not_configured" };
   const h = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
 
-  const list = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/rum/site_info/list?per_page=50`, { headers: h });
-  const lj = await list.json();
-  if (!lj.success) return { status: "error", message: JSON.stringify(lj.errors ?? lj).slice(0, 300) };
-  const site = (lj.result ?? []).find((s: any) => (s.host ?? "").replace(/^www\./, "") === CF_HOST || s.ruleset?.zone_name === CF_HOST);
-  if (!site) return { status: "error", message: "Web Analytics site for ltestament.com not found" };
-
-  const tag = String(site.site_tag).replace(/[^a-f0-9]/gi, "");
-  const f = `{ siteTag: "${tag}", date_geq: "${since}", date_leq: "${until}" }`;
+  // Find the Web Analytics site tag. Listing sites needs "Account Settings: Read"; if the token lacks it,
+  // fall back to filtering by host, which needs only "Account Analytics: Read".
+  let f = `{ requestHost: "${CF_HOST}", date_geq: "${since}", date_leq: "${until}" }`;
+  let listNote = "";
+  try {
+    const list = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT}/rum/site_info/list?per_page=50`, { headers: h });
+    const lj = await list.json();
+    const site = lj.success ? (lj.result ?? []).find((s: any) => (s.host ?? "").replace(/^www\./, "") === CF_HOST || s.ruleset?.zone_name === CF_HOST) : null;
+    if (site?.site_tag) {
+      const tag = String(site.site_tag).replace(/[^a-f0-9]/gi, "");
+      f = `{ siteTag: "${tag}", date_geq: "${since}", date_leq: "${until}" }`;
+    } else if (!lj.success) listNote = JSON.stringify(lj.errors ?? lj).slice(0, 200);
+  } catch (e) { listNote = String(e).slice(0, 200); }
   const g = (alias: string, dim: string, limit: number, order: string) =>
     `${alias}: rumPageloadEventsAdaptiveGroups(limit: ${limit}, filter: ${f}, orderBy: [${order}]) { count sum { visits } dimensions { ${dim} } }`;
   const query = `query($a: String!) {
@@ -72,7 +77,7 @@ async function cfStats(since: string, until: string) {
     body: JSON.stringify({ query, variables: { a: CF_ACCOUNT } }),
   });
   const j = await r.json();
-  if (j.errors?.length) return { status: "error", message: JSON.stringify(j.errors).slice(0, 300) };
+  if (j.errors?.length) return { status: "error", message: JSON.stringify(j.errors).slice(0, 300) + (listNote ? " | site list: " + listNote : "") };
   const acc = j.data?.viewer?.accounts?.[0] ?? {};
   const map = (rows: any[], key: string) => (rows ?? []).map((x) => ({ key: x.dimensions[key] || "", views: x.count, visits: x.sum?.visits ?? 0 }));
   const daily = map(acc.daily, "date");
