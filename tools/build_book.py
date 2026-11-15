@@ -38,27 +38,27 @@ DEFAULT_TR = {'ar': 'english_saheeh', 'en': 'english_saheeh', 'fr': 'french_mont
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
 
 UI = {
- 'ar': dict(title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
+ 'ar': dict(fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
             loading='جارِ فتح المصحف…', text='النص', meaning='المعنى', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
- 'en': dict(title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
+ 'en': dict(fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
             page='Page', notes='Translator’s notes', retry='Try again', error='The page could not be loaded. Check your connection and try again.',
             loading='Opening the book…', text='Arabic', meaning='Meaning', index='Surah', tr='Translation', prev='Previous page', next='Next page',
             hint='Turn pages with the arrows or by swiping', btn='Read as a book'),
- 'ur': dict(title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
+ 'ur': dict(fontCredit='مصحف کا خط: شاہ فہد قرآن کریم پرنٹنگ کمپلیکس', title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
             page='صفحہ', notes='ترجمے کے حواشی', retry='دوبارہ کوشش کریں', error='صفحہ لوڈ نہیں ہو سکا۔ انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔',
             loading='مصحف کھل رہا ہے…', text='متن', meaning='ترجمہ', index='سورت', tr='ترجمہ', prev='پچھلا صفحہ', next='اگلا صفحہ',
             hint='تیروں یا صفحہ سرکا کر ورق پلٹیں', btn='کتابی صورت میں پڑھیں'),
- 'fr': dict(title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
+ 'fr': dict(fontCredit='Police du Mushaf : Complexe du Roi Fahd pour l’impression du Saint Coran', title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
             page='Page', notes='Notes du traducteur', retry='Réessayer', error='La page n’a pas pu être chargée. Vérifiez votre connexion et réessayez.',
             loading='Ouverture du livre…', text='Arabe', meaning='Sens', index='Sourate', tr='Traduction', prev='Page précédente', next='Page suivante',
             hint='Tournez les pages avec les flèches ou en faisant glisser', btn='Lire comme un livre'),
- 'es': dict(title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
+ 'es': dict(fontCredit='Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán', title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
             page='Página', notes='Notas del traductor', retry='Reintentar', error='No se pudo cargar la página. Revisa tu conexión e inténtalo de nuevo.',
             loading='Abriendo el libro…', text='Árabe', meaning='Significado', index='Sura', tr='Traducción', prev='Página anterior', next='Página siguiente',
             hint='Pasa las páginas con las flechas o deslizando', btn='Leer como un libro'),
- 'ru': dict(title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
+ 'ru': dict(fontCredit='Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана', title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
             page='Стр.', notes='Примечания переводчика', retry='Повторить', error='Не удалось загрузить страницу. Проверьте соединение и попробуйте снова.',
             loading='Открываем книгу…', text='Арабский', meaning='Смысл', index='Сура', tr='Перевод', prev='Предыдущая страница', next='Следующая страница',
             hint='Листайте стрелками или свайпом', btn='Читать как книгу'),
@@ -99,6 +99,7 @@ def page(lang):
 <link href="{ui_font_url}" rel="stylesheet">
 {extra_font}<link rel="preconnect" href="https://quranenc.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preload" href="/fonts/UthmanicHafs_V22.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/css/book.css">
 <style>body.bk{{ font-family:{body_font}; }} .bk-title{{ font-family:{head_font}; }}</style>
 </head>
@@ -126,6 +127,7 @@ def page(lang):
   <input type="range" id="range" min="1" max="604" value="1" aria-label="{u['page']}">
   <small id="rangeLbl"></small>
   <small class="bk-hint">{u['hint']}</small>
+  <small class="bk-fontcredit">{u['fontCredit']}</small>
 </div>
 <script>window.BOOK = {json.dumps(cfg, ensure_ascii=False)};</script>
 <script src="/js/site.js" defer></script>

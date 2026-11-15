@@ -6,8 +6,6 @@
   'use strict';
   var C = window.BOOK, U = C.ui;
   var $ = function (id) { return document.getElementById(id); };
-  var ARABIC_ED = 'ara-quranuthmanihaf';
-  var JSD = 'https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/' + ARABIC_ED;
   var QE = 'https://quranenc.com/api/v1/translation/sura/';
   var TOTAL = 604;
   var MAP = null;                  // {pages:[[s1,v1,s2,v2]...], juz:[...], verses:[...]}
@@ -62,17 +60,17 @@
     }
     return trCache[id];
   }
+  // Arabic text: the King Fahd Complex (KFGQPC) Hafs text that QuranEnc serves with every translation.
+  // It is encoded for the Complex's own Uthmanic Hafs font, which this page uses (fonts/UthmanicHafs_V22.ttf).
   function arPage(p) {
     if (!arCache[p]) {
-      arCache[p] = getJSON(JSD + '/pages/' + p + '.json').then(function (d) { return d.pages; })
-        .catch(function () {
-          // fallback: Arabic text that QuranEnc returns with any translation
-          return Promise.all(surahsOf(p).map(function (s) { return trSurah(trKey, s); })).then(function (lists) {
-            var by = {};
-            lists.forEach(function (l) { l.forEach(function (x) { by[x.sura + ':' + x.aya] = x.arabic_text; }); });
-            return versesOf(p).map(function (sv) { return { chapter: sv[0], verse: sv[1], text: by[sv[0] + ':' + sv[1]] || '' }; });
-          });
+      arCache[p] = Promise.all(surahsOf(p).map(function (s) { return trSurah(trKey, s); })).then(function (lists) {
+        var by = {};
+        lists.forEach(function (l) { l.forEach(function (x) { by[x.sura + ':' + x.aya] = x.arabic_text; }); });
+        return versesOf(p).map(function (sv) {
+          return { chapter: sv[0], verse: sv[1], text: String(by[sv[0] + ':' + sv[1]] || '').replace(/\u00a0/g, ' ').trim() };
         });
+      });
       arCache[p].catch(function () { delete arCache[p]; });
     }
     return arCache[p];
@@ -93,14 +91,18 @@
   /* ---------- rendering ---------- */
   function cleanTr(t) { return String(t || '').replace(/^\s*\(?\d+\)?[.\-–]\s*/, ''); }
 
+  function basmalaAr(d) {
+    var t = d.basmala && d.basmala.arabic_text;
+    return t ? String(t).replace(/\u00a0/g, ' ').trim() : 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ';
+  }
   function renderAr(p, d) {
     var html = '', first = MAP.pages[p - 1][0];
     d.ar.forEach(function (x) {
       if (x.verse === 1) {
         html += '<div class="bk-surah">سورة ' + esc(C.arabicNames[x.chapter - 1]) + '</div>';
-        if (x.chapter !== 1 && x.chapter !== 9) html += '<div class="bk-basmala">بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ</div>';
+        if (x.chapter !== 1 && x.chapter !== 9) html += '<div class="bk-basmala">' + esc(basmalaAr(d)) + '</div>';
       }
-      html += esc(x.text) + ' <span class="ayah-end">﴿' + arNum(x.verse) + '﴾</span> ';
+      html += esc(x.text) + ' <span class="ayah-end">\u06DD' + arNum(x.verse) + '</span> ';
     });
     pgAr.innerHTML =
       '<div class="bk-head"><b>سورة ' + esc(C.arabicNames[first - 1]) + '</b><span>الجزء ' + arNum(MAP.juz[p - 1]) + '</span></div>' +
@@ -281,6 +283,9 @@
     buildControls();
     track('book_open', trKey);
     var go1 = function () { show(startPage(), 0); };
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go1); else go1();
+    // Load the Mushaf font before the first page is measured, so the text fits the page with its real shapes.
+    if (document.fonts && document.fonts.load) {
+      Promise.race([document.fonts.load("24px 'KFGQPC Hafs'", 'بسم'), wait(4000)]).then(function () { return document.fonts.ready; }).then(go1, go1);
+    } else go1();
   }).catch(function () { showMsg(U.error, false); });
 })();
