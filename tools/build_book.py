@@ -3,7 +3,7 @@ and add a "read as a book" button to the reader header of each language home pag
 Usage: python3 tools/build_book.py
 Data: data/quran-pages.json (Madinah Mushaf page map, 604 pages); runtime: js/book.js + css/book.css.
 """
-import json, pathlib, re, sys
+import html, json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from build_feedback import FONTS, PAGES as FB
 import content_en, content_ru
@@ -38,27 +38,27 @@ DEFAULT_TR = {'ar': 'english_saheeh', 'en': 'english_saheeh', 'fr': 'french_mont
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
 
 UI = {
- 'ar': dict(fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
+ 'ar': dict(full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
             loading='جارِ فتح المصحف…', text='النص', meaning='المعنى', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
- 'en': dict(fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
+ 'en': dict(full='Open the full Quran', fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
             page='Page', notes='Translator’s notes', retry='Try again', error='The page could not be loaded. Check your connection and try again.',
             loading='Opening the book…', text='Arabic', meaning='Meaning', index='Surah', tr='Translation', prev='Previous page', next='Next page',
             hint='Turn pages with the arrows or by swiping', btn='Read as a book'),
- 'ur': dict(fontCredit='مصحف کا خط: شاہ فہد قرآن کریم پرنٹنگ کمپلیکس', title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
+ 'ur': dict(full='مکمل قرآن کھولیں', fontCredit='مصحف کا خط: شاہ فہد قرآن کریم پرنٹنگ کمپلیکس', title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
             page='صفحہ', notes='ترجمے کے حواشی', retry='دوبارہ کوشش کریں', error='صفحہ لوڈ نہیں ہو سکا۔ انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔',
             loading='مصحف کھل رہا ہے…', text='متن', meaning='ترجمہ', index='سورت', tr='ترجمہ', prev='پچھلا صفحہ', next='اگلا صفحہ',
             hint='تیروں یا صفحہ سرکا کر ورق پلٹیں', btn='کتابی صورت میں پڑھیں'),
- 'fr': dict(fontCredit='Police du Mushaf : Complexe du Roi Fahd pour l’impression du Saint Coran', title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
+ 'fr': dict(full='Ouvrir le Coran complet', fontCredit='Police du Mushaf : Complexe du Roi Fahd pour l’impression du Saint Coran', title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
             page='Page', notes='Notes du traducteur', retry='Réessayer', error='La page n’a pas pu être chargée. Vérifiez votre connexion et réessayez.',
             loading='Ouverture du livre…', text='Arabe', meaning='Sens', index='Sourate', tr='Traduction', prev='Page précédente', next='Page suivante',
             hint='Tournez les pages avec les flèches ou en faisant glisser', btn='Lire comme un livre'),
- 'es': dict(fontCredit='Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán', title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
+ 'es': dict(full='Abrir el Corán completo', fontCredit='Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán', title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
             page='Página', notes='Notas del traductor', retry='Reintentar', error='No se pudo cargar la página. Revisa tu conexión e inténtalo de nuevo.',
             loading='Abriendo el libro…', text='Árabe', meaning='Significado', index='Sura', tr='Traducción', prev='Página anterior', next='Página siguiente',
             hint='Pasa las páginas con las flechas o deslizando', btn='Leer como un libro'),
- 'ru': dict(fontCredit='Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана', title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
+ 'ru': dict(full='Открыть весь Коран', fontCredit='Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана', title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
             page='Стр.', notes='Примечания переводчика', retry='Повторить', error='Не удалось загрузить страницу. Проверьте соединение и попробуйте снова.',
             loading='Открываем книгу…', text='Арабский', meaning='Смысл', index='Сура', tr='Перевод', prev='Предыдущая страница', next='Следующая страница',
             hint='Листайте стрелками или свайпом', btn='Читать как книгу'),
@@ -107,25 +107,25 @@ def page(lang):
 <header class="bk-bar">
   <a class="bk-back" href="{fb['home']}">{fb['back']}</a>
   <h1 class="bk-title">{u['title']}</h1>
-  <select class="bk-ctl" id="surahSel" aria-label="{u['index']}"></select>
-  <label class="bk-pageno">{u['page']} <input class="bk-ctl" id="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
-  <select class="bk-ctl" id="trSel" aria-label="{u['tr']}"></select>
+  <select class="bk-ctl" data-bk="surahSel" aria-label="{u['index']}"></select>
+  <label class="bk-pageno">{u['page']} <input class="bk-ctl" data-bk="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
+  <select class="bk-ctl" data-bk="trSel" aria-label="{u['tr']}"></select>
   <div class="bk-tabs">
     <button class="bk-tab" data-show="ar">{u['text']}</button>
     <button class="bk-tab" data-show="tr">{u['meaning']}</button>
   </div>
 </header>
 <main class="bk-stage">
-  <button class="bk-nav" id="prev" aria-label="{u['prev']}" title="{u['prev']}">&#8250;</button>
-  <div class="bk-book anim" id="book">
-    <section class="bk-page bk-ar" id="pgAr" lang="ar"></section>
-    <section class="bk-page bk-tr" id="pgTr"></section>
+  <button class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}">&#8250;</button>
+  <div class="bk-book anim" data-bk="book">
+    <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+    <section class="bk-page bk-tr" data-bk="pgTr"></section>
   </div>
-  <button class="bk-nav" id="next" aria-label="{u['next']}" title="{u['next']}">&#8249;</button>
+  <button class="bk-nav" data-bk="next" aria-label="{u['next']}" title="{u['next']}">&#8249;</button>
 </main>
 <div class="bk-bottom">
-  <input type="range" id="range" min="1" max="604" value="1" aria-label="{u['page']}">
-  <small id="rangeLbl"></small>
+  <input type="range" data-bk="range" min="1" max="604" value="1" aria-label="{u['page']}">
+  <small data-bk="rangeLbl"></small>
   <small class="bk-hint">{u['hint']}</small>
   <small class="bk-fontcredit">{u['fontCredit']}</small>
 </div>
@@ -141,10 +141,50 @@ BTN_CSS = ('  .reader-book{ display:inline-flex; align-items:center; gap:6px; pa
            'border:1px solid var(--gold); color:var(--gold-soft); text-decoration:none; font-size:0.85rem; white-space:nowrap; }\n'
            '  .reader-book:hover{ background:rgba(200,155,60,0.15); }\n')
 
+EMBED_START, EMBED_END = '<!--book-embed-->', '<!--/book-embed-->'
+HEAD_CSS = '<link rel="stylesheet" href="/css/book.css">'
+BOOK_JS = '<script src="/js/book.js" defer></script>'
+
+def embed(lang):
+    """The open book shown on the home page, under «… فاقرأ رسالته إليك». Arabic page: a two-page Mushaf."""
+    u = UI[lang]
+    mushaf = lang == 'ar'
+    cfg = dict(lang=lang, mode='mushaf' if mushaf else 'bilingual', arabicDigits=(lang == 'ar'),
+               defaultShow='tr', defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
+               arabicNames=AR_NAMES, names=NAMES,
+               ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading')})
+    data = html.escape(json.dumps(cfg, ensure_ascii=False), quote=True)
+    bar = '' if mushaf else (
+        f'\n    <select class="bk-ctl" data-bk="trSel" aria-label="{u["tr"]}"></select>'
+        f'\n    <div class="bk-tabs"><button type="button" class="bk-tab" data-show="ar">{u["text"]}</button>'
+        f'<button type="button" class="bk-tab" data-show="tr">{u["meaning"]}</button></div>')
+    return f'''{EMBED_START}
+<section class="bk-embed reveal" data-book="{data}">
+  <div class="bk-embed-bar">{bar}
+  </div>
+  <div class="bk-stage">
+    <button type="button" class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}">&#8250;</button>
+    <div class="bk-book anim" data-bk="book">
+      <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+      <section class="bk-page bk-tr" data-bk="pgTr"></section>
+    </div>
+    <button type="button" class="bk-nav" data-bk="next" aria-label="{u['next']}" title="{u['next']}">&#8249;</button>
+  </div>
+  <div class="bk-embed-foot">
+    <small data-bk="rangeLbl"></small>
+    <a class="bk-full" href="{book_path(lang)}">📖 {u['full']}</a>
+    <small>{u['fontCredit']}</small>
+  </div>
+</section>
+{EMBED_END}
+'''
+
 def home_hook(path, lang):
+    """Add (or refresh) on a home page: the reader-header button to /book/, and the embedded book."""
     p = pathlib.Path(path)
     s = p.read_text(encoding='utf-8')
     orig = s
+    # button in the reader header
     s = re.sub(r'\n\s*<a class="reader-book"[^>]*>.*?</a>', '', s, flags=re.S)
     btn = f'\n    <a class="reader-book" href="{book_path(lang)}">📖 {UI[lang]["btn"]}</a>'
     m = re.search(r'(<div class="reader-lang-toggle">.*?</div>)', s, re.S)
@@ -152,6 +192,16 @@ def home_hook(path, lang):
     s = s[:m.end()] + btn + s[m.end():]
     if BTN_CSS not in s:
         s = s.replace('</style>', BTN_CSS + '</style>', 1)
+    # embedded book, before the cards of the «paths» section
+    s = re.sub(re.escape(EMBED_START) + '.*?' + re.escape(EMBED_END) + '\n?', '', s, flags=re.S)
+    anchor = s.find('<div class="paths-grid">', s.find('id="paths"'))
+    assert anchor > 0, path
+    line = s.rfind('\n', 0, anchor) + 1
+    s = s[:line] + embed(lang) + s[line:]
+    if HEAD_CSS not in s:
+        s = s.replace('</head>', HEAD_CSS + '\n</head>', 1)
+    if BOOK_JS not in s:
+        s = s.replace('</body>', BOOK_JS + '\n</body>', 1)
     if s != orig:
         p.write_text(s, encoding='utf-8')
     return s != orig

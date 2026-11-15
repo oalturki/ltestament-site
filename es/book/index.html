@@ -32,25 +32,25 @@
 <header class="bk-bar">
   <a class="bk-back" href="/es/">← Volver a El Último Testamento</a>
   <h1 class="bk-title">El Corán como un libro</h1>
-  <select class="bk-ctl" id="surahSel" aria-label="Sura"></select>
-  <label class="bk-pageno">Página <input class="bk-ctl" id="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
-  <select class="bk-ctl" id="trSel" aria-label="Traducción"></select>
+  <select class="bk-ctl" data-bk="surahSel" aria-label="Sura"></select>
+  <label class="bk-pageno">Página <input class="bk-ctl" data-bk="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
+  <select class="bk-ctl" data-bk="trSel" aria-label="Traducción"></select>
   <div class="bk-tabs">
     <button class="bk-tab" data-show="ar">Árabe</button>
     <button class="bk-tab" data-show="tr">Significado</button>
   </div>
 </header>
 <main class="bk-stage">
-  <button class="bk-nav" id="prev" aria-label="Página anterior" title="Página anterior">&#8250;</button>
-  <div class="bk-book anim" id="book">
-    <section class="bk-page bk-ar" id="pgAr" lang="ar"></section>
-    <section class="bk-page bk-tr" id="pgTr"></section>
+  <button class="bk-nav" data-bk="prev" aria-label="Página anterior" title="Página anterior">&#8250;</button>
+  <div class="bk-book anim" data-bk="book">
+    <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+    <section class="bk-page bk-tr" data-bk="pgTr"></section>
   </div>
-  <button class="bk-nav" id="next" aria-label="Página siguiente" title="Página siguiente">&#8249;</button>
+  <button class="bk-nav" data-bk="next" aria-label="Página siguiente" title="Página siguiente">&#8249;</button>
 </main>
 <div class="bk-bottom">
-  <input type="range" id="range" min="1" max="604" value="1" aria-label="Página">
-  <small id="rangeLbl"></small>
+  <input type="range" data-bk="range" min="1" max="604" value="1" aria-label="Página">
+  <small data-bk="rangeLbl"></small>
   <small class="bk-hint">Pasa las páginas con las flechas o deslizando</small>
   <small class="bk-fontcredit">Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán</small>
 </div>

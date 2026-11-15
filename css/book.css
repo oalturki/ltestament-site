@@ -1,13 +1,14 @@
-/* «المصحف ككتاب» — open-book reader: Mushaf page (Arabic) on the right, its meaning on the left.
-   Page layout follows the Madinah Mushaf (604 pages). Used by /book/ and /<lang>/book/. */
-:root{
+/* «المصحف ككتاب» — open-book reader: Mushaf page (Arabic) on the right, its meaning (or the next Mushaf page) on the left.
+   Page layout follows the Madinah Mushaf (604 pages). Used by /book/, /<lang>/book/ and the book embedded in each home page
+   (.bk-embed). Everything is scoped to .bk / .bk-embed so it never touches the rest of a home page. */
+.bk, .bk-embed{
   --night:#101B33; --night-deep:#0A1425; --parch:#F3E8D0; --paper:#FBF5E6; --paper-2:#F6EEDA;
   --ink:#1B1B18; --muted:#7a7158; --gold:#C89B3C; --gold-soft:#DCC078; --teal:#3E7C74;
   }
-*{ margin:0; padding:0; box-sizing:border-box; }
-html, body{ height:100%; }
+:where(.bk, .bk-embed) :where(*){ margin:0; padding:0; box-sizing:border-box; }
+html:has(body.bk), body.bk{ height:100%; margin:0; }
 body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; background:radial-gradient(ellipse at 50% 40%, #1a2a4d 0%, var(--night-deep) 70%); color:var(--parch); overflow:hidden; }
-[hidden]{ display:none !important; }
+:where(.bk, .bk-embed) [hidden]{ display:none !important; }
 /* Mushaf font of the King Fahd Glorious Quran Printing Complex (KFGQPC HAFS Uthmanic Script, v2.2), served unmodified. */
 @font-face{ font-family:'KFGQPC Hafs'; src:url('/fonts/UthmanicHafs_V22.ttf') format('truetype'); font-display:swap; }
 
@@ -47,18 +48,18 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 .bk-foot span{ display:inline-block; min-width:34px; padding:1px 8px; border:1px solid rgba(200,155,60,0.5); border-radius:12px; }
 
 /* Arabic (Mushaf) text */
-.bk-ar .bk-content{ font-family:'KFGQPC Hafs','Amiri Quran',serif; line-height:2.05; text-align:justify; text-align-last:center; color:#1d1a12; }
-.bk-ar .ayah-end{ font-family:'KFGQPC Hafs',serif; color:#8a6a1f; white-space:nowrap; padding:0 1px; }
+.bk-arpage .bk-content{ font-family:'KFGQPC Hafs','Amiri Quran',serif; line-height:2.05; text-align:justify; text-align-last:center; color:#1d1a12; }
+.bk-arpage .ayah-end{ font-family:'KFGQPC Hafs',serif; color:#8a6a1f; white-space:nowrap; padding:0 1px; }
 .bk-surah{ text-align:center; margin:4px 0 6px; padding:6px 0; border:1px solid rgba(200,155,60,0.6); border-radius:6px;
   background:linear-gradient(90deg, rgba(200,155,60,0.08), rgba(200,155,60,0.18), rgba(200,155,60,0.08)); color:#6b5420; font-family:'Amiri',serif; font-weight:700; font-size:1.05em; line-height:1.6; }
 .bk-basmala{ text-align:center; font-family:'KFGQPC Hafs','Amiri Quran',serif; color:#3a3222; margin-bottom:4px; line-height:1.9; }
 
 /* Translation text */
-.bk-tr .bk-content{ line-height:1.7; text-align:justify; hyphens:auto; color:#24211a; }
-.bk-tr .vn{ font-size:0.72em; font-weight:700; color:#8a6a1f; vertical-align:super; margin-inline:2px 3px; }
-.bk-tr sup{ color:#8a6a1f; font-size:0.65em; }
-.bk-tr .bk-surah{ font-family:inherit; font-size:0.95em; }
-.bk-tr .bk-basmala{ font-family:inherit; font-style:italic; }
+.bk-trpage .bk-content{ line-height:1.7; text-align:justify; hyphens:auto; color:#24211a; }
+.bk-trpage .vn{ font-size:0.72em; font-weight:700; color:#8a6a1f; vertical-align:super; margin-inline:2px 3px; }
+.bk-trpage sup{ color:#8a6a1f; font-size:0.65em; }
+.bk-trpage .bk-surah{ font-family:inherit; font-size:0.95em; }
+.bk-trpage .bk-basmala{ font-family:inherit; font-style:italic; }
 .bk-fn{ margin-top:10px; font-size:0.78em; color:#5d5644; border-top:1px dashed rgba(200,155,60,0.5); padding-top:6px; }
 .bk-fn summary{ cursor:pointer; color:#8a6a1f; list-style:none; font-weight:700; }
 .bk-fn summary::-webkit-details-marker{ display:none; }
@@ -95,3 +96,23 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-hint{ display:none; }
 }
 @media (prefers-reduced-motion:reduce){ .bk-book.anim .bk-page{ transition:none; } }
+
+/* ---------- embedded in a home page ---------- */
+.bk-embed{ color:var(--ink); margin:10px auto 56px; max-width:1180px; }
+.bk-embed .bk-stage{ height:min(80vh, 760px); min-height:520px; padding:6px 0 4px; }
+.bk-embed-bar{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+.bk-embed .bk-ctl{ background:#fff; color:var(--ink); border-color:rgba(200,155,60,0.5); }
+.bk-embed .bk-ctl option{ background:#fff; color:var(--ink); }
+.bk-embed .bk-tab{ color:var(--ink); }
+.bk-embed .bk-nav{ background:#fff; color:#8a6a1f; border-color:rgba(200,155,60,0.5); }
+.bk-embed .bk-nav:hover{ background:rgba(200,155,60,0.12); }
+.bk-embed .bk-book{ filter:drop-shadow(0 14px 30px rgba(16,27,51,0.28)); }
+.bk-embed-foot{ display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; margin-top:12px; font-size:0.85rem; color:var(--muted); }
+.bk-embed-foot a.bk-full{ display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:6px; background:var(--night); color:var(--parch); text-decoration:none; font-weight:700; }
+.bk-embed-foot a.bk-full:hover{ background:#1c2b4f; }
+.bk-embed-foot small{ font-size:0.75rem; opacity:0.85; }
+@media (max-width:900px){
+  .bk-embed .bk-stage{ height:min(78vh, 680px); min-height:460px; }
+  .bk-embed .bk-tabs{ display:flex; }
+}
+@media (min-width:901px){ .bk-embed .bk-tabs{ display:none; } }

@@ -32,25 +32,25 @@
 <header class="bk-bar">
   <a class="bk-back" href="/en/">← Back to The Last Testament</a>
   <h1 class="bk-title">The Quran as a book</h1>
-  <select class="bk-ctl" id="surahSel" aria-label="Surah"></select>
-  <label class="bk-pageno">Page <input class="bk-ctl" id="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
-  <select class="bk-ctl" id="trSel" aria-label="Translation"></select>
+  <select class="bk-ctl" data-bk="surahSel" aria-label="Surah"></select>
+  <label class="bk-pageno">Page <input class="bk-ctl" data-bk="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
+  <select class="bk-ctl" data-bk="trSel" aria-label="Translation"></select>
   <div class="bk-tabs">
     <button class="bk-tab" data-show="ar">Arabic</button>
     <button class="bk-tab" data-show="tr">Meaning</button>
   </div>
 </header>
 <main class="bk-stage">
-  <button class="bk-nav" id="prev" aria-label="Previous page" title="Previous page">&#8250;</button>
-  <div class="bk-book anim" id="book">
-    <section class="bk-page bk-ar" id="pgAr" lang="ar"></section>
-    <section class="bk-page bk-tr" id="pgTr"></section>
+  <button class="bk-nav" data-bk="prev" aria-label="Previous page" title="Previous page">&#8250;</button>
+  <div class="bk-book anim" data-bk="book">
+    <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+    <section class="bk-page bk-tr" data-bk="pgTr"></section>
   </div>
-  <button class="bk-nav" id="next" aria-label="Next page" title="Next page">&#8249;</button>
+  <button class="bk-nav" data-bk="next" aria-label="Next page" title="Next page">&#8249;</button>
 </main>
 <div class="bk-bottom">
-  <input type="range" id="range" min="1" max="604" value="1" aria-label="Page">
-  <small id="rangeLbl"></small>
+  <input type="range" data-bk="range" min="1" max="604" value="1" aria-label="Page">
+  <small data-bk="rangeLbl"></small>
   <small class="bk-hint">Turn pages with the arrows or by swiping</small>
   <small class="bk-fontcredit">Mushaf font: King Fahd Glorious Quran Printing Complex</small>
 </div>

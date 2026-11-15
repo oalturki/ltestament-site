@@ -32,25 +32,25 @@
 <header class="bk-bar">
   <a class="bk-back" href="/ru/">← Вернуться к «Последнему Завету»</a>
   <h1 class="bk-title">Коран как книга</h1>
-  <select class="bk-ctl" id="surahSel" aria-label="Сура"></select>
-  <label class="bk-pageno">Стр. <input class="bk-ctl" id="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
-  <select class="bk-ctl" id="trSel" aria-label="Перевод"></select>
+  <select class="bk-ctl" data-bk="surahSel" aria-label="Сура"></select>
+  <label class="bk-pageno">Стр. <input class="bk-ctl" data-bk="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
+  <select class="bk-ctl" data-bk="trSel" aria-label="Перевод"></select>
   <div class="bk-tabs">
     <button class="bk-tab" data-show="ar">Арабский</button>
     <button class="bk-tab" data-show="tr">Смысл</button>
   </div>
 </header>
 <main class="bk-stage">
-  <button class="bk-nav" id="prev" aria-label="Предыдущая страница" title="Предыдущая страница">&#8250;</button>
-  <div class="bk-book anim" id="book">
-    <section class="bk-page bk-ar" id="pgAr" lang="ar"></section>
-    <section class="bk-page bk-tr" id="pgTr"></section>
+  <button class="bk-nav" data-bk="prev" aria-label="Предыдущая страница" title="Предыдущая страница">&#8250;</button>
+  <div class="bk-book anim" data-bk="book">
+    <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+    <section class="bk-page bk-tr" data-bk="pgTr"></section>
   </div>
-  <button class="bk-nav" id="next" aria-label="Следующая страница" title="Следующая страница">&#8249;</button>
+  <button class="bk-nav" data-bk="next" aria-label="Следующая страница" title="Следующая страница">&#8249;</button>
 </main>
 <div class="bk-bottom">
-  <input type="range" id="range" min="1" max="604" value="1" aria-label="Стр.">
-  <small id="rangeLbl"></small>
+  <input type="range" data-bk="range" min="1" max="604" value="1" aria-label="Стр.">
+  <small data-bk="rangeLbl"></small>
   <small class="bk-hint">Листайте стрелками или свайпом</small>
   <small class="bk-fontcredit">Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана</small>
 </div>
