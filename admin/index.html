@@ -115,6 +115,20 @@
       <div class="pw"><input id="password" name="password" type="password" autocomplete="current-password" required><button type="button" class="pw-toggle" id="pwToggle" aria-label="إظهار كلمة المرور">إظهار</button></div>
       <button class="btn btn-gold" type="submit">دخول</button>
       <p class="msg" id="loginMsg"></p>
+      <p style="text-align:center;margin-top:6px"><button type="button" class="pw-toggle" id="forgot" style="position:static;transform:none">نسيت كلمة المرور؟</button></p>
+    </form>
+  </section>
+
+  <section class="card login" id="resetBox" hidden>
+    <h2>تعيين كلمة مرور جديدة</h2>
+    <form id="resetForm" method="post" action="#">
+      <input type="email" name="email" id="resetEmail" autocomplete="username" hidden>
+      <label for="newPw">كلمة المرور الجديدة (8 أحرف على الأقل)</label>
+      <div class="pw"><input id="newPw" name="new-password" type="password" autocomplete="new-password" minlength="8" required><button type="button" class="pw-toggle" data-toggle="newPw">إظهار</button></div>
+      <label for="newPw2">أعد كتابتها للتأكيد</label>
+      <div class="pw"><input id="newPw2" type="password" autocomplete="new-password" minlength="8" required><button type="button" class="pw-toggle" data-toggle="newPw2">إظهار</button></div>
+      <button class="btn btn-gold" type="submit">حفظ كلمة المرور</button>
+      <p class="msg" id="resetMsg"></p>
     </form>
   </section>
 
@@ -224,6 +238,10 @@
       document.getElementById('loginMsg').textContent = 'تعذّر تحميل اللوحة. حدّث الصفحة، وإن تكرر الخطأ فأبلغ الدعم الفني.';
     }
   });
+  // Password-recovery links arrive with #...type=recovery (or an error such as otp_expired) in the URL.
+  const HASH = new URLSearchParams(location.hash.replace(/^#/, ''));
+  let recovery = HASH.get('type') === 'recovery';
+  const linkError = HASH.get('error_description');
   const sb = supabase.createClient('https://nikwwjswwlwcqekbnpzq.supabase.co', 'sb_publishable_k8fRjG4b4EMj5TH9yXR3qQ_w-fqi76l');
   const LANG = { ar:'العربية', en:'English', ur:'اردو', fr:'Français', es:'Español', ru:'Русский', all:'المجموع' };
   const STATUS = { pending:'بانتظار المراجعة', approved:'منشور', rejected:'مرفوض' };
@@ -233,9 +251,22 @@
 
   let role = null, me = null, staff = [], qStatus = 'new';
 
-  async function start(){
+  sb.auth.onAuthStateChange((event) => { if(event === 'PASSWORD_RECOVERY'){ recovery = true; showReset(); } });
+  async function showReset(){
     const { data:{ session } } = await sb.auth.getSession();
-    if(!session){ $('loginBox').hidden = false; $('panel').hidden = true; $('who').hidden = true; return; }
+    if(!session) return;
+    $('loginBox').hidden = true; $('panel').hidden = true; $('who').hidden = true;
+    $('resetBox').hidden = false; $('resetEmail').value = session.user.email;
+    history.replaceState(null, '', location.pathname);
+  }
+  async function start(){
+    if(recovery){ await showReset(); if(!$('resetBox').hidden) return; }
+    const { data:{ session } } = await sb.auth.getSession();
+    if(!session){
+      $('loginBox').hidden = false; $('panel').hidden = true; $('who').hidden = true;
+      if(linkError){ $('loginMsg').textContent = 'رابط إعادة الضبط منتهي الصلاحية أو استُخدم من قبل. اطلب رابطًا جديدًا من «نسيت كلمة المرور؟».'; history.replaceState(null, '', location.pathname); }
+      return;
+    }
     const { data:r, error } = await sb.rpc('my_role');
     if(error || !r){
       await sb.auth.signOut();
@@ -355,10 +386,36 @@
 
   $('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    $('loginMsg').textContent = '';
+    $('loginMsg').textContent = ''; $('loginMsg').style.color = '';
     const { error } = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('password').value });
     if(error){ $('loginMsg').textContent = 'البريد أو كلمة المرور غير صحيحة.'; return; }
     start();
+  });
+  $('forgot').addEventListener('click', async () => {
+    const email = $('email').value.trim();
+    if(!email){ $('loginMsg').textContent = 'اكتب بريدك الإلكتروني أولًا، ثم اضغط «نسيت كلمة المرور؟».'; $('email').focus(); return; }
+    $('forgot').disabled = true;
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + '/admin/' });
+    $('forgot').disabled = false;
+    $('loginMsg').style.color = 'var(--teal)';
+    $('loginMsg').textContent = 'إن كان البريد مسجّلًا لدينا فستصلك رسالة فيها رابط لتعيين كلمة مرور جديدة. افتح الرابط من هذا الجهاز.';
+  });
+  document.querySelectorAll('[data-toggle]').forEach(b => b.addEventListener('click', () => {
+    const i = $(b.dataset.toggle), show = i.type === 'password';
+    i.type = show ? 'text' : 'password'; b.textContent = show ? 'إخفاء' : 'إظهار';
+  }));
+  $('resetForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const a = $('newPw').value, b = $('newPw2').value;
+    $('resetMsg').style.color = '';
+    if(a.length < 8){ $('resetMsg').textContent = 'كلمة المرور قصيرة؛ 8 أحرف على الأقل.'; return; }
+    if(a !== b){ $('resetMsg').textContent = 'الكلمتان غير متطابقتين.'; return; }
+    const { error } = await sb.auth.updateUser({ password: a });
+    if(error){ $('resetMsg').textContent = 'تعذّر الحفظ: ' + error.message; return; }
+    $('resetMsg').style.color = 'var(--teal)';
+    $('resetMsg').textContent = '✓ حُفظت كلمة المرور الجديدة. جارٍ فتح اللوحة…';
+    recovery = false;
+    setTimeout(() => { $('resetBox').hidden = true; start(); }, 1200);
   });
   $('pwToggle').addEventListener('click', () => {
     const pw = $('password'), show = pw.type === 'password';
