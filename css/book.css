@@ -1,0 +1,94 @@
+/* «المصحف ككتاب» — open-book reader: Mushaf page (Arabic) on the right, its meaning on the left.
+   Page layout follows the Madinah Mushaf (604 pages). Used by /book/ and /<lang>/book/. */
+:root{
+  --night:#101B33; --night-deep:#0A1425; --parch:#F3E8D0; --paper:#FBF5E6; --paper-2:#F6EEDA;
+  --ink:#1B1B18; --muted:#7a7158; --gold:#C89B3C; --gold-soft:#DCC078; --teal:#3E7C74;
+  }
+*{ margin:0; padding:0; box-sizing:border-box; }
+html, body{ height:100%; }
+body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; background:radial-gradient(ellipse at 50% 40%, #1a2a4d 0%, var(--night-deep) 70%); color:var(--parch); overflow:hidden; }
+[hidden]{ display:none !important; }
+
+/* ---------- top bar ---------- */
+.bk-bar{ flex:0 0 auto; min-height:62px; display:flex; align-items:center; gap:10px; padding:0 3vw; border-bottom:1px solid rgba(200,155,60,0.18); flex-wrap:nowrap; }
+.bk-back{ color:var(--gold-soft); text-decoration:none; font-size:0.9rem; white-space:nowrap; }
+.bk-title{ font-weight:700; font-size:1rem; color:var(--parch); white-space:nowrap; margin-inline-end:auto; }
+.bk-ctl{ background:rgba(255,255,255,0.06); color:var(--parch); border:1px solid rgba(200,155,60,0.3); border-radius:6px; padding:7px 9px; font:inherit; font-size:0.85rem; max-width:190px; }
+.bk-ctl option{ background:var(--night); color:var(--parch); }
+.bk-pageno{ display:flex; align-items:center; gap:6px; font-size:0.85rem; color:#b9b09a; white-space:nowrap; }
+.bk-pageno input{ width:58px; text-align:center; }
+.bk-tabs{ display:none; gap:4px; }
+.bk-tab{ padding:7px 12px; border-radius:6px; border:1px solid rgba(200,155,60,0.3); background:transparent; color:var(--parch); font:inherit; font-size:0.85rem; cursor:pointer; }
+.bk-tab.on{ background:var(--gold); color:var(--night-deep); border-color:var(--gold); font-weight:700; }
+
+/* ---------- stage & book ---------- */
+.bk-stage{ direction:rtl; flex:1; min-height:0; display:flex; align-items:center; justify-content:center; gap:14px; padding:18px 2vw 8px; }
+.bk-nav{ flex:0 0 46px; height:46px; border-radius:50%; border:1px solid rgba(200,155,60,0.35); background:rgba(255,255,255,0.04); color:var(--gold-soft); font-size:1.6rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.bk-nav:hover{ background:rgba(200,155,60,0.15); }
+.bk-nav:disabled{ opacity:0.25; cursor:default; }
+.bk-book{ position:relative; height:100%; width:min(1180px, 100%); display:flex; direction:rtl; perspective:2200px;
+  filter:drop-shadow(0 18px 40px rgba(0,0,0,0.55)); }
+.bk-book::after{ /* spine shadow */ content:""; position:absolute; top:0; bottom:0; left:50%; width:36px; transform:translateX(-50%);
+  background:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.16) 45%, rgba(0,0,0,0.22) 50%, rgba(0,0,0,0.16) 55%, rgba(0,0,0,0) 100%); pointer-events:none; }
+
+.bk-page{ position:relative; flex:1 1 50%; height:100%; background:linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 100%); color:var(--ink);
+  display:flex; flex-direction:column; padding:22px 28px 14px; transform-style:preserve-3d; backface-visibility:hidden; overflow:hidden; }
+.bk-ar{ border-radius:3px 10px 10px 3px; direction:rtl; transform-origin:left center; }   /* right-hand page; spine on its left */
+.bk-tr{ border-radius:10px 3px 3px 10px; transform-origin:right center; }                 /* left-hand page; spine on its right */
+.bk-page::before{ /* gold frame */ content:""; position:absolute; inset:9px; border:1px solid rgba(200,155,60,0.55); border-radius:4px; pointer-events:none; }
+
+.bk-head{ display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--muted); padding:0 4px 8px; border-bottom:1px solid rgba(200,155,60,0.35); margin-bottom:10px; gap:8px; }
+.bk-head b{ color:#6b5420; font-weight:700; }
+.bk-content{ flex:1; overflow:hidden; padding:0 4px; }
+.bk-content.scroll{ overflow-y:auto; }
+.bk-foot{ text-align:center; font-size:0.8rem; color:var(--muted); padding-top:6px; }
+.bk-foot span{ display:inline-block; min-width:34px; padding:1px 8px; border:1px solid rgba(200,155,60,0.5); border-radius:12px; }
+
+/* Arabic (Mushaf) text */
+.bk-ar .bk-content{ font-family:'Amiri Quran','Amiri',serif; line-height:2.15; text-align:justify; text-align-last:center; color:#1d1a12; }
+.bk-ar .ayah-end{ font-family:'Amiri',serif; color:#8a6a1f; font-size:0.82em; white-space:nowrap; padding:0 2px; }
+.bk-surah{ text-align:center; margin:4px 0 6px; padding:6px 0; border:1px solid rgba(200,155,60,0.6); border-radius:6px;
+  background:linear-gradient(90deg, rgba(200,155,60,0.08), rgba(200,155,60,0.18), rgba(200,155,60,0.08)); color:#6b5420; font-family:'Amiri',serif; font-weight:700; font-size:1.05em; line-height:1.6; }
+.bk-basmala{ text-align:center; font-family:'Amiri Quran','Amiri',serif; color:#3a3222; margin-bottom:4px; line-height:1.9; }
+
+/* Translation text */
+.bk-tr .bk-content{ line-height:1.7; text-align:justify; hyphens:auto; color:#24211a; }
+.bk-tr .vn{ font-size:0.72em; font-weight:700; color:#8a6a1f; vertical-align:super; margin-inline:2px 3px; }
+.bk-tr sup{ color:#8a6a1f; font-size:0.65em; }
+.bk-tr .bk-surah{ font-family:inherit; font-size:0.95em; }
+.bk-tr .bk-basmala{ font-family:inherit; font-style:italic; }
+.bk-fn{ margin-top:10px; font-size:0.78em; color:#5d5644; border-top:1px dashed rgba(200,155,60,0.5); padding-top:6px; }
+.bk-fn summary{ cursor:pointer; color:#8a6a1f; list-style:none; font-weight:700; }
+.bk-fn summary::-webkit-details-marker{ display:none; }
+.bk-fn p{ margin-top:5px; white-space:pre-line; line-height:1.55; }
+.bk-credit{ font-size:0.7em; color:var(--muted); margin-top:8px; text-align:center; }
+.bk-credit a{ color:#8a6a1f; }
+
+.bk-msg{ display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted); font-size:0.95rem; text-align:center; padding:20px; }
+
+/* ---------- page-turn animation ---------- */
+.bk-book.anim .bk-page{ transition:transform 0.28s ease-in, filter 0.28s; }
+.fold-l{ transform:rotateY(88deg); filter:brightness(0.8); }   /* left page folds toward the spine */
+.fold-r{ transform:rotateY(-88deg); filter:brightness(0.8); }  /* right page folds toward the spine */
+
+/* ---------- bottom slider ---------- */
+.bk-bottom{ flex:0 0 54px; display:flex; align-items:center; gap:12px; padding:0 6vw; direction:rtl; }
+.bk-bottom input[type=range]{ flex:1; accent-color:var(--gold); }
+.bk-bottom small{ color:#8f8775; font-size:0.78rem; white-space:nowrap; }
+
+/* ---------- single-page (mobile / narrow) ---------- */
+@media (max-width:900px){
+  .bk-bar{ flex-wrap:wrap; padding:8px 3vw; row-gap:8px; }
+  .bk-title{ display:none; }
+  .bk-back{ margin-inline-end:auto; }
+  .bk-tabs{ display:flex; }
+  .bk-ctl{ max-width:150px; }
+  .bk-stage{ padding:10px 2vw 4px; gap:6px; }
+  .bk-nav{ flex-basis:34px; height:34px; font-size:1.2rem; }
+  .bk-book::after{ display:none; }
+  .bk-book[data-show="ar"] .bk-tr, .bk-book[data-show="tr"] .bk-ar{ display:none; }
+  .bk-page{ border-radius:8px !important; padding:16px 16px 10px; }
+  .bk-bottom{ flex-basis:48px; padding:0 4vw; }
+  .bk-hint{ display:none; }
+}
+@media (prefers-reduced-motion:reduce){ .bk-book.anim .bk-page{ transition:none; } }

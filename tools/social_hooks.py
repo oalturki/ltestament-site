@@ -29,7 +29,8 @@ def apply(path, lang=None):
     s = re.sub(r'\s*<a class="footer-x"[^>]*>.*?</a>', '', s, flags=re.S)
     s = re.sub(r'  \.footer-x\{[^\n]*\n', '', s)
     s = re.sub(r'  \.footer-x:hover\{[^\n]*\n', '', s)
-    s = s.replace(CSS, '').replace(BOX, '').replace(SCRIPT, '')
+    had_css = CSS in s
+    s = s.replace(BOX, '').replace(SCRIPT, '')
     # add
     if TWITTER_SITE:
         s = s.replace('<meta name="twitter:card" content="summary_large_image">',
@@ -37,7 +38,8 @@ def apply(path, lang=None):
                       f'<meta name="twitter:site" content="@{TWITTER_SITE}">', 1)
     assert s.count('</footer>') == 1, path
     s = s.replace('\n</footer>', BOX + '\n</footer>', 1)
-    s = s.replace('</style>', CSS + '</style>', 1)
+    if not had_css:
+        s = s.replace('</style>', CSS + '</style>', 1)
     s = s.replace('</body>', SCRIPT + '</body>', 1)
     if s != orig:
         p.write_text(s, encoding='utf-8')

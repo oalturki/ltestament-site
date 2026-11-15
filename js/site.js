@@ -61,7 +61,7 @@
   }
   window.ltTrack = track;
   var path = location.pathname.replace(/^\/(en|ur|fr|es|ru)\//, '/');
-  var page = /^\/ask\//.test(path) ? 'ask' : /^\/feedback\//.test(path) ? 'feedback' : 'home';
+  var page = /^\/ask\//.test(path) ? 'ask' : /^\/feedback\//.test(path) ? 'feedback' : /^\/book\//.test(path) ? 'book' : 'home';
   try {
     if (!sessionStorage.getItem('lt_session')) { sessionStorage.setItem('lt_session', '1'); track('session', page); }
   } catch (e) {}

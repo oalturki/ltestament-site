@@ -449,6 +449,8 @@ def build(code):
         feedback_hooks.apply(out, code)
     import social_hooks
     social_hooks.apply(out, code)
+    import build_book
+    build_book.home_hook(out, code)
     print('built', out)
 
 if __name__ == '__main__':

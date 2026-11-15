@@ -535,6 +535,7 @@
       cf.status === 'ok' ? k('مشاهدات صفحات', nf(cf.totals.views), 'Cloudflare') : '',
       k('جلسات تصفّح', nf(T.session), 'عدّاد الموقع'),
       k('فتح القارئ', nf(T.reader_open), 'عدّاد الموقع'),
+      k('فتح المصحف', nf(T.book_open), 'عدّاد الموقع'),
       k('نوافذ الآيات والأنبياء', nf(T.modal), 'عدّاد الموقع'),
       k('أسئلة واردة', nf(q.count), 'من قاعدة البيانات'),
       k('آراء واردة', nf(f.count), 'من قاعدة البيانات'),
@@ -554,7 +555,7 @@
     const langRows = Object.values(L).sort((a, b) => (b.session || 0) - (a.session || 0));
     $('stLang').innerHTML = rankTable(langRows, [
       { key:'lang', label:'اللغة', fmt: v => LANG[v] || esc(v) },
-      { key:'session', label:'جلسات' }, { key:'view', label:'مشاهدات' }, { key:'reader_open', label:'فتح القارئ' },
+      { key:'session', label:'جلسات' }, { key:'view', label:'مشاهدات' }, { key:'reader_open', label:'فتح القارئ' }, { key:'book_open', label:'فتح المصحف' },
       { key:'ask_submit', label:'أسئلة' }, { key:'feedback_submit', label:'آراء' },
     ]);
     const det = (ev) => (o.details || []).filter(r => r.event === ev).slice(0, 12);
