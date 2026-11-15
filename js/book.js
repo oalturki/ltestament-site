@@ -102,7 +102,7 @@
         html += '<div class="bk-surah">سورة ' + esc(C.arabicNames[x.chapter - 1]) + '</div>';
         if (x.chapter !== 1 && x.chapter !== 9) html += '<div class="bk-basmala">' + esc(basmalaAr(d)) + '</div>';
       }
-      html += esc(x.text) + ' <span class="ayah-end">\u06DD' + arNum(x.verse) + '</span> ';
+      html += esc(x.text) + ' <span class="ayah-end">' + arNum(x.verse) + '</span> ';
     });
     pgAr.innerHTML =
       '<div class="bk-head"><b>سورة ' + esc(C.arabicNames[first - 1]) + '</b><span>الجزء ' + arNum(MAP.juz[p - 1]) + '</span></div>' +
