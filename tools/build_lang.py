@@ -452,6 +452,8 @@ def build(code):
     social_hooks.apply(out, code)
     import build_book
     build_book.home_hook(out, code)
+    import uthmani_hook
+    uthmani_hook.apply(out)
     print('built', out)
 
 if __name__ == '__main__':
