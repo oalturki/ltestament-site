@@ -430,7 +430,7 @@
     if(!rows || !rows.length) return `<tr><td class="empty-list" colspan="${cols.length}">${empty || 'لا توجد بيانات بعد.'}</td></tr>`;
     const max = Math.max(...rows.map(r => r[cols[1].key] || 0)) || 1;
     return `<thead><tr>${cols.map(c => `<th>${c.label}</th>`).join('')}</tr></thead><tbody>` + rows.map(r => `<tr>${cols.map((c, i) => {
-      const v = c.fmt ? c.fmt(r[c.key], r) : (typeof r[c.key] === 'number' ? nf(r[c.key]) : esc(r[c.key]));
+      const v = c.fmt ? c.fmt(r[c.key], r) : (typeof r[c.key] === 'number' || (i > 0 && r[c.key] == null) ? nf(r[c.key]) : esc(r[c.key]));
       return `<td>${v}${i === 1 ? `<span class="bar" style="width:${Math.round(60 * (r[c.key] || 0) / max)}px"></span>` : ''}</td>`;
     }).join('')}</tr>`).join('') + '</tbody>';
   }
