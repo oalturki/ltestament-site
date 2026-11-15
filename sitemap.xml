@@ -186,4 +186,70 @@
     <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/feedback/"/>
     <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/feedback/"/>
   </url>
+  <url>
+    <loc>https://ltestament.com/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/en/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/ur/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/fr/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/es/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
+  <url>
+    <loc>https://ltestament.com/ru/book/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://ltestament.com/book/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://ltestament.com/en/book/"/>
+    <xhtml:link rel="alternate" hreflang="ur" href="https://ltestament.com/ur/book/"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://ltestament.com/fr/book/"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://ltestament.com/es/book/"/>
+    <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
+  </url>
 </urlset>
