@@ -344,7 +344,7 @@ def build(code):
   document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeModal(); });
 
   // ---------- QURAN READER ----------
-  // Arabic text: Uthmani (Hafs) via fawazahmed0/quran-api, with QuranEnc's Arabic text as a fallback.
+  // Arabic text: King Fahd Complex Hafs text via QuranEnc, shown in the Complex font.
   // Translation of the meanings: QuranEnc.com (reviewed translations), fetched per surah.
   const READER = ''' + json.dumps(dict(arabicEdition='ara-quranuthmanihaf', translationKey=L['reader_key'], credit=L['reader_credit']), ensure_ascii=False) + ''';
   const UI = ''' + json.dumps(dict(loading=L['loading'], surah=L['surah_word'], verses=L['verses_word'], note=L['note_word'], error=L['reader_error']), ensure_ascii=False) + ''';
@@ -365,14 +365,15 @@ def build(code):
       return r.json();
     }).finally(()=>clearTimeout(timer));
   }
+  // Arabic: the King Fahd Complex Hafs text (QuranEnc), encoded for the Complex's Uthmanic font.
+  const qeCache = {};
+  function qeSurah(s){
+    if(!qeCache[s]) qeCache[s] = fetchWithTimeout(trUrl(s)).catch(e=>{ delete qeCache[s]; throw e; });
+    return qeCache[s];
+  }
   async function fetchArabic(s){
-    try{
-      const d = await fetchWithTimeout(`https://cdn.jsdelivr.net/gh/fawazahmed0/quran-api@1/editions/${READER.arabicEdition}/${s}.json`);
-      return d.chapter.map(v=>v.text);
-    }catch(e){
-      const d = await fetchWithTimeout(trUrl(s));
-      return [...d.result].sort((a,b)=>a.aya-b.aya).map(v=>v.arabic_text);
-    }
+    const d = await qeSurah(s);
+    return [...d.result].sort((a,b)=>a.aya-b.aya).map(v=>String(v.arabic_text||'').replace(/\\u00a0/g,' ').trim());
   }
 
   function populateSurahSelect(){
@@ -408,7 +409,7 @@ def build(code):
       const needsTr = currentLang === 'tr' || currentLang === 'both';
       const [arAyahs, trData] = await Promise.all([
         needsAr ? fetchArabic(currentSurah) : null,
-        needsTr ? fetchWithTimeout(trUrl(currentSurah)) : null
+        needsTr ? qeSurah(currentSurah) : null
       ]);
       const trAyahs = trData ? [...trData.result].sort((a,b)=>a.aya-b.aya) : null;
       const count = (arAyahs || trAyahs).length;
@@ -417,7 +418,7 @@ def build(code):
       html += `</div>`;
       for(let i=0;i<count;i++){
         html += `<div class="reader-verse"><span class="reader-verse-num">${i+1}</span>`;
-        if(arAyahs) html += `<p class="reader-verse-ar">${arAyahs[i]}</p>`;
+        if(arAyahs) html += `<p class="reader-verse-ar">${arAyahs[i]} <span class="ayah-end">${String(i+1).replace(/[0-9]/g, d=>'٠١٢٣٤٥٦٧٨٩'[d])}</span></p>`;
         if(trAyahs){
           html += `<p class="reader-verse-tr">${fnMarks(trAyahs[i].translation)}</p>`;
           if(trAyahs[i].footnotes) html += `<details class="reader-fn"><summary>${UI.note}</summary><p>${fnMarks(trAyahs[i].footnotes)}</p></details>`;
