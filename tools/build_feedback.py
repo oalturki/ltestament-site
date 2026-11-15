@@ -73,6 +73,7 @@ def page(lang):
   </section>
 </main>
 <script src="/js/feedback.js"></script>
+<script src="/js/site.js" defer></script>
 </body>
 </html>
 '''

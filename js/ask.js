@@ -170,6 +170,7 @@
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         storeSet('ltAskAt', String(Date.now()));
+        if (window.ltTrack) window.ltTrack('ask_submit', method);
         form.innerHTML = `<p class="fb-thanks">${t.thanks}</p>`;
         form.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } catch (err) {

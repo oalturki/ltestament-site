@@ -47,6 +47,44 @@
     }
   }
 
+  /* ---------- Anonymous interaction counter (no IP, no identity; daily totals only) ---------- */
+  var LANGS = ['ar', 'en', 'ur', 'fr', 'es', 'ru'];
+  var tl = LANGS.indexOf(lang) >= 0 ? lang : 'ar';
+  function track(event, detail) {
+    try {
+      fetch('https://nikwwjswwlwcqekbnpzq.supabase.co/rest/v1/rpc/track_event', {
+        method: 'POST', keepalive: true,
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_event: event, p_lang: tl, p_detail: String(detail || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  window.ltTrack = track;
+  var path = location.pathname.replace(/^\/(en|ur|fr|es|ru)\//, '/');
+  var page = /^\/ask\//.test(path) ? 'ask' : /^\/feedback\//.test(path) ? 'feedback' : 'home';
+  try {
+    if (!sessionStorage.getItem('lt_session')) { sessionStorage.setItem('lt_session', '1'); track('session', page); }
+  } catch (e) {}
+  track('view', page);
+  function wrap(name, before) {
+    var fn = window[name];
+    if (typeof fn !== 'function') return;
+    window[name] = function () { try { before.apply(null, arguments); } catch (e) {} return fn.apply(this, arguments); };
+  }
+  wrap('openModal', function (key) { track('modal', key); });
+  wrap('openReader', function () { track('reader_open'); });
+  wrap('loadSurah', function () { var s = document.getElementById('surahSelect'); if (s && s.value) track('surah', s.value); });
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('a');
+    if (!a) return;
+    if (a.closest('.lang-switch')) {
+      var m = (a.getAttribute('href') || '').match(/^\/(en|ur|fr|es|ru)?\/?/);
+      track('lang_switch', (m && m[1]) || 'ar');
+    } else if (a.closest('[data-social]')) {
+      track('social_click', (a.getAttribute('aria-label') || '').split(' ').pop());
+    }
+  }, true);
+
   var cached = null;
   try { cached = JSON.parse(localStorage.getItem(CACHE) || 'null'); } catch (e) {}
   apply(cached);

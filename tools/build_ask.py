@@ -56,6 +56,7 @@ def page(lang):
   </div>
 </main>
 <script src="/js/ask.js"></script>
+<script src="/js/site.js" defer></script>
 </body>
 </html>
 '''

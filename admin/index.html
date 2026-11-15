@@ -76,6 +76,26 @@
   .save-row{ display:flex; gap:12px; align-items:center; margin-top:16px; }
   .ok-msg{ font-size:0.85rem; color:var(--teal); font-weight:700; }
   @media (max-width:560px){ .set-row{ grid-template-columns:1fr auto; } .set-row input[type=url]{ grid-column:1 / -1; grid-row:2; } }
+  .kpis{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-bottom:24px; }
+  .kpi{ background:#FBF4E3; border-top:3px solid var(--gold); padding:14px 16px; }
+  .kpi b{ display:block; font-size:1.6rem; font-weight:800; line-height:1.2; font-family:'Work Sans',sans-serif; }
+  .kpi span{ font-size:0.82rem; color:#6b644f; }
+  .kpi small{ display:block; font-size:0.72rem; color:#a09779; margin-top:2px; }
+  .grid2{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:20px; }
+  .grid2 .card{ margin-bottom:0; }
+  .src-head{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; margin:34px 0 14px; }
+  .src-head h2{ margin:0; }
+  .src-note{ font-size:0.8rem; color:#8a836e; }
+  table.rank td:first-child, table.rank th:first-child{ text-align:start; }
+  table.rank td{ font-size:0.88rem; }
+  .ltr{ direction:ltr; unicode-bidi:isolate; }
+  .bar{ display:inline-block; height:8px; background:var(--gold2); border-radius:4px; vertical-align:middle; margin-inline-start:8px; }
+  .chart{ width:100%; height:170px; display:block; }
+  .chart rect{ fill:var(--gold); } .chart rect.alt{ fill:var(--teal); }
+  .chart text{ font-size:10px; fill:#8a836e; font-family:'Work Sans',sans-serif; }
+  .legend{ display:flex; gap:16px; font-size:0.8rem; color:#6b644f; margin-top:6px; }
+  .legend i{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-inline-end:5px; vertical-align:middle; }
+  .setup{ background:rgba(200,155,60,0.1); border:1px dashed var(--gold); padding:14px 18px; font-size:0.9rem; }
   [hidden]{ display:none !important; }
 </style>
 </head>
@@ -102,6 +122,7 @@
     <nav class="maintabs">
       <button class="maintab on" data-view="viewQuestions">الأسئلة <span class="badge" id="cNew" hidden></span></button>
       <button class="maintab" data-view="viewFeedback" id="tabFeedbackBtn">الآراء والتقييمات</button>
+      <button class="maintab" data-view="viewStats" id="tabStatsBtn">الإحصاءات</button>
       <button class="maintab" data-view="viewSettings" id="tabSettingsBtn">إعدادات الموقع</button>
     </nav>
 
@@ -148,6 +169,30 @@
       </div>
       <div id="list"></div>
     </div>
+    </div>
+
+    <div id="viewStats" hidden>
+      <div class="filters">
+        <button class="tab stab" data-days="7">آخر 7 أيام</button>
+        <button class="tab stab on" data-days="30">آخر 30 يومًا</button>
+        <button class="tab stab" data-days="90">آخر 90 يومًا</button>
+        <span class="src-note" id="stInfo"></span>
+      </div>
+      <div class="kpis" id="stKpis"></div>
+      <div class="card"><h2>الزيارات اليومية</h2><svg class="chart" id="stChart" preserveAspectRatio="none"></svg><div class="legend" id="stLegend"></div></div>
+
+      <div class="src-head"><h2>تفاعل الزوار داخل الموقع</h2><span class="src-note">عدّاد الموقع نفسه · بلا بيانات شخصية · يبدأ من 15 نوفمبر 2026</span></div>
+      <div class="card"><h2>حسب اللغة</h2><table class="rank" id="stLang"></table></div>
+      <div class="grid2">
+        <div class="card"><h2>السور الأكثر قراءة</h2><table class="rank" id="stSurah"></table></div>
+        <div class="card"><h2>نوافذ الآيات والأنبياء الأكثر فتحًا</h2><table class="rank" id="stModal"></table></div>
+      </div>
+
+      <div class="src-head"><h2>زيارات Cloudflare</h2><span class="src-note">Cloudflare Web Analytics</span></div>
+      <div id="stCf"></div>
+
+      <div class="src-head"><h2>البحث في جوجل</h2><span class="src-note">Google Search Console · تتأخر بياناته يومين أو ثلاثة</span></div>
+      <div id="stGsc"></div>
     </div>
 
     <div id="viewSettings" hidden>
@@ -206,6 +251,7 @@
     } else {
       $('tabFeedbackBtn').hidden = true;
       $('tabSettingsBtn').hidden = true;
+      $('tabStatsBtn').hidden = true;
       $('qTitle').textContent = 'الأسئلة المسندة إليك';
       qStatus = 'assigned';
       document.querySelectorAll('.qtab').forEach(x => x.classList.toggle('on', x.dataset.q === 'assigned'));
@@ -302,6 +348,8 @@
     $('viewQuestions').hidden = t.dataset.view !== 'viewQuestions';
     $('viewFeedback').hidden = t.dataset.view !== 'viewFeedback';
     $('viewSettings').hidden = t.dataset.view !== 'viewSettings';
+    $('viewStats').hidden = t.dataset.view !== 'viewStats';
+    if(t.dataset.view === 'viewStats') loadStatsTab();
     if(t.dataset.view === 'viewSettings') loadSettings();
   }));
 
@@ -367,6 +415,131 @@
     status = t.dataset.status; loadList();
   }));
   $('langFilter').addEventListener('change', loadList);
+
+
+  /* ---------- Statistics (admin only) ---------- */
+  const SURAH = ["الفاتحة","البقرة","آل عمران","النساء","المائدة","الأنعام","الأعراف","الأنفال","التوبة","يونس","هود","يوسف","الرعد","إبراهيم","الحجر","النحل","الإسراء","الكهف","مريم","طه","الأنبياء","الحج","المؤمنون","النور","الفرقان","الشعراء","النمل","القصص","العنكبوت","الروم","لقمان","السجدة","الأحزاب","سبأ","فاطر","يس","الصافات","ص","الزمر","غافر","فصلت","الشورى","الزخرف","الدخان","الجاثية","الأحقاف","محمد","الفتح","الحجرات","ق","الذاريات","الطور","النجم","القمر","الرحمن","الواقعة","الحديد","المجادلة","الحشر","الممتحنة","الصف","الجمعة","المنافقون","التغابن","الطلاق","التحريم","الملك","القلم","الحاقة","المعارج","نوح","الجن","المزمل","المدثر","القيامة","الإنسان","المرسلات","النبأ","النازعات","عبس","التكوير","الانفطار","المطففين","الانشقاق","البروج","الطارق","الأعلى","الغاشية","الفجر","البلد","الشمس","الليل","الضحى","الشرح","التين","العلق","القدر","البينة","الزلزلة","العاديات","القارعة","التكاثر","العصر","الهمزة","الفيل","قريش","الماعون","الكوثر","الكافرون","النصر","المسد","الإخلاص","الفلق","الناس"];
+  const MODAL = { torah:'التوراة', injil:'الإنجيل', quran:'القرآن', moses:'موسى', jesus:'عيسى', mary:'مريم', abraham:'إبراهيم', david:'داود', solomon:'سليمان', patriarchs:'إسماعيل وإسحاق ويعقوب', muhammad:'محمد ﷺ' };
+  const PAGE = { home:'الرئيسية', ask:'اسأل سؤالك', feedback:'رأيك يهمنا' };
+  const DEVICE = { desktop:'كمبيوتر', mobile:'جوال', tablet:'لوحي' };
+  const nf = (n) => Number(n || 0).toLocaleString('ar-SA-u-nu-latn');
+  const pct = (x) => (x * 100).toLocaleString('ar-SA-u-nu-latn', { maximumFractionDigits:1 }) + '%';
+  let stDays = 30;
+
+  function rankTable(rows, cols, empty){
+    if(!rows || !rows.length) return `<tr><td class="empty-list" colspan="${cols.length}">${empty || 'لا توجد بيانات بعد.'}</td></tr>`;
+    const max = Math.max(...rows.map(r => r[cols[1].key] || 0)) || 1;
+    return `<thead><tr>${cols.map(c => `<th>${c.label}</th>`).join('')}</tr></thead><tbody>` + rows.map(r => `<tr>${cols.map((c, i) => {
+      const v = c.fmt ? c.fmt(r[c.key], r) : (typeof r[c.key] === 'number' ? nf(r[c.key]) : esc(r[c.key]));
+      return `<td>${v}${i === 1 ? `<span class="bar" style="width:${Math.round(60 * (r[c.key] || 0) / max)}px"></span>` : ''}</td>`;
+    }).join('')}</tr>`).join('') + '</tbody>';
+  }
+  function setupBox(html){ return `<div class="setup">${html}</div>`; }
+
+  function drawChart(series){ // series: [{label, color, pts:[{day, v}]}]
+    const svg = $('stChart'), W = 700, H = 170, pad = 22;
+    const days = [...new Set(series.flatMap(s => s.pts.map(p => p.day)))].sort();
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    if(!days.length){ svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle">لا توجد بيانات بعد</text>`; $('stLegend').innerHTML = ''; return; }
+    const max = Math.max(1, ...series.flatMap(s => s.pts.map(p => p.v)));
+    const slot = (W - pad) / days.length, bw = Math.max(1, slot / series.length - 1);
+    let out = '';
+    days.forEach((d, i) => series.forEach((s, k) => {
+      const p = s.pts.find(x => x.day === d); const v = p ? p.v : 0; const h = (H - pad - 6) * v / max;
+      out += `<rect class="${k ? 'alt' : ''}" x="${W - (i + 1) * slot + k * (bw + 1)}" y="${H - pad - h}" width="${bw}" height="${h}"><title>${d}: ${v}</title></rect>`;
+    }));
+    const step = Math.ceil(days.length / 7);
+    days.forEach((d, i) => { if(i % step === 0) out += `<text x="${W - i * slot - slot / 2}" y="${H - 6}" text-anchor="middle">${d.slice(5)}</text>`; });
+    out += `<text x="2" y="12">${max}</text>`;
+    svg.innerHTML = out;
+    $('stLegend').innerHTML = series.map((s, k) => `<span><i style="background:${k ? 'var(--teal)' : 'var(--gold)'}"></i>${s.label}</span>`).join('');
+  }
+
+  async function loadStatsTab(){
+    $('stInfo').textContent = 'جارٍ التحميل…';
+    const since = new Date(Date.now() - (stDays - 1) * 86400000).toISOString().slice(0, 10);
+    const [own, ext, q, f] = await Promise.all([
+      sb.rpc('site_stats', { p_days: stDays }),
+      sb.functions.invoke('admin-stats', { body: { days: stDays } }),
+      sb.from('questions').select('id', { count:'exact', head:true }).gte('created_at', since),
+      sb.from('feedback').select('id', { count:'exact', head:true }).gte('created_at', since),
+    ]);
+    const o = own.data || { totals:{}, by_lang:[], details:[], daily:[] };
+    const e = ext.data || {};
+    const cf = e.cloudflare || { status: ext.error ? 'error' : 'not_configured', message: ext.error && ext.error.message };
+    const gs = e.google || { status: ext.error ? 'error' : 'not_configured', message: ext.error && ext.error.message };
+    $('stInfo').textContent = `من ${since}`;
+
+    // KPI tiles
+    const T = o.totals || {};
+    const k = (label, v, note) => `<div class="kpi"><b>${v}</b><span>${label}</span>${note ? `<small>${note}</small>` : ''}</div>`;
+    $('stKpis').innerHTML = [
+      cf.status === 'ok' ? k('زيارات', nf(cf.totals.visits), 'Cloudflare') : '',
+      cf.status === 'ok' ? k('مشاهدات صفحات', nf(cf.totals.views), 'Cloudflare') : '',
+      k('جلسات تصفّح', nf(T.session), 'عدّاد الموقع'),
+      k('فتح القارئ', nf(T.reader_open), 'عدّاد الموقع'),
+      k('نوافذ الآيات والأنبياء', nf(T.modal), 'عدّاد الموقع'),
+      k('أسئلة واردة', nf(q.count), 'من قاعدة البيانات'),
+      k('آراء واردة', nf(f.count), 'من قاعدة البيانات'),
+      gs.status === 'ok' ? k('نقرات من جوجل', nf(gs.totals.clicks), 'Search Console') : '',
+      gs.status === 'ok' ? k('ظهور في نتائج جوجل', nf(gs.totals.impressions), 'Search Console') : '',
+    ].join('');
+
+    // Daily chart
+    const series = [];
+    if(cf.status === 'ok') series.push({ label:'زيارات (Cloudflare)', pts: cf.daily.map(x => ({ day:x.key, v:x.visits })) });
+    series.push({ label:'جلسات (عدّاد الموقع)', pts: (o.daily || []).map(x => ({ day:x.day, v:x.sessions || 0 })) });
+    drawChart(series);
+
+    // By language
+    const L = {};
+    (o.by_lang || []).forEach(r => { (L[r.lang] = L[r.lang] || { lang:r.lang })[r.event] = r.n; });
+    const langRows = Object.values(L).sort((a, b) => (b.session || 0) - (a.session || 0));
+    $('stLang').innerHTML = rankTable(langRows, [
+      { key:'lang', label:'اللغة', fmt: v => LANG[v] || esc(v) },
+      { key:'session', label:'جلسات' }, { key:'view', label:'مشاهدات' }, { key:'reader_open', label:'فتح القارئ' },
+      { key:'ask_submit', label:'أسئلة' }, { key:'feedback_submit', label:'آراء' },
+    ]);
+    const det = (ev) => (o.details || []).filter(r => r.event === ev).slice(0, 12);
+    $('stSurah').innerHTML = rankTable(det('surah'), [
+      { key:'detail', label:'السورة', fmt: v => `${esc(v)}. ${SURAH[+v - 1] || ''}` }, { key:'n', label:'مرات القراءة' }]);
+    $('stModal').innerHTML = rankTable(det('modal'), [
+      { key:'detail', label:'النافذة', fmt: v => MODAL[v] || esc(v) }, { key:'n', label:'مرات الفتح' }]);
+
+    // Cloudflare
+    if(cf.status === 'ok'){
+      $('stCf').innerHTML = `<div class="grid2">
+        <div class="card"><h2>الدول</h2><table class="rank">${rankTable(cf.countries, [{ key:'key', label:'الدولة', fmt: v => esc(v || 'غير معروف') }, { key:'visits', label:'زيارات' }, { key:'views', label:'مشاهدات' }])}</table></div>
+        <div class="card"><h2>الصفحات</h2><table class="rank">${rankTable(cf.paths, [{ key:'key', label:'الصفحة', fmt: v => `<span class="ltr">${esc(v)}</span>` }, { key:'views', label:'مشاهدات' }])}</table></div>
+        <div class="card"><h2>من أين جاء الزوار</h2><table class="rank">${rankTable(cf.referers.map(r => ({ ...r, key: r.key || '(مباشر)' })), [{ key:'key', label:'المصدر', fmt: v => `<span class="ltr">${esc(v)}</span>` }, { key:'visits', label:'زيارات' }])}</table></div>
+        <div class="card"><h2>الأجهزة</h2><table class="rank">${rankTable(cf.devices, [{ key:'key', label:'الجهاز', fmt: v => DEVICE[v] || esc(v) }, { key:'visits', label:'زيارات' }])}</table></div>
+      </div>`;
+    } else {
+      $('stCf').innerHTML = setupBox(cf.status === 'not_configured'
+        ? 'لم يُربط بعد. يحتاج «مفتاح قراءة» من Cloudflare يُحفظ في Supabase باسم <b class="ltr">CF_API_TOKEN</b>.'
+        : `تعذّر جلب بيانات Cloudflare: <span class="ltr">${esc(cf.message || '')}</span>`);
+    }
+
+    // Google Search Console
+    if(gs.status === 'ok'){
+      $('stGsc').innerHTML = `<div class="kpis">
+          <div class="kpi"><b>${pct(gs.totals.ctr || 0)}</b><span>نسبة النقر إلى الظهور</span></div>
+          <div class="kpi"><b>${(gs.totals.position || 0).toFixed(1)}</b><span>متوسط الترتيب في النتائج</span></div></div>
+        <div class="grid2">
+        <div class="card"><h2>كلمات البحث</h2><table class="rank">${rankTable(gs.queries, [{ key:'key', label:'عبارة البحث', fmt: v => `<span style="unicode-bidi:plaintext">${esc(v)}</span>` }, { key:'clicks', label:'نقرات' }, { key:'impressions', label:'ظهور' }], 'لا توجد عبارات بحث بعد.')}</table></div>
+        <div class="card"><h2>الصفحات في جوجل</h2><table class="rank">${rankTable(gs.pages, [{ key:'key', label:'الصفحة', fmt: v => `<span class="ltr">${esc(String(v).replace('https://ltestament.com', '') || '/')}</span>` }, { key:'clicks', label:'نقرات' }, { key:'impressions', label:'ظهور' }])}</table></div>
+        <div class="card"><h2>دول الباحثين</h2><table class="rank">${rankTable(gs.countries, [{ key:'key', label:'الدولة (رمز)', fmt: v => `<span class="ltr">${esc(String(v).toUpperCase())}</span>` }, { key:'clicks', label:'نقرات' }, { key:'impressions', label:'ظهور' }])}</table></div>
+      </div>`;
+    } else {
+      $('stGsc').innerHTML = setupBox(gs.status === 'not_configured'
+        ? 'لم يُربط بعد. يحتاج «حساب خدمة» من جوجل يُحفظ مفتاحه في Supabase باسم <b class="ltr">GSC_SA_JSON</b>.'
+        : `تعذّر جلب بيانات جوجل: <span class="ltr">${esc(gs.message || '')}</span>`);
+    }
+  }
+  document.querySelectorAll('.stab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.stab').forEach(x => x.classList.toggle('on', x === t));
+    stDays = +t.dataset.days; loadStatsTab();
+  }));
 
   /* ---------- Site settings (admin only) ---------- */
   const PLATFORMS = [ ['x','X (تويتر)'], ['youtube','يوتيوب'], ['telegram','تيليجرام'], ['instagram','إنستغرام'],

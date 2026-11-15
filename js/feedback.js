@@ -188,6 +188,7 @@
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         storeSet('ltFeedbackAt', String(Date.now()));
+        if (window.ltTrack) window.ltTrack('feedback_submit', String(rating));
         form.innerHTML = `<p class="fb-thanks">${t.thanks}</p>`;
       } catch (err) {
         msg.textContent = t.error; msg.classList.add('err');
