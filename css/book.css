@@ -116,3 +116,10 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-embed .bk-tabs{ display:flex; }
 }
 @media (min-width:901px){ .bk-embed .bk-tabs{ display:none; } }
+@media (max-width:600px){
+  .bk-embed .bk-stage{ position:relative; gap:0; }
+  .bk-embed .bk-book{ flex:1 1 auto; width:100%; min-width:0; }
+  .bk-embed .bk-nav{ position:absolute; bottom:14px; z-index:4; flex:none; width:36px; height:36px; box-shadow:0 2px 8px rgba(16,27,51,0.18); }
+  .bk-embed .bk-nav[data-bk="prev"]{ right:10px; }
+  .bk-embed .bk-nav[data-bk="next"]{ left:10px; }
+}
