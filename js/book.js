@@ -149,7 +149,10 @@
       // margin notes (hizb quarters, sajdas): on the outer edge — right for a right-hand page, left for a left-hand one
       // Odd pages are right-hand pages in the printed Mushaf, even pages left-hand — also when one page is shown,
       // so a reader (and someone memorising) always knows which side of the open Mushaf a page is on.
-      var side = p % 2 ? 'r' : 'l';
+      // Where two pages are shown, the side follows the page's place in the open book (the Arabic page of the
+      // bilingual book is always on the right).
+      var side = narrow() ? (p % 2 ? 'r' : 'l') : (el === pgL ? 'l' : 'r');
+      el.classList.remove('pg-r', 'pg-l'); el.classList.add('pg-' + side);
       var notes = (m.m || []).map(function (n) {
         return '<span class="mm mm-' + side + '" data-line="' + n[0] + '"><i>۞</i>' + esc(n[1]) + '</span>';
       }).join('');
@@ -160,7 +163,7 @@
           '<span class="hp">' + arNum(p) + '</span>' +
           (first === 1 ? '<b>' + esc(sName) + '</b>' : '<span class="hs" role="img" aria-label="' + esc(sName) + '">' + String.fromCharCode(0xE000 + first) + '</span>') +
         '</div>' +
-        // the frame is ornamented on three sides; the side toward the spine is a plain thick rule
+        // the frame is ornamented on three sides; toward the spine it runs into the fold of the book
         '<div class="bk-mframe ' + (side === 'r' ? 'sp-l' : 'sp-r') + '">' +
           '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
         '</div>' +
