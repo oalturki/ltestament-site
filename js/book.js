@@ -147,7 +147,9 @@
       el.classList.add('bk-arpage', 'bk-mpage'); el.classList.remove('bk-trpage');
       var juz = MAP.juz[p - 1], sName = 'سورة ' + C.arabicNames[first - 1], jName = 'الجزء ' + arNum(juz);
       // margin notes (hizb quarters, sajdas): on the outer edge — right for a right-hand page, left for a left-hand one
-      var side = el === pgL ? 'l' : 'r';
+      // Odd pages are right-hand pages in the printed Mushaf, even pages left-hand — also when one page is shown,
+      // so a reader (and someone memorising) always knows which side of the open Mushaf a page is on.
+      var side = p % 2 ? 'r' : 'l';
       var notes = (m.m || []).map(function (n) {
         return '<span class="mm mm-' + side + '" data-line="' + n[0] + '"><i>۞</i>' + esc(n[1]) + '</span>';
       }).join('');
@@ -155,13 +157,14 @@
         // as printed: juz name on the right, surah name on the left, above the ornamental frame
         '<div class="bk-head bk-mhead">' +
           '<span class="hj" role="img" aria-label="' + esc(jName) + '">' + String.fromCharCode(0xE000 + juz) + '</span>' +
+          '<span class="hp">' + arNum(p) + '</span>' +
           (first === 1 ? '<b>' + esc(sName) + '</b>' : '<span class="hs" role="img" aria-label="' + esc(sName) + '">' + String.fromCharCode(0xE000 + first) + '</span>') +
         '</div>' +
-        '<div class="bk-mframe">' +
+        // the frame is ornamented on three sides; the side toward the spine is a plain thick rule
+        '<div class="bk-mframe ' + (side === 'r' ? 'sp-l' : 'sp-r') + '">' +
           '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
         '</div>' +
-        notes +
-        '<div class="bk-foot"><span>' + arNum(p) + '</span></div>';
+        notes;
     }
     // Size a Mushaf page: 15 equal lines; the font grows until the longest line fills the width (or the line height is reached).
     function fitMushaf(el) {
