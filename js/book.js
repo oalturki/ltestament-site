@@ -600,6 +600,20 @@
         if (!on) shut();
         requestAnimationFrame(fitAll);
       }
+      // as in Mushaf apps: the page alone fills the screen; a tap on it (not on a word) shows or hides the bars
+      var hideT = 0;
+      function chrome(show) {
+        clearTimeout(hideT);
+        document.body.classList.toggle('bk-chrome-off', !show);
+      }
+      root.addEventListener('click', function (e) {
+        if (!mq.matches || ov.classList.contains('on')) return;
+        if (e.target.closest('[data-l], .bk-bar, .bk-bottom, .bk-mnav, .bk-msov, .bk-wsov, a, button, select, input, label')) return;
+        if (!e.target.closest('.bk-stage')) return;
+        chrome(document.body.classList.contains('bk-chrome-off'));
+      });
+      book.addEventListener('touchend', function () { if (mq.matches && !ov.classList.contains('on')) hideT = setTimeout(function () { chrome(false); }, 300); }, { passive: true });
+      hideT = setTimeout(function () { chrome(false); }, 3500);
       if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
       apply();
     }
