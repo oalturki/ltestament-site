@@ -276,7 +276,7 @@
     function fitAll() {
       var spread = mushaf && step() === 2;
       book.classList.toggle('bk-spread', spread);
-      if (spread) book.style.maxWidth = '';
+      book.style.maxWidth = '';          // full width again (e.g. after switching from the Mushaf to the Mushaf with the meaning)
       var h = pgR.clientHeight || pgL.clientHeight || 600;
       var trMax = Math.max(14, Math.min(19, h / 34));
       [pgR, pgL].forEach(function (el) {
