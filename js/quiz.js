@@ -83,8 +83,17 @@
       var xm = len(x.mean);
       return x !== e && len(x.head) !== hw && xm !== m && xm.indexOf(m) < 0 && m.indexOf(xm) < 0;
     });
+    // closer in form first, so grammar does not give the answer away: the same attached pronoun
+    // (هم / هن / كم / ه / ها …) and the same leading و / ف / ب, then the length closest to the right answer
+    var PR = /(هما|هم|هن|كم|كن|نا|ها|ه|ك)$/;
+    var tail = function (t) { var m = PR.exec(len(t).split(' ')[0]); return m ? m[1] : ''; };
+    var lead = function (t) { var c0 = len(t).charAt(0); return /[وفب]/.test(c0) ? c0 : ''; };
+    var et = tail(e.head), mt = tail(e.mean), el = lead(e.head);
+    var cost = function (x) {
+      return (tail(x.head) === et ? 0 : 60) + (tail(x.mean) === mt ? 0 : 40) + (lead(x.head) === el ? 0 : 20) + Math.abs(x.mean.length - L);
+    };
     var seen = {}, out = [];
-    shuffle(c).sort(function (a, b) { return Math.abs(a.mean.length - L) - Math.abs(b.mean.length - L); });
+    shuffle(c).sort(function (a, b) { return cost(a) - cost(b); });
     for (var i = 0; i < c.length && out.length < 2; i++) {
       var k = len(c[i].mean);
       if (seen[k]) continue;
