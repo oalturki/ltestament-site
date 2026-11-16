@@ -485,7 +485,7 @@
         if (a === 1 && s !== 1 && s !== 9 && !skipBasmala) {
           recState.phase = 'basmala';
           setHl({ basmala: true });
-          playSrc(srcOf(r, 1, 1));
+          if (r.trimLead) playTrimmed(srcOf(r, 1, 1)); else playSrc(srcOf(r, 1, 1));
         } else {
           setHl({ s: s, a: a, w: 0 });
           if (r.trimLead) {
