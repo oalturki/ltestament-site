@@ -170,7 +170,12 @@
       var open = box.classList.contains('bk-m-open');   // pages 1–2: few lines, set larger in the middle of the page
       var fr = box.parentNode, head = el.querySelector('.bk-mhead');
       fr.style.maxWidth = ''; if (head) head.style.maxWidth = '';
-      var H = box.clientHeight, W = box.clientWidth, lh = H / (open ? 12 : 15), F0 = 20;
+      // Read the available size while the text is tiny: Safari lets a row of unbreakable words widen the box,
+      // which would make the text sized for more room than the frame really has (words then get cut off).
+      box.style.fontSize = '1px'; box.style.removeProperty('--mw');
+      var cs = getComputedStyle(fr);
+      var H = box.clientHeight, W = Math.min(box.clientWidth, fr.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)),
+          lh = H / (open ? 12 : 15), F0 = 20;
       if (!H || !W) return;
       box.style.setProperty('--lh', lh + 'px');
       box.style.removeProperty('--mw');

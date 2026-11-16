@@ -57,7 +57,7 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 /* Page-exact Mushaf (KFGQPC V2, 1421H print): 15 lines per page, one font per page (loaded by book.js as 'qpc-p<N>').
    Lines break exactly where they break in the printed Mushaf; book.js sizes the font so the longest line fills the width. */
 @font-face{ font-family:'QPC Surah Header'; src:url('/fonts/qpc-surah-header.woff2') format('woff2'); font-display:block; }
-.bk-mushaf{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; direction:rtl; color:#1a1712; line-height:1; overflow:hidden; visibility:hidden; }
+.bk-mushaf{ flex:1; min-height:0; min-width:0; width:100%; display:flex; flex-direction:column; justify-content:center; direction:rtl; color:#1a1712; line-height:1; overflow:hidden; visibility:hidden; }
 .bk-mushaf.ready{ visibility:visible; }
 .bk-mushaf .ml{ height:var(--lh, 6.6%); flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; width:var(--mw, 100%); margin:0 auto; white-space:nowrap; }
 .bk-mushaf .ml-c{ justify-content:center; gap:0.2em; }
@@ -75,7 +75,7 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 @font-face{ font-family:'QPC Head Juz'; src:url('/fonts/qpc-header-juz.woff2') format('woff2'); font-display:block; }
 .bk-mhead{ width:100%; margin-inline:auto; align-items:flex-end; padding:0 6px 2px; margin-bottom:2px; color:#2a2a22; border-bottom:none; }
 /* the ornamental frame around the text (img/mushaf-frame.svg: drawn for this site, in the style of printed Mushaf frames) */
-.bk-mframe{ flex:1; min-height:0; width:100%; margin:0 auto; display:flex; flex-direction:column; border:22px solid transparent;
+.bk-mframe{ flex:1; min-height:0; min-width:0; width:100%; overflow:hidden; margin:0 auto; display:flex; flex-direction:column; border:22px solid transparent;
   border-image:url('/img/mushaf-frame.svg') 30 round; background:#fdfaf1; padding:4px 10px; }
 .bk-mpage{ background:#fffdf7 !important; }
 .bk-mpage::before{ display:none; }
