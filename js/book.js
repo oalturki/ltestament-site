@@ -281,7 +281,7 @@
           var newV = snap(vis);
           lay(oldV, 'bk-cover');
           var opening = lay(newV, 'bk-flip', 'right', 0.001);
-          return anim(opening, 1, TURN_MS * 0.7, 'cubic-bezier(0.2,0.6,0.35,1)').then(done);
+          return anim(opening, 1, TURN_MS * 0.5, 'cubic-bezier(0.2,0.6,0.35,1)').then(done);
         }
         var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
         var oldA = snap(A), oldB = B ? snap(B) : null;
@@ -289,7 +289,7 @@
         var newB = B ? snap(B) : null;
         if (oldB) lay(oldB, 'bk-cover');
         var folding = lay(oldA, 'bk-flip', fwd ? 'right' : 'left', 1);
-        return anim(folding, 0.001, one ? TURN_MS * 0.7 : half, 'cubic-bezier(0.55,0,0.8,0.4)').then(function () {
+        return anim(folding, 0.001, one ? TURN_MS * 0.5 : half, 'cubic-bezier(0.55,0,0.8,0.4)').then(function () {
           if (!newB) return done();
           folding.style.visibility = 'hidden';
           var opening = lay(newB, 'bk-flip', fwd ? 'left' : 'right', 0.001);
