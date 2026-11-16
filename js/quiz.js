@@ -109,6 +109,7 @@
   function distinct(e, x) {                                                                   // clearly a different meaning
     var a = e.f, b = x.f;
     if (x === e || a.key === b.key || a.mk === b.mk || a.mk.indexOf(b.mk) >= 0 || b.mk.indexOf(a.mk) >= 0) return false;
+    if (b.key === a.mk || b.mk === a.key) return false;   // the right answer is itself a word of the book (﴿تَغْشَاهَا﴾): no crossing
     var shared = a.mwords.filter(function (w) { return b.mwords.indexOf(w) >= 0; }).length;
     return shared / Math.max(1, Math.min(a.mwords.length, b.mwords.length)) < 0.34;
   }
