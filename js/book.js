@@ -415,19 +415,67 @@
       raf = requestAnimationFrame(tick);
     }
     function startTick() { if (!raf) raf = requestAnimationFrame(tick); }
-    function playSrc(url) {
+    function playSrc(url, muted) {
+      audio.muted = !!muted;
       if (audio.getAttribute('src') !== url) audio.src = url;
       var pr = audio.play();
       if (pr && pr.catch) pr.catch(function () { stopAudio(); });
       startTick();
     }
     // Ayah-by-ayah reciters: basmala first when a surah starts (not Al-Fatiha, which begins with it, nor At-Tawbah).
+    // The per-ayah English files were cut from a recording where the Arabic recitation came first, so some begin
+    // with the end of the reciter's voice (an echo, sometimes a letter). Find where the English starts from the first
+    // ~2.5 s of the file (fetched and decoded ahead of time) and start playback there (#t= media fragment).
+    var leadCache = {}, decoder = null;
+    function leadOffset(url) {
+      if (leadCache[url]) return leadCache[url];
+      var p = new Promise(function (res) {
+        var Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!Ctx || !window.fetch) return res(0);
+        var done = false, fin = function (v) { if (!done) { done = true; res(v); } };
+        setTimeout(function () { fin(0); }, 4000);
+        fetch(url, { headers: { Range: 'bytes=0-59999' } }).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+          if (!decoder) decoder = new Ctx(1, 1, 44100);
+          return new Promise(function (ok, bad) { var q2 = decoder.decodeAudioData(buf, ok, bad); if (q2 && q2.then) q2.then(ok, bad); });
+        }).then(function (a) {
+          var d = a.getChannelData(0), w = Math.round(a.sampleRate * 0.05), env = [];
+          for (var i = 0; i + w <= d.length; i += w) { var sum = 0; for (var j = i; j < i + w; j += 4) sum += d[j] * d[j]; env.push(Math.sqrt(sum / (w / 4)) * 1000); }
+          var loud = function (k) { return env[k] >= 20; }, quiet = function (k, n) { for (var m = k; m < k + n; m++) if (m >= env.length || env[m] >= 10) return false; return true; };
+          var i0 = 0; while (i0 < env.length && !loud(i0)) i0++;
+          if (i0 >= env.length) return fin(0);
+          var j0 = i0; while (j0 < env.length && !quiet(j0, 4)) j0++;
+          var start = i0;
+          if (i0 * 50 < 1500 && (j0 - i0) * 50 <= 300) {       // a short burst then silence: the reciter's last letter
+            var k0 = j0; while (k0 < env.length && !loud(k0)) k0++;
+            if (k0 < env.length) start = k0;
+          }
+          fin(Math.max(0, start * 50 - 80) / 1000);
+        }).catch(function () { fin(0); });
+      });
+      p.then(function (v) { p.v = v; });
+      leadCache[url] = p;
+      return p;
+    }
+    function meaningUrl(r, s, a) { return (r.then || r.url).replace('{s}', pad(s)).replace('{a}', pad(a)); }
+    function playTrimmed(url) {
+      var p = leadOffset(url);
+      if (p.v !== undefined) return playSrc(p.v > 0.05 ? url + '#t=' + p.v.toFixed(2) : url);
+      // not analysed yet (e.g. the very first tap): start at once but muted — phones only allow playing right
+      // after a tap — then jump past the reciter's tail and unmute.
+      playSrc(url, true);
+      p.then(function (off) {
+        if (audio.getAttribute('src') === url && off > 0.05 && audio.currentTime < off) { try { audio.currentTime = off; } catch (e) {} }
+        audio.muted = false;
+      });
+    }
+
     // r.then: after the ayah, play its meaning (one file per ayah) with the whole ayah highlighted.
     function playMeaning(s, a) {
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'meaning' };
       setHl({ s: s, a: a, w: 0 });
-      playSrc(r.then.replace('{s}', pad(s)).replace('{a}', pad(a)));
+      playTrimmed(meaningUrl(r, s, a));
+      var n = nextAyah(s, a); if (n) leadOffset(meaningUrl(r, n[0], n[1]));   // analyse the next one ahead
     }
     function playAyah(s, a, skipBasmala) {
       var r = rec();
@@ -440,7 +488,13 @@
           playSrc(srcOf(r, 1, 1));
         } else {
           setHl({ s: s, a: a, w: 0 });
-          playSrc(srcOf(r, s, a));
+          if (r.trimLead) {
+            playTrimmed(srcOf(r, s, a));
+            var n = nextAyah(s, a); if (n) leadOffset(srcOf(r, n[0], n[1]));
+          } else {
+            playSrc(srcOf(r, s, a));
+            if (r.then) leadOffset(meaningUrl(r, s, a));      // prepare the meaning while the ayah is recited
+          }
         }
         if (r.timed) wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
       };
