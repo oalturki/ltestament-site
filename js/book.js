@@ -31,7 +31,7 @@
   var EXPL = {
     ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
           src: ['السراج في بيان غريب القرآن', 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف'],
-          words: 'معاني كلمات الآية', more: 'التفسير الموسّع (تفسير السعدي)', ayah: 'الآية', close: 'إغلاق', err: 'تعذّر التحميل، أعد المحاولة.' },
+          words: 'معاني كلمات الآية', none: 'لم يُفرد «السراج» لهذه الكلمة شرحًا.', more: 'التفسير الموسّع (تفسير السعدي)', ayah: 'الآية', close: 'إغلاق', err: 'تعذّر التحميل، أعد المحاولة.' },
     en: { keys: ['english_mokhtasar'], head: ['Explanation of the verse'], src: ['Al-Mukhtasar in Interpreting the Noble Quran — Tafsir Center for Quranic Studies'],
           ayah: 'Verse', close: 'Close', err: 'Could not load. Please try again.' },
     fr: { keys: ['french_mokhtasar'], head: ['Explication du verset'], src: ['Al-Mukhtasar dans l’exégèse du Noble Coran — Centre Tafsir des études coraniques'],
@@ -114,7 +114,9 @@
         });
         if (mine >= 0) html += '<h4>' + esc(L.head[0]) + '</h4><p class="bk-wsm"><b translate="no">' + esc(lines[mine][0]) + '</b>: ' + esc(lines[mine][1]) + '</p>';
         var rest = lines.filter(function (x, i) { return i !== mine; });
-        if (rest.length) html += '<h4>' + esc(mine >= 0 ? L.words : L.head[0]) + '</h4><ul class="bk-wsl">' + rest.map(function (x) {
+        // the tapped word has no entry in the book: say so, then show the verse's other words under their own heading
+        if (mine < 0 && w && !isEnd) html += '<h4>' + esc(L.head[0]) + '</h4><p class="bk-wsnone">' + esc(L.none) + '</p>';
+        if (rest.length) html += '<h4>' + esc(L.words) + '</h4><ul class="bk-wsl">' + rest.map(function (x) {
           return '<li><b translate="no">' + esc(x[0]) + '</b>: ' + esc(x[1]) + '</li>'; }).join('') + '</ul>';
         if (lines.length) html += '<div class="bk-wss">' + esc(L.src[0]) + '</div>';
         html += '<h4>' + esc(L.head[1]) + '</h4><p>' + esc(rs[1].translation || '') + '</p><div class="bk-wss">' + esc(L.src[1]) + '</div>';

@@ -337,3 +337,4 @@ body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }
   [data-frame="edge"] .bk-mframe.sp-l::before{ right:-13px; }
   [data-frame="edge"] .bk-mframe.sp-r::before{ left:-13px; }
 }
+.bk-wsnone{ color:#7a7158; font-size:0.95em; }
