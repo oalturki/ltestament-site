@@ -168,6 +168,8 @@
       var box = el.querySelector('.bk-mushaf');
       if (!box || el.offsetParent === null) return;
       var open = box.classList.contains('bk-m-open');   // pages 1–2: few lines, set larger in the middle of the page
+      var fr = box.parentNode, head = el.querySelector('.bk-mhead');
+      fr.style.maxWidth = ''; if (head) head.style.maxWidth = '';
       var H = box.clientHeight, W = box.clientWidth, lh = H / (open ? 12 : 15), F0 = 20;
       if (!H || !W) return;
       box.style.setProperty('--lh', lh + 'px');
@@ -186,16 +188,27 @@
       // The header glyph (frame + surah name) is 3.28em wide and 0.41em tall: as wide as the text, within about one line.
       var headW = open ? W * 0.8 : lineW;
       box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(headW / 3.28, lh * 1.15 / 0.41) + 'px'; });
+      // The frame wraps the text, as in print: when the page is wider than the text needs, narrow the frame
+      // (and the head above it) to the text width instead of leaving empty paper inside the frame.
+      if (!open && lineW < W - 2) {
+        var extra = fr.offsetWidth - W;            // the frame's borders and padding
+        fr.style.maxWidth = (lineW + extra) + 'px';
+        if (head) head.style.maxWidth = (lineW + extra) + 'px';
+      }
       // page head: the two artworks are 2.25em wide and ~0.8em tall
-      var hh = Math.max(14, Math.min(lh * 0.95, (W * 0.42) / 2.25));
+      var hh = Math.max(14, Math.min(lh * 0.95, (Math.min(W, lineW + 40) * 0.42) / 2.25));
       el.querySelectorAll('.bk-mhead .hs, .bk-mhead .hj').forEach(function (h) { h.style.fontSize = hh + 'px'; });
       // margin notes beside their line
-      var lines = box.children, pad = parseFloat(getComputedStyle(el).paddingRight) || 20;
+      // margin notes beside their line, just outside the frame (or over the paper's edge when there is no room)
+      var lines = box.children, room = Math.max(fr.offsetLeft, el.clientWidth - fr.offsetLeft - fr.offsetWidth);
       el.querySelectorAll('.mm').forEach(function (n) {
         var ln = lines[+n.dataset.line];
         if (!ln) return;
+        n.style.fontSize = Math.max(7, Math.min(11, room * 0.42)) + 'px';
         n.style.top = (box.offsetTop + ln.offsetTop + ln.offsetHeight / 2) + 'px';
-        n.style.fontSize = Math.max(7, Math.min(11, pad * 0.42)) + 'px';
+        var w = n.offsetWidth;
+        var x = n.classList.contains('mm-l') ? fr.offsetLeft - w - 3 : fr.offsetLeft + fr.offsetWidth + 3;
+        n.style.left = Math.max(1, Math.min(el.clientWidth - w - 1, x)) + 'px';
       });
       box.classList.add('ready');
     }
