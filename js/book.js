@@ -197,6 +197,15 @@
   function cleanTr(t) { return String(t || '').replace(/^\s*\(?\d+\)?[.\-–]\s*/, ''); }
   function cleanAr(t) { return String(t || '').replace(/ /g, ' ').trim(); }
 
+  // phone layout labels (mobileShell)
+  var MOB = {
+    ar: { tools: 'أدوات المصحف', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
+    ur: { tools: 'مصحف کے اوزار', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
+    en: { tools: 'Book tools', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
+    fr: { tools: 'Outils', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
+    es: { tools: 'Herramientas', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
+    ru: { tools: 'Инструменты', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
+  };
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
     // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
@@ -433,6 +442,7 @@
       q('next').disabled = last >= TOTAL;
       q('prev').disabled = cur <= 1;
       if (q('surahSel')) q('surahSel').value = String(MAP.pages[cur - 1][0]);
+      var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.textContent = U.page + ' ' + uiNum(cur);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
       else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
     }
@@ -505,6 +515,87 @@
     }
     function go(delta) { show(cur + delta * step(), delta); }
     function prefetch() { var n = cur + step(); if (n <= TOTAL) pageData(norm(n)).catch(function () {}); }
+
+    /* ---------- phones (≤600px), full book only: the page fills the screen ----------
+       Top: back · surah · page number. Bottom: one bar — index, translation, listen, search, more.
+       «More» opens a sheet with the rest (page frame, reciter, go to page, quiz). The existing controls are
+       moved, not copied, so their handlers stay as they are; above 600px they go back where they were. */
+    function mobileShell() {
+      var L = MOB[C.lang] || MOB.en, mq = window.matchMedia('(max-width:600px)');
+      var svg = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+      var I = {
+        index: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+        tr: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',
+        search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+        more: '<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>',
+        x: '<path d="M6 6l12 12M18 6L6 18"/>'
+      };
+      var bar = document.querySelector('.bk-bar');
+      var pg = document.createElement('span'); pg.className = 'bk-mpg'; pg.textContent = U.page + ' ' + uiNum(cur);
+      if (bar) bar.appendChild(pg);
+
+      // a select laid invisibly over a bar button: a tap opens the phone's own list (works on iPhone too)
+      function overSel(src) {
+        var s = document.createElement('select');
+        s.className = 'bk-mover'; s.innerHTML = src.innerHTML; s.setAttribute('aria-label', src.getAttribute('aria-label') || '');
+        var sync = function () { if (s.options.length !== src.options.length) s.innerHTML = src.innerHTML; s.value = src.value; };
+        s.addEventListener('pointerdown', sync); s.addEventListener('focus', sync);
+        s.onchange = function () { src.value = s.value; src.dispatchEvent(new Event('change')); };
+        return s;
+      }
+      var nav = document.createElement('nav'); nav.className = 'bk-mnav'; nav.setAttribute('aria-label', L.tools);
+      function item(icon, label, sel) {
+        var el = document.createElement(sel ? 'label' : 'button');
+        if (!sel) el.type = 'button';
+        el.className = 'bk-mbtn'; el.innerHTML = svg(icon) + '<span>' + esc(label) + '</span>';
+        if (sel) el.appendChild(overSel(sel));
+        nav.appendChild(el); return el;
+      }
+      if (q('surahSel')) item(I.index, L.index, q('surahSel'));
+      if (q('trSel')) item(I.tr, L.tr, q('trSel'));
+      var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
+      item(I.search, L.search).onclick = function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
+      var moreBtn = item(I.more, L.more);
+      document.body.appendChild(nav);
+
+      var ov = document.createElement('div'); ov.className = 'bk-msov';
+      ov.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true" aria-label="' + esc(L.settings) + '"><div class="bk-msgrip"></div>' +
+        '<div class="bk-mshead"><h2>' + esc(L.settings) + '</h2><button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div>' +
+        '<div class="bk-msbody"></div></section>';
+      document.body.appendChild(ov);
+      var body = ov.querySelector('.bk-msbody');
+      var open = function () { ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
+      moreBtn.onclick = open;
+      ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
+      ov.querySelector('.bk-msx').onclick = shut;
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shut(); });
+      function row(label, el) {
+        if (!el) return null;
+        var r = document.createElement('label'); r.className = 'bk-msrow';
+        r.innerHTML = '<span>' + esc(label) + '</span>'; body.appendChild(r); return r;
+      }
+      // what moves where on a phone: [element, new parent]
+      var moves = [];
+      var pageNo = root.querySelector('.bk-pageno');
+      if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
+      if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
+      if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
+      var qz = document.querySelector('.bk-quizlink');
+      if (qz) { var qr = document.createElement('div'); qr.className = 'bk-msrow bk-msquiz'; body.appendChild(qr); moves.push([qz, qr]); }
+      var fc = root.querySelector('.bk-fontcredit');
+      if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
+      if (q('play')) moves.push([q('play'), playSlot]);
+      var homes = moves.map(function (m) { var c = document.createComment(''); m[0].parentNode.insertBefore(c, m[0]); return c; });
+      function apply() {
+        var on = mq.matches;
+        document.body.classList.toggle('bk-mob', on);
+        moves.forEach(function (m, i) { (on ? m[1] : homes[i].parentNode).insertBefore(m[0], on ? null : homes[i]); });
+        if (!on) shut();
+        requestAnimationFrame(fitAll);
+      }
+      if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
+      apply();
+    }
 
     /* ---------- controls ---------- */
     function buildControls() {
@@ -876,6 +967,7 @@
         qz.onclick = function () { qz.href = '/quiz/?p=' + cur; };
         bar.appendChild(qz);
       }
+      if (!embed) mobileShell();
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
