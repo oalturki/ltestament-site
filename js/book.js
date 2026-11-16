@@ -142,7 +142,8 @@
     function fitMushaf(el) {
       var box = el.querySelector('.bk-mushaf');
       if (!box || el.offsetParent === null) return;
-      var H = box.clientHeight, W = box.clientWidth, lh = H / 15, F0 = 20;
+      var open = box.classList.contains('bk-m-open');   // pages 1–2: few lines, set larger in the middle of the page
+      var H = box.clientHeight, W = box.clientWidth, lh = H / (open ? 12 : 15), F0 = 20;
       if (!H || !W) return;
       box.style.setProperty('--lh', lh + 'px');
       box.style.removeProperty('--mw');
@@ -151,13 +152,14 @@
       var maxW = 0;
       box.querySelectorAll('.ml:not(.ml-s):not(.ml-b)').forEach(function (l) { maxW = Math.max(maxW, l.getBoundingClientRect().width); });
       box.classList.remove('measuring');
-      var open = box.classList.contains('bk-m-open');
-      var fs = maxW ? F0 * (W * (open ? 0.7 : 0.99)) / maxW : lh / 1.6;
+      var fs = maxW ? F0 * (W * (open ? 0.72 : 0.99)) / maxW : lh / 1.6;
       fs = Math.min(fs, lh / 1.55);
       box.style.fontSize = fs + 'px';
       var lineW = Math.min(W, maxW * fs / F0 / (open ? 1 : 0.99));
       if (!open) box.style.setProperty('--mw', lineW + 'px');
-      box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(lineW / 3.3, lh * 1.05) + 'px'; });
+      // The header glyph (frame + surah name) is 3.28em wide and 0.41em tall: as wide as the text, within about one line.
+      var headW = open ? W * 0.8 : lineW;
+      box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(headW / 3.28, lh * 1.15 / 0.41) + 'px'; });
       box.classList.add('ready');
     }
     function renderTr(el, p, d) {
