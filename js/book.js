@@ -24,7 +24,7 @@
   /* ---------- tapping a word: what it means, from institutional sources only ----------
      Arabic pages: the word's meaning from «السراج في بيان غريب القرآن» and the verse from «التفسير الميسر»
      (King Fahd Complex); other languages: the verse explained by «المختصر في تفسير القرآن الكريم»
-     (Tafsir Center for Quranic Studies) in that language. All read from QuranEnc.com, one verse at a time.
+     (Tafsir Center for Quranic Studies) in that language. Kept on the site (data/tafsir, from QuranEnc.com); QuranEnc's API only as a fallback.
      Urdu has no Mukhtasar yet, so it shows the verse's meaning (Junagarhi). No word-for-word glosses by
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
@@ -43,10 +43,27 @@
     ur: { keys: ['urdu_junagarhi'], head: ['آیت کا ترجمہ'], src: ['محمد جوناگڑھی — QuranEnc.com'],
           ayah: 'آیت', close: 'بند کریں', err: 'لوڈ نہیں ہو سکا، دوبارہ کوشش کریں۔' }
   };
-  var ayaCache = {};
+  var ayaCache = {}, tafCache = {};
+  // the site's own copy first (data/tafsir/<key>/<surah>.json, tools/build_tafsir.py; Urdu: the translation copy);
+  // QuranEnc's API only if it is missing
+  function tafSurah(key, s) {
+    var id = key + '|' + s;
+    if (!tafCache[id]) {
+      tafCache[id] = key === 'urdu_junagarhi'
+        ? trSurah(key, s).then(function (l) { var o = []; l.forEach(function (x) { o[x.aya - 1] = x.translation; }); return o; })
+        : getJSON(BASE + '/data/tafsir/' + key + '/' + s + '.json', 8000);
+      tafCache[id].catch(function () { delete tafCache[id]; });
+    }
+    return tafCache[id];
+  }
   function getAya(key, s, a) {
     var k = key + '/' + s + '/' + a;
-    if (!ayaCache[k]) { ayaCache[k] = getJSON(QA + k).then(function (d) { return d.result || {}; }); ayaCache[k].catch(function () { delete ayaCache[k]; }); }
+    if (!ayaCache[k]) {
+      ayaCache[k] = tafSurah(key, s).then(function (l) { return { translation: l[a - 1] || '' }; }, function () {
+        return getJSON(QA + k).then(function (d) { return d.result || {}; });
+      });
+      ayaCache[k].catch(function () { delete ayaCache[k]; });
+    }
     return ayaCache[k];
   }
   // compare an Arabic word with a dictionary head-word: no marks, one alef form, no alef at all (spellings differ)

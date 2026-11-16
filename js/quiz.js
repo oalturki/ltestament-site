@@ -1,6 +1,6 @@
 /* «اختبر معاني الكلمات» — a quiz on the meanings of Quran words (/quiz/), Arabic.
    Source: «السراج في بيان غريب القرآن» (QuranEnc key arabic_seraj): data/quiz/siraj.json (tools/build_quiz.py);
-   the ayah shown with each question is read from the QuranEnc API.
+   the ayah shown with each question is the site's copy of QuranEnc's text (data/tafsir/arabic_text).
    Every text shown is from the book: the right answer is the word's own meaning, and the two wrong answers are
    the meanings of other words of the whole book — true in their place, not invented. Nothing is stored.
    Scope from the address: ?s=SURAH | ?j=JUZ | ?p=PAGE (the book's «اختبر نفسك» button) | ?all ; default: juz 30.
@@ -33,14 +33,20 @@
     });
   }
   // the ayah's text in the Complex's script, for showing the question (QuranEnc gives it with the meanings)
+  var surTxt = {};
   function ayah(e) {
     var k = e.s + ':' + e.a;
     if (!ayaTxt[k]) {
-      ayaTxt[k] = getJSON('https://quranenc.com/api/v1/translation/aya/arabic_seraj/' + e.s + '/' + e.a)
-        .then(function (d) { return (d.result && d.result.arabic_text) || ''; }, function () { delete ayaTxt[k]; return ''; });
+      // the site's own copy of the surah first (data/tafsir/arabic_text, tools/build_tafsir.py); QuranEnc if missing
+      if (!surTxt[e.s]) { surTxt[e.s] = getJSON('/data/tafsir/arabic_text/' + e.s + '.json'); surTxt[e.s].catch(function () { delete surTxt[e.s]; }); }
+      ayaTxt[k] = surTxt[e.s].then(function (l) { if (!l[e.a - 1]) throw 0; return l[e.a - 1]; }).catch(function () {
+        return getJSON('https://quranenc.com/api/v1/translation/aya/arabic_seraj/' + e.s + '/' + e.a)
+          .then(function (d) { return (d.result && d.result.arabic_text) || ''; });
+      }).catch(function () { delete ayaTxt[k]; return ''; });
     }
     return ayaTxt[k];
   }
+
   // the ayahs [from, to] (each [surah, ayah]) a scope covers
   function ranges(sc) {
     var P = MAP.pages, rs = [];
