@@ -237,7 +237,7 @@
       el.className = 'lt-sres';
       el.href = BOOK + '#p=' + pageOf(s, a) + '&a=' + s + ':' + a;
       el.innerHTML = '<div class="lt-sref">' + esc((T.surah ? T.surah + ' ' : '') + name) + ' · ' + arDigits(s) + ':' + arDigits(a) + '</div>' +
-        (mode === 'tr' ? '<div class="lt-str" dir="' + (RTL ? 'rtl' : 'ltr') + '">' + markTr(i, q, words) + '</div>' : '<div class="lt-sar">' + mark(i, q, words) + '</div>');
+        (mode === 'tr' ? '<div class="lt-str" dir="' + (RTL ? 'rtl' : 'ltr') + '">' + markTr(i, q, words) + '</div>' : '<div class="lt-sar" translate="no">' + mark(i, q, words) + '</div>');
       el.addEventListener('click', function () { close(); });
       frag.appendChild(el);
     }

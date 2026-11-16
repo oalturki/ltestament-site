@@ -160,7 +160,7 @@ def page(lang):
 <main class="bk-stage">
   <button class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
   <div class="bk-book anim" data-bk="book">
-    <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+    <section class="bk-page bk-ar notranslate" data-bk="pgAr" lang="ar" translate="no"></section>
     <section class="bk-page bk-tr" data-bk="pgTr"></section>
   </div>
   <button class="bk-nav" data-bk="next" aria-label="{u['next']}" title="{u['next']}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -212,7 +212,7 @@ def embed(lang):
   <div class="bk-stage">
     <button type="button" class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <div class="bk-book anim" data-bk="book">
-      <section class="bk-page bk-ar" data-bk="pgAr" lang="ar"></section>
+      <section class="bk-page bk-ar notranslate" data-bk="pgAr" lang="ar" translate="no"></section>
       <section class="bk-page bk-tr" data-bk="pgTr"></section>
     </div>
     <button type="button" class="bk-nav" data-bk="next" aria-label="{u['next']}" title="{u['next']}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
