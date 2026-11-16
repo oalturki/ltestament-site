@@ -292,6 +292,7 @@
       q('prev').disabled = cur <= 1;
       if (q('surahSel')) q('surahSel').value = String(MAP.pages[cur - 1][0]);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
+      else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
     }
 
     /* ---------- page turning ---------- */

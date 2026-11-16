@@ -65,7 +65,7 @@ def reciters(lang):
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
 
 UI = {
- 'ar': dict(frame='شكل الإطار', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
+ 'ar': dict(frame='شكل الإطار', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
             loading='جارِ فتح المصحف…', text='النص', meaning='المعنى', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
@@ -110,7 +110,8 @@ def page(lang):
     fb, (_, ui_font_url, body_font, head_font) = FB[lang], FONTS[lang]
     u = UI[lang]
     cfg = dict(
-        lang=lang, arabicDigits=(lang == 'ar'), defaultShow='ar' if lang == 'ar' else 'tr',
+        # The Arabic site opens the Mushaf itself (two facing Arabic pages); other languages, the Mushaf with the meaning.
+        lang=lang, mode='mushaf' if lang == 'ar' else 'bilingual', arabicDigits=(lang == 'ar'), defaultShow='ar' if lang == 'ar' else 'tr',
         defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
         arabicNames=AR_NAMES, names=NAMES,
         uiNames=AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]],
@@ -119,6 +120,11 @@ def page(lang):
     )
     alts = ''.join(f'<link rel="alternate" hreflang="{l}" href="https://ltestament.com{book_path(l)}">\n' for l in LANGS)
     extra_font = f'<link href="{NASTALIQ}" rel="stylesheet" data-font="urdu_junagarhi">\n' if lang == 'ur' else ''
+    tr_ui = '' if lang == 'ar' else (f'''  <select class="bk-ctl" data-bk="trSel" aria-label="{u['tr']}"></select>
+  <div class="bk-tabs">
+    <button class="bk-tab" data-show="ar">{u['text']}</button>
+    <button class="bk-tab" data-show="tr">{u['meaning']}</button>
+  </div>''')
     return f'''<!DOCTYPE html>
 <html lang="{lang}" dir="{fb['dir']}">
 <head>
@@ -148,11 +154,7 @@ def page(lang):
   <h1 class="bk-title">{u['title']}</h1>
   <select class="bk-ctl" data-bk="surahSel" aria-label="{u['index']}"></select>
   <label class="bk-pageno">{u['page']} <input class="bk-ctl" data-bk="pageInput" type="number" min="1" max="604" inputmode="numeric"></label>
-  <select class="bk-ctl" data-bk="trSel" aria-label="{u['tr']}"></select>
-  <div class="bk-tabs">
-    <button class="bk-tab" data-show="ar">{u['text']}</button>
-    <button class="bk-tab" data-show="tr">{u['meaning']}</button>
-  </div>
+{tr_ui}
 </header>
 <main class="bk-stage">
   <button class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
