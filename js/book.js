@@ -236,7 +236,7 @@
         if (x.footnotes) notes.push('(' + s + ':' + v + ') ' + x.footnotes);
       });
       el.setAttribute('dir', t.dir); el.setAttribute('lang', t.lang); el.style.fontFamily = t.font;
-      el.classList.add('bk-trpage'); el.classList.remove('bk-arpage');
+      el.classList.add('bk-trpage'); el.classList.remove('bk-arpage', 'bk-mpage', 'pg-r', 'pg-l');
       el.innerHTML =
         '<div class="bk-head"><b>' + esc(names[first - 1]) + '</b><span>' + esc(t.juz) + ' ' + MAP.juz[p - 1] + '</span></div>' +
         '<div class="bk-content">' + html +
@@ -249,7 +249,7 @@
       renderAr(pgR, p, d.ar);
       if (!mushaf) renderTr(pgL, p, d);
       else if (d.ar2) renderAr(pgL, p + 1, d.ar2);
-      else { pgL.innerHTML = ''; pgL.classList.remove('bk-arpage', 'bk-trpage'); }
+      else { pgL.innerHTML = ''; pgL.classList.remove('bk-arpage', 'bk-trpage', 'bk-mpage', 'pg-r', 'pg-l'); }
       applyHl();
     }
 
