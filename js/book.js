@@ -266,12 +266,29 @@
       c.scrollTop = 0;
     }
     function fitAll() {
+      var spread = mushaf && step() === 2;
+      if (spread) book.style.maxWidth = '';
       var h = pgR.clientHeight || pgL.clientHeight || 600;
       var trMax = Math.max(14, Math.min(19, h / 34));
       [pgR, pgL].forEach(function (el) {
         if (el.classList.contains('bk-mpage')) fitMushaf(el);
         else if (el.classList.contains('bk-trpage')) fit(el, tr().lang === 'ur' ? trMax + 1 : trMax, 11);
       });
+      // Two facing Mushaf pages: make the open book as wide as its pages need, so the pages meet at the spine
+      // like a real Mushaf instead of floating apart on wide paper. Then place the margin notes again.
+      if (spread) {
+        var need = 0;
+        [pgR, pgL].forEach(function (el) {
+          var fr = el.querySelector('.bk-mframe');
+          if (!fr) return;
+          var cs = getComputedStyle(el);
+          need = Math.max(need, fr.offsetWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24);
+        });
+        if (need && need * 2 < book.clientWidth - 4) {
+          book.style.maxWidth = (need * 2) + 'px';
+          [pgR, pgL].forEach(function (el) { if (el.classList.contains('bk-mpage')) fitMushaf(el); });
+        }
+      }
     }
     function showMsg(text, retry) {
       pgR.innerHTML = pgL.innerHTML = '<div class="bk-msg">' + esc(text) + '</div>';
