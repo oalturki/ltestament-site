@@ -273,7 +273,7 @@
           newV.node.classList.add('bk-front');
           var bk = blankLike(vis); bk.classList.add('bk-back');
           leaf.appendChild(newV.node); leaf.appendChild(bk);
-          from = 'rotateY(180deg)'; to = 'rotateY(0deg)';
+          from = 'rotateY(-180deg)'; to = 'rotateY(0deg)';
         } else {
           var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
           var oldA = snap(A), oldB = B ? snap(B) : null;
@@ -285,7 +285,8 @@
           back.classList.add('bk-back');
           leaf.appendChild(oldA.node); leaf.appendChild(back);
           if (oldB) { place(oldB.node, oldB.box); oldB.node.classList.add('bk-cover'); book.appendChild(oldB.node); covers.push(oldB.node); }
-          from = 'rotateY(0deg)'; to = 'rotateY(' + (fwd ? 180 : -180) + 'deg)';
+          from = 'rotateY(0deg)'; to = 'rotateY(' + (fwd ? -180 : 180) + 'deg)';
+          // (the leaf turns slightly away from the reader, so in perspective it shrinks a little instead of growing past the book)
         }
         leaf.style.transition = 'none';
         leaf.style.transform = from;
