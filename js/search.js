@@ -146,7 +146,7 @@
     var want = words.map(lenient).filter(Boolean);
     var html = shown.map(function (w, j) {
       var k = lenient(plain[j] || '');
-      var hit = want.some(function (q2) { return k === q2 || (q2.length >= 2 && k.indexOf(q2) >= 0); });
+      var hit = want.some(function (q2) { return k === q2 || (q2.length >= 3 && k.indexOf(q2) >= 0); });
       return hit ? '<mark>' + esc(w) + '</mark>' : esc(w);
     }).join(' ');
     // the ayah number: Arabic-Indic digits, which the Complex's font draws as the ayah-end ornament
