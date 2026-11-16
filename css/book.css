@@ -54,6 +54,22 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   background:linear-gradient(90deg, rgba(200,155,60,0.08), rgba(200,155,60,0.18), rgba(200,155,60,0.08)); color:#6b5420; font-family:'Amiri',serif; font-weight:700; font-size:1.05em; line-height:1.6; }
 .bk-basmala{ text-align:center; font-family:'KFGQPC Hafs','Amiri Quran',serif; color:#3a3222; margin-bottom:4px; line-height:1.9; }
 
+/* Page-exact Mushaf (KFGQPC V2, 1421H print): 15 lines per page, one font per page (loaded by book.js as 'qpc-p<N>').
+   Lines break exactly where they break in the printed Mushaf; book.js sizes the font so the longest line fills the width. */
+@font-face{ font-family:'QPC Surah Header'; src:url('/fonts/qpc-surah-header.woff2') format('woff2'); font-display:block; }
+.bk-mushaf{ flex:1; min-height:0; display:flex; flex-direction:column; justify-content:center; direction:rtl; color:#1a1712; line-height:1; overflow:hidden; visibility:hidden; }
+.bk-mushaf.ready{ visibility:visible; }
+.bk-mushaf .ml{ height:var(--lh, 6.6%); flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; width:var(--mw, 100%); margin:0 auto; white-space:nowrap; }
+.bk-mushaf .ml-c{ justify-content:center; gap:0.2em; }
+.bk-mushaf .ml > span{ display:inline-block; }
+.bk-mushaf.measuring .ml{ width:max-content; justify-content:flex-start; gap:0.06em; }
+.bk-mushaf .ml-s{ justify-content:center; overflow:visible; }
+.bk-mushaf .mh{ font-family:'QPC Surah Header'; line-height:1; }
+.bk-mushaf .ml-b{ font-family:'qpc-p1'; }
+.bk-mushaf .ml > span[data-l]{ border-radius:3px; transition:background 0.15s; }
+.bk-arpage.bk-mpage{ padding-bottom:10px; }
+.bk-arpage.bk-mpage .bk-head{ margin-bottom:4px; }
+
 /* Translation text */
 .bk-trpage .bk-content{ line-height:1.7; text-align:justify; hyphens:auto; color:#24211a; }
 .bk-trpage .vn{ font-size:0.72em; font-weight:700; color:#8a6a1f; vertical-align:super; margin-inline:2px 3px; }

@@ -99,7 +99,6 @@ def page(lang):
 <link href="{ui_font_url}" rel="stylesheet">
 {extra_font}<link rel="preconnect" href="https://quranenc.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preload" href="/fonts/UthmanicHafs_V22.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="stylesheet" href="/css/book.css">
 <style>body.bk{{ font-family:{body_font}; }} .bk-title{{ font-family:{head_font}; }}</style>
 </head>

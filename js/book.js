@@ -1,5 +1,7 @@
 /* «المصحف ككتاب» — an open book that the reader pages through.
-   Page layout follows the Madinah Mushaf (604 pages); Arabic text and font are the King Fahd Complex's.
+   The Arabic page is the Madinah Mushaf exactly as printed by the King Fahd Complex (1421H print, KFGQPC V2):
+   15 lines per page, each line breaking where it breaks in print, drawn with the Complex's per-page fonts
+   (fonts/qpc-v2/p<N>.woff2) from data/mushaf/p<N>.json — both built by tools/build_mushaf.py from QUL data.
    Two modes:
    - "bilingual": right-hand page = Mushaf text, left-hand page = the meaning of the same verses (QuranEnc.com).
    - "mushaf":    two Mushaf pages side by side, as a printed Mushaf opens (page 1 on the right, 2 on the left).
@@ -14,6 +16,8 @@
   var AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
   var MAP_P = null;                       // Mushaf page map, one request per page view
   var trCache = {};                       // key|surah -> verses, shared by every book on the page
+  var BASE = window.LT_ASSET_BASE || '';  // where /fonts and /data live (overridable for previews)
+  var fontCache = {}, mCache = {};        // page fonts and page data, shared by every book on the page
 
   function arNum(n) { return String(n).replace(/[0-9]/g, function (d) { return AR_DIGITS[d]; }); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -43,6 +47,31 @@
       trCache[id].catch(function () { delete trCache[id]; });
     }
     return trCache[id];
+  }
+  // The Complex's font for one Mushaf page; every page has its own glyphs, so each page needs its own font.
+  function pageFont(p) {
+    if (!fontCache[p]) {
+      var f = new FontFace('qpc-p' + p, 'url(' + BASE + '/fonts/qpc-v2/p' + p + '.woff2)', { display: 'block' });
+      fontCache[p] = f.load().then(function (ff) { document.fonts.add(ff); });
+      fontCache[p].catch(function () { delete fontCache[p]; });
+    }
+    return fontCache[p];
+  }
+  var headerFont = null;
+  function surahHeaderFont() {
+    if (!headerFont) {
+      headerFont = document.fonts && document.fonts.load ? document.fonts.load("40px 'QPC Surah Header'", '\uFC45') : Promise.resolve();
+      headerFont.catch(function () { headerFont = null; });
+    }
+    return headerFont;
+  }
+  function mushafPage(p) {
+    if (!mCache[p]) {
+      mCache[p] = Promise.all([getJSON(BASE + '/data/mushaf/p' + p + '.json'), pageFont(p), pageFont(1), surahHeaderFont()])
+        .then(function (r) { return r[0]; });
+      mCache[p].catch(function () { delete mCache[p]; });
+    }
+    return mCache[p];
   }
   function cleanTr(t) { return String(t || '').replace(/^\s*\(?\d+\)?[.\-–]\s*/, ''); }
   function cleanAr(t) { return String(t || '').replace(/ /g, ' ').trim(); }
@@ -75,53 +104,61 @@
       return out;
     }
     function surahsOf(p) { var r = MAP.pages[p - 1], a = []; for (var s = r[0]; s <= r[2]; s++) a.push(s); return a; }
-    // Arabic: the King Fahd Complex (KFGQPC) Hafs text that QuranEnc serves with every translation;
-    // it is encoded for the Complex's Uthmanic Hafs font (fonts/UthmanicHafs_V22.ttf).
-    function arPage(p) {
-      if (!arCache[p]) {
-        arCache[p] = Promise.all(surahsOf(p).map(function (s) { return trSurah(trKey, s); })).then(function (lists) {
-          var by = {};
-          lists.forEach(function (l) { l.forEach(function (x) { by[x.sura + ':' + x.aya] = x.arabic_text; }); });
-          return versesOf(p).map(function (sv) { return { chapter: sv[0], verse: sv[1], text: cleanAr(by[sv[0] + ':' + sv[1]]) }; });
-        });
-        arCache[p].catch(function () { delete arCache[p]; });
-      }
-      return arCache[p];
-    }
+    function arPage(p) { return mushafPage(p); }
     function pageData(p) {
       var key = trKey, second = mushaf && step() === 2 && p + 1 <= TOTAL;
       return Promise.all([
         arPage(p),
         second ? arPage(p + 1) : null,
         mushaf ? [] : Promise.all(surahsOf(p).map(function (s) { return trSurah(key, s); })),
-        trSurah(key, 1) // basmala, Arabic and translated
+        mushaf ? null : trSurah(key, 1) // translated basmala
       ]).then(function (r) {
         var trBy = {};
         r[2].forEach(function (l) { l.forEach(function (x) { trBy[x.sura + ':' + x.aya] = x; }); });
-        return { ar: r[0], ar2: r[1], tr: trBy, basmala: r[3][0] };
+        return { ar: r[0], ar2: r[1], tr: trBy, basmala: r[3] && r[3][0] };
       });
     }
 
     /* ---------- rendering ---------- */
-    function basmalaAr(d) {
-      var t = d.basmala && d.basmala.arabic_text;
-      return t ? cleanAr(t) : 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ';
-    }
-    function renderAr(el, p, verses, d) {
-      var html = '', first = MAP.pages[p - 1][0];
-      verses.forEach(function (x) {
-        if (x.verse === 1) {
-          html += '<div class="bk-surah">سورة ' + esc(C.arabicNames[x.chapter - 1]) + '</div>';
-          if (x.chapter !== 1 && x.chapter !== 9) html += '<div class="bk-basmala">' + esc(basmalaAr(d)) + '</div>';
-        }
-        html += esc(x.text) + ' <span class="ayah-end">' + arNum(x.verse) + '</span> ';
+    // Basmala line: the basmala of Al-Fatiha (page 1, words 1–4) in the page-1 font, as the printed Mushaf repeats it.
+    var BASMALA = ['ﱁ', 'ﱂ', 'ﱃ', 'ﱄ'];
+    function renderAr(el, p, m) {
+      var first = MAP.pages[p - 1][0], html = '';
+      m.l.forEach(function (L) {
+        if (L[0] === 's') html += '<div class="ml ml-s"><span class="mh" role="img" aria-label="سورة ' + esc(C.arabicNames[L[1] - 1]) + '">' + L[2] + '</span></div>';
+        else if (L[0] === 'b') html += '<div class="ml ml-c ml-b">' + BASMALA.map(function (g) { return '<span>' + g + '</span>'; }).join('') + '</div>';
+        else html += '<div class="ml' + (L[1] ? ' ml-c' : '') + '">' + L[2].map(function (w) {
+          return '<span data-l="' + w[1] + '">' + w[0] + '</span>';
+        }).join('') + '</div>';
       });
       el.setAttribute('dir', 'rtl'); el.setAttribute('lang', 'ar'); el.style.fontFamily = '';
-      el.classList.add('bk-arpage'); el.classList.remove('bk-trpage');
+      el.classList.add('bk-arpage', 'bk-mpage'); el.classList.remove('bk-trpage');
       el.innerHTML =
         '<div class="bk-head"><b>سورة ' + esc(C.arabicNames[first - 1]) + '</b><span>الجزء ' + arNum(MAP.juz[p - 1]) + '</span></div>' +
-        '<div class="bk-content" lang="ar">' + html + '</div>' +
+        '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
         '<div class="bk-foot"><span>' + arNum(p) + '</span></div>';
+    }
+    // Size a Mushaf page: 15 equal lines; the font grows until the longest line fills the width (or the line height is reached).
+    function fitMushaf(el) {
+      var box = el.querySelector('.bk-mushaf');
+      if (!box || el.offsetParent === null) return;
+      var H = box.clientHeight, W = box.clientWidth, lh = H / 15, F0 = 20;
+      if (!H || !W) return;
+      box.style.setProperty('--lh', lh + 'px');
+      box.style.removeProperty('--mw');
+      box.classList.add('measuring');
+      box.style.fontSize = F0 + 'px';
+      var maxW = 0;
+      box.querySelectorAll('.ml:not(.ml-s):not(.ml-b)').forEach(function (l) { maxW = Math.max(maxW, l.getBoundingClientRect().width); });
+      box.classList.remove('measuring');
+      var open = box.classList.contains('bk-m-open');
+      var fs = maxW ? F0 * (W * (open ? 0.7 : 0.99)) / maxW : lh / 1.6;
+      fs = Math.min(fs, lh / 1.55);
+      box.style.fontSize = fs + 'px';
+      var lineW = Math.min(W, maxW * fs / F0 / (open ? 1 : 0.99));
+      if (!open) box.style.setProperty('--mw', lineW + 'px');
+      box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(lineW / 3.3, lh * 1.05) + 'px'; });
+      box.classList.add('ready');
     }
     function renderTr(el, p, d) {
       var t = tr(), names = t.names === 'ar' ? C.arabicNames : C.names[t.names], html = '', notes = [];
@@ -146,9 +183,9 @@
         '<div class="bk-foot"><span>' + p + '</span></div>';
     }
     function renderAll(p, d) {
-      renderAr(pgR, p, d.ar, d);
+      renderAr(pgR, p, d.ar);
       if (!mushaf) renderTr(pgL, p, d);
-      else if (d.ar2) renderAr(pgL, p + 1, d.ar2, d);
+      else if (d.ar2) renderAr(pgL, p + 1, d.ar2);
       else { pgL.innerHTML = ''; pgL.classList.remove('bk-arpage', 'bk-trpage'); }
     }
 
@@ -165,9 +202,9 @@
     }
     function fitAll() {
       var h = pgR.clientHeight || pgL.clientHeight || 600;
-      var arMax = Math.max(18, Math.min(30, h / 23)), trMax = Math.max(14, Math.min(19, h / 34));
+      var trMax = Math.max(14, Math.min(19, h / 34));
       [pgR, pgL].forEach(function (el) {
-        if (el.classList.contains('bk-arpage')) fit(el, arMax, 14);
+        if (el.classList.contains('bk-mpage')) fitMushaf(el);
         else if (el.classList.contains('bk-trpage')) fit(el, tr().lang === 'ur' ? trMax + 1 : trMax, 11);
       });
     }
@@ -301,18 +338,14 @@
     }
 
     showMsg(U.loading);
-    getMap(C.dataUrl).then(function (m) {
+    getMap(C.dataUrl || BASE + '/data/quran-pages.json').then(function (m) {
       MAP = m;
       MAP.pages.forEach(function (r, i) {
         for (var s = r[0]; s <= r[2]; s++) if (!surahStart[s - 1] && (s !== r[0] || r[1] === 1)) surahStart[s - 1] = i + 1;
       });
       buildControls();
       track('book_open', embed ? 'embed' : trKey);
-      var go1 = function () { show(startPage(), 0); };
-      // Load the Mushaf font before the first page is measured, so the text fits the page with its real shapes.
-      if (document.fonts && document.fonts.load) {
-        Promise.race([document.fonts.load("24px 'KFGQPC Hafs'", 'بسم'), wait(4000)]).then(function () { return document.fonts.ready; }).then(go1, go1);
-      } else go1();
+      show(startPage(), 0);
     }).catch(function () { showMsg(U.error, false); });
   }
 
