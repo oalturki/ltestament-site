@@ -29,7 +29,7 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 .bk-nav{ flex:0 0 46px; height:46px; border-radius:50%; border:1px solid rgba(200,155,60,0.35); background:rgba(255,255,255,0.04); color:var(--gold-soft); font-size:1.6rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 .bk-nav:hover{ background:rgba(200,155,60,0.15); }
 .bk-nav:disabled{ opacity:0.25; cursor:default; }
-.bk-book{ position:relative; height:100%; width:min(1180px, 100%); display:flex; direction:rtl; perspective:2200px;
+.bk-book{ position:relative; height:100%; width:min(1180px, 100%); display:flex; direction:rtl; perspective:6000px;
   filter:drop-shadow(0 18px 40px rgba(0,0,0,0.55)); }
 .bk-book::after{ /* spine shadow */ content:""; position:absolute; top:0; bottom:0; left:50%; width:36px; transform:translateX(-50%);
   background:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.16) 45%, rgba(0,0,0,0.22) 50%, rgba(0,0,0,0.16) 55%, rgba(0,0,0,0) 100%); pointer-events:none; }
@@ -99,11 +99,11 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 .bk-msg{ display:flex; align-items:center; justify-content:center; height:100%; color:var(--muted); font-size:0.95rem; text-align:center; padding:20px; }
 
 /* ---------- page turn: a leaf turns over the spine (book.js builds it from snapshots of the pages) ---------- */
-.bk-leaf{ position:absolute; z-index:6; transform-style:preserve-3d; transition:transform 0.66s cubic-bezier(0.42,0.0,0.3,1); will-change:transform; }
+.bk-leaf{ position:absolute; z-index:6; transform-style:preserve-3d; transition:transform 0.85s cubic-bezier(0.45,0.05,0.35,1); will-change:transform; }
 .bk-leaf > .bk-page{ position:absolute !important; left:0 !important; top:0 !important; width:100% !important; height:100% !important;
   display:flex !important; backface-visibility:hidden; -webkit-backface-visibility:hidden; box-shadow:0 0 24px rgba(0,0,0,0.25); }
 .bk-leaf > .bk-back{ transform:rotateY(180deg); }
-.bk-leaf > .bk-page::after{ content:""; position:absolute; inset:0; pointer-events:none; animation:bk-shade 0.66s ease-in-out; opacity:0;
+.bk-leaf > .bk-page::after{ content:""; position:absolute; inset:0; pointer-events:none; animation:bk-shade 0.85s ease-in-out; opacity:0;
   background:linear-gradient(90deg, rgba(0,0,0,0.18), rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.18)); }
 @keyframes bk-shade{ 0%{ opacity:0; } 50%{ opacity:1; } 100%{ opacity:0; } }
 .bk-cover{ position:absolute !important; z-index:5; }

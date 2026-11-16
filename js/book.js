@@ -13,6 +13,7 @@
   'use strict';
   var QE = 'https://quranenc.com/api/v1/translation/sura/';
   var TOTAL = 604;
+  var TURN_MS = 850;                      // page-turn duration (keep in step with .bk-leaf in book.css)
   var AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
   var MAP_P = null;                       // Mushaf page map, one request per page view
   var trCache = {};                       // key|surah -> verses, shared by every book on the page
@@ -257,23 +258,41 @@
         // showing the new right-hand page, while the new left-hand page is revealed underneath. Back: the mirror.
         // The new pages are rendered (and sized) first; snapshots of the old pages cover them until the leaf passes.
         var one = narrow(), vis = (mushaf || book.dataset.show !== 'tr') ? pgR : pgL, fwd = dir > 0;
-        var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
-        var oldA = snap(A), oldB = B ? snap(B) : null;
-        cur = p; renderAll(p, d); fitAll(); updateControls();
-        var leaf = document.createElement('div');
+        var leaf = document.createElement('div'), from, to, covers = [];
         leaf.className = 'bk-leaf';
-        place(leaf, oldA.box);
-        leaf.style.transformOrigin = (fwd ? 'right' : 'left') + ' center';
-        oldA.node.classList.add('bk-front');
-        var back = B ? snap(B).node : blankLike(A);
-        back.classList.add('bk-back');
-        leaf.appendChild(oldA.node); leaf.appendChild(back);
-        if (oldB) { place(oldB.node, oldB.box); oldB.node.classList.add('bk-cover'); book.appendChild(oldB.node); }
+        if (one && !fwd) {
+          // One page, going back: the previous page comes back from the right over the current one.
+          var oldV = snap(vis);
+          cur = p; renderAll(p, d); fitAll(); updateControls();
+          var newV = snap(vis);
+          place(oldV.node, oldV.box); oldV.node.classList.add('bk-cover'); book.appendChild(oldV.node); covers.push(oldV.node);
+          place(leaf, newV.box);
+          leaf.style.transformOrigin = 'right center';
+          newV.node.classList.add('bk-front');
+          var bk = blankLike(vis); bk.classList.add('bk-back');
+          leaf.appendChild(newV.node); leaf.appendChild(bk);
+          from = 'rotateY(180deg)'; to = 'rotateY(0deg)';
+        } else {
+          var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
+          var oldA = snap(A), oldB = B ? snap(B) : null;
+          cur = p; renderAll(p, d); fitAll(); updateControls();
+          place(leaf, oldA.box);
+          leaf.style.transformOrigin = (fwd ? 'right' : 'left') + ' center';
+          oldA.node.classList.add('bk-front');
+          var back = B ? snap(B).node : blankLike(A);
+          back.classList.add('bk-back');
+          leaf.appendChild(oldA.node); leaf.appendChild(back);
+          if (oldB) { place(oldB.node, oldB.box); oldB.node.classList.add('bk-cover'); book.appendChild(oldB.node); covers.push(oldB.node); }
+          from = 'rotateY(0deg)'; to = 'rotateY(' + (fwd ? 180 : -180) + 'deg)';
+        }
+        leaf.style.transition = 'none';
+        leaf.style.transform = from;
         book.appendChild(leaf);
         void leaf.offsetWidth;
-        leaf.style.transform = 'rotateY(' + (fwd ? 180 : -180) + 'deg)';
-        return wait(680).then(function () {
-          leaf.remove(); if (oldB) oldB.node.remove();
+        leaf.style.transition = '';
+        leaf.style.transform = to;
+        return wait(TURN_MS + 40).then(function () {
+          leaf.remove(); covers.forEach(function (c) { c.remove(); });
           busy = false; prefetch(); return true;
         });
       }).catch(function () {
