@@ -64,14 +64,14 @@ def reciters(lang):
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
 # the index (surah list) shows the meaning after the name in en/fr/es/ru: «Al-Baqarah (The Cow)»
-# (tools/data/surah_meanings.json, from Quran.com); not when the meaning only repeats the name (Hud, Al-Hijr, Хиджр)
+# (tools/data/surah_meanings.json, from Quran.com); not when the meaning is the name itself (Hud, Al-Hijr, Хиджр)
 import unicodedata as _ud
 MEANINGS = json.load(open(REPO / 'tools/data/surah_meanings.json', encoding='utf-8'))
 def _key(t):
     t = ''.join(c for c in _ud.normalize('NFD', t.lower()) if _ud.category(c) != 'Mn')
     t = t.replace('ou', 'u').replace('j', 'y').replace('ё', 'е')
     t = ''.join(c for c in t if c.isalpha())
-    for p in ('al', 'аль', 'ал', 'as', 'an', 'at', 'ash', 'ad', 'az', 'ar'):
+    for p in ('the', 'les', 'los', 'las', 'le', 'la', 'el', 'al', 'аль', 'ал', 'as', 'an', 'at', 'ash', 'ad', 'az', 'ar'):
         if t.startswith(p) and len(t) > len(p) + 2: t = t[len(p):]
     return t
 def index_names(lang):
@@ -81,7 +81,7 @@ def index_names(lang):
     out = []
     for n, m in zip(base, mean):
         a, b = _key(n), _key(m)
-        out.append(n if (a == b or a in b or b in a) else f'{n} ({m})')
+        out.append(n if a == b else f'{n} ({m})')
     return out
 
 UI = {

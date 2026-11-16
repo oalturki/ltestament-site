@@ -173,6 +173,8 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 .bk-bottom{ flex:0 0 54px; display:flex; align-items:center; gap:12px; padding:0 6vw; direction:rtl; }
 .bk-bottom input[type=range]{ flex:1; accent-color:var(--gold); }
 .bk-bottom small{ color:#8f8775; font-size:0.78rem; white-space:nowrap; }
+.bk-bottom .bk-fontcredit{ white-space:normal; max-width:230px; line-height:1.3; }   /* may take two lines rather than run off the bar */
+@media (min-width:900px){ .bk-bar [data-bk=surahSel]{ max-width:280px; } }   /* «Al-Baqarah (The Cow)» fits */
 .bk-fontcredit{ font-size:0.7rem !important; opacity:0.8; }
 
 /* ---------- single-page (mobile / narrow) ---------- */
