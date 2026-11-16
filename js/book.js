@@ -974,7 +974,10 @@
         qz.onclick = function () { qz.href = '/quiz/?p=' + cur; };
         bar.appendChild(qz);
       }
-      if (!embed) mobileShell();
+      // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
+      if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
+      if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '');
+      if (!embed && load('lt_mob_trial') === '1') mobileShell();
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
