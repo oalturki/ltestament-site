@@ -103,7 +103,7 @@
     var common = a.set.filter(function (c) { return b.set.indexOf(c) >= 0; }).length;
     sc += 14 * common / Math.max(1, Math.max(a.set.length, b.set.length));                  // shared letters
     sc += a.mtail === b.mtail ? 8 : 0;
-    sc -= Math.abs(a.mlen - b.mlen) / 3;
+    sc -= Math.abs(a.mlen - b.mlen) / 1.5;                                                   // the answers about the same length
     return sc;
   }
   function distinct(e, x) {                                                                   // clearly a different meaning
@@ -173,7 +173,11 @@
   function start() {
     root.innerHTML = '<p class="qz-note">جارٍ تجهيز الأسئلة…</p>';
     book().then(function () {
-      var rs = ranges(scope), qs = shuffle(ALL.filter(function (e) { return inR(e, rs); })), seen = {}, list = [];
+      // words whose meaning is about as short as the word come first, so the answers stay close to the word in length;
+      // longer explanations are asked only when the scope has too few short ones (a page, a short surah)
+      var ratio = function (e) { return e.f.mlen / Math.max(4, e.head.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\s]/g, '').length); };
+      var rs = ranges(scope), inScope = shuffle(ALL.filter(function (e) { return inR(e, rs); })), seen = {}, list = [];
+      var qs = inScope.filter(function (e) { return ratio(e) <= 3.2; }).concat(inScope.filter(function (e) { return ratio(e) > 3.2; }));
       for (var i = 0; i < qs.length && list.length < N; i++) {
         if (seen[qs[i].f.key]) continue;
         var w = wrong(qs[i]);
