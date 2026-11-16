@@ -442,7 +442,7 @@
           setHl({ s: s, a: a, w: 0 });
           playSrc(srcOf(r, s, a));
         }
-        wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
+        if (r.timed) wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
       };
       if (visible().indexOf(pageOf(s, a)) >= 0) go1();          // same page: start at once (keeps the tap's permission to play)
       else ensureVisible(s, a).then(go1);
@@ -484,6 +484,8 @@
       }
       playing = true; setPlayUI();
       var r = rec(), first = MAP.pages[cur - 1];
+      // meaning only: on a phone showing one page, show the meaning page (the English text is what is being read)
+      if (r.meaningOnly && narrow() && book.dataset.show !== 'tr') { var tb = root.querySelector('.bk-tab[data-show="tr"]'); if (tb) tb.click(); }
       // resume where it paused if that ayah is still on screen; otherwise start at the top of the page
       if (recState && lastRec === r.id && visible().indexOf(pageOf(recState.s, recState.a)) >= 0 && audio.currentTime > 0 && !audio.ended) {
         audio.play(); startTick(); return;

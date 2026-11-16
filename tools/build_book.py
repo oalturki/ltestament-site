@@ -51,11 +51,14 @@ RECITERS = [
          then=WALK, label=dict(ar='عبد الباسط + المعنى بالإنجليزية', en='Abdul Basit + English meaning (Ibrahim Walk)')),
     dict(id='minshawi-en', data='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=['en'],
          then=WALK, label=dict(ar='المنشاوي + المعنى بالإنجليزية', en='al-Minshawi + English meaning (Ibrahim Walk)')),
+    # English pages: the meaning alone, read continuously (the English text is highlighted ayah by ayah).
+    dict(id='walk', kind='ayah', url=WALK, timed=False, langs=['en'], meaningOnly=True,
+         label=dict(ar='المعنى بالإنجليزية فقط (إبراهيم ووك)', en='English meaning only (Ibrahim Walk)')),
 ]
 
 def reciters(lang):
     ln = 'ar' if lang in ('ar', 'ur') else 'en'
-    return [dict(id=r['id'], data=r.get('data', r['id']), kind=r['kind'], url=r['url'], timed=r['timed'], then=r.get('then'), label=r['label'][ln])
+    return [dict(id=r['id'], data=r.get('data', r['id']), kind=r['kind'], url=r['url'], timed=r['timed'], then=r.get('then'), meaningOnly=r.get('meaningOnly', False), label=r['label'][ln])
             for r in RECITERS if r['langs'] is None or lang in r['langs']]
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
