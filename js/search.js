@@ -2,7 +2,8 @@
    A 🔍 button in the page header opens a search panel.
    Now: search in the Quran (Arabic text; spelling-insensitive: no diacritics, any hamza/alef/ya/ta-marbuta form).
    Each result opens the Mushaf book at that ayah, highlighted (/book/#p=PAGE&a=S:A — handled by js/book.js).
-   Data: /data/search/quran-ar.json (tools/build_search.py, from QUL "Imlaei simple"), loaded on first use. */
+   Results are shown in the Complex's script (KFGQPC Hafs), the matched words highlighted.
+   Data: /data/search/quran-ar.json (tools/build_search.py, from QUL), loaded on first use. */
 (function () {
   'use strict';
   if (window.__ltSearch) return;
@@ -27,6 +28,8 @@
   // one-to-one letter folding (keeps positions, so matches can be marked in the shown text)
   var FOLD = { 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ى': 'ي', 'ئ': 'ي', 'ؤ': 'و', 'ة': 'ه' };
   var fold = function (s) { return s.replace(/[أإآٱىئؤة]/g, function (c) { return FOLD[c]; }); };
+  // lenient key for matching a query word to a shown word (spellings differ: الرحمن / الرحمان)
+  var lenient = function (s) { return fold(s).replace(/[\u064B-\u065F\u0670\u0640\sا]/g, ''); };
   var cleanQuery = function (s) {
     return fold(s.replace(/[ً-ٰٟۖ-ۭـ]/g, '')).replace(/[^ء-ي\s]/g, ' ').replace(/\s+/g, ' ').trim();
   };
@@ -67,8 +70,10 @@
     '.lt-sres{display:block;padding:12px 10px;border-bottom:1px solid rgba(200,155,60,.2);color:inherit;text-decoration:none;border-radius:8px}' +
     '.lt-sres:hover{background:rgba(200,155,60,.1)}' +
     '.lt-sref{font-size:.82rem;color:#8a6a1f;font-weight:700;margin-bottom:4px}' +
-    '.lt-sar{font-family:"Amiri","KFGQPC Hafs",serif;font-size:1.25rem;line-height:1.9;direction:rtl;text-align:right}' +
-    '.lt-sar mark{background:rgba(200,155,60,.35);color:inherit;border-radius:3px;padding:0 1px}' +
+    '@font-face{font-family:"KFGQPC Hafs";src:url("/fonts/UthmanicHafs_V22.ttf") format("truetype");font-display:swap}' +
+    '.lt-sar{font-family:"KFGQPC Hafs","Amiri",serif;font-size:1.4rem;line-height:2.1;direction:rtl;text-align:right;word-spacing:2px}' +
+    '.lt-sar mark{background:rgba(200,155,60,.38);color:inherit;border-radius:4px;padding:0 2px}' +
+    '.lt-sar .e{color:#8a6a1f}' +
     '.lt-smore{display:block;margin:12px auto 4px;background:#C89B3C;color:#101b33;border:none;border-radius:18px;padding:8px 18px;font:inherit;font-weight:700;cursor:pointer}';
   document.head.appendChild(css);
 
@@ -135,15 +140,17 @@
     body.appendChild(head);
     more(q, words);
   }
+  // the ayah in the Complex's script, with the words that match the query highlighted
   function mark(i, q, words) {
-    var t = data.t[i], f = folded[i], spans = [];
-    var p = f.indexOf(q);
-    if (p >= 0) spans.push([p, p + q.length]);
-    else words.forEach(function (w) { var k = f.indexOf(w); if (k >= 0) spans.push([k, k + w.length]); });
-    spans.sort(function (a, b) { return a[0] - b[0]; });
-    var out = '', at = 0;
-    spans.forEach(function (sp) { if (sp[0] < at) return; out += esc(t.slice(at, sp[0])) + '<mark>' + esc(t.slice(sp[0], sp[1])) + '</mark>'; at = sp[1]; });
-    return out + esc(t.slice(at));
+    var shown = data.u[i].split('|'), plain = data.k[i].split('|');
+    var want = words.map(lenient).filter(Boolean);
+    var html = shown.map(function (w, j) {
+      var k = lenient(plain[j] || '');
+      var hit = want.some(function (q2) { return k === q2 || (q2.length >= 2 && k.indexOf(q2) >= 0); });
+      return hit ? '<mark>' + esc(w) + '</mark>' : esc(w);
+    }).join(' ');
+    // the ayah number: Arabic-Indic digits, which the Complex's font draws as the ayah-end ornament
+    return html + ' <span class="e">' + String(keys[i][1]).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; }) + '</span>';
   }
   function more(q, words) {
     var old = body.querySelector('.lt-smore'); if (old) old.remove();
