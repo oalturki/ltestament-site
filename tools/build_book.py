@@ -52,7 +52,8 @@ RECITERS = [
     dict(id='minshawi-en', data='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=['en'],
          then=WALK, label=dict(ar='المنشاوي + المعنى بالإنجليزية', en='al-Minshawi + English meaning (Ibrahim Walk)')),
     # English pages: the meaning alone, read continuously (the English text is highlighted ayah by ayah).
-    dict(id='walk', kind='ayah', url=WALK, timed=False, langs=['en'], meaningOnly=True, trimLead=True,
+    dict(id='walk', kind='ayah', url=WALK, timed=False, langs=['en'], meaningOnly=True,  # trimLead=True would skip the reciter's tail at the start of some files; off: it can clip the first English word
+        
          label=dict(ar='المعنى بالإنجليزية فقط (إبراهيم ووك)', en='English meaning only (Ibrahim Walk)')),
 ]
 

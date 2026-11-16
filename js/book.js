@@ -491,8 +491,10 @@
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'meaning' };
       setHl({ s: s, a: a, w: 0 });
-      playTrimmed(meaningUrl(r, s, a));
-      var n = nextAyah(s, a); if (n) leadOffset(meaningUrl(r, n[0], n[1]));   // analyse the next one ahead
+      if (r.trimLead) {
+        playTrimmed(meaningUrl(r, s, a));
+        var n = nextAyah(s, a); if (n) leadOffset(meaningUrl(r, n[0], n[1]));   // analyse the next one ahead
+      } else playSrc(meaningUrl(r, s, a));
     }
     function playAyah(s, a, skipBasmala) {
       var r = rec();
@@ -510,7 +512,7 @@
             var n = nextAyah(s, a); if (n) leadOffset(srcOf(r, n[0], n[1]));
           } else {
             playSrc(srcOf(r, s, a));
-            if (r.then) leadOffset(meaningUrl(r, s, a));      // prepare the meaning while the ayah is recited
+            if (r.then && r.trimLead) leadOffset(meaningUrl(r, s, a));      // prepare the meaning while the ayah is recited
           }
         }
         if (r.timed) wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
