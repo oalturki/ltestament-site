@@ -366,8 +366,8 @@
       });
     }
     function wordTimes(r, s, a) {
-      var p = pageOf(s, a), id = r.id + '|' + p;
-      if (!recPages[id]) { recPages[id] = getJSON(BASE + '/data/rec/' + r.id + '/p' + p + '.json'); recPages[id].catch(function () { delete recPages[id]; }); }
+      var p = pageOf(s, a), id = (r.data || r.id) + '|' + p;
+      if (!recPages[id]) { recPages[id] = getJSON(BASE + '/data/rec/' + (r.data || r.id) + '/p' + p + '.json'); recPages[id].catch(function () { delete recPages[id]; }); }
       return recPages[id].then(function (m) { return m[s + ':' + a] || []; });
     }
     function ayahTimes(r, s) {
@@ -422,6 +422,13 @@
       startTick();
     }
     // Ayah-by-ayah reciters: basmala first when a surah starts (not Al-Fatiha, which begins with it, nor At-Tawbah).
+    // r.then: after the ayah, play its meaning (one file per ayah) with the whole ayah highlighted.
+    function playMeaning(s, a) {
+      var r = rec();
+      recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'meaning' };
+      setHl({ s: s, a: a, w: 0 });
+      playSrc(r.then.replace('{s}', pad(s)).replace('{a}', pad(a)));
+    }
     function playAyah(s, a, skipBasmala) {
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
@@ -461,6 +468,7 @@
       var st = recState;
       if (st.kind === 'ayah') {
         if (st.phase === 'basmala') return playAyah(st.s, st.a, true);
+        if (st.phase === 'ayah' && rec().then) return playMeaning(st.s, st.a);
         var n = nextAyah(st.s, st.a);
         if (n) playAyah(n[0], n[1]); else stopAudio();
       } else {

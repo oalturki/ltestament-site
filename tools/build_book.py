@@ -39,20 +39,23 @@ DEFAULT_TR = {'ar': 'english_saheeh', 'en': 'english_saheeh', 'fr': 'french_mont
 # kind 'ayah'  : one file per ayah ({s}{a} = 3-digit surah + 3-digit ayah), word timings in /data/rec/<id>/p<N>.json
 # kind 'surah' : one file per surah ({s}), ayah timings in /data/rec/<id>.json when timed=True
 # langs: pages where it is offered (None = every page). The English-meaning recordings follow the Saheeh International text.
+WALK = 'https://everyayah.com/data/English/Sahih_Intnl_Ibrahim_Walk_192kbps/{s}{a}.mp3'
 RECITERS = [
     dict(id='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=None,
          label=dict(ar='عبد الباسط عبد الصمد', en='Abdul Basit Abdul Samad')),
     dict(id='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=None,
          label=dict(ar='محمد صديق المنشاوي', en='Muhammad Siddiq al-Minshawi')),
-    dict(id='basfar-walk', kind='surah', url='https://download.quranicaudio.com/quran/abdullah_basfar_w_ibrahim_walk_si//{s}.mp3', timed=True, langs=['en'],
-         label=dict(ar='عبد الله بصفر + المعنى بالإنجليزية', en='Abdullah Basfar + English meaning (Ibrahim Walk)')),
-    dict(id='abdulbasit-walk', kind='surah', url='https://download.quranicaudio.com/quran/abdulbasit_w_ibrahim_walk_si//{s}.mp3', timed=False, langs=['en'],
-         label=dict(ar='عبد الباسط + المعنى بالإنجليزية', en='Abdul Basit + English meaning (Ibrahim Walk)')),
+    # English pages: the same recitations, each ayah followed by its meaning read by Ibrahim Walk (Saheeh International,
+    # one file per ayah from everyayah.com) — recitation and meaning stay in step because both are ayah by ayah.
+    dict(id='abdulbasit-en', data='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=['en'],
+         then=WALK, label=dict(ar='عبد الباسط + المعنى بالإنجليزية', en='Abdul Basit + English meaning (Ibrahim Walk)')),
+    dict(id='minshawi-en', data='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=['en'],
+         then=WALK, label=dict(ar='المنشاوي + المعنى بالإنجليزية', en='al-Minshawi + English meaning (Ibrahim Walk)')),
 ]
 
 def reciters(lang):
     ln = 'ar' if lang in ('ar', 'ur') else 'en'
-    return [dict(id=r['id'], kind=r['kind'], url=r['url'], timed=r['timed'], label=r['label'][ln])
+    return [dict(id=r['id'], data=r.get('data', r['id']), kind=r['kind'], url=r['url'], timed=r['timed'], then=r.get('then'), label=r['label'][ln])
             for r in RECITERS if r['langs'] is None or lang in r['langs']]
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}

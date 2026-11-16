@@ -19,7 +19,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'tools' / 'data' / 'rec'
 OUT = ROOT / 'data' / 'rec'
 WORD = {'abdulbasit': 'abdulbasit-murattal.json', 'minshawi': 'minshawi-murattal.json'}
-AYAH = {'basfar-walk': 'basfar-walk-segments.json'}
+AYAH = {}  # surah-file reciters with ayah timings (none in use: the Basfar + Walk timings in QUL do not match its audio)
 
 
 def page_of_ayah():
