@@ -119,6 +119,7 @@
       var card = document.querySelector('[onclick="openModal(\'' + m[1] + '\')"]');
       if (card) card.scrollIntoView({ block: 'center' });
       window.openModal(m[1]);
+      history.replaceState(null, '', location.pathname + location.search);   // closing the window leaves a clean address
     } catch (e) {}
   }
   window.addEventListener('hashchange', go);
