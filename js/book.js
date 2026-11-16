@@ -838,6 +838,15 @@
       buildControls();
       setupAudio();
       setupFrame();
+      // Arabic full book: «اختبر نفسك» opens the word-meaning quiz on the words of the page in view (/quiz/?p=N)
+      var bar = !embed && (C.lang || 'ar') === 'ar' && document.querySelector('.bk-bar');
+      if (bar) {
+        var qz = document.createElement('a');
+        qz.className = 'bk-quizlink'; qz.href = '/quiz/'; qz.textContent = 'اختبر نفسك';
+        qz.title = 'اختبر معرفتك بمعاني كلمات هذه الصفحة';
+        qz.onclick = function () { qz.href = '/quiz/?p=' + cur; };
+        bar.appendChild(qz);
+      }
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');

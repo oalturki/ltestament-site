@@ -243,3 +243,5 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 .bk-ws b{ font-family:'KFGQPC Hafs','Amiri',serif; font-weight:400; font-size:1.15em; }
 .bk-wss{ font-size:.75rem; color:#8a7a55; margin-top:4px; }
 .bk-wsmore{ display:inline-block; margin-top:12px; color:#8a6a1f; font-weight:700; text-decoration:none; }
+.bk-quizlink{ flex:0 0 auto; color:#DCC078; border:1px solid rgba(200,155,60,0.55); border-radius:18px; padding:5px 14px; font-size:.9rem; text-decoration:none; white-space:nowrap; }
+.bk-quizlink:hover{ background:rgba(200,155,60,0.15); }

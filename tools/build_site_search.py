@@ -127,7 +127,7 @@ def build(lang):
         if href == '#': href = base + 'book/'   # "read the text" opens the reader = the book
         add(h and h.text(), tag and tag.text(), p and p.text(), href)
 
-    for sub in ('book', 'ask', 'feedback'):
+    for sub in ('book', 'ask', 'feedback', 'quiz'):
         p = ROOT / (f'{sub}/index.html' if lang == 'ar' else f'{lang}/{sub}/index.html')
         if not p.exists(): continue
         s = p.read_text(encoding='utf-8')

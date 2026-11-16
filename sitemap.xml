@@ -252,4 +252,7 @@
     <xhtml:link rel="alternate" hreflang="ru" href="https://ltestament.com/ru/book/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://ltestament.com/book/"/>
   </url>
+  <url>
+    <loc>https://ltestament.com/quiz/</loc>
+  </url>
 </urlset>
