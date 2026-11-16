@@ -319,3 +319,14 @@ body.bk-mob .bk-bar{ top:calc(6px + env(safe-area-inset-top)); left:10px; right:
 body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }
 /* the surah-name artwork on a page's first line reaches a little above its line: clip only the sides, never its top */
 .bk-mushaf{ overflow-x:hidden; overflow-x:clip; overflow-y:visible; }
+
+/* 'edge': one upright band of ornament on the page's outer edge only (right-hand page: its right edge; left-hand page: its left),
+   no bands above or below the text. Uses the side of the same frame artwork. */
+[data-frame="edge"] .bk-mframe{ border-width:0 !important; border-image-width:0 !important; background:#fdfaf1 !important; padding:4px 10px; }
+[data-frame="edge"] .bk-mframe::before, [data-frame="edge"] .bk-mpage::after{ display:none; }
+[data-frame="edge"] .bk-mframe.sp-l{ border-right-width:22px !important; border-image-width:0 22px 0 0 !important; }
+[data-frame="edge"] .bk-mframe.sp-r{ border-left-width:22px !important; border-image-width:0 0 0 22px !important; }
+@media (max-width:600px){
+  [data-frame="edge"] .bk-mframe.sp-l{ border-right-width:13px !important; border-image-width:0 13px 0 0 !important; }
+  [data-frame="edge"] .bk-mframe.sp-r{ border-left-width:13px !important; border-image-width:0 0 0 13px !important; }
+}

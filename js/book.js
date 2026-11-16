@@ -963,7 +963,7 @@
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');
       // no choice made yet: plain on phones (the page edge to edge, as in Mushaf apps), the ornament elsewhere
-      if (['sides', 'full', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'none' : 'sides';
+      if (['sides', 'full', 'edge', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'none' : 'sides';
       frameChoice = v; applyFrame();
       if (!sel) return;
       sel.value = v;
