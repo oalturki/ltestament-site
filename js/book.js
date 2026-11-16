@@ -172,7 +172,7 @@
           html += '<div class="bk-surah">' + esc(names[s - 1]) + '</div>';
           if (s !== 1 && s !== 9 && d.basmala) html += '<div class="bk-basmala">' + esc(cleanTr(d.basmala.translation).replace(/\[\d+\]/g, '')) + '</div>';
         }
-        html += '<span class="vn">' + v + '</span>' + fnMarks(cleanTr(x.translation)) + ' ';
+        html += '<span class="v" data-v="' + s + ':' + v + '"><span class="vn">' + v + '</span>' + fnMarks(cleanTr(x.translation)) + '</span> ';
         if (x.footnotes) notes.push('(' + s + ':' + v + ') ' + x.footnotes);
       });
       el.setAttribute('dir', t.dir); el.setAttribute('lang', t.lang); el.style.fontFamily = t.font;
@@ -190,6 +190,7 @@
       if (!mushaf) renderTr(pgL, p, d);
       else if (d.ar2) renderAr(pgL, p + 1, d.ar2);
       else { pgL.innerHTML = ''; pgL.classList.remove('bk-arpage', 'bk-trpage'); }
+      applyHl();
     }
 
     // Shrink the text until the page fits; if it still does not fit at the minimum size, let it scroll.
@@ -234,12 +235,13 @@
 
     /* ---------- page turning ---------- */
     function instant(fn) { book.classList.remove('anim'); fn(); void book.offsetWidth; book.classList.add('anim'); }
-    function show(p, dir) {
+    function show(p, dir, auto) {
       p = norm(p);
-      if (busy) return;
+      if (!auto) stopAudio();          // the reader turned the page: stop the recitation
+      if (busy) return Promise.resolve(false);
       busy = true;
       var slow = setTimeout(function () { book.style.opacity = '0.6'; }, 250);
-      pageData(p).then(function (d) {
+      return pageData(p).then(function (d) {
         clearTimeout(slow); book.style.opacity = '';
         var animate = dir && !window.matchMedia('(prefers-reduced-motion:reduce)').matches;
         if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); return; }
@@ -284,7 +286,7 @@
             var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = t.fontUrl; l.dataset.font = t.key; document.head.appendChild(l);
           }
           track('book_open', trKey);
-          show(cur, 0);
+          show(cur, 0, true);
         };
       }
       var pi = q('pageInput');
@@ -328,9 +330,180 @@
       window.addEventListener('resize', function () {
         clearTimeout(rt);
         rt = setTimeout(function () {
-          if (step() !== wasStep) { wasStep = step(); show(cur, 0); } else fitAll();
+          if (step() !== wasStep) { wasStep = step(); show(cur, 0, true); } else fitAll();
         }, 150);
       });
+    }
+
+
+    /* ---------- recitation (audio) ----------
+       Reciters come from the config (tools/build_book.py → RECITERS). Two kinds:
+       - 'ayah' : one audio file per ayah + word timings → the word being recited is highlighted;
+       - 'surah': one file per surah (+ ayah timings when timed) → the ayah being recited is highlighted.
+       The book turns the page by itself when the recitation reaches the next page. */
+    var RECS = C.reciters || [], lastRec = null, audio = null, playing = false, recId = null, recState = null, hl = null, raf = 0;
+    var recPages = {}, recSurahs = {};
+    var keyFirst = [], keyLast = [];
+    function rec() { return RECS.filter(function (r) { return r.id === recId; })[0] || RECS[0]; }
+    function pad(n) { return ('00' + n).slice(-3); }
+    function srcOf(r, s, a) { return r.url.replace('{s}', pad(s)).replace('{a}', pad(a || 1)); }
+    function buildIndex() {
+      MAP.pages.forEach(function (r, i) { keyFirst[i] = r[0] * 1000 + r[1]; keyLast[i] = r[2] * 1000 + r[3]; });
+    }
+    function pageOf(s, a) {
+      var k = s * 1000 + a, lo = 0, hi = TOTAL - 1;
+      while (lo < hi) { var m = (lo + hi) >> 1; if (keyLast[m] < k) lo = m + 1; else hi = m; }
+      return lo + 1;
+    }
+    function visible() { return step() === 2 ? [cur, Math.min(TOTAL, cur + 1)] : [cur]; }
+    function nextAyah(s, a) { return a < MAP.verses[s - 1] ? [s, a + 1] : (s < 114 ? [s + 1, 1] : null); }
+    function ensureVisible(s, a, tries) {
+      var p = pageOf(s, a);
+      if (visible().indexOf(p) >= 0) return Promise.resolve(true);
+      if ((tries || 0) > 8) return Promise.resolve(false);
+      return show(p, p > cur ? 1 : -1, true).then(function (ok) {
+        return ok ? true : wait(350).then(function () { return ensureVisible(s, a, (tries || 0) + 1); });
+      });
+    }
+    function wordTimes(r, s, a) {
+      var p = pageOf(s, a), id = r.id + '|' + p;
+      if (!recPages[id]) { recPages[id] = getJSON(BASE + '/data/rec/' + r.id + '/p' + p + '.json'); recPages[id].catch(function () { delete recPages[id]; }); }
+      return recPages[id].then(function (m) { return m[s + ':' + a] || []; });
+    }
+    function ayahTimes(r, s) {
+      if (!recSurahs[r.id]) { recSurahs[r.id] = getJSON(BASE + '/data/rec/' + r.id + '.json'); recSurahs[r.id].catch(function () { delete recSurahs[r.id]; }); }
+      return recSurahs[r.id].then(function (m) { return m[String(s)] || []; });
+    }
+
+    // highlight: hl = {s, a, w} (w = word number, 0 = whole ayah) or {basmala: true}
+    function setHl(h) {
+      if (hl && h && hl.s === h.s && hl.a === h.a && hl.w === h.w && hl.basmala === h.basmala) return;
+      hl = h; applyHl();
+    }
+    function applyHl() {
+      root.querySelectorAll('.ha, .hl').forEach(function (e) { e.classList.remove('ha', 'hl'); });
+      if (!hl) return;
+      if (hl.basmala) { root.querySelectorAll('.ml-b').forEach(function (e) { e.classList.add('ha'); }); return; }
+      root.querySelectorAll('[data-l^="' + hl.s + ':' + hl.a + ':"], [data-v="' + hl.s + ':' + hl.a + '"]').forEach(function (e) { e.classList.add('ha'); });
+      if (hl.w) root.querySelectorAll('[data-l="' + hl.s + ':' + hl.a + ':' + hl.w + '"]').forEach(function (e) { e.classList.add('hl'); });
+    }
+    function setPlayUI() {
+      var b = q('play');
+      if (!b) return;
+      b.classList.toggle('on', playing);
+      b.setAttribute('aria-label', playing ? U.pause : U.listen);
+      b.title = playing ? U.pause : U.listen;
+      var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
+    }
+    function tick() {
+      raf = 0;
+      if (!playing || !recState) return;
+      var t = audio.currentTime * 1000, st = recState;
+      if (st.kind === 'ayah' && st.phase === 'ayah' && st.words) {
+        var w = 0;
+        for (var i = 0; i < st.words.length; i++) if (st.words[i][1] <= t) w = st.words[i][0]; else break;
+        setHl({ s: st.s, a: st.a, w: w });
+      } else if (st.kind === 'surah' && st.times) {
+        var cur2 = null;
+        for (var j = 0; j < st.times.length; j++) if (st.times[j][1] <= t) cur2 = st.times[j]; else break;
+        if (cur2 && cur2[0] !== st.a) {
+          st.a = cur2[0];
+          ensureVisible(st.s, st.a);
+        }
+        if (cur2) setHl({ s: st.s, a: st.a, w: 0 });
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    function startTick() { if (!raf) raf = requestAnimationFrame(tick); }
+    function playSrc(url) {
+      if (audio.getAttribute('src') !== url) audio.src = url;
+      var pr = audio.play();
+      if (pr && pr.catch) pr.catch(function () { stopAudio(); });
+      startTick();
+    }
+    // Ayah-by-ayah reciters: basmala first when a surah starts (not Al-Fatiha, which begins with it, nor At-Tawbah).
+    function playAyah(s, a, skipBasmala) {
+      var r = rec();
+      recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
+      var go1 = function () {
+        if (!playing) return;
+        if (a === 1 && s !== 1 && s !== 9 && !skipBasmala) {
+          recState.phase = 'basmala';
+          setHl({ basmala: true });
+          playSrc(srcOf(r, 1, 1));
+        } else {
+          setHl({ s: s, a: a, w: 0 });
+          playSrc(srcOf(r, s, a));
+        }
+        wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
+      };
+      if (visible().indexOf(pageOf(s, a)) >= 0) go1();          // same page: start at once (keeps the tap's permission to play)
+      else ensureVisible(s, a).then(go1);
+    }
+    function playSurah(s, a) {
+      var r = rec(), url = srcOf(r, s);
+      recState = { kind: 'surah', s: s, a: a, times: null };
+      ensureVisible(s, a);
+      playSrc(url);
+      if (!r.timed) { setHl(null); return; }
+      ayahTimes(r, s).then(function (times) {
+        if (!recState || recState.s !== s) return;
+        recState.times = times;
+        var start = times.filter(function (x) { return x[0] === a; })[0];
+        if (start && a > 1) {
+          var seek = function () { try { audio.currentTime = start[1] / 1000; } catch (e) {} };
+          if (audio.readyState >= 1) seek(); else audio.addEventListener('loadedmetadata', seek, { once: true });
+        }
+      }, function () {});
+    }
+    function onEnded() {
+      if (!playing || !recState) return;
+      var st = recState;
+      if (st.kind === 'ayah') {
+        if (st.phase === 'basmala') return playAyah(st.s, st.a, true);
+        var n = nextAyah(st.s, st.a);
+        if (n) playAyah(n[0], n[1]); else stopAudio();
+      } else {
+        if (st.s < 114) playSurah(st.s + 1, 1); else stopAudio();
+      }
+    }
+    function startAudio() {
+      if (!RECS.length) return;
+      if (!audio) {
+        audio = new Audio(); audio.preload = 'auto';
+        audio.addEventListener('ended', onEnded);
+        audio.addEventListener('error', function () { if (playing) { stopAudio(); } });
+      }
+      playing = true; setPlayUI();
+      var r = rec(), first = MAP.pages[cur - 1];
+      // resume where it paused if that ayah is still on screen; otherwise start at the top of the page
+      if (recState && lastRec === r.id && visible().indexOf(pageOf(recState.s, recState.a)) >= 0 && audio.currentTime > 0 && !audio.ended) {
+        audio.play(); startTick(); return;
+      }
+      if (r.kind === 'ayah') playAyah(first[0], first[1]);
+      else playSurah(first[0], first[1]);
+      lastRec = r.id;
+    }
+    function stopAudio() {
+      if (!playing) return;
+      playing = false;
+      if (audio) audio.pause();
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }
+      setPlayUI();
+    }
+    function setupAudio() {
+      var b = q('play'), sel = q('reciter');
+      if (!b || !sel || !RECS.length) { var box = root.querySelector('.bk-audio'); if (box) box.hidden = true; return; }
+      var saved = embed ? null : load('lt_book_rec');
+      recId = RECS.some(function (r) { return r.id === saved; }) ? saved : RECS[0].id;
+      sel.innerHTML = RECS.map(function (r) { return '<option value="' + r.id + '">' + esc(r.label) + '</option>'; }).join('');
+      sel.value = recId;
+      sel.onchange = function () {
+        recId = sel.value; if (!embed) store('lt_book_rec', recId);
+        var was = playing; stopAudio(); recState = null; setHl(null);
+        if (was) startAudio();
+      };
+      b.onclick = function () { if (playing) stopAudio(); else startAudio(); };
     }
 
     function startPage() {
@@ -346,7 +519,9 @@
       MAP.pages.forEach(function (r, i) {
         for (var s = r[0]; s <= r[2]; s++) if (!surahStart[s - 1] && (s !== r[0] || r[1] === 1)) surahStart[s - 1] = i + 1;
       });
+      buildIndex();
       buildControls();
+      setupAudio();
       track('book_open', embed ? 'embed' : trKey);
       show(startPage(), 0);
     }).catch(function () { showMsg(U.error, false); });

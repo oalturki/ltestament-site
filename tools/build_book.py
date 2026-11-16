@@ -35,34 +35,59 @@ TRANSLATIONS = [
 ]
 DEFAULT_TR = {'ar': 'english_saheeh', 'en': 'english_saheeh', 'fr': 'french_montada', 'es': 'spanish_montada_latin',
               'ur': 'urdu_junagarhi', 'ru': 'russian_aboadel'}
+# Recitations for the book's audio player (timings built by tools/build_recitations.py; audio streams from these URLs).
+# kind 'ayah'  : one file per ayah ({s}{a} = 3-digit surah + 3-digit ayah), word timings in /data/rec/<id>/p<N>.json
+# kind 'surah' : one file per surah ({s}), ayah timings in /data/rec/<id>.json when timed=True
+# langs: pages where it is offered (None = every page). The English-meaning recordings follow the Saheeh International text.
+RECITERS = [
+    dict(id='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=None,
+         label=dict(ar='عبد الباسط عبد الصمد', en='Abdul Basit Abdul Samad')),
+    dict(id='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=None,
+         label=dict(ar='محمد صديق المنشاوي', en='Muhammad Siddiq al-Minshawi')),
+    dict(id='basfar-walk', kind='surah', url='https://download.quranicaudio.com/quran/abdullah_basfar_w_ibrahim_walk_si//{s}.mp3', timed=True, langs=['en'],
+         label=dict(ar='عبد الله بصفر + المعنى بالإنجليزية', en='Abdullah Basfar + English meaning (Ibrahim Walk)')),
+    dict(id='abdulbasit-walk', kind='surah', url='https://download.quranicaudio.com/quran/abdulbasit_w_ibrahim_walk_si//{s}.mp3', timed=False, langs=['en'],
+         label=dict(ar='عبد الباسط + المعنى بالإنجليزية', en='Abdul Basit + English meaning (Ibrahim Walk)')),
+]
+
+def reciters(lang):
+    ln = 'ar' if lang in ('ar', 'ur') else 'en'
+    return [dict(id=r['id'], kind=r['kind'], url=r['url'], timed=r['timed'], label=r['label'][ln])
+            for r in RECITERS if r['langs'] is None or lang in r['langs']]
+
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
 
 UI = {
- 'ar': dict(full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
+ 'ar': dict(listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة، والمعنى بلغتك على الصفحة المقابلة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
             loading='جارِ فتح المصحف…', text='النص', meaning='المعنى', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
- 'en': dict(full='Open the full Quran', fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
+ 'en': dict(listen='Listen', pause='Pause', reciter='Reciter', full='Open the full Quran', fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
             page='Page', notes='Translator’s notes', retry='Try again', error='The page could not be loaded. Check your connection and try again.',
             loading='Opening the book…', text='Arabic', meaning='Meaning', index='Surah', tr='Translation', prev='Previous page', next='Next page',
             hint='Turn pages with the arrows or by swiping', btn='Read as a book'),
- 'ur': dict(full='مکمل قرآن کھولیں', fontCredit='مصحف کا خط: شاہ فہد قرآن کریم پرنٹنگ کمپلیکس', title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
+ 'ur': dict(listen='سنیں', pause='روکیں', reciter='قاری', full='مکمل قرآن کھولیں', fontCredit='مصحف کا خط: شاہ فہد قرآن کریم پرنٹنگ کمپلیکس', title='قرآن کتابی صورت میں', sub='مصحفِ مدینہ کی ترتیب سے قرآن کریم کو صفحہ بہ صفحہ پڑھیں، اور سامنے والے صفحے پر اپنی زبان میں معنی۔',
             page='صفحہ', notes='ترجمے کے حواشی', retry='دوبارہ کوشش کریں', error='صفحہ لوڈ نہیں ہو سکا۔ انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔',
             loading='مصحف کھل رہا ہے…', text='متن', meaning='ترجمہ', index='سورت', tr='ترجمہ', prev='پچھلا صفحہ', next='اگلا صفحہ',
             hint='تیروں یا صفحہ سرکا کر ورق پلٹیں', btn='کتابی صورت میں پڑھیں'),
- 'fr': dict(full='Ouvrir le Coran complet', fontCredit='Police du Mushaf : Complexe du Roi Fahd pour l’impression du Saint Coran', title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
+ 'fr': dict(listen='Écouter', pause='Pause', reciter='Récitateur', full='Ouvrir le Coran complet', fontCredit='Police du Mushaf : Complexe du Roi Fahd pour l’impression du Saint Coran', title='Le Coran comme un livre', sub='Feuilletez le Coran page par page, selon la mise en page du Mushaf de Médine, avec le sens en français en regard.',
             page='Page', notes='Notes du traducteur', retry='Réessayer', error='La page n’a pas pu être chargée. Vérifiez votre connexion et réessayez.',
             loading='Ouverture du livre…', text='Arabe', meaning='Sens', index='Sourate', tr='Traduction', prev='Page précédente', next='Page suivante',
             hint='Tournez les pages avec les flèches ou en faisant glisser', btn='Lire comme un livre'),
- 'es': dict(full='Abrir el Corán completo', fontCredit='Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán', title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
+ 'es': dict(listen='Escuchar', pause='Pausa', reciter='Recitador', full='Abrir el Corán completo', fontCredit='Tipografía del Mushaf: Complejo Rey Fahd para la Impresión del Sagrado Corán', title='El Corán como un libro', sub='Hojea el Corán página a página, según la disposición del Mushaf de Medina, con el significado en español en la página de enfrente.',
             page='Página', notes='Notas del traductor', retry='Reintentar', error='No se pudo cargar la página. Revisa tu conexión e inténtalo de nuevo.',
             loading='Abriendo el libro…', text='Árabe', meaning='Significado', index='Sura', tr='Traducción', prev='Página anterior', next='Página siguiente',
             hint='Pasa las páginas con las flechas o deslizando', btn='Leer como un libro'),
- 'ru': dict(full='Открыть весь Коран', fontCredit='Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана', title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
+ 'ru': dict(listen='Слушать', pause='Пауза', reciter='Чтец', full='Открыть весь Коран', fontCredit='Шрифт мусхафа: Комплекс короля Фахда по изданию Священного Корана', title='Коран как книга', sub='Листайте Коран страница за страницей, как в Мединском мусхафе, со смыслом на русском языке на соседней странице.',
             page='Стр.', notes='Примечания переводчика', retry='Повторить', error='Не удалось загрузить страницу. Проверьте соединение и попробуйте снова.',
             loading='Открываем книгу…', text='Арабский', meaning='Смысл', index='Сура', tr='Перевод', prev='Предыдущая страница', next='Следующая страница',
             hint='Листайте стрелками или свайпом', btn='Читать как книгу'),
 }
+
+def audio_ui(u):
+    return (f'<div class="bk-audio"><button type="button" class="bk-play" data-bk="play" aria-label="{u["listen"]}" title="{u["listen"]}">'
+            f'<span class="i-play">&#9654;</span><span class="i-pause">&#10073;&#10073;</span> <span class="t">{u["listen"]}</span></button>'
+            f'<select class="bk-ctl" data-bk="reciter" aria-label="{u["reciter"]}"></select></div>')
 
 def book_path(lang):
     return '/book/' if lang == 'ar' else f'/{lang}/book/'
@@ -75,7 +100,8 @@ def page(lang):
         defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
         arabicNames=AR_NAMES, names=NAMES,
         uiNames=AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]],
-        ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading')},
+        ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading', 'listen', 'pause')},
+        reciters=reciters(lang),
     )
     alts = ''.join(f'<link rel="alternate" hreflang="{l}" href="https://ltestament.com{book_path(l)}">\n' for l in LANGS)
     extra_font = f'<link href="{NASTALIQ}" rel="stylesheet" data-font="urdu_junagarhi">\n' if lang == 'ur' else ''
@@ -123,6 +149,7 @@ def page(lang):
   <button class="bk-nav" data-bk="next" aria-label="{u['next']}" title="{u['next']}">&#8249;</button>
 </main>
 <div class="bk-bottom">
+  {audio_ui(u)}
   <input type="range" data-bk="range" min="1" max="604" value="1" aria-label="{u['page']}">
   <small data-bk="rangeLbl"></small>
   <small class="bk-hint">{u['hint']}</small>
@@ -151,7 +178,8 @@ def embed(lang):
     cfg = dict(lang=lang, mode='mushaf' if mushaf else 'bilingual', arabicDigits=(lang == 'ar'),
                defaultShow='tr', defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
                arabicNames=AR_NAMES, names=NAMES,
-               ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading')})
+               ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading', 'listen', 'pause')},
+               reciters=reciters(lang))
     data = html.escape(json.dumps(cfg, ensure_ascii=False), quote=True)
     bar = '' if mushaf else (
         f'\n    <select class="bk-ctl" data-bk="trSel" aria-label="{u["tr"]}"></select>'
@@ -160,6 +188,7 @@ def embed(lang):
     return f'''{EMBED_START}
 <section class="bk-embed reveal" data-book="{data}">
   <div class="bk-embed-bar">{bar}
+    {audio_ui(u)}
   </div>
   <div class="bk-stage">
     <button type="button" class="bk-nav" data-bk="prev" aria-label="{u['prev']}" title="{u['prev']}">&#8250;</button>
