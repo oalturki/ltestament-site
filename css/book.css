@@ -314,3 +314,6 @@ body.bk-mob .bk-mnav{ bottom:0; left:10px; right:10px; }
 body.bk-mob .bk-bottom{ bottom:calc(62px + 12px + env(safe-area-inset-bottom)); background:rgba(10,20,37,0.92); border-radius:14px; left:10px; right:10px; padding:6px 8px; }
 body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-110%); opacity:0; pointer-events:none; }
 body.bk-mob.bk-chrome-off .bk-bottom, body.bk-mob.bk-chrome-off .bk-mnav{ transform:translateY(160px); opacity:0; pointer-events:none; }
+/* the top bar floats like the bottom one */
+body.bk-mob .bk-bar{ top:calc(6px + env(safe-area-inset-top)); left:10px; right:10px; border-radius:16px; border:1px solid rgba(200,155,60,0.3); padding-top:4px; }
+body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }

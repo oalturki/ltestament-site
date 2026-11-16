@@ -206,6 +206,12 @@
     es: { tools: 'Herramientas', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
     ru: { tools: 'Инструменты', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
+  // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
+  function mobTrial() {
+    if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
+    if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '');
+    return load('lt_mob_trial') === '1';
+  }
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
     // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
@@ -955,7 +961,8 @@
     }
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');
-      if (['sides', 'full', 'none'].indexOf(v) < 0) v = 'sides';
+      // no choice made yet: plain on phones (the page edge to edge, as in Mushaf apps), the ornament elsewhere
+      if (['sides', 'full', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'none' : 'sides';
       frameChoice = v; applyFrame();
       if (!sel) return;
       sel.value = v;
@@ -989,9 +996,7 @@
         bar.appendChild(qz);
       }
       // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
-      if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
-      if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '');
-      if (!embed && load('lt_mob_trial') === '1') mobileShell();
+      if (!embed && mobTrial()) mobileShell();
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
