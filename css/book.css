@@ -326,7 +326,7 @@ body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }
 [data-frame="edge"] .bk-mpage::after{ display:none; }
 /* the other three sides: a thin rule closing the box, meeting the band at its outer edge */
 [data-frame="edge"] .bk-mframe::before{ display:block; content:""; position:absolute; top:0; bottom:0; left:0; right:0; width:auto; background:none;
-  border:1.2px solid rgba(47,107,58,0.6); pointer-events:none; }
+  border:2px solid #2f6b3a; pointer-events:none; }
 [data-frame="edge"] .bk-mframe.sp-l::before{ left:0; right:-22px; border-right:0; }
 [data-frame="edge"] .bk-mframe.sp-r::before{ right:0; left:-22px; border-left:0; }
 [data-frame="edge"] .bk-mframe.sp-l{ border-right-width:22px !important; border-image-width:0 22px 0 0 !important; }
