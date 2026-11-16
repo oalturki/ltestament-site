@@ -343,7 +343,8 @@
       var hh = Math.max(14, Math.min(lh * 0.95, (Math.min(W, lineW + 40) * 0.42) / 2.25));
       if (W < 500) hh = Math.max(14, Math.min(hh, fs * 1.1));   // phones: no larger than the text, as in print
       el.querySelectorAll('.bk-mhead .hs, .bk-mhead .hj').forEach(function (h) { h.style.fontSize = hh + 'px'; });
-      el.querySelectorAll('.bk-mhead .hp').forEach(function (h) { h.style.fontSize = Math.max(10, hh * 0.4) + 'px'; });   // in scale with the juz/surah artwork
+      var hpS = W < 500 ? Math.max(15, hh * 0.62) : Math.max(10, hh * 0.4);   // phones: the page number large enough to read
+      el.querySelectorAll('.bk-mhead .hp').forEach(function (h) { h.style.fontSize = hpS + 'px'; });   // in scale with the juz/surah artwork
       // margin notes beside their line
       // margin notes beside their line, just outside the frame (or over the paper's edge when there is no room)
       var lines = box.children, room = Math.max(fr.offsetLeft, el.clientWidth - fr.offsetLeft - fr.offsetWidth);
