@@ -93,7 +93,9 @@ UI = {
 
 def audio_ui(u):
     return (f'<div class="bk-audio"><button type="button" class="bk-play" data-bk="play" aria-label="{u["listen"]}" title="{u["listen"]}">'
-            f'<span class="i-play">&#9654;</span><span class="i-pause">&#10073;&#10073;</span> <span class="t">{u["listen"]}</span></button>'
+            f'<svg class="i-play" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg>'
+            f'<svg class="i-pause" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg>'
+            f' <span class="t">{u["listen"]}</span></button>'
             f'<select class="bk-ctl" data-bk="reciter" aria-label="{u["reciter"]}"></select></div>')
 
 def book_path(lang):

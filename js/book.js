@@ -13,7 +13,7 @@
   'use strict';
   var QE = 'https://quranenc.com/api/v1/translation/sura/';
   var TOTAL = 604;
-  var TURN_MS = 850;                      // page-turn duration (keep in step with .bk-leaf in book.css)
+  var TURN_MS = 760;                      // page-turn duration (both halves)
   var AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
   var MAP_P = null;                       // Mushaf page map, one request per page view
   var trCache = {};                       // key|surah -> verses, shared by every book on the page
@@ -256,47 +256,44 @@
         clearTimeout(slow); book.style.opacity = '';
         var animate = dir && !window.matchMedia('(prefers-reduced-motion:reduce)').matches;
         if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); return true; }
-        // A real page turn (RTL book). Forward: the LEFT page turns over the spine onto the right, its back
-        // showing the new right-hand page, while the new left-hand page is revealed underneath. Back: the mirror.
-        // The new pages are rendered (and sized) first; snapshots of the old pages cover them until the leaf passes.
+        // Page turn, drawn in 2D so it looks the same in every browser and never leaves the book:
+        // the turning page narrows toward the spine, then its other side opens out on the facing page.
+        // Forward (RTL): the LEFT page folds onto the right; back: the mirror. On a phone (one page) forward folds
+        // the page away to the right; back opens the previous page out from the right edge.
+        // The new pages are rendered (and sized) first; snapshots of the old pages sit on top until the turn passes.
         var one = narrow(), vis = (mushaf || book.dataset.show !== 'tr') ? pgR : pgL, fwd = dir > 0;
-        var leaf = document.createElement('div'), from, to, covers = [];
-        leaf.className = 'bk-leaf';
+        var half = TURN_MS / 2, layers = [];
+        var lay = function (sn, cls, origin, sx) {
+          place(sn.node, sn.box); sn.node.classList.add(cls);
+          if (origin) { sn.node.style.transformOrigin = origin + ' center'; sn.node.style.transform = 'scaleX(' + sx + ')'; }
+          book.appendChild(sn.node); layers.push(sn.node); return sn.node;
+        };
+        var anim = function (n, sx, ms, ease) {
+          void n.offsetWidth;
+          n.style.transition = 'transform ' + ms + 'ms ' + ease;
+          n.style.transform = 'scaleX(' + sx + ')';
+          return wait(ms);
+        };
+        var done = function () { layers.forEach(function (n) { n.remove(); }); busy = false; prefetch(); return true; };
         if (one && !fwd) {
-          // One page, going back: the previous page comes back from the right over the current one.
           var oldV = snap(vis);
           cur = p; renderAll(p, d); fitAll(); updateControls();
           var newV = snap(vis);
-          place(oldV.node, oldV.box); oldV.node.classList.add('bk-cover'); book.appendChild(oldV.node); covers.push(oldV.node);
-          place(leaf, newV.box);
-          leaf.style.transformOrigin = 'right center';
-          newV.node.classList.add('bk-front');
-          var bk = blankLike(vis); bk.classList.add('bk-back');
-          leaf.appendChild(newV.node); leaf.appendChild(bk);
-          from = 'rotateY(-180deg)'; to = 'rotateY(0deg)';
-        } else {
-          var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
-          var oldA = snap(A), oldB = B ? snap(B) : null;
-          cur = p; renderAll(p, d); fitAll(); updateControls();
-          place(leaf, oldA.box);
-          leaf.style.transformOrigin = (fwd ? 'right' : 'left') + ' center';
-          oldA.node.classList.add('bk-front');
-          var back = B ? snap(B).node : blankLike(A);
-          back.classList.add('bk-back');
-          leaf.appendChild(oldA.node); leaf.appendChild(back);
-          if (oldB) { place(oldB.node, oldB.box); oldB.node.classList.add('bk-cover'); book.appendChild(oldB.node); covers.push(oldB.node); }
-          from = 'rotateY(0deg)'; to = 'rotateY(' + (fwd ? -180 : 180) + 'deg)';
-          // (the leaf turns slightly away from the reader, so in perspective it shrinks a little instead of growing past the book)
+          lay(oldV, 'bk-cover');
+          var opening = lay(newV, 'bk-flip', 'right', 0.001);
+          return anim(opening, 1, TURN_MS * 0.7, 'cubic-bezier(0.2,0.6,0.35,1)').then(done);
         }
-        leaf.style.transition = 'none';
-        leaf.style.transform = from;
-        book.appendChild(leaf);
-        void leaf.offsetWidth;
-        leaf.style.transition = '';
-        leaf.style.transform = to;
-        return wait(TURN_MS + 40).then(function () {
-          leaf.remove(); covers.forEach(function (c) { c.remove(); });
-          busy = false; prefetch(); return true;
+        var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
+        var oldA = snap(A), oldB = B ? snap(B) : null;
+        cur = p; renderAll(p, d); fitAll(); updateControls();
+        var newB = B ? snap(B) : null;
+        if (oldB) lay(oldB, 'bk-cover');
+        var folding = lay(oldA, 'bk-flip', fwd ? 'right' : 'left', 1);
+        return anim(folding, 0.001, one ? TURN_MS * 0.7 : half, 'cubic-bezier(0.55,0,0.8,0.4)').then(function () {
+          if (!newB) return done();
+          folding.style.visibility = 'hidden';
+          var opening = lay(newB, 'bk-flip', fwd ? 'left' : 'right', 0.001);
+          return anim(opening, 1, half, 'cubic-bezier(0.2,0.6,0.4,1)').then(done);
         });
       }).catch(function () {
         clearTimeout(slow); book.style.opacity = ''; busy = false;
