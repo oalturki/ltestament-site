@@ -152,10 +152,14 @@
         return '<span class="mm mm-' + side + '" data-line="' + n[0] + '"><i>۞</i>' + esc(n[1]) + '</span>';
       }).join('');
       el.innerHTML =
+        // as printed: juz name on the right, surah name on the left, above the ornamental frame
         '<div class="bk-head bk-mhead">' +
+          '<span class="hj" role="img" aria-label="' + esc(jName) + '">' + String.fromCharCode(0xE000 + juz) + '</span>' +
           (first === 1 ? '<b>' + esc(sName) + '</b>' : '<span class="hs" role="img" aria-label="' + esc(sName) + '">' + String.fromCharCode(0xE000 + first) + '</span>') +
-          '<span class="hj" role="img" aria-label="' + esc(jName) + '">' + String.fromCharCode(0xE000 + juz) + '</span></div>' +
-        '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
+        '</div>' +
+        '<div class="bk-mframe">' +
+          '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
+        '</div>' +
         notes +
         '<div class="bk-foot"><span>' + arNum(p) + '</span></div>';
     }
