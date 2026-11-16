@@ -100,3 +100,11 @@
     })
     .catch(function () {});
 })();
+
+/* site search (js/search.js): the 🔍 button in the header and its panel */
+(function () {
+  if (document.querySelector('script[src="/js/search.js"]')) return;
+  var s = document.createElement('script');
+  s.src = '/js/search.js'; s.defer = true;
+  document.head.appendChild(s);
+})();

@@ -752,7 +752,21 @@
       setupAudio();
       setupFrame();
       track('book_open', embed ? 'embed' : trKey);
-      show(startPage(), 0);
+      // #p=PAGE&a=SURAH:AYAH (from the site search): open at the ayah's page with the ayah highlighted
+      var goHash = function () {
+        var a = /[#&]a=(\d+):(\d+)/.exec(location.hash);
+        if (!a) return null;
+        var s0 = +a[1], v0 = +a[2];
+        if (!(s0 >= 1 && s0 <= 114 && v0 >= 1 && v0 <= MAP.verses[s0 - 1])) return null;
+        hl = { s: s0, a: v0, w: 0 };
+        return pageOf(s0, v0);
+      };
+      var p0 = embed ? null : goHash();
+      show(p0 || startPage(), 0);
+      if (!embed) window.addEventListener('hashchange', function () {
+        var p1 = goHash();
+        if (p1 && visible().indexOf(p1) < 0) show(p1, p1 > cur ? 1 : -1, true); else applyHl();
+      });
     }).catch(function () { showMsg(U.error, false); });
   }
 
