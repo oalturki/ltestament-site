@@ -90,6 +90,13 @@
 
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
+    // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
+    var optTr = !!C.translationOptional;
+    if (optTr && !embed) {
+      var arTr = load('lt_book_artr');
+      if (arTr && C.translations.some(function (t) { return t.key === arTr; })) { mushaf = false; C.defaultTranslation = arTr; }
+    }
+    root.classList.toggle('bk-is-mushaf', mushaf);
     var q = function (k) { return root.querySelector('[data-bk="' + k + '"]'); };
     var book = q('book'), pgR = q('pgAr'), pgL = q('pgTr');
     var MAP = null, surahStart = [], cur = 1, busy = false, arCache = {};
@@ -392,9 +399,22 @@
       }
       var ts = q('trSel');
       if (ts) {
-        ts.innerHTML = C.translations.map(function (t) { return '<option value="' + t.key + '">' + esc(t.label) + '</option>'; }).join('');
-        ts.value = trKey;
+        ts.innerHTML = (optTr ? '<option value="">' + esc(U.noTr) + '</option>' : '') +
+          C.translations.map(function (t) { return '<option value="' + t.key + '">' + esc(t.label) + '</option>'; }).join('');
+        ts.value = optTr && mushaf ? '' : trKey;
         ts.onchange = function () {
+          if (optTr) {
+            // switch between the Mushaf (two Arabic pages) and the Mushaf with the meaning
+            var wasMushaf = mushaf;
+            mushaf = !ts.value;
+            root.classList.toggle('bk-is-mushaf', mushaf);
+            if (!embed) store('lt_book_artr', ts.value);
+            if (mushaf !== wasMushaf) {
+              book.dataset.show = 'ar';
+              root.querySelectorAll('.bk-tab[data-show]').forEach(function (b) { b.classList.toggle('on', b.dataset.show === 'ar'); });
+            }
+            if (mushaf) { applyFrame(); show(cur, 0, true); return; }
+          }
           trKey = ts.value;
           if (!embed) store('lt_book_tr', trKey);
           var t = tr();
@@ -693,8 +713,17 @@
     // When the Mushaf lies open on two facing pages, right and left are already plain to see:
     // 'sides' then shows the full ornament.
     var frameChoice = 'sides';
+    var sidesOpt = null;
     function applyFrame() {
-      root.setAttribute('data-frame', frameChoice === 'sides' && mushaf && step() === 2 ? 'full' : frameChoice);
+      var spread = mushaf && step() === 2;
+      root.setAttribute('data-frame', frameChoice === 'sides' && spread ? 'full' : frameChoice);
+      // the right/left choice means nothing when both pages lie open side by side: hide it there
+      var sel = q('frameSel');
+      if (!sel) return;
+      if (!sidesOpt) sidesOpt = sel.querySelector('option[value="sides"]');
+      if (spread && sidesOpt.parentNode) sel.removeChild(sidesOpt);
+      if (!spread && !sidesOpt.parentNode) sel.insertBefore(sidesOpt, sel.firstChild);
+      sel.value = spread && frameChoice === 'sides' ? 'full' : frameChoice;
     }
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');

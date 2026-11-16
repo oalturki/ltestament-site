@@ -125,6 +125,9 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-framesel{ max-width:150px; }
 }
 
+/* the Arabic book shown as the Mushaf alone: no text/meaning tabs */
+.bk-is-mushaf .bk-tabs{ display:none !important; }
+
 /* two facing Mushaf pages: the frames sit close to the spine, as in an open printed Mushaf */
 .bk-spread .bk-mpage.pg-r{ padding-left:10px; }
 .bk-spread .bk-mpage.pg-l{ padding-right:10px; }

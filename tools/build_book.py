@@ -111,16 +111,17 @@ def page(lang):
     u = UI[lang]
     cfg = dict(
         # The Arabic site opens the Mushaf itself (two facing Arabic pages); other languages, the Mushaf with the meaning.
-        lang=lang, mode='mushaf' if lang == 'ar' else 'bilingual', arabicDigits=(lang == 'ar'), defaultShow='ar' if lang == 'ar' else 'tr',
+        lang=lang, mode='mushaf' if lang == 'ar' else 'bilingual', translationOptional=(lang == 'ar'),
+        arabicDigits=(lang == 'ar'), defaultShow='ar' if lang == 'ar' else 'tr',
         defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
         arabicNames=AR_NAMES, names=NAMES,
         uiNames=AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]],
-        ui={k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading', 'listen', 'pause')},
+        ui={**{k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading', 'listen', 'pause')}, 'noTr': 'المصحف بلا ترجمة'},
         reciters=reciters(lang),
     )
     alts = ''.join(f'<link rel="alternate" hreflang="{l}" href="https://ltestament.com{book_path(l)}">\n' for l in LANGS)
     extra_font = f'<link href="{NASTALIQ}" rel="stylesheet" data-font="urdu_junagarhi">\n' if lang == 'ur' else ''
-    tr_ui = '' if lang == 'ar' else (f'''  <select class="bk-ctl" data-bk="trSel" aria-label="{u['tr']}"></select>
+    tr_ui = (f'''  <select class="bk-ctl" data-bk="trSel" aria-label="{u['tr']}"></select>
   <div class="bk-tabs">
     <button class="bk-tab" data-show="ar">{u['text']}</button>
     <button class="bk-tab" data-show="tr">{u['meaning']}</button>
