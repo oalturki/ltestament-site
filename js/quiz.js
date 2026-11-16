@@ -1,7 +1,8 @@
 /* «اختبر معاني الكلمات» — a quiz on the meanings of Quran words (/quiz/), Arabic.
-   Source: «السراج في بيان غريب القرآن» (QuranEnc key arabic_seraj), read from the QuranEnc API one surah at a time.
+   Source: «السراج في بيان غريب القرآن» (QuranEnc key arabic_seraj): data/quiz/siraj.json (tools/build_quiz.py);
+   the ayah shown with each question is read from the QuranEnc API.
    Every text shown is from the book: the right answer is the word's own meaning, and the two wrong answers are
-   the meanings of other words in the same surahs — true in their place, not invented. Nothing is stored.
+   the meanings of other words of the whole book — true in their place, not invented. Nothing is stored.
    Scope from the address: ?s=SURAH | ?j=JUZ | ?p=PAGE (the book's «اختبر نفسك» button) | ?all ; default: juz 30.
    Data: /data/quran-pages.json (page -> first/last ayah, juz) for the juz/page ranges. */
 (function () {
@@ -22,27 +23,25 @@
   var shuffle = function (a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
   var track = function (e, d) { try { if (window.ltTrack) window.ltTrack(e, d); } catch (x) {} };
 
-  var MAP = null, cache = {};
+  var MAP = null, ALL = null, ayaTxt = {};
   function getJSON(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }); }
-  function surah(s) {
-    if (!cache[s]) {
-      cache[s] = getJSON(QE + s).then(function (d) {
-        var out = [];
-        (d.result || []).forEach(function (v) {
-          String(v.translation || '').split(/\n+/).forEach(function (l) {
-            var i = l.indexOf(':');
-            if (i < 1) return;
-            var head = l.slice(0, i).trim(), mean = l.slice(i + 1).trim();
-            if (head && mean) out.push({ s: +v.sura, a: +v.aya, head: head, mean: mean, text: v.arabic_text || '' });
-          });
-        });
-        return out;
-      });
-      cache[s].catch(function () { delete cache[s]; });
-    }
-    return cache[s];
+  // the whole book once (data/quiz/siraj.json, tools/build_quiz.py): [[surah, ayah, head-word, meaning], ...]
+  function book() {
+    return ALL ? Promise.resolve(ALL) : getJSON('/data/quiz/siraj.json').then(function (rows) {
+      ALL = rows.map(function (r) { return feat({ s: r[0], a: r[1], head: r[2], mean: r[3] }); });
+      return ALL;
+    });
   }
-  // the ayahs [from, to] (each [surah, ayah]) a scope covers, and the surahs to read
+  // the ayah's text in the Complex's script, for showing the question (QuranEnc gives it with the meanings)
+  function ayah(e) {
+    var k = e.s + ':' + e.a;
+    if (!ayaTxt[k]) {
+      ayaTxt[k] = getJSON('https://quranenc.com/api/v1/translation/aya/arabic_seraj/' + e.s + '/' + e.a)
+        .then(function (d) { return (d.result && d.result.arabic_text) || ''; }, function () { delete ayaTxt[k]; return ''; });
+    }
+    return ayaTxt[k];
+  }
+  // the ayahs [from, to] (each [surah, ayah]) a scope covers
   function ranges(sc) {
     var P = MAP.pages, rs = [];
     if (sc.t === 's') rs.push([[sc.n, 1], [sc.n, MAP.verses[sc.n - 1]]]);
@@ -51,59 +50,82 @@
       var a = null, b = null;
       MAP.juz.forEach(function (j, i) { if (j === sc.n) { if (!a) a = [P[i][0], P[i][1]]; b = [P[i][2], P[i][3]]; } });
       rs.push([a, b]);
-    } else {                                   // the whole Mushaf: a fresh handful of surahs each round
-      shuffle(Array.from({ length: 114 }, function (_, i) { return i + 1; })).slice(0, 8).forEach(function (s) {
-        rs.push([[s, 1], [s, MAP.verses[s - 1]]]);
-      });
-    }
+    } else rs.push([[1, 1], [114, 6]]);
     return rs;
   }
   var inR = function (e, rs) {
     var k = e.s * 1000 + e.a;
     return rs.some(function (r) { return k >= r[0][0] * 1000 + r[0][1] && k <= r[1][0] * 1000 + r[1][1]; });
   };
-  function pool(sc) {
-    var rs = ranges(sc), ss = {};
-    rs.forEach(function (r) { for (var s = r[0][0]; s <= r[1][0]; s++) ss[s] = 1; });
-    var list = Object.keys(ss).map(Number);
-    if (list.length < 3) {                      // a page or a short surah: neighbouring surahs give enough wrong answers
-      var s0 = list[0];
-      [s0 - 1, s0 + 1, s0 + 2].forEach(function (x) { if (x >= 1 && x <= 114) ss[x] = 1; });
-      list = Object.keys(ss).map(Number);
-    }
-    return Promise.all(list.map(surah)).then(function (all) {
-      var every = [].concat.apply([], all);
-      return { q: every.filter(function (e) { return inR(e, rs); }), all: every };
-    });
+
+  /* Choosing the two wrong answers — from the whole book, not only the surah.
+     A good wrong answer is the meaning of a word that LOOKS like the asked one, so the choice rests on knowing
+     the meaning, not on form: close in wording (shared letters, same ending / rhyme), in pronunciation
+     (same pattern of letters), in length (letter count, number of words) and in kind (noun with «ال» or
+     tanween, verb, particle; the same attached pronoun and the same leading و / ف / ب) — and whose meaning
+     reads like the right one (similar length, same pronoun) while being clearly different (no shared sense:
+     few common words, neither contains the other), so the reader can still tell them apart. */
+  var BARE = function (t) { return String(t || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[ٱأإآ]/g, 'ا').replace(/[^\u0621-\u064A\s]/g, '').trim(); };
+  var PR = /(هما|هم|هن|كم|كن|نا|ها|ه|ك|ي)$/;
+  function kind(raw, bare) {
+    var w = bare.split(' ')[0];
+    if (/^(و|ف|ب|ك|ل)?ال/.test(w) || /[\u064B\u064C\u064D]/.test(raw)) return 'n';         // «ال» or tanween: a noun
+    if (/^(و|ف)?(س)?[يتنأ]/.test(w) && w.length >= 4 && !/ة$/.test(w)) return 'v';         // يفعل / تفعل / نفعل / أفعل
+    if (/(وا|تم|تن|ت|نا)$/.test(w) && w.length >= 4) return 'v';                             // فعلوا / فعلتم / فعلت
+    if (w.length <= 3) return 'p';
+    return 'n';
   }
-  // two wrong answers: other words' meanings, clearly different, close in length to the right one
-  function wrong(e, all) {
-    var m = len(e.mean), hw = len(e.head), L = e.mean.length;
-    var c = all.filter(function (x) {
-      var xm = len(x.mean);
-      return x !== e && len(x.head) !== hw && xm !== m && xm.indexOf(m) < 0 && m.indexOf(xm) < 0;
-    });
-    // closer in form first, so grammar does not give the answer away: the same attached pronoun
-    // (هم / هن / كم / ه / ها …) and the same leading و / ف / ب, then the length closest to the right answer
-    var PR = /(هما|هم|هن|كم|كن|نا|ها|ه|ك)$/;
-    var tail = function (t) { var m = PR.exec(len(t).split(' ')[0]); return m ? m[1] : ''; };
-    var lead = function (t) { var c0 = len(t).charAt(0); return /[وفب]/.test(c0) ? c0 : ''; };
-    var et = tail(e.head), mt = tail(e.mean), el = lead(e.head);
-    var cost = function (x) {
-      return (tail(x.head) === et ? 0 : 60) + (tail(x.mean) === mt ? 0 : 40) + (lead(x.head) === el ? 0 : 20) + Math.abs(x.mean.length - L);
+  function feat(e) {
+    var hb = BARE(e.head), mb = BARE(e.mean), w = hb.split(' ');
+    var core = w[0].replace(/^(و|ف|ب)/, '').replace(/^ال/, '').replace(PR, '');
+    e.f = {
+      key: len(e.head), mk: len(e.mean),
+      words: w.length, letters: hb.replace(/\s/g, '').length,
+      kind: kind(e.head, hb), al: /^(و|ف|ب)?ال/.test(w[0]),
+      lead: /^[وفب]/.test(w[0]) ? w[0][0] : '', tail: (PR.exec(w[0]) || [''])[0], end2: w[w.length - 1].slice(-2),
+      set: core.split('').filter(function (c, i, a) { return a.indexOf(c) === i; }),
+      shape: core.replace(/[اوي]/g, '_'),                                                    // the consonant skeleton: how it sounds
+      mwords: mb.split(' ').filter(function (x) { return x.length > 2; }).map(len),
+      mtail: (PR.exec(mb.split(' ')[0]) || [''])[0], mlen: e.mean.length
     };
-    var seen = {}, out = [];
-    shuffle(c).sort(function (a, b) { return cost(a) - cost(b); });
-    for (var i = 0; i < c.length && out.length < 2; i++) {
-      var k = len(c[i].mean);
-      if (seen[k]) continue;
-      seen[k] = 1; out.push(c[i].mean);
+    return e;
+  }
+  function likeness(e, x) {
+    var a = e.f, b = x.f, sc = 0;
+    sc += a.kind === b.kind ? 30 : 0;
+    sc += a.words === b.words ? 15 : 0;
+    sc -= Math.abs(a.letters - b.letters) * 4;
+    sc += a.al === b.al ? 8 : 0;
+    sc += a.tail === b.tail ? 12 : 0;
+    sc += a.lead === b.lead ? 6 : 0;
+    sc += a.end2 === b.end2 ? 8 : 0;                                                         // the same rhyme
+    sc += a.shape.length === b.shape.length ? 6 : 0;
+    var common = a.set.filter(function (c) { return b.set.indexOf(c) >= 0; }).length;
+    sc += 14 * common / Math.max(1, Math.max(a.set.length, b.set.length));                  // shared letters
+    sc += a.mtail === b.mtail ? 8 : 0;
+    sc -= Math.abs(a.mlen - b.mlen) / 3;
+    return sc;
+  }
+  function distinct(e, x) {                                                                   // clearly a different meaning
+    var a = e.f, b = x.f;
+    if (x === e || a.key === b.key || a.mk === b.mk || a.mk.indexOf(b.mk) >= 0 || b.mk.indexOf(a.mk) >= 0) return false;
+    var shared = a.mwords.filter(function (w) { return b.mwords.indexOf(w) >= 0; }).length;
+    return shared / Math.max(1, Math.min(a.mwords.length, b.mwords.length)) < 0.34;
+  }
+  function wrong(e) {
+    var best = ALL.filter(function (x) { return distinct(e, x); })
+      .map(function (x) { return [likeness(e, x) + Math.random() * 6, x]; })              // a little chance: rounds differ
+      .sort(function (p, q) { return q[0] - p[0]; }).slice(0, 12).map(function (p) { return p[1]; });
+    var out = [];
+    for (var i = 0; i < best.length && out.length < 2; i++) {
+      if (out.length && !distinct(out[0], best[i])) continue;                               // the two wrong answers differ too
+      out.push(best[i]);
     }
-    return out;
+    return out.map(function (x) { return x.mean; });
   }
   // the ayah with the asked word(s) marked
-  function ayahHtml(e) {
-    var ws = e.text.split(/\s+/), hs = len(e.head).split(/\s+/).filter(Boolean), at = -1;
+  function ayahHtml(e, text) {
+    var ws = text.split(/\s+/), hs = len(e.head).split(/\s+/).filter(Boolean), at = -1;
     for (var i = 0; i + hs.length <= ws.length && at < 0; i++) {
       var ok = hs.every(function (h, k) { var w = len(ws[i + k]); return w === h || (h.length >= 3 && (w.indexOf(h) >= 0 || h.indexOf(w) >= 0) && w.length >= 3); });
       if (ok) at = i;
@@ -150,17 +172,17 @@
   }
   function start() {
     root.innerHTML = '<p class="qz-note">جارٍ تجهيز الأسئلة…</p>';
-    pool(scope).then(function (P) {
-      var qs = shuffle(P.q.slice()), seen = {}, list = [];
+    book().then(function () {
+      var rs = ranges(scope), qs = shuffle(ALL.filter(function (e) { return inR(e, rs); })), seen = {}, list = [];
       for (var i = 0; i < qs.length && list.length < N; i++) {
-        var k = len(qs[i].head);
-        if (seen[k]) continue;
-        var w = wrong(qs[i], P.all);
+        if (seen[qs[i].f.key]) continue;
+        var w = wrong(qs[i]);
         if (w.length < 2) continue;
-        seen[k] = 1;
+        seen[qs[i].f.key] = 1;
         list.push({ e: qs[i], opts: shuffle([qs[i].mean].concat(w)) });
       }
-      if (!list.length) { root.innerHTML = '<p class="qz-note">لا توجد كلمات غريبة كافية في هذا النطاق. اختر نطاقًا أوسع.</p>'; setupAgain(); return; }
+      if (!list.length) { root.innerHTML = '<p class="qz-note">لا توجد كلمات غريبة في هذا النطاق. اختر نطاقًا أوسع.</p>'; setupAgain(); return; }
+      list.forEach(function (Q) { ayah(Q.e); });                                             // fetch the ayahs ahead
       round = { list: list, i: 0, ok: 0 };
       track('quiz_start', scope.t + scope.n);
       ask();
@@ -178,13 +200,15 @@
     var Q = round.list[round.i], e = Q.e;
     root.innerHTML =
       '<div class="qz-top"><span>' + esc(label(scope)) + '</span><span>السؤال ' + ar(round.i + 1) + ' من ' + ar(round.list.length) + '</span></div>' +
-      '<div class="qz-ayah" translate="no">' + ayahHtml(e) + ' <span class="qz-ref">﴿' + esc(NAMES[e.s - 1]) + ' ' + ar(e.a) + '﴾</span></div>' +
+      '<div class="qz-ayah" translate="no">…</div>' +
       '<h2 class="qz-q">ما معنى <b translate="no">﴿' + esc(e.head) + '﴾</b>؟</h2>' +
       '<div class="qz-opts">' + Q.opts.map(function (t, i) { return '<button type="button" data-i="' + i + '">' + esc(t) + '</button>'; }).join('') + '</div>' +
       '<div class="qz-after" hidden></div>';
     root.querySelectorAll('.qz-opts button').forEach(function (b) {
       b.onclick = function () { answer(+b.dataset.i); };
     });
+    var box = root.querySelector('.qz-ayah'), ref = ' <span class="qz-ref">﴿' + esc(NAMES[e.s - 1]) + ' ' + ar(e.a) + '﴾</span>';
+    ayah(e).then(function (t) { if (round.list[round.i] === Q) box.innerHTML = (t ? ayahHtml(e, t) : '') + ref; });
     if (round.i) root.scrollIntoView({ block: 'start', behavior: 'smooth' });   // a long ayah: start each question at its top
   }
   function answer(i) {
