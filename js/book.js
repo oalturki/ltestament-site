@@ -251,6 +251,7 @@
       else if (d.ar2) renderAr(pgL, p + 1, d.ar2);
       else { pgL.innerHTML = ''; pgL.classList.remove('bk-arpage', 'bk-trpage', 'bk-mpage', 'pg-r', 'pg-l'); }
       applyHl();
+      applyFrame();
     }
 
     // Shrink the text until the page fits; if it still does not fit at the minimum size, let it scroll.
@@ -669,13 +670,19 @@
 
     // Reader's choice of page frame (a preference, kept for every book on the site):
     // 'sides' = ornament on three sides, the spine side marked (default); 'full' = ornament all round; 'none' = plain.
+    // When the Mushaf lies open on two facing pages, right and left are already plain to see:
+    // 'sides' then shows the full ornament.
+    var frameChoice = 'sides';
+    function applyFrame() {
+      root.setAttribute('data-frame', frameChoice === 'sides' && mushaf && step() === 2 ? 'full' : frameChoice);
+    }
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');
       if (['sides', 'full', 'none'].indexOf(v) < 0) v = 'sides';
-      root.setAttribute('data-frame', v);
+      frameChoice = v; applyFrame();
       if (!sel) return;
       sel.value = v;
-      sel.onchange = function () { root.setAttribute('data-frame', sel.value); store('lt_book_frame', sel.value); fitAll(); };
+      sel.onchange = function () { frameChoice = sel.value; store('lt_book_frame', sel.value); applyFrame(); fitAll(); };
     }
 
     function startPage() {
