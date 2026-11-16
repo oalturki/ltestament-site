@@ -133,9 +133,10 @@
   function trSurah(key, s) {
     var id = key + '|' + s;
     if (!trCache[id]) {
-      trCache[id] = getJSON(QE + key + '/' + s).then(function (d) {
-        return d.result.slice().sort(function (a, b) { return a.aya - b.aya; });
-      });
+      // the site's own copy first (data/tr/<key>/<surah>.json, tools/build_translations.py); QuranEnc only if it is missing
+      trCache[id] = getJSON(BASE + '/data/tr/' + key + '/' + s + '.json', 8000).catch(function () {
+        return getJSON(QE + key + '/' + s).then(function (d) { return d.result; });
+      }).then(function (l) { return l.slice().sort(function (a, b) { return a.aya - b.aya; }); });
       trCache[id].catch(function () { delete trCache[id]; });
     }
     return trCache[id];
@@ -220,12 +221,13 @@
       return Promise.all([
         arPage(p),
         second ? arPage(p + 1) : null,
-        mushaf ? [] : Promise.all(surahsOf(p).map(function (s) { return trSurah(key, s); })),
-        mushaf ? null : trSurah(key, 1) // translated basmala
+        // the meaning failing must not take the Mushaf page with it: its page then shows the error alone
+        mushaf ? [] : Promise.all(surahsOf(p).map(function (s) { return trSurah(key, s); })).catch(function () { return null; }),
+        mushaf ? null : trSurah(key, 1).catch(function () { return null; }) // translated basmala
       ]).then(function (r) {
         var trBy = {};
-        r[2].forEach(function (l) { l.forEach(function (x) { trBy[x.sura + ':' + x.aya] = x; }); });
-        return { ar: r[0], ar2: r[1], tr: trBy, basmala: r[3] && r[3][0] };
+        (r[2] || []).forEach(function (l) { l.forEach(function (x) { trBy[x.sura + ':' + x.aya] = x; }); });
+        return { ar: r[0], ar2: r[1], tr: trBy, trFail: !mushaf && !r[2], basmala: r[3] && r[3][0] };
       });
     }
 
@@ -324,6 +326,11 @@
       box.classList.add('ready');
     }
     function renderTr(el, p, d) {
+      if (d.trFail) {
+        el.classList.add('bk-trpage'); el.classList.remove('bk-arpage', 'bk-mpage', 'pg-r', 'pg-l');
+        el.innerHTML = '<div class="bk-msg">' + esc(U.error) + '</div>';
+        return;
+      }
       var t = tr(), names = t.names === 'ar' ? C.arabicNames : C.names[t.names], html = '', notes = [];
       var first = MAP.pages[p - 1][0];
       versesOf(p).forEach(function (sv) {
