@@ -267,6 +267,7 @@
     }
     function fitAll() {
       var spread = mushaf && step() === 2;
+      book.classList.toggle('bk-spread', spread);
       if (spread) book.style.maxWidth = '';
       var h = pgR.clientHeight || pgL.clientHeight || 600;
       var trMax = Math.max(14, Math.min(19, h / 34));
@@ -282,7 +283,7 @@
           var fr = el.querySelector('.bk-mframe');
           if (!fr) return;
           var cs = getComputedStyle(el);
-          need = Math.max(need, fr.offsetWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 24);
+          need = Math.max(need, fr.offsetWidth + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2);
         });
         if (need && need * 2 < book.clientWidth - 4) {
           book.style.maxWidth = (need * 2) + 'px';

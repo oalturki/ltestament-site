@@ -125,6 +125,10 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-framesel{ max-width:150px; }
 }
 
+/* two facing Mushaf pages: the frames sit close to the spine, as in an open printed Mushaf */
+.bk-spread .bk-mpage.pg-r{ padding-left:10px; }
+.bk-spread .bk-mpage.pg-l{ padding-right:10px; }
+
 /* recitation: the ayah being recited, and the word being recited */
 .bk-mushaf .ml > span.ha, .bk-mushaf .ml-b.ha{ background:rgba(62,124,116,0.13); }
 .bk-mushaf .ml > span.hl{ background:rgba(200,155,60,0.42); }
