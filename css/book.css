@@ -75,7 +75,7 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 @font-face{ font-family:'QPC Head Juz'; src:url('/fonts/qpc-header-juz.woff2') format('woff2'); font-display:block; }
 .bk-mhead{ width:100%; margin-inline:auto; align-items:flex-end; padding:0 6px 2px; margin-bottom:2px; color:#2a2a22; border-bottom:none; }
 /* the ornamental frame around the text (img/mushaf-frame.svg: drawn for this site, in the style of printed Mushaf frames) */
-.bk-mframe{ flex:1; min-height:0; min-width:0; width:100%; overflow:hidden; margin:0 auto; display:flex; flex-direction:column; border:22px solid transparent;
+.bk-mframe{ position:relative; flex:1; min-height:0; min-width:0; width:100%; overflow:visible; margin:0 auto; display:flex; flex-direction:column; border:22px solid transparent;
   border-image:url('/img/mushaf-frame.svg') 30 round; background:#fdfaf1; padding:4px 10px; }
 .bk-mpage{ background:#fffdf7 !important; }
 /* spine side: no ornament — the text keeps its place, then a soft shade, then a thin continuous rule
@@ -84,6 +84,10 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   background:linear-gradient(90deg, #2f6b3a 0 1.5px, rgba(47,107,58,0.16) 1.5px, rgba(47,107,58,0) 14px) border-box, #fdfaf1; }
 .bk-mframe.sp-r{ border-right-width:14px; border-image-width:22px 0 22px 22px;
   background:linear-gradient(270deg, #2f6b3a 0 1.5px, rgba(47,107,58,0.16) 1.5px, rgba(47,107,58,0) 14px) border-box, #fdfaf1; }
+/* the thin rule runs the full height, closing the top and bottom ornament bands on the spine side */
+.bk-mframe.sp-l::before, .bk-mframe.sp-r::before{ content:""; position:absolute; top:-22px; bottom:-22px; width:1.5px; background:#2f6b3a; }
+.bk-mframe.sp-l::before{ left:-14px; }
+.bk-mframe.sp-r::before{ right:-14px; }
 .bk-mpage.pg-r::after, .bk-mpage.pg-l::after{ content:""; position:absolute; top:0; bottom:0; width:18px; pointer-events:none; z-index:2; }
 .bk-mpage.pg-r::after{ left:0; background:linear-gradient(90deg, rgba(60,45,20,0.16), rgba(60,45,20,0)); }
 .bk-mpage.pg-l::after{ right:0; background:linear-gradient(270deg, rgba(60,45,20,0.16), rgba(60,45,20,0)); }
@@ -104,6 +108,9 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-mframe.sp-r{ border-right-width:9px; border-image-width:13px 0 13px 13px;
     background:linear-gradient(270deg, #2f6b3a 0 1.2px, rgba(47,107,58,0.16) 1.2px, rgba(47,107,58,0) 9px) border-box, #fdfaf1; }
   .bk-mpage.pg-r::after, .bk-mpage.pg-l::after{ width:12px; }
+  .bk-mframe.sp-l::before, .bk-mframe.sp-r::before{ top:-13px; bottom:-13px; width:1.2px; }
+  .bk-mframe.sp-l::before{ left:-9px; }
+  .bk-mframe.sp-r::before{ right:-9px; }
   .bk-mpage{ padding-bottom:10px !important; }
 }
 

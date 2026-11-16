@@ -149,9 +149,9 @@
       // margin notes (hizb quarters, sajdas): on the outer edge — right for a right-hand page, left for a left-hand one
       // Odd pages are right-hand pages in the printed Mushaf, even pages left-hand — also when one page is shown,
       // so a reader (and someone memorising) always knows which side of the open Mushaf a page is on.
-      // Where two pages are shown, the side follows the page's place in the open book (the Arabic page of the
-      // bilingual book is always on the right).
-      var side = narrow() ? (p % 2 ? 'r' : 'l') : (el === pgL ? 'l' : 'r');
+      // Always by page number (odd = right-hand page), also in the bilingual book where the Arabic page is
+      // always shown on the right: the reader still sees which side of the Mushaf each page belongs to.
+      var side = p % 2 ? 'r' : 'l';
       el.classList.remove('pg-r', 'pg-l'); el.classList.add('pg-' + side);
       var notes = (m.m || []).map(function (n) {
         return '<span class="mm mm-' + side + '" data-line="' + n[0] + '"><i>۞</i>' + esc(n[1]) + '</span>';
@@ -216,7 +216,7 @@
         var ln = lines[+n.dataset.line];
         if (!ln) return;
         n.style.fontSize = Math.max(7, Math.min(11, room * 0.42)) + 'px';
-        n.style.top = (box.offsetTop + ln.offsetTop + ln.offsetHeight / 2) + 'px';
+        n.style.top = (fr.offsetTop + box.offsetTop + ln.offsetTop + ln.offsetHeight / 2) + 'px';
         var w = n.offsetWidth;
         var x = n.classList.contains('mm-l') ? fr.offsetLeft - w - 3 : fr.offsetLeft + fr.offsetWidth + 3;
         n.style.left = Math.max(1, Math.min(el.clientWidth - w - 1, x)) + 'px';
