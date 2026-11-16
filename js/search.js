@@ -76,7 +76,9 @@
     var q = siteKey(raw); if (q.replace(/\s/g, '').length < 2) return [];
     var ws = q.split(' ');
     var hit = site.filter(function (it) { return ws.every(function (w) { return it.k.indexOf(w) >= 0; }); });
-    hit.sort(function (a, b) { return (ws.every(function (w) { return b.kt.indexOf(w) >= 0; }) ? 1 : 0) - (ws.every(function (w) { return a.kt.indexOf(w) >= 0; }) ? 1 : 0); });
+    // title starts with the query (the window about it) > query in the title > query in the text
+    var score = function (it) { return it.kt.indexOf(q) === 0 ? 2 : ws.every(function (w) { return it.kt.indexOf(w) >= 0; }) ? 1 : 0; };
+    hit.sort(function (a, b) { return score(b) - score(a); });
     return hit.slice(0, 5);
   }
   function siteBlock(raw) {
