@@ -341,6 +341,7 @@
       }
       // page head: the two artworks are 2.25em wide and ~0.8em tall
       var hh = Math.max(14, Math.min(lh * 0.95, (Math.min(W, lineW + 40) * 0.42) / 2.25));
+      if (W < 500) hh = Math.max(14, Math.min(hh, fs * 1.1));   // phones: no larger than the text, as in print
       el.querySelectorAll('.bk-mhead .hs, .bk-mhead .hj').forEach(function (h) { h.style.fontSize = hh + 'px'; });
       el.querySelectorAll('.bk-mhead .hp').forEach(function (h) { h.style.fontSize = Math.max(10, hh * 0.4) + 'px'; });   // in scale with the juz/surah artwork
       // margin notes beside their line
