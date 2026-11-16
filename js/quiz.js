@@ -176,6 +176,7 @@
     root.querySelectorAll('.qz-opts button').forEach(function (b) {
       b.onclick = function () { answer(+b.dataset.i); };
     });
+    if (round.i) root.scrollIntoView({ block: 'start', behavior: 'smooth' });   // a long ayah: start each question at its top
   }
   function answer(i) {
     var Q = round.list[round.i], e = Q.e, right = Q.opts[i] === e.mean;
