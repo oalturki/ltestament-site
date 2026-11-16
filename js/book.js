@@ -150,7 +150,8 @@
       box.classList.add('measuring');
       box.style.fontSize = F0 + 'px';
       var maxW = 0;
-      box.querySelectorAll('.ml:not(.ml-s):not(.ml-b)').forEach(function (l) { maxW = Math.max(maxW, l.getBoundingClientRect().width); });
+      // offsetWidth, not getBoundingClientRect: the page may be mid-turn (rotated), and layout widths ignore transforms.
+      box.querySelectorAll('.ml:not(.ml-s):not(.ml-b)').forEach(function (l) { maxW = Math.max(maxW, l.offsetWidth); });
       box.classList.remove('measuring');
       var fs = maxW ? F0 * (W * (open ? 0.72 : 0.99)) / maxW : lh / 1.6;
       fs = Math.min(fs, lh / 1.55);
