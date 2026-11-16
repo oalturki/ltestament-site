@@ -338,3 +338,7 @@ body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }
   [data-frame="edge"] .bk-mframe.sp-r::before{ left:-13px; }
 }
 .bk-wsnone{ color:#7a7158; font-size:0.95em; }
+/* five equal places, so the listen button sits exactly in the middle */
+body.bk-mob .bk-mnav{ display:grid; grid-template-columns:repeat(5, 1fr); justify-items:center; }
+/* phones: the page number sits low, just above the first line, like the juz and surah names */
+body.bk-mob .bk-mhead .hp{ align-self:flex-end; line-height:1; padding-bottom:2px; }

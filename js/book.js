@@ -201,12 +201,12 @@
 
   // phone layout labels (mobileShell)
   var MOB = {
-    ar: { tools: 'أدوات المصحف', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
-    ur: { tools: 'مصحف کے اوزار', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
-    en: { tools: 'Book tools', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
-    fr: { tools: 'Outils', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
-    es: { tools: 'Herramientas', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
-    ru: { tools: 'Инструменты', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
+    ar: { tools: 'أدوات المصحف', juzs: 'الأجزاء', juz: 'الجزء', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
+    ur: { tools: 'مصحف کے اوزار', juzs: 'پارے', juz: 'پارہ', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
+    en: { tools: 'Book tools', juzs: 'Juz', juz: 'Juz', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
+    fr: { tools: 'Outils', juzs: 'Juz', juz: 'Juz', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
+    es: { tools: 'Herramientas', juzs: 'Yuz', juz: 'Yuz', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
+    ru: { tools: 'Инструменты', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
   function mobTrial() {
@@ -535,6 +535,7 @@
       var svg = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       var I = {
         index: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+        juz: '<path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v14"/>',
         tr: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>',
         search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
         more: '<circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/>',
@@ -555,13 +556,23 @@
       }
       var nav = document.createElement('nav'); nav.className = 'bk-mnav'; nav.setAttribute('aria-label', L.tools);
       function item(icon, label, sel) {
-        var el = document.createElement(sel ? 'label' : 'button');
+        var el = document.createElement(sel || label === L.juzs ? 'label' : 'button');
         if (!sel) el.type = 'button';
         el.className = 'bk-mbtn'; el.innerHTML = svg(icon) + '<span>' + esc(label) + '</span>';
         if (sel) el.appendChild(overSel(sel));
         nav.appendChild(el); return el;
       }
-      if (q('surahSel')) item(I.index, L.index, q('surahSel'));
+      // the surah list is in the top bar; the bottom bar gives the juz list instead (a second way in, not the same list twice)
+      if (MAP && MAP.juz) {
+        var js = document.createElement('select'), jStart = [];
+        MAP.juz.forEach(function (j, i) { if (!jStart[j - 1]) jStart[j - 1] = i + 1; });
+        js.className = 'bk-mover'; js.setAttribute('aria-label', L.juzs);
+        js.innerHTML = jStart.map(function (p, i) { return '<option value="' + (i + 1) + '">' + esc(L.juz) + ' ' + uiNum(i + 1) + '</option>'; }).join('');
+        var jsync = function () { js.value = String(MAP.juz[cur - 1]); };
+        js.addEventListener('pointerdown', jsync); js.addEventListener('focus', jsync);
+        js.onchange = function () { show(jStart[+js.value - 1], 0); };
+        item(I.juz, L.juzs).appendChild(js);
+      }
       if (q('trSel')) item(I.tr, L.tr, q('trSel'));
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
       item(I.search, L.search).onclick = function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
