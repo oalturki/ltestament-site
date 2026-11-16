@@ -262,9 +262,9 @@ body.bk-mob .bk-tabs{ flex:none; }
 body.bk-mob .bk-mpg{ display:block; flex:none; font-size:0.85rem; color:var(--gold-soft); white-space:nowrap; }
 body.bk-mob .bk-stage{ position:relative; padding:6px 8px 2px; gap:0; }
 body.bk-mob .bk-book{ flex:1 1 auto; width:100%; min-width:0; }
-body.bk-mob .bk-nav{ position:absolute; bottom:12px; z-index:4; flex:none; width:36px; height:36px; background:rgba(16,27,51,0.75); }
-body.bk-mob .bk-nav[data-bk="prev"]{ right:14px; }
-body.bk-mob .bk-nav[data-bk="next"]{ left:14px; }
+.bk-marrow{ display:none; }
+body.bk-mob .bk-marrow{ display:flex; flex:none; }
+body.bk-mob .bk-marrow .bk-nav{ width:40px; height:40px; flex:none; }
 body.bk-mob .bk-bottom{ flex:0 0 auto; padding:4px 18px 2px; min-height:0; gap:10px; flex-wrap:nowrap; }
 body.bk-mob .bk-bottom .bk-audio, body.bk-mob .bk-bottom .bk-framesel, body.bk-mob .bk-bottom .bk-hint{ display:none; }
 body.bk-mob .bk-bottom input[type=range]{ flex:1; min-width:0; }

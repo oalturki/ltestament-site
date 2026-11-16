@@ -585,6 +585,13 @@
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
       if (q('play')) moves.push([q('play'), playSlot]);
+      // page arrows: beside the page slider, so they never cover the last line
+      var bottom = root.querySelector('.bk-bottom');
+      if (bottom) {
+        var sp = document.createElement('span'), sn = document.createElement('span');
+        sp.className = sn.className = 'bk-marrow'; bottom.insertBefore(sp, bottom.firstChild); bottom.appendChild(sn);
+        moves.push([q('prev'), sp], [q('next'), sn]);
+      }
       var homes = moves.map(function (m) { var c = document.createComment(''); m[0].parentNode.insertBefore(c, m[0]); return c; });
       function apply() {
         var on = mq.matches;
