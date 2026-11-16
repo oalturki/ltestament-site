@@ -58,6 +58,17 @@
     }
     return fontCache[p];
   }
+  // Page-head artwork of the printed Mushaf: surah name and juz name (QUL header fonts; item N at U+E000 + N).
+  var headFonts = null;
+  function pageHeadFonts() {
+    if (!headFonts) {
+      headFonts = document.fonts && document.fonts.load
+        ? Promise.all([document.fonts.load("30px 'QPC Head Surah'", '\uE002'), document.fonts.load("30px 'QPC Head Juz'", '\uE001')])
+        : Promise.resolve();
+      headFonts.catch(function () { headFonts = null; });
+    }
+    return headFonts;
+  }
   var headerFont = null;
   function surahHeaderFont() {
     if (!headerFont) {
@@ -68,7 +79,7 @@
   }
   function mushafPage(p) {
     if (!mCache[p]) {
-      mCache[p] = Promise.all([getJSON(BASE + '/data/mushaf/p' + p + '.json'), pageFont(p), pageFont(1), surahHeaderFont()])
+      mCache[p] = Promise.all([getJSON(BASE + '/data/mushaf/p' + p + '.json'), pageFont(p), pageFont(1), surahHeaderFont(), pageHeadFonts()])
         .then(function (r) { return r[0]; });
       mCache[p].catch(function () { delete mCache[p]; });
     }
@@ -134,9 +145,18 @@
       });
       el.setAttribute('dir', 'rtl'); el.setAttribute('lang', 'ar'); el.style.fontFamily = '';
       el.classList.add('bk-arpage', 'bk-mpage'); el.classList.remove('bk-trpage');
+      var juz = MAP.juz[p - 1], sName = 'سورة ' + C.arabicNames[first - 1], jName = 'الجزء ' + arNum(juz);
+      // margin notes (hizb quarters, sajdas): on the outer edge — right for a right-hand page, left for a left-hand one
+      var side = el === pgL ? 'l' : 'r';
+      var notes = (m.m || []).map(function (n) {
+        return '<span class="mm mm-' + side + '" data-line="' + n[0] + '"><i>۞</i>' + esc(n[1]) + '</span>';
+      }).join('');
       el.innerHTML =
-        '<div class="bk-head"><b>سورة ' + esc(C.arabicNames[first - 1]) + '</b><span>الجزء ' + arNum(MAP.juz[p - 1]) + '</span></div>' +
+        '<div class="bk-head bk-mhead">' +
+          (first === 1 ? '<b>' + esc(sName) + '</b>' : '<span class="hs" role="img" aria-label="' + esc(sName) + '">' + String.fromCharCode(0xE000 + first) + '</span>') +
+          '<span class="hj" role="img" aria-label="' + esc(jName) + '">' + String.fromCharCode(0xE000 + juz) + '</span></div>' +
         '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
+        notes +
         '<div class="bk-foot"><span>' + arNum(p) + '</span></div>';
     }
     // Size a Mushaf page: 15 equal lines; the font grows until the longest line fills the width (or the line height is reached).
@@ -162,6 +182,17 @@
       // The header glyph (frame + surah name) is 3.28em wide and 0.41em tall: as wide as the text, within about one line.
       var headW = open ? W * 0.8 : lineW;
       box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(headW / 3.28, lh * 1.15 / 0.41) + 'px'; });
+      // page head: the two artworks are 2.25em wide and ~0.8em tall
+      var hh = Math.max(14, Math.min(lh * 0.95, (W * 0.42) / 2.25));
+      el.querySelectorAll('.bk-mhead .hs, .bk-mhead .hj').forEach(function (h) { h.style.fontSize = hh + 'px'; });
+      // margin notes beside their line
+      var lines = box.children, pad = parseFloat(getComputedStyle(el).paddingRight) || 20;
+      el.querySelectorAll('.mm').forEach(function (n) {
+        var ln = lines[+n.dataset.line];
+        if (!ln) return;
+        n.style.top = (box.offsetTop + ln.offsetTop + ln.offsetHeight / 2) + 'px';
+        n.style.fontSize = Math.max(7, Math.min(11, pad * 0.42)) + 'px';
+      });
       box.classList.add('ready');
     }
     function renderTr(el, p, d) {

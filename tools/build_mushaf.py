@@ -6,6 +6,7 @@ in tools/data/qpc/ which .assetsignore excludes from the site):
   - layout-v2.db            KFGQPC V2 layout (1421H print)            /resources/mushaf-layout/10
   - words-v2.json           QPC V2 Glyph – word by word               /resources/quran-script/61
   - surah-header-lig.json   Surah header font: surah -> glyph         /resources/font/458
+  - quran-meta.json         starts of the 240 hizb quarters and the 15 sajdas (from fawazahmed0/quran-api info.json)
 Fonts (served by the site, unmodified):
   - fonts/qpc-v2/p1..p604.woff2   QPC V2 page fonts                   /resources/font/249
   - fonts/qpc-surah-header.woff2  Surah header colour font            /resources/font/458
@@ -15,6 +16,7 @@ Output:
         ["s", surah, headerGlyph]          surah header (frame + name)
         ["b"]                              basmala line
         ["a", centered, [[glyph, "s:a:w"], ...]]   a line of words (the ayah-end marks are words too)
+      "m": [[lineIndex, label], ...]   margin notes, as in the printed Mushaf: hizb quarters and sajdas
   - data/quran-pages.json   page map used by the book: pages[p-1] = [s1, v1, s2, v2] (+ juz, verses),
                             rebuilt from this layout so the meaning page shows exactly the verses of the Mushaf page.
 
@@ -35,7 +37,18 @@ def main():
     rows = db.execute('select page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number '
                       'from pages order by page_number, line_number').fetchall()
 
+    meta = json.load(open(SRC / 'quran-meta.json', encoding='utf-8'))
+    AR = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+    notes = {}                                     # (surah, ayah) -> label; quarter notes sit on the ayah's first line
+    for i, (s_, a_) in enumerate(meta['maqras']):
+        if i == 0:
+            continue
+        h, q = i // 4 + 1, i % 4
+        notes[(s_, a_, 'start')] = (['الحزب', 'ربع الحزب', 'نصف الحزب', 'ثلاثة أرباع الحزب'][q] + ' ' + str(h)).translate(AR)
+    for s_, a_ in meta['sajdas']:
+        notes[(s_, a_, 'end')] = 'سجدة'
     pages = {p: [] for p in range(1, 605)}
+    marks = {p: [] for p in range(1, 605)}
     first_last = {}
     for p, _n, typ, cen, a, b, s in rows:
         if typ == 'surah_name':
@@ -47,6 +60,12 @@ def main():
             for i in range(int(a), int(b) + 1):
                 w = by_id[i]
                 line.append([w['text'], w['location']])
+                sa = (int(w['surah']), int(w['ayah']))
+                if w['word'] == '1' and (*sa, 'start') in notes:
+                    marks[p].append([len(pages[p]), notes[(*sa, 'start')]])
+                nxt = by_id.get(i + 1)
+                if (*sa, 'end') in notes and (not nxt or (int(nxt['surah']), int(nxt['ayah'])) != sa):
+                    marks[p].append([len(pages[p]), notes[(*sa, 'end')]])
                 key = (int(w['surah']), int(w['ayah']))
                 fl = first_last.setdefault(p, [key, key])
                 fl[0] = min(fl[0], key); fl[1] = max(fl[1], key)
@@ -56,7 +75,10 @@ def main():
     total = 0
     for p, lines in pages.items():
         assert len(lines) <= 15, p
-        s = json.dumps({'l': lines}, ensure_ascii=False, separators=(',', ':'))
+        doc = {'l': lines}
+        if marks[p]:
+            doc['m'] = marks[p]
+        s = json.dumps(doc, ensure_ascii=False, separators=(',', ':'))
         (OUT / f'p{p}.json').write_text(s, encoding='utf-8')
         total += len(s.encode())
 
