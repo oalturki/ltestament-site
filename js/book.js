@@ -667,6 +667,17 @@
       b.onclick = function () { if (playing) stopAudio(); else startAudio(); };
     }
 
+    // Reader's choice of page frame (a preference, kept for every book on the site):
+    // 'sides' = ornament on three sides, the spine side marked (default); 'full' = ornament all round; 'none' = plain.
+    function setupFrame() {
+      var sel = q('frameSel'), v = load('lt_book_frame');
+      if (['sides', 'full', 'none'].indexOf(v) < 0) v = 'sides';
+      root.setAttribute('data-frame', v);
+      if (!sel) return;
+      sel.value = v;
+      sel.onchange = function () { root.setAttribute('data-frame', sel.value); store('lt_book_frame', sel.value); fitAll(); };
+    }
+
     function startPage() {
       if (embed) return 1;
       var m = /[#&]p=(\d+)/.exec(location.hash);
@@ -683,6 +694,7 @@
       buildIndex();
       buildControls();
       setupAudio();
+      setupFrame();
       track('book_open', embed ? 'embed' : trKey);
       show(startPage(), 0);
     }).catch(function () { showMsg(U.error, false); });

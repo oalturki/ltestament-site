@@ -114,6 +114,17 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-mpage{ padding-bottom:10px !important; }
 }
 
+/* reader's frame choice (data-frame on the book's root) */
+[data-frame="full"] .bk-mframe.sp-l, [data-frame="full"] .bk-mframe.sp-r{ border-width:22px; border-image-width:22px; background:#fdfaf1; }
+[data-frame="full"] .bk-mframe::before, [data-frame="full"] .bk-mpage::after,
+[data-frame="none"] .bk-mframe::before{ display:none; }
+[data-frame="none"] .bk-mframe{ border:1px solid rgba(47,107,58,0.35) !important; border-image:none !important; background:#fdfaf1 !important; padding:6px 10px; }
+.bk-framesel{ max-width:190px; }
+@media (max-width:600px){
+  [data-frame="full"] .bk-mframe.sp-l, [data-frame="full"] .bk-mframe.sp-r{ border-width:13px; border-image-width:13px; }
+  .bk-framesel{ max-width:150px; }
+}
+
 /* recitation: the ayah being recited, and the word being recited */
 .bk-mushaf .ml > span.ha, .bk-mushaf .ml-b.ha{ background:rgba(62,124,116,0.13); }
 .bk-mushaf .ml > span.hl{ background:rgba(200,155,60,0.42); }
