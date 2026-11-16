@@ -63,26 +63,10 @@ def reciters(lang):
             for r in RECITERS if r['langs'] is None or lang in r['langs']]
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
-# the index (surah list) shows the meaning after the name in en/fr/es/ru: «Al-Baqarah (The Cow)»
-# (tools/data/surah_meanings.json, from Quran.com); not when the meaning is the name itself (Hud, Al-Hijr, Хиджр)
-import unicodedata as _ud
-MEANINGS = json.load(open(REPO / 'tools/data/surah_meanings.json', encoding='utf-8'))
-def _key(t):
-    t = ''.join(c for c in _ud.normalize('NFD', t.lower()) if _ud.category(c) != 'Mn')
-    t = t.replace('ou', 'u').replace('j', 'y').replace('ё', 'е')
-    t = ''.join(c for c in t if c.isalpha())
-    for p in ('the', 'les', 'los', 'las', 'le', 'la', 'el', 'al', 'аль', 'ал', 'as', 'an', 'at', 'ash', 'ad', 'az', 'ar'):
-        if t.startswith(p) and len(t) > len(p) + 2: t = t[len(p):]
-    return t
+# the index (surah list) shows the names only, transliterated, as QuranEnc.com and the KSU Mushaf do
+# (no institutional list of the names' meanings in en/fr/es/ru; less, but sound)
 def index_names(lang):
-    base = AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]]
-    mean = MEANINGS.get(lang)
-    if not mean: return base
-    out = []
-    for n, m in zip(base, mean):
-        a, b = _key(n), _key(m)
-        out.append(n if a == b else f'{n} ({m})')
-    return out
+    return AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]]
 
 UI = {
  'ar': dict(frame='شكل الإطار', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
