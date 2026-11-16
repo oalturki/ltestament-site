@@ -1,6 +1,7 @@
 /* Site search — «العهد الأخير»
    A 🔍 button in the page header opens a search panel.
-   Now: search in the Quran (Arabic text; spelling-insensitive: no diacritics, any hamza/alef/ya/ta-marbuta form).
+   Now: search in the Quran — the Arabic text (spelling-insensitive: no diacritics, any hamza/alef/ya/ta-marbuta form),
+   and, on non-Arabic pages, the meaning in the page's language (the QuranEnc translation the book shows; data/search/tr-*.json).
    Each result opens the Mushaf book at that ayah, highlighted (/book/#p=PAGE&a=S:A — handled by js/book.js).
    Results are shown in the Complex's script (KFGQPC Hafs), the matched words highlighted.
    Data: /data/search/quran-ar.json (tools/build_search.py, from QUL), loaded on first use. */
@@ -52,16 +53,15 @@
     }
     return out;
   };
-  var trData = null, trFolded = null;
+  var trData = null, trFolded = null, trP = null, arP = null;
   function loadTr() {
-    if (trData) return Promise.resolve();
-    return fetch('/data/search/tr-' + TRKEY + '.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
-      .then(function (d) { trData = d.t; trFolded = trData.map(foldTr); });
+    // one request even when asked twice at once (panel built + opened); a failure may be retried
+    return trP || (trP = fetch('/data/search/tr-' + TRKEY + '.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) { trData = d.t; trFolded = trData.map(foldTr); }, function (e) { trP = null; throw e; }));
   }
   var data = null, folded = null, keys = null, pageMap = null;
   function load() {
-    if (data) return Promise.resolve();
-    return Promise.all([
+    return arP || (arP = Promise.all([
       fetch('/data/search/quran-ar.json').then(function (r) { if (!r.ok) throw 0; return r.json(); }),
       fetch('/data/quran-pages.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
     ]).then(function (r) {
@@ -69,7 +69,7 @@
       folded = data.t.map(fold);
       keys = [];
       data.v.forEach(function (n, s) { for (var a = 1; a <= n; a++) keys.push([s + 1, a]); });
-    });
+    }, function (e) { arP = null; throw e; }));
   }
   function pageOf(s, a) {
     var k = s * 1000 + a, P = pageMap.pages;
