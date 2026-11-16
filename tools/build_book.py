@@ -63,6 +63,26 @@ def reciters(lang):
             for r in RECITERS if r['langs'] is None or lang in r['langs']]
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
+# the index (surah list) shows the meaning after the name in en/fr/es/ru: «Al-Baqarah (The Cow)»
+# (tools/data/surah_meanings.json, from Quran.com); not when the meaning only repeats the name (Hud, Al-Hijr, Хиджр)
+import unicodedata as _ud
+MEANINGS = json.load(open(REPO / 'tools/data/surah_meanings.json', encoding='utf-8'))
+def _key(t):
+    t = ''.join(c for c in _ud.normalize('NFD', t.lower()) if _ud.category(c) != 'Mn')
+    t = t.replace('ou', 'u').replace('j', 'y').replace('ё', 'е')
+    t = ''.join(c for c in t if c.isalpha())
+    for p in ('al', 'аль', 'ал', 'as', 'an', 'at', 'ash', 'ad', 'az', 'ar'):
+        if t.startswith(p) and len(t) > len(p) + 2: t = t[len(p):]
+    return t
+def index_names(lang):
+    base = AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]]
+    mean = MEANINGS.get(lang)
+    if not mean: return base
+    out = []
+    for n, m in zip(base, mean):
+        a, b = _key(n), _key(m)
+        out.append(n if (a == b or a in b or b in a) else f'{n} ({m})')
+    return out
 
 UI = {
  'ar': dict(frame='شكل الإطار', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
@@ -115,7 +135,7 @@ def page(lang):
         arabicDigits=(lang == 'ar'), defaultShow='ar' if lang == 'ar' else 'tr',
         defaultTranslation=DEFAULT_TR[lang], translations=TRANSLATIONS,
         arabicNames=AR_NAMES, names=NAMES,
-        uiNames=AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]],
+        uiNames=index_names(lang),
         ui={**{k: u[k] for k in ('page', 'notes', 'retry', 'error', 'loading', 'listen', 'pause')}, 'noTr': 'المصحف بلا ترجمة'},
         reciters=reciters(lang),
     )
