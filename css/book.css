@@ -152,3 +152,8 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
   .bk-embed .bk-nav[data-bk="prev"]{ right:10px; }
   .bk-embed .bk-nav[data-bk="next"]{ left:10px; }
 }
+@media (max-width:600px){
+  .bk-bottom{ flex:0 0 auto; flex-wrap:wrap; justify-content:center; row-gap:6px; padding:6px 4vw 8px; }
+  .bk-bottom .bk-audio{ width:100%; justify-content:center; }
+  .bk-bottom input[type=range]{ min-width:55%; }
+}
