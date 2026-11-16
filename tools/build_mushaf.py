@@ -15,7 +15,7 @@ Output:
   - data/mushaf/p{N}.json   one file per page: {"l": [line, ...]}
         ["s", surah, headerGlyph]          surah header (frame + name)
         ["b"]                              basmala line
-        ["a", centered, [[glyph, "s:a:w"], ...]]   a line of words (the ayah-end marks are words too)
+        ["a", centered, [[glyph, "s:a:w", Hafs text], ...]]   a line of words (the ayah-end marks are words too)
       "m": [[lineIndex, label], ...]   margin notes, as in the printed Mushaf: hizb quarters and sajdas
   - data/quran-pages.json   page map used by the book: pages[p-1] = [s1, v1, s2, v2] (+ juz, verses),
                             rebuilt from this layout so the meaning page shows exactly the verses of the Mushaf page.
@@ -31,6 +31,8 @@ OUT = ROOT / 'data' / 'mushaf'
 
 def main():
     words = json.load(open(SRC / 'words-v2.json', encoding='utf-8'))
+    # each word's text in the Complex's Hafs script (QUL /resources/quran-script, word by word) — shown when a word is tapped
+    hafs = json.load(open(ROOT / 'tools/data/search/qpc-hafs-wbw.json', encoding='utf-8'))
     by_id = {w['id']: w for w in words.values()}
     heads = json.load(open(SRC / 'surah-header-lig.json', encoding='utf-8'))
     db = sqlite3.connect(f"file:{SRC / 'layout-v2.db'}?mode=ro", uri=True)
@@ -59,7 +61,7 @@ def main():
             line = []
             for i in range(int(a), int(b) + 1):
                 w = by_id[i]
-                line.append([w['text'], w['location']])
+                line.append([w['text'], w['location'], hafs[w['location']]['text']])
                 sa = (int(w['surah']), int(w['ayah']))
                 if w['word'] == '1' and (*sa, 'start') in notes:
                     marks[p].append([len(pages[p]), notes[(*sa, 'start')]])

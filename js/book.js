@@ -19,6 +19,92 @@
   var trCache = {};                       // key|surah -> verses, shared by every book on the page
   var BASE = window.LT_ASSET_BASE || '';  // where /fonts and /data live (overridable for previews)
   var fontCache = {}, mCache = {};        // page fonts and page data, shared by every book on the page
+  var WTXT = {};                          // "s:a:w" -> the word in the Complex's Hafs script (from the page data)
+
+  /* ---------- tapping a word: what it means, from institutional sources only ----------
+     Arabic pages: the word's meaning from «السراج في بيان غريب القرآن» and the verse from «التفسير الميسر»
+     (King Fahd Complex); other languages: the verse explained by «المختصر في تفسير القرآن الكريم»
+     (Tafsir Center for Quranic Studies) in that language. All read from QuranEnc.com, one verse at a time.
+     Urdu has no Mukhtasar yet, so it shows the verse's meaning (Junagarhi). No word-for-word glosses by
+     individuals: less, but sound. */
+  var QA = 'https://quranenc.com/api/v1/translation/aya/';
+  var EXPL = {
+    ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
+          src: ['السراج في بيان غريب القرآن', 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف'],
+          words: 'معاني كلمات الآية', more: 'التفسير الموسّع (تفسير السعدي)', ayah: 'الآية', close: 'إغلاق', err: 'تعذّر التحميل، أعد المحاولة.' },
+    en: { keys: ['english_mokhtasar'], head: ['Explanation of the verse'], src: ['Al-Mukhtasar in Interpreting the Noble Quran — Tafsir Center for Quranic Studies'],
+          ayah: 'Verse', close: 'Close', err: 'Could not load. Please try again.' },
+    fr: { keys: ['french_mokhtasar'], head: ['Explication du verset'], src: ['Al-Mukhtasar dans l’exégèse du Noble Coran — Centre Tafsir des études coraniques'],
+          ayah: 'Verset', close: 'Fermer', err: 'Chargement impossible. Réessayez.' },
+    es: { keys: ['spanish_mokhtasar'], head: ['Explicación de la aleya'], src: ['Al-Mujtasar en la exégesis del Noble Corán — Centro Tafsir de Estudios Coránicos'],
+          ayah: 'Aleya', close: 'Cerrar', err: 'No se pudo cargar. Inténtelo de nuevo.' },
+    ru: { keys: ['russian_mokhtasar'], head: ['Толкование аята'], src: ['«Аль-Мухтасар» в толковании Благородного Корана — Центр Тафсир'],
+          ayah: 'Аят', close: 'Закрыть', err: 'Не удалось загрузить. Попробуйте ещё раз.' },
+    ur: { keys: ['urdu_junagarhi'], head: ['آیت کا ترجمہ'], src: ['محمد جوناگڑھی — QuranEnc.com'],
+          ayah: 'آیت', close: 'بند کریں', err: 'لوڈ نہیں ہو سکا، دوبارہ کوشش کریں۔' }
+  };
+  var ayaCache = {};
+  function getAya(key, s, a) {
+    var k = key + '/' + s + '/' + a;
+    if (!ayaCache[k]) { ayaCache[k] = getJSON(QA + k).then(function (d) { return d.result || {}; }); ayaCache[k].catch(function () { delete ayaCache[k]; }); }
+    return ayaCache[k];
+  }
+  // compare an Arabic word with a dictionary head-word: no marks, one alef form, no alef at all (spellings differ)
+  function lenAr(t) {
+    return String(t || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[ٱأإآا]/g, '')
+      .replace(/[ىئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه').replace(/[^\u0621-\u064A\s]/g, '').trim();
+  }
+  var sheet = null;
+  function wordSheet(C, loc) {
+    var L = EXPL[C.lang] || EXPL.en, ar = (C.lang || 'ar') === 'ar', rtl = ar || C.lang === 'ur';
+    var parts = loc.split(':'), s = +parts[0], a = +parts[1], word = WTXT[loc] || '';
+    var isEnd = /^[\u0660-\u0669\u06F0-\u06F9]+$/.test(word);     // the ayah-end mark: explain the verse only
+    if (!sheet) {
+      sheet = document.createElement('div');
+      sheet.className = 'bk-wsov';
+      sheet.innerHTML = '<div class="bk-ws" role="dialog" aria-modal="true"><button type="button" class="bk-wsx">×</button><div class="bk-wsb"></div></div>';
+      document.body.appendChild(sheet);
+      var shut = function () { sheet.classList.remove('on'); document.querySelectorAll('.bk-wsel').forEach(function (e) { e.classList.remove('bk-wsel'); }); };
+      sheet.addEventListener('click', function (e) { if (e.target === sheet) shut(); });
+      sheet.querySelector('.bk-wsx').onclick = shut;
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shut(); });
+    }
+    var box = sheet.querySelector('.bk-ws'), body = sheet.querySelector('.bk-wsb');
+    box.dir = rtl ? 'rtl' : 'ltr';
+    sheet.querySelector('.bk-wsx').setAttribute('aria-label', L.close);
+    var name = ar || C.lang === 'ur' ? 'سورة ' + C.arabicNames[s - 1] : ((C.names && C.names[C.lang === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s - 1];
+    var ref = esc(name) + ' · ' + (rtl ? arNum(s) + ':' + arNum(a) : s + ':' + a);
+    body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div><div class="bk-wsc">…</div>';
+    sheet.classList.add('on');
+    var out = body.querySelector('.bk-wsc');
+    Promise.all(L.keys.map(function (k) { return getAya(k, s, a); })).then(function (rs) {
+      var html = '';
+      if (ar) {
+        // السراج: lines "head-word: meaning"; the tapped word's line first, then the verse's other words
+        var lines = String(rs[0].translation || '').split(/\n+/).map(function (l) {
+          var i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : null;
+        }).filter(Boolean);
+        var w = lenAr(word), mine = -1;
+        if (w && !isEnd) lines.forEach(function (x, i) {
+          if (mine >= 0) return;
+          var h = lenAr(x[0]);
+          if (h === w || h.split(' ').indexOf(w) >= 0 || (w.length >= 3 && (h.indexOf(w) >= 0 || w.indexOf(h) >= 0) && h.length >= 3)) mine = i;
+        });
+        if (mine >= 0) html += '<h4>' + esc(L.head[0]) + '</h4><p class="bk-wsm"><b translate="no">' + esc(lines[mine][0]) + '</b>: ' + esc(lines[mine][1]) + '</p>';
+        var rest = lines.filter(function (x, i) { return i !== mine; });
+        if (rest.length) html += '<h4>' + esc(mine >= 0 ? L.words : L.head[0]) + '</h4><ul class="bk-wsl">' + rest.map(function (x) {
+          return '<li><b translate="no">' + esc(x[0]) + '</b>: ' + esc(x[1]) + '</li>'; }).join('') + '</ul>';
+        if (lines.length) html += '<div class="bk-wss">' + esc(L.src[0]) + '</div>';
+        html += '<h4>' + esc(L.head[1]) + '</h4><p>' + esc(rs[1].translation || '') + '</p><div class="bk-wss">' + esc(L.src[1]) + '</div>';
+        html += '<a class="bk-wsmore" href="https://quran.ksu.edu.sa/tafseer/saadi/sura' + s + '-aya' + a + '.html" target="_blank" rel="noopener">' + esc(L.more) + ' ←</a>';
+      } else {
+        var t = String(rs[0].translation || '').replace(/^\s*\d+[.)]\s*/, '').replace(/\[\d+\]/g, '');
+        html += '<h4>' + esc(L.head[0]) + '</h4><p>' + esc(t) + '</p><div class="bk-wss">' + esc(L.src[0]) + ' · QuranEnc.com</div>';
+      }
+      out.innerHTML = html;
+    }, function () { out.innerHTML = '<p>' + esc(L.err) + '</p>'; });
+    track('word', C.lang + ' ' + loc);
+  }
 
   function arNum(n) { return String(n).replace(/[0-9]/g, function (d) { return AR_DIGITS[d]; }); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -147,6 +233,7 @@
         if (L[0] === 's') html += '<div class="ml ml-s"><span class="mh" role="img" aria-label="سورة ' + esc(C.arabicNames[L[1] - 1]) + '">' + L[2] + '</span></div>';
         else if (L[0] === 'b') html += '<div class="ml ml-c ml-b">' + BASMALA.map(function (g) { return '<span>' + g + '</span>'; }).join('') + '</div>';
         else html += '<div class="ml' + (L[1] ? ' ml-c' : '') + '">' + L[2].map(function (w) {
+          if (w[2]) WTXT[w[1]] = w[2];
           return '<span data-l="' + w[1] + '">' + w[0] + '</span>';
         }).join('') + '</div>';
       });
@@ -751,6 +838,14 @@
       buildControls();
       setupAudio();
       setupFrame();
+      // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
+      root.addEventListener('click', function (e) {
+        var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
+        if (!w || e.target.closest('.bk-flip,.bk-cover')) return;
+        root.querySelectorAll('.bk-wsel').forEach(function (x) { x.classList.remove('bk-wsel'); });
+        w.classList.add('bk-wsel');
+        wordSheet(C, w.getAttribute('data-l'));
+      });
       track('book_open', embed ? 'embed' : trKey);
       // #p=PAGE&a=SURAH:AYAH (from the site search): open at the ayah's page with the ayah highlighted
       var goHash = function () {
