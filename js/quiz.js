@@ -67,12 +67,25 @@
      few common words, neither contains the other), so the reader can still tell them apart. */
   var BARE = function (t) { return String(t || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[ٱأإآ]/g, 'ا').replace(/[^\u0621-\u064A\s]/g, '').trim(); };
   var PR = /(هما|هم|هن|كم|كن|نا|ها|ه|ك|ي)$/;
-  function kind(raw, bare) {
-    var w = bare.split(' ')[0];
-    if (/^(و|ف|ب|ك|ل)?ال/.test(w) || /[\u064B\u064C\u064D]/.test(raw)) return 'n';         // «ال» or tanween: a noun
-    if (/^(و|ف)?(س)?[يتنأ]/.test(w) && w.length >= 4 && !/ة$/.test(w)) return 'v';         // يفعل / تفعل / نفعل / أفعل
-    if (/(وا|تم|تن|ت|نا)$/.test(w) && w.length >= 4) return 'v';                             // فعلوا / فعلتم / فعلت
-    if (w.length <= 3) return 'p';
+  // the kind of a voweled word: n noun, v verb, p particle — from its vowels, prefixes and endings
+  var HAR = /[\u064B-\u065F\u0670\u06D6-\u06ED]/g;
+  function kind(raw) {
+    var w0 = String(raw).replace(/[^\u0621-\u065F\u0670\u06D6-\u06ED\s]/g, ' ').trim().split(/\s+/)[0] || '';   // the first word, without punctuation
+    var w = w0.replace(/^[وف]َ?/, '');                     // the conjunction و / ف
+    var b = w.replace(HAR, '').replace(/[ٱأإآ]/g, 'ا');
+    if (b.length <= 2 || /^(من|عن|في|على|إلى|الى|إن|أن|ان|لا|ما|لم|لن|قد|بل|ثم|أو|او|إذ|اذ|إذا|اذا|كلا|حتى|لعل|ليت|لكن|إلا|الا)$/.test(b)) return 'p';
+    if (/^(بِ|كَ|لِ)?[اٱ]ل/.test(w.replace(HAR, '')) || /[\u064B\u064C\u064D]/.test(w)) return 'n';   // «ال» (not أَلْقَتْ) or tanween
+    if (/^أَ[^\u064B-\u065F]ْ[^\u064B-\u065F]َ[^\u064B-\u065F]َ$/.test(w)) return 'v';   // أَفْعَلَ: أَصْلَحَ
+    var body = w.replace(/(هُمَا|هُمْ|هُنَّ|كُمْ|كُنَّ|نَا|هَا|هُ|هِ|كَ|كِ|نِي|ي)[ً-ٟ]*$/, '');
+    var suf = w.slice(body.length);
+    if (/َتِ$/.test(body)) return 'v';                                                     // وَبُرِّزَتِ: past feminine before a hamzat wasl
+    if (/^نَا/.test(suf) && /ْ$/.test(body)) return 'v';                                    // شَدَدْنَا
+    if (/ِ$/.test(body)) return 'n';                                                      // genitive ending: a noun
+    if (/تْ$|تُمْ?$|تُنَّ$|ْتَ$|ُوا$|وْا$|ُوهُ|وهَا|ُونِ$/.test(body) || /تْ(ه|ه|ك)/.test(w)) return 'v';  // فعلتْ، فعلتم، فعلوا
+    if (/^[يتن][َُ]/.test(w) && b.length >= 4 && /[ُْ]$|ونَ$|وْنَ$|انِ$|ِي$|ي$/.test(body)) return 'v';   // يَفْعَلُ، يُنَادَوْنَ، يُغْشِي
+    if (/^[^\u064B-\u065F]ُ[^\u064B-\u065F]ِ[^\u064B-\u065F][َ]$/.test(body)) return 'v';                   // قُضِيَ                // يفعلُ، تفعلون، يفعلْ
+    if (/^[^ً-ٟ]َ[^ً-ٟ][َُِ]?[^ً-ٟ]َ$/.test(body)) return 'v'; // فَعَلَ
+    if (/^[اأ][ُِ]?[^ً-ٟ]ْ/.test(w) && /ْ$|ُوا$/.test(body)) return 'v';          // افعلْ (imperative)
     return 'n';
   }
   function feat(e) {
@@ -81,7 +94,7 @@
     e.f = {
       key: len(e.head), mk: len(e.mean),
       words: w.length, letters: hb.replace(/\s/g, '').length,
-      kind: kind(e.head, hb), al: /^(و|ف|ب)?ال/.test(w[0]),
+      kind: kind(e.head), mkind: kind(e.mean), al: /^(و|ف|ب)?ال/.test(w[0]),
       lead: /^[وفب]/.test(w[0]) ? w[0][0] : '', tail: (PR.exec(w[0]) || [''])[0], end2: w[w.length - 1].slice(-2),
       set: core.split('').filter(function (c, i, a) { return a.indexOf(c) === i; }),
       shape: core.replace(/[اوي]/g, '_'),                                                    // the consonant skeleton: how it sounds
@@ -92,7 +105,8 @@
   }
   function likeness(e, x) {
     var a = e.f, b = x.f, sc = 0;
-    sc += a.kind === b.kind ? 30 : 0;
+    sc += a.kind === b.kind ? 40 : -20;                                                      // noun with noun, verb with verb
+    sc += a.mkind === b.mkind ? 30 : -10;                                                    // meaning read the same way (a verb's meaning is a verb)
     sc += a.words === b.words ? 15 : 0;
     sc -= Math.abs(a.letters - b.letters) * 4;
     sc += a.al === b.al ? 8 : 0;
