@@ -56,8 +56,8 @@
   /* ---------- UI ---------- */
   var css = document.createElement('style');
   css.textContent =
-    '.lt-sbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid rgba(200,155,60,.45);color:inherit;border-radius:18px;padding:5px 12px;font:inherit;font-size:.85rem;cursor:pointer;opacity:.9}' +
-    '.lt-sbtn:hover{opacity:1;border-color:#C89B3C}.lt-sbtn svg{width:15px;height:15px}' +
+    '.lt-sbtn{display:inline-flex;align-items:center;gap:7px;background:rgba(200,155,60,.14);border:1px solid #C89B3C;color:#F3E8D0;border-radius:18px;padding:6px 14px;font-family:inherit;font-size:.9rem;font-weight:700;line-height:1.2;white-space:nowrap;cursor:pointer;margin-inline:8px}' +
+    '.lt-sbtn:hover{background:#C89B3C;color:#101b33}.lt-sbtn svg{width:16px;height:16px;flex:none;color:#C89B3C}.lt-sbtn:hover svg{color:#101b33}' +
     '.lt-sov{position:fixed;inset:0;z-index:9999;background:rgba(8,14,28,.72);display:none;align-items:flex-start;justify-content:center;padding:6vh 14px 14px;backdrop-filter:blur(3px)}' +
     '.lt-sov.on{display:flex}' +
     '.lt-sbox{width:min(760px,100%);max-height:88vh;display:flex;flex-direction:column;background:#FBF6EA;color:#2a2418;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}' +
