@@ -235,6 +235,14 @@
 
     /* ---------- page turning ---------- */
     function instant(fn) { book.classList.remove('anim'); fn(); void book.offsetWidth; book.classList.add('anim'); }
+    // A static copy of a page, for the turning leaf and for covering a page until the leaf lands on it.
+    function snap(el) {
+      var c = el.cloneNode(true);
+      c.removeAttribute('data-bk'); c.querySelectorAll('[data-bk]').forEach(function (x) { x.removeAttribute('data-bk'); });
+      return { node: c, box: { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight } };
+    }
+    function blankLike(el) { var c = document.createElement('section'); c.className = el.className.replace(/bk-(ar|tr)page|bk-mpage/g, ''); return c; }
+    function place(n, b) { n.style.left = b.left + 'px'; n.style.top = b.top + 'px'; n.style.width = b.width + 'px'; n.style.height = b.height + 'px'; }
     function show(p, dir, auto) {
       p = norm(p);
       if (!auto) stopAudio();          // the reader turned the page: stop the recitation
@@ -244,21 +252,30 @@
       return pageData(p).then(function (d) {
         clearTimeout(slow); book.style.opacity = '';
         var animate = dir && !window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-        if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); return; }
-        // RTL book: going forward lifts the LEFT page over to the right; going back lifts the RIGHT page.
-        var one = narrow(), vis = (mushaf || book.dataset.show !== 'tr') ? pgR : pgL;
-        var lift = one ? vis : (dir > 0 ? pgL : pgR), land = one ? vis : (dir > 0 ? pgR : pgL);
-        var liftCls = lift === pgL ? 'fold-l' : 'fold-r', landCls = land === pgL ? 'fold-l' : 'fold-r';
-        book.classList.add('anim');
-        lift.classList.add(liftCls);
-        return wait(280).then(function () {
-          cur = p;
-          instant(function () { renderAll(p, d); lift.classList.remove(liftCls); land.classList.add(landCls); });
-          fitAll();
-          land.classList.remove(landCls);
-          updateControls();
-          return wait(290);
-        }).then(function () { busy = false; prefetch(); });
+        if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); return true; }
+        // A real page turn (RTL book). Forward: the LEFT page turns over the spine onto the right, its back
+        // showing the new right-hand page, while the new left-hand page is revealed underneath. Back: the mirror.
+        // The new pages are rendered (and sized) first; snapshots of the old pages cover them until the leaf passes.
+        var one = narrow(), vis = (mushaf || book.dataset.show !== 'tr') ? pgR : pgL, fwd = dir > 0;
+        var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
+        var oldA = snap(A), oldB = B ? snap(B) : null;
+        cur = p; renderAll(p, d); fitAll(); updateControls();
+        var leaf = document.createElement('div');
+        leaf.className = 'bk-leaf';
+        place(leaf, oldA.box);
+        leaf.style.transformOrigin = (fwd ? 'right' : 'left') + ' center';
+        oldA.node.classList.add('bk-front');
+        var back = B ? snap(B).node : blankLike(A);
+        back.classList.add('bk-back');
+        leaf.appendChild(oldA.node); leaf.appendChild(back);
+        if (oldB) { place(oldB.node, oldB.box); oldB.node.classList.add('bk-cover'); book.appendChild(oldB.node); }
+        book.appendChild(leaf);
+        void leaf.offsetWidth;
+        leaf.style.transform = 'rotateY(' + (fwd ? 180 : -180) + 'deg)';
+        return wait(680).then(function () {
+          leaf.remove(); if (oldB) oldB.node.remove();
+          busy = false; prefetch(); return true;
+        });
       }).catch(function () {
         clearTimeout(slow); book.style.opacity = ''; busy = false;
         showMsg(U.error, true);
