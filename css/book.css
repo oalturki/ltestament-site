@@ -298,3 +298,6 @@ body.bk-mob .bk-msov.on{ visibility:visible; opacity:1; }
 .bk-msquiz .bk-quizlink{ display:inline-flex; margin:0; }
 .bk-msfoot{ text-align:center; }
 .bk-msfoot .bk-fontcredit{ max-width:none; color:#8f8775; }
+/* with the text/meaning tabs in the top bar, the page number stays in the slider row only */
+body.bk-mob:not(.bk-is-mushaf) .bk-mpg{ display:none; }
+body.bk-mob .bk-tab{ padding:7px 10px; font-size:0.8rem; }
