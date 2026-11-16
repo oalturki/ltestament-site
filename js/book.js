@@ -60,6 +60,11 @@
     var parts = loc.split(':'), s = +parts[0], a = +parts[1], word = WTXT[loc] || '';
     var isEnd = /^[\u0660-\u0669\u06F0-\u06F9]+$/.test(word);     // the ayah-end mark: explain the verse only
     if (!sheet) {
+      if (!document.querySelector('link[href*="Noto+Naskh+Arabic"]')) {     // the voweled meanings' font
+        var fl = document.createElement('link'); fl.rel = 'stylesheet';
+        fl.href = 'https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600&display=swap';
+        document.head.appendChild(fl);
+      }
       sheet = document.createElement('div');
       sheet.className = 'bk-wsov';
       sheet.innerHTML = '<div class="bk-ws" role="dialog" aria-modal="true"><button type="button" class="bk-wsx">×</button><div class="bk-wsb"></div></div>';

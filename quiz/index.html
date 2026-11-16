@@ -13,7 +13,7 @@
 <meta property="og:description" content="سؤال عن كلمة من القرآن الكريم وثلاث إجابات، من كتاب «السراج في بيان غريب القرآن».">
 <meta property="og:image" content="https://ltestament.com/og-ar.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/feedback.css">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
@@ -33,7 +33,9 @@
   .qz-q{ font-size:1.15rem; font-weight:700; color:#DCC078; margin-bottom:14px; text-align:center; }
   .qz-q b{ font-family:'KFGQPC Hafs','Amiri',serif; font-weight:400; font-size:1.25em; color:#EFE6D8; }
   .qz-opts{ display:flex; flex-direction:column; gap:10px; }
-  .qz-opts button{ font:inherit; font-size:1.02rem; text-align:right; padding:12px 16px; border-radius:10px; border:1px solid rgba(200,155,60,0.35); background:rgba(255,255,255,0.05); color:#EFE6D8; cursor:pointer; line-height:1.6; }
+  /* voweled text in Noto Naskh Arabic: Tajawal breaks the lam-alef ligature when a vowel sits between them (لَا) */
+  .qz-opts button, .qz-src{ font-family:'Noto Naskh Arabic','Amiri',serif; }
+  .qz-opts button{ font-size:1.05rem; text-align:right; padding:12px 16px; border-radius:10px; border:1px solid rgba(200,155,60,0.35); background:rgba(255,255,255,0.05); color:#EFE6D8; cursor:pointer; line-height:1.6; }
   .qz-opts button:hover:not(:disabled){ border-color:#C89B3C; }
   .qz-opts button.ok{ background:rgba(62,160,116,0.3); border-color:#3EA074; }
   .qz-opts button.no{ background:rgba(200,70,60,0.28); border-color:#C8463C; }
