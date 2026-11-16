@@ -12,12 +12,12 @@
 
   var LANG = (document.documentElement.lang || 'ar').slice(0, 2);
   var T = {
-    ar: { tabAr: 'في النص', tabTr: '', phTr: '', btn: 'بحث', ph: 'ابحث في القرآن الكريم… مثل: الصراط المستقيم', hint: 'اكتب كلمتين أو أكثر من الآية، بتشكيل أو بدونه.', none: 'لا توجد نتائج.', count: 'عدد النتائج:', more: 'عرض المزيد', close: 'إغلاق', loading: 'جارٍ التحميل…', err: 'تعذّر تحميل البحث، أعد المحاولة.', surah: 'سورة', arOnly: '' },
-    en: { hintTr: 'Type a word or a phrase from the English meaning.', tabAr: 'Arabic text', tabTr: 'Meaning (English)', phTr: 'Search the meaning… e.g. mercy, Moses, patience', btn: 'Search', ph: 'Search the Quran in Arabic… e.g. الصراط المستقيم', hint: 'Type Arabic words from the verse, with or without diacritics.', none: 'No results.', count: 'Results:', more: 'Show more', close: 'Close', loading: 'Loading…', err: 'Search could not load. Please try again.', surah: '', arOnly: '' },
-    ur: { hintTr: 'اردو ترجمے کا کوئی لفظ یا جملہ لکھیں۔', tabAr: 'عربی متن', tabTr: 'ترجمہ (اردو)', phTr: 'ترجمے میں تلاش کریں… مثلاً رحمت، موسیٰ، صبر', btn: 'تلاش', ph: 'قرآن کے عربی متن میں تلاش کریں… مثلاً الصراط المستقیم', hint: 'آیت کے عربی الفاظ لکھیں، اعراب کے ساتھ یا بغیر۔', none: 'کوئی نتیجہ نہیں۔', count: 'نتائج:', more: 'مزید دکھائیں', close: 'بند کریں', loading: 'لوڈ ہو رہا ہے…', err: 'تلاش لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔', surah: 'سورۃ', arOnly: '' },
-    fr: { hintTr: 'Tapez un mot ou une expression du sens en français.', tabAr: 'Texte arabe', tabTr: 'Sens (français)', phTr: 'Rechercher dans le sens… ex. miséricorde, Moïse, patience', btn: 'Rechercher', ph: 'Rechercher dans le Coran en arabe… ex. الصراط المستقيم', hint: 'Tapez des mots arabes du verset, avec ou sans voyelles.', none: 'Aucun résultat.', count: 'Résultats :', more: 'Afficher plus', close: 'Fermer', loading: 'Chargement…', err: 'La recherche n’a pas pu se charger. Réessayez.', surah: '', arOnly: '' },
-    es: { hintTr: 'Escriba una palabra o frase del significado en español.', tabAr: 'Texto árabe', tabTr: 'Significado (español)', phTr: 'Buscar en el significado… p. ej. misericordia, Moisés, paciencia', btn: 'Buscar', ph: 'Buscar en el Corán en árabe… p. ej. الصراط المستقيم', hint: 'Escriba palabras árabes de la aleya, con o sin vocales.', none: 'Sin resultados.', count: 'Resultados:', more: 'Mostrar más', close: 'Cerrar', loading: 'Cargando…', err: 'No se pudo cargar la búsqueda. Inténtelo de nuevo.', surah: '', arOnly: '' },
-    ru: { hintTr: 'Введите слово или фразу из смыслового перевода.', tabAr: 'Арабский текст', tabTr: 'Смысл (русский)', phTr: 'Поиск по смыслу… напр. милость, Муса, терпение', btn: 'Поиск', ph: 'Поиск по арабскому тексту Корана… напр. الصراط المستقيم', hint: 'Введите арабские слова из аята, с огласовками или без.', none: 'Ничего не найдено.', count: 'Найдено:', more: 'Показать ещё', close: 'Закрыть', loading: 'Загрузка…', err: 'Не удалось загрузить поиск. Попробуйте ещё раз.', surah: '', arOnly: '' }
+    ar: { site: 'في الموقع', inQuran: 'في القرآن الكريم', tabAr: 'في النص', tabTr: '', phTr: '', btn: 'بحث', ph: 'ابحث في القرآن الكريم… مثل: الصراط المستقيم', hint: 'اكتب كلمتين أو أكثر من الآية، بتشكيل أو بدونه.', none: 'لا توجد نتائج.', count: 'عدد النتائج:', more: 'عرض المزيد', close: 'إغلاق', loading: 'جارٍ التحميل…', err: 'تعذّر تحميل البحث، أعد المحاولة.', surah: 'سورة', arOnly: '' },
+    en: { site: 'On this site', inQuran: 'In the Quran', hintTr: 'Type a word or a phrase from the English meaning.', tabAr: 'Arabic text', tabTr: 'Meaning (English)', phTr: 'Search the meaning… e.g. mercy, Moses, patience', btn: 'Search', ph: 'Search the Quran in Arabic… e.g. الصراط المستقيم', hint: 'Type Arabic words from the verse, with or without diacritics.', none: 'No results.', count: 'Results:', more: 'Show more', close: 'Close', loading: 'Loading…', err: 'Search could not load. Please try again.', surah: '', arOnly: '' },
+    ur: { site: 'ویب سائٹ میں', inQuran: 'قرآن مجید میں', hintTr: 'اردو ترجمے کا کوئی لفظ یا جملہ لکھیں۔', tabAr: 'عربی متن', tabTr: 'ترجمہ (اردو)', phTr: 'ترجمے میں تلاش کریں… مثلاً رحمت، موسیٰ، صبر', btn: 'تلاش', ph: 'قرآن کے عربی متن میں تلاش کریں… مثلاً الصراط المستقیم', hint: 'آیت کے عربی الفاظ لکھیں، اعراب کے ساتھ یا بغیر۔', none: 'کوئی نتیجہ نہیں۔', count: 'نتائج:', more: 'مزید دکھائیں', close: 'بند کریں', loading: 'لوڈ ہو رہا ہے…', err: 'تلاش لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔', surah: 'سورۃ', arOnly: '' },
+    fr: { site: 'Sur le site', inQuran: 'Dans le Coran', hintTr: 'Tapez un mot ou une expression du sens en français.', tabAr: 'Texte arabe', tabTr: 'Sens (français)', phTr: 'Rechercher dans le sens… ex. miséricorde, Moïse, patience', btn: 'Rechercher', ph: 'Rechercher dans le Coran en arabe… ex. الصراط المستقيم', hint: 'Tapez des mots arabes du verset, avec ou sans voyelles.', none: 'Aucun résultat.', count: 'Résultats :', more: 'Afficher plus', close: 'Fermer', loading: 'Chargement…', err: 'La recherche n’a pas pu se charger. Réessayez.', surah: '', arOnly: '' },
+    es: { site: 'En el sitio', inQuran: 'En el Corán', hintTr: 'Escriba una palabra o frase del significado en español.', tabAr: 'Texto árabe', tabTr: 'Significado (español)', phTr: 'Buscar en el significado… p. ej. misericordia, Moisés, paciencia', btn: 'Buscar', ph: 'Buscar en el Corán en árabe… p. ej. الصراط المستقيم', hint: 'Escriba palabras árabes de la aleya, con o sin vocales.', none: 'Sin resultados.', count: 'Resultados:', more: 'Mostrar más', close: 'Cerrar', loading: 'Cargando…', err: 'No se pudo cargar la búsqueda. Inténtelo de nuevo.', surah: '', arOnly: '' },
+    ru: { site: 'На сайте', inQuran: 'В Коране', hintTr: 'Введите слово или фразу из смыслового перевода.', tabAr: 'Арабский текст', tabTr: 'Смысл (русский)', phTr: 'Поиск по смыслу… напр. милость, Муса, терпение', btn: 'Поиск', ph: 'Поиск по арабскому тексту Корана… напр. الصراط المستقيم', hint: 'Введите арабские слова из аята, с огласовками или без.', none: 'Ничего не найдено.', count: 'Найдено:', more: 'Показать ещё', close: 'Закрыть', loading: 'Загрузка…', err: 'Не удалось загрузить поиск. Попробуйте ещё раз.', surah: '', arOnly: '' }
   }[LANG] || null;
   if (!T) return;
   var RTL = LANG === 'ar' || LANG === 'ur';
@@ -59,6 +59,62 @@
     return trP || (trP = fetch('/data/search/tr-' + TRKEY + '.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
       .then(function (d) { trData = d.t; trFolded = trData.map(foldTr); }, function (e) { trP = null; throw e; }));
   }
+  // site content (data/search/site-<lang>.json, tools/build_site_search.py): sections, verse windows, pages
+  var siteKey = function (t) {
+    return foldTr(fold(String(t || '')).replace(/[\u064B-\u065F\u0670\u0640\u06D6-\u06ED]/g, ''))
+      .replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  };
+  var site = null, siteP = null;
+  function loadSite() {
+    return siteP || (siteP = fetch('/data/search/site-' + LANG + '.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) { site = d.i.map(function (it) { it.kt = siteKey(it.t + ' ' + it.s); it.k = it.kt + ' ' + siteKey(it.x); return it; }); })
+      .catch(function () { site = []; }));
+  }
+  // a matching section/page: every word of the query; title matches first
+  function siteHits(raw) {
+    if (!site) return [];
+    var q = siteKey(raw); if (q.replace(/\s/g, '').length < 2) return [];
+    var ws = q.split(' ');
+    var hit = site.filter(function (it) { return ws.every(function (w) { return it.k.indexOf(w) >= 0; }); });
+    hit.sort(function (a, b) { return (ws.every(function (w) { return b.kt.indexOf(w) >= 0; }) ? 1 : 0) - (ws.every(function (w) { return a.kt.indexOf(w) >= 0; }) ? 1 : 0); });
+    return hit.slice(0, 5);
+  }
+  function siteBlock(raw) {
+    var hits = siteHits(raw);
+    if (!hits.length) return null;
+    var box = document.createElement('div');
+    box.className = 'lt-ssite';
+    box.innerHTML = '<div class="lt-sgrp">' + esc(T.site) + '</div>';
+    hits.forEach(function (it) {
+      var a = document.createElement('a');
+      a.className = 'lt-sres lt-spage'; a.href = it.u;
+      var x = it.x.length > 150 ? it.x.slice(0, 150).replace(/\s+\S*$/, '') + '…' : it.x;
+      a.innerHTML = '<div class="lt-sref">' + esc(it.t) + '</div>' + (it.s ? '<div class="lt-ssub">' + esc(it.s) + '</div>' : '') + '<div class="lt-sx2">' + esc(x) + '</div>';
+      a.addEventListener('click', function () {
+        close();
+        // same page: the hash alone does not reload it, so act on it here
+        var u = new URL(it.u, location.href);
+        if (u.pathname === location.pathname) { setTimeout(function () { window.dispatchEvent(new HashChangeEvent('hashchange')); }, 0); }
+      });
+      box.appendChild(a);
+    });
+    return box;
+  }
+  // results shown: the site's first, then the Quran's
+  function showResults(q, words) {
+    body.innerHTML = '';
+    var sb = siteBlock(input.value);
+    if (sb) body.appendChild(sb);
+    if (!lastHits.length) {
+      if (!sb) body.innerHTML = '<div class="lt-snote">' + esc(T.none) + '</div>';
+      return;
+    }
+    var head = document.createElement('div');
+    head.className = 'lt-snote';
+    head.textContent = (sb ? T.inQuran + ' — ' : '') + T.count + ' ' + arDigits(lastHits.length);
+    body.appendChild(head);
+    more(q, words);
+  }
   var data = null, folded = null, keys = null, pageMap = null;
   function load() {
     return arP || (arP = Promise.all([
@@ -98,6 +154,9 @@
     '.lt-sar{font-family:"KFGQPC Hafs","Amiri",serif;font-size:1.4rem;line-height:2.1;direction:rtl;text-align:right;word-spacing:2px}' +
     '.lt-sar mark{background:rgba(200,155,60,.38);color:inherit;border-radius:4px;padding:0 2px}' +
     '.lt-sar .e{color:#8a6a1f}' +
+    '.lt-sgrp{font-size:.8rem;font-weight:700;letter-spacing:.04em;color:#8a6a1f;padding:6px 4px 2px}' +
+    '.lt-ssub{font-size:.8rem;color:#8a7a55;margin-top:1px}.lt-sx2{font-size:.92rem;line-height:1.6;color:#3a3222;margin-top:4px}' +
+    '.lt-ssite{margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(200,155,60,.35)}' +
     '.lt-stabs{display:flex;gap:6px;padding:8px 14px 0}.lt-stabs button{font:inherit;font-size:.88rem;padding:6px 14px;border-radius:16px;border:1px solid rgba(200,155,60,.5);background:none;color:#6b5420;cursor:pointer}' +
     '.lt-stabs button.on{background:#C89B3C;border-color:#C89B3C;color:#101b33;font-weight:700}' +
     '.lt-str{font-size:1.02rem;line-height:1.75}.lt-str mark{background:rgba(200,155,60,.38);color:inherit;border-radius:3px;padding:0 1px}' +
@@ -148,7 +207,7 @@
   function ensure() {
     var need = !data || (mode === 'tr' && !trData);
     if (need) body.innerHTML = '<div class="lt-snote">' + esc(T.loading) + '</div>';
-    return load().then(function () { return mode === 'tr' ? loadTr() : null; });
+    return Promise.all([load(), loadSite()]).then(function () { return mode === 'tr' ? loadTr() : null; });
   }
   function hint() { body.innerHTML = '<div class="lt-snote">' + esc(mode === 'tr' ? T.hintTr : T.hint) + (T.arOnly ? '<br>' + esc(T.arOnly) : '') + '</div>'; }
   function open() {
@@ -175,13 +234,7 @@
     }
     lastHits = phrase.concat(all);
     shown = 0;
-    body.innerHTML = '';
-    if (!lastHits.length) { body.innerHTML = '<div class="lt-snote">' + esc(T.none) + '</div>'; return; }
-    var head = document.createElement('div');
-    head.className = 'lt-snote';
-    head.textContent = T.count + ' ' + arDigits(lastHits.length);
-    body.appendChild(head);
-    more(q, words);
+    showResults(q, words);
   }
   // the ayah in the Complex's script, with the words that match the query highlighted
   function runTr() {
@@ -197,13 +250,7 @@
     }
     lastHits = phrase.concat(all);
     shown = 0;
-    body.innerHTML = '';
-    if (!lastHits.length) { body.innerHTML = '<div class="lt-snote">' + esc(T.none) + '</div>'; return; }
-    var head = document.createElement('div');
-    head.className = 'lt-snote';
-    head.textContent = T.count + ' ' + arDigits(lastHits.length);
-    body.appendChild(head);
-    more(q, words);
+    showResults(q, words);
   }
   // the meaning, the query's words marked (folding keeps one character for one, so positions match)
   function markTr(i, q, words) {

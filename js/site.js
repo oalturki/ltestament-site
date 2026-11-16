@@ -108,3 +108,19 @@
   s.src = '/js/search.js'; s.defer = true;
   document.head.appendChild(s);
 })();
+
+/* Deep links into the home page from the site search: /#m=<key> opens that verse window
+   (openModal, defined on the home page); /#<section> scrolls as usual. */
+(function () {
+  function go() {
+    var m = location.hash.match(/^#m=(\w+)$/);
+    if (!m || typeof window.openModal !== 'function') return;
+    try {
+      var card = document.querySelector('[onclick="openModal(\'' + m[1] + '\')"]');
+      if (card) card.scrollIntoView({ block: 'center' });
+      window.openModal(m[1]);
+    } catch (e) {}
+  }
+  window.addEventListener('hashchange', go);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+})();
