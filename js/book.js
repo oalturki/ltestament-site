@@ -240,6 +240,8 @@
     function snap(el) {
       var c = el.cloneNode(true);
       c.removeAttribute('data-bk'); c.querySelectorAll('[data-bk]').forEach(function (x) { x.removeAttribute('data-bk'); });
+      // A scrollable area inside a turning page makes Safari drop the page from the 3D turn (it vanishes): freeze it.
+      c.querySelectorAll('.bk-content').forEach(function (x) { x.classList.remove('scroll'); x.style.overflow = 'hidden'; });
       return { node: c, box: { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight } };
     }
     function blankLike(el) { var c = document.createElement('section'); c.className = el.className.replace(/bk-(ar|tr)page|bk-mpage/g, ''); return c; }
