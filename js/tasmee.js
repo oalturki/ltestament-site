@@ -2,7 +2,7 @@
    Space) answers word by word, and the words are coloured here.
    The service address is set once below (or as window.TS_API before this file) after the Space is created. */
 (function () {
-  var API = window.TS_API || '';            // e.g. https://<user>-tasmee.hf.space
+  var API = window.TS_API || 'https://ltestament-tasmee.hf.space';   // the Hugging Face Space ltestament/tasmee
   var $ = function (id) { return document.getElementById(id); };
   var sSel = $('tsS'), aIn = $('tsA'), bIn = $('tsB'), hide = $('tsHide'), box = $('tsText'), btn = $('tsBtn'), st = $('tsSt'), out = $('tsOut');
   var V = window.TS_VERSES || [];

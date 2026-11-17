@@ -21,3 +21,4 @@ Answers each expected word with `status`: `ok`, `harakat` (same letters, other v
   token as the Space secret `HF_TOKEN`.
 - Text: Tanzil Quran Text (Simple), tanzil.net — verbatim.
 - Source code lives in github.com/oalturki/ltestament-site (`asr-space/`) and is pushed here by a GitHub Action.
+
