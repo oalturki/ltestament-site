@@ -1,0 +1,22 @@
+# Times every ayah of a reciter's surah files (run by hand from the Actions tab), and commits the result.
+name: Align a reciter
+on:
+  workflow_dispatch:
+    inputs:
+      id: { description: "Reciter id (file name under data/rec/)", required: true }
+      url: { description: "Audio URL with {s} for the 3-digit surah number", required: true }
+      surahs: { description: "Surahs, e.g. 78-114", required: true, default: "1-114" }
+permissions:
+  contents: write
+jobs:
+  align:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 tools/align_reciter.py "${{ inputs.id }}" "${{ inputs.url }}" "${{ inputs.surahs }}"
+      - run: |
+          git config user.name "ltestament align"; git config user.email "align@ltestament.com"
+          git add data/rec tools/data/align
+          git commit -m "Ayah timings: ${{ inputs.id }} (${{ inputs.surahs }})" || exit 0
+          git pull --rebase -q origin main && git push origin HEAD:main

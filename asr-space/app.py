@@ -246,3 +246,101 @@ async def check(audio: UploadFile = File(...), surah: int = Form(...), start: in
         words.append(w)
     return {"surah": surah, "start": start, "end": end, "seconds": round(dur, 1), "heard": heard,
             "words": words, "extra": extra}
+
+
+# ---------- aligning a long recitation (a reciter's surah file) to the text ----------
+# Gives the time of every ayah (and every word) in a recording, so a continuous recitation (e.g. hadr) can be cut
+# into ayahs, followed with highlighting, or played from one ayah to another. Long audio is read in overlapping chunks.
+import difflib
+import urllib.request
+
+CHUNK_S, OVERLAP_S = 30.0, 3.0
+ALIGN_MAX_S = float(os.environ.get("ALIGN_MAX_SECONDS", "3600"))
+ALIGN_HOSTS = [h.strip() for h in os.environ.get("ALIGN_HOSTS", "").split(",") if h.strip()]
+
+
+def emissions(wav, sess, tok):
+    """[(piece_id, seconds)] for the whole recording: each token at the frame where it is first emitted."""
+    out, n, step = [], len(wav), int((CHUNK_S - OVERLAP_S) * SR)
+    starts = list(range(0, max(1, n - int(OVERLAP_S * SR)), step)) or [0]
+    for ci, s0 in enumerate(starts):
+        seg = wav[s0:s0 + int(CHUNK_S * SR)]
+        if len(seg) < SR // 4: break
+        feats = log_mel(seg)[None, ...]
+        lp = sess.run(None, {"audio_signal": feats, "length": np.array([feats.shape[2]], dtype=np.int64)})[0][0]
+        fs = (len(seg) / SR) / lp.shape[0]
+        lo = 0.0 if ci == 0 else OVERLAP_S / 2               # keep each token once: the middle of every overlap is the seam
+        hi = len(seg) / SR if ci == len(starts) - 1 else CHUNK_S - OVERLAP_S / 2
+        prev = -1
+        for f, i in enumerate(lp.argmax(-1).tolist()):
+            if i == BLANK: prev = -1; continue
+            if i != prev:
+                t = f * fs
+                if lo <= t < hi: out.append((i, s0 / SR + t))
+            prev = i
+    return out
+
+
+def words_of(ems, tok):
+    """group pieces into words (a piece starting with ▁ starts a word): [(text, start_s, end_s)]"""
+    ws = []
+    for i, t in ems:
+        p = tok.id_to_piece(i)
+        if p.startswith("▁") or not ws: ws.append([[i], t, t])
+        else: ws[-1][0].append(i); ws[-1][2] = t
+    return [(tok.decode(w[0]).strip(), w[1], w[2]) for w in ws if tok.decode(w[0]).strip()]
+
+
+def fetch_audio(url):
+    if not url.startswith(("https://", "http://")): raise HTTPException(400, "url")
+    host = url.split("/")[2].lower()
+    if ALIGN_HOSTS and not any(host == h or host.endswith("." + h) for h in ALIGN_HOSTS): raise HTTPException(400, "host not allowed")
+    req = urllib.request.Request(url, headers={"User-Agent": "ltestament-align/1.0"})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        data = r.read(200_000_000)
+    return data
+
+
+@app.post("/align")
+async def align(surah: int = Form(...), audio: UploadFile = File(None), url: str = Form(None),
+                start: int = Form(1), end: int = Form(None)):
+    if not 1 <= surah <= 114: raise HTTPException(400, "surah")
+    ayahs = QURAN[str(surah)]
+    end = end or len(ayahs)
+    if not (1 <= start <= end <= len(ayahs)): raise HTTPException(400, "ayah range")
+    raw = await audio.read() if audio is not None else (fetch_audio(url) if url else None)
+    if not raw: raise HTTPException(400, "audio or url")
+    wav = decode_audio(raw)
+    dur = len(wav) / SR
+    if dur > ALIGN_MAX_S: raise HTTPException(413, "audio too long")
+    try:
+        sess, tok = model()
+    except Exception as e:
+        raise HTTPException(503, f"model not available: {type(e).__name__}")
+    hyp = words_of(emissions(wav, sess, tok), tok)
+    exp, where = [], []
+    for a in range(start, end + 1):
+        for k, w in enumerate(ayahs[a - 1].split()):
+            exp.append(w); where.append((a, k))
+    es, hs = [skeleton(w) for w in exp], [skeleton(h[0]) for h in hyp]
+    t_of = [None] * len(exp)
+    sm = difflib.SequenceMatcher(None, es, hs, autojunk=False)
+    for op, i1, i2, j1, j2 in sm.get_opcodes():
+        if op == "equal" or (op == "replace" and i2 - i1 == j2 - j1):
+            for d in range(i2 - i1): t_of[i1 + d] = (hyp[j1 + d][1], hyp[j1 + d][2])
+    matched = sum(1 for t in t_of if t) / max(1, len(exp))
+    # ayah start = its first timed word; a word with no time takes the time of the next timed one
+    nxt = None
+    for i in range(len(exp) - 1, -1, -1):
+        if t_of[i]: nxt = t_of[i]
+        elif nxt: t_of[i] = (nxt[0], nxt[0])
+    res, words = [], []
+    for a in range(start, end + 1):
+        idx = [i for i, (aa, _) in enumerate(where) if aa == a and t_of[i]]
+        if not idx: continue
+        res.append([a, int(t_of[idx[0]][0] * 1000), None])
+        for i in idx: words.append([a, where[i][1] + 1, int(t_of[i][0] * 1000), int(t_of[i][1] * 1000)])
+    for i in range(len(res)):                                 # an ayah ends where the next begins
+        res[i][2] = res[i + 1][1] if i + 1 < len(res) else int(dur * 1000)
+    return {"surah": surah, "seconds": round(dur, 1), "matched": round(matched, 3), "ayahs": res, "words": words,
+            "heard_words": len(hyp)}
