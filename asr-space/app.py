@@ -40,6 +40,10 @@ app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in ORIGINS if 
                    allow_methods=["POST", "GET"], allow_headers=["*"])
 
 QURAN = json.load(open(os.path.join(os.path.dirname(__file__), "quran-simple.json"), encoding="utf-8"))["s"]
+# the pause marks (ۖ ۗ ۚ ۛ …) stand as words of their own in this text: they are not said, so they are left out
+import re as _re
+_MARK = _re.compile("^[\u06D6-\u06ED]+$")
+QURAN = {k: [" ".join(w for w in ay.split() if not _MARK.match(w)) for ay in v] for k, v in QURAN.items()}
 _session = _tok = None
 BLANK = 1024
 
