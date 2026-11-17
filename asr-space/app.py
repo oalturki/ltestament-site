@@ -344,3 +344,115 @@ async def align(surah: int = Form(...), audio: UploadFile = File(None), url: str
         res[i][2] = res[i + 1][1] if i + 1 < len(res) else int(dur * 1000)
     return {"surah": surah, "seconds": round(dur, 1), "matched": round(matched, 3), "ayahs": res, "words": words,
             "heard_words": len(hyp)}
+
+
+# ---------- live recitation (التسميع الحي) with Whisper, while FastConformer awaits access ----------
+# tarteel-ai/whisper-base-ar-quran (Apache-2.0): Whisper base fine-tuned on Quran recitation. It writes the words it
+# hears (without the fine vowel marks), so it tells right / wrong / missing words, not vowel slips.
+# The page sends the stretch of recitation since the last pause, with the index of the next expected word; the reply
+# lines it up with the words from there on, so the page can show each word as it is recited.
+import threading
+
+WHISPER_REPO = os.environ.get("WHISPER_REPO", "tarteel-ai/whisper-base-ar-quran")
+_wh = {"model": None, "proc": None, "err": None}
+_wh_lock = threading.Lock()
+
+
+def whisper():
+    with _wh_lock:
+        if _wh["model"] is None and _wh["err"] is None:
+            try:
+                import torch
+                from transformers import WhisperForConditionalGeneration, WhisperProcessor
+                torch.set_num_threads(max(1, os.cpu_count() or 2))
+                try:
+                    proc = WhisperProcessor.from_pretrained(WHISPER_REPO)
+                except Exception:                     # the fine-tuned repo may lack the processor files: same as base
+                    proc = WhisperProcessor.from_pretrained("openai/whisper-base")
+                m = WhisperForConditionalGeneration.from_pretrained(WHISPER_REPO)
+                m.eval()
+                _wh["model"], _wh["proc"] = m, proc
+            except Exception as e:
+                _wh["err"] = f"{type(e).__name__}: {e}"[:300]
+    if _wh["model"] is None: raise HTTPException(503, "live model not available: " + str(_wh["err"]))
+    return _wh["model"], _wh["proc"]
+
+
+
+
+def transcribe(wav):
+    import torch
+    m, proc = whisper()
+    feats = proc.feature_extractor(wav, sampling_rate=SR, return_tensors="pt").input_features
+    with torch.inference_mode():
+        ids = m.generate(feats, language="ar", task="transcribe", num_beams=1, max_new_tokens=200)
+    return proc.batch_decode(ids, skip_special_tokens=True)[0].strip()
+
+
+ISTI = ["اعوذ", "بالله", "من", "الشيطان", "الرجيم"]
+
+
+@app.on_event("startup")
+def _warm_start():
+    threading.Thread(target=lambda: _safe(whisper), daemon=True).start()
+
+
+def _safe(f):
+    try: f()
+    except Exception: pass
+
+
+@app.get("/live")
+def live_status():
+    return {"model": WHISPER_REPO, "loaded": _wh["model"] is not None, "error": _wh["err"]}
+
+
+@app.post("/live")
+async def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
+               pos: int = Form(0), final: bool = Form(False)):
+    import time
+    t0 = time.time()
+    if not 1 <= surah <= 114: raise HTTPException(400, "surah")
+    ayahs = QURAN[str(surah)]
+    end = end or start
+    if not (1 <= start <= end <= len(ayahs)): raise HTTPException(400, "ayah range")
+    raw = await audio.read()
+    if len(raw) > 4_000_000: raise HTTPException(413, "audio too long")
+    wav = decode_audio(raw)
+    dur = len(wav) / SR
+    if dur > 30: raise HTTPException(413, "audio too long (30 s at most per stretch)")
+    exp, where = [], []
+    for a in range(start, end + 1):
+        for k, w in enumerate(ayahs[a - 1].split()):
+            exp.append(w); where.append((a, k))
+    if not 0 <= pos <= len(exp): raise HTTPException(400, "pos")
+    heard = transcribe(wav) if dur >= 0.3 else ""
+    hyp = heard.split()
+    # set aside the isti'adha and the basmala said before the passage (not part of it, except Al-Fatiha 1)
+    sk = [skeleton(w) for w in hyp]
+    if sk[:5] == ISTI: hyp, sk = hyp[5:], sk[5:]
+    bas = [skeleton(w) for w in QURAN["1"][0].split()]
+    if pos == 0 and sk[:4] == bas and not (surah == 1 and start == 1): hyp = hyp[4:]
+    win = exp[pos:pos + len(hyp) + 6]
+    words, nxt = [], pos
+    if hyp and win:
+        pairs, sim = align_words(win, hyp)
+        # the last expected word that was matched: what lies after it has simply not been recited yet
+        last = -1
+        for i, j in pairs:
+            if i is not None and j is not None and sim[i][j] >= 0.5: last = max(last, i)
+        if final:                                      # the stretch is over: a last word said wrongly counts too
+            for i, j in pairs:
+                if i is not None and j is not None: last = max(last, i)
+        for i, j in pairs:
+            if i is None or i > last: continue
+            a, k = where[pos + i]
+            w = {"k": pos + i, "ayah": a, "i": k, "text": win[i]}
+            if j is None: w["status"] = "missing"
+            else:
+                w["heard"] = hyp[j]
+                w["status"] = "ok" if sim[i][j] >= 0.8 else "wrong"
+            words.append(w)
+        nxt = pos + last + 1
+    return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
+            "ms": int((time.time() - t0) * 1000)}
