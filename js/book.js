@@ -215,6 +215,15 @@
     if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '');
     return load('lt_mob_trial') === '1';
   }
+  // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
+  var REPL = {
+    ar: { title: 'إعدادات التلاوة', range: 'ما يُتلى', cont: 'متابعة القراءة', page: 'الصفحة الحالية', custom: 'من آية إلى آية', from: 'من', to: 'إلى', ayah: 'الآية', repAyah: 'تكرار كل آية', repRange: 'تكرار المقطع', once: 'مرة واحدة', inf: 'بلا توقف', x: 'مرات', set: 'إعدادات التلاوة' },
+    ur: { title: 'تلاوت کی ترتیبات', range: 'کیا پڑھا جائے', cont: 'پڑھتے جائیں', page: 'موجودہ صفحہ', custom: 'آیت سے آیت تک', from: 'سے', to: 'تک', ayah: 'آیت', repAyah: 'ہر آیت کی تکرار', repRange: 'حصے کی تکرار', once: 'ایک بار', inf: 'مسلسل', x: 'بار', set: 'تلاوت کی ترتیبات' },
+    en: { title: 'Recitation settings', range: 'What to recite', cont: 'Keep reading on', page: 'This page', custom: 'From one verse to another', from: 'From', to: 'To', ayah: 'Verse', repAyah: 'Repeat each verse', repRange: 'Repeat the passage', once: 'Once', inf: 'Without stopping', x: 'times', set: 'Recitation settings' },
+    fr: { title: 'Réglages de la récitation', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
+    es: { title: 'Ajustes de la recitación', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
+    ru: { title: 'Настройки чтения', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
+  };
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
     // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
@@ -612,6 +621,7 @@
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
       if (q('play')) moves.push([q('play'), playSlot]);
+      if (root.__repPanel) { var rs = document.createElement('div'); rs.className = 'bk-msrep'; body.insertBefore(rs, body.children[2] || null); moves.push([root.__repPanel, rs]); }
       // page arrows: beside the page slider, so they never cover the last line
       var bottom = root.querySelector('.bk-bottom');
       if (bottom) {
@@ -944,6 +954,13 @@
       if (st.kind === 'ayah') {
         if (st.phase === 'basmala') return playAyah(st.s, st.a, true);
         if (st.phase === 'ayah' && rec().then) return playMeaning(st.s, st.a);
+        var R0 = repRun || repStart();
+        if (rep.ayah === 0 || R0.ay < rep.ayah) { R0.ay++; return playAyah(st.s, st.a, true); }   // this ayah again
+        R0.ay = 1;
+        if (R0.to && rk(st.s, st.a) >= rk(R0.to[0], R0.to[1])) {                             // end of the passage
+          if (rep.range === 0 || R0.rg < rep.range) { R0.rg++; return playAyah(R0.from[0], R0.from[1]); }
+          repRun = null; return stopAudio();
+        }
         var n = nextAyah(st.s, st.a);
         if (n) playAyah(n[0], n[1]); else stopAudio();
       } else {
@@ -965,6 +982,8 @@
       if (recState && lastRec === r.id && visible().indexOf(pageOf(recState.s, recState.a)) >= 0 && audio.currentTime > 0 && !audio.ended) {
         audio.play(); startTick(); return;
       }
+      var R1 = repStart();
+      if (R1.from) first = [R1.from[0], R1.from[1]];
       if (r.kind === 'ayah') playAyah(first[0], first[1]);
       else playSurah(first[0], first[1]);
       lastRec = r.id;
@@ -989,6 +1008,71 @@
         if (was) startAudio();
       };
       b.onclick = function () { if (playing) stopAudio(); else startAudio(); };
+      setupRepeat(sel);
+    }
+    // rep: mode 'cont' (read on) | 'page' (the page(s) shown when play starts) | 'custom' (from / to);
+    // ayah = times each ayah is recited, range = times the passage is recited (0 = without stopping)
+    var rep = { mode: 'cont', ayah: 1, range: 1, from: [1, 1], to: [1, 7] }, repRun = null;
+    function setupRepeat(sel) {
+      var R = REPL[C.lang] || REPL.en;
+      try { var sv = JSON.parse(load('lt_rec_rep') || 'null'); if (sv && sv.mode) rep = sv; } catch (e) {}
+      var counts = [1, 2, 3, 5, 10, 0];
+      var cOpts = counts.map(function (n) { return '<option value="' + n + '">' + esc(n === 1 ? R.once : n === 0 ? R.inf : uiNum(n) + ' ' + R.x) + '</option>'; }).join('');
+      var names = (C.uiNames || C.arabicNames || []);
+      var sOpts = (q('surahSel') ? q('surahSel').innerHTML : names.map(function (n, i) { return '<option value="' + (i + 1) + '">' + esc(n) + '</option>'; }).join(''));
+      var pt = function (k) { return '<span class="bk-rpt"><select class="bk-ctl" data-r="' + k + 's" aria-label="' + esc(R[k]) + '">' + sOpts + '</select>' +
+        '<input class="bk-ctl" data-r="' + k + 'a" type="number" inputmode="numeric" min="1" aria-label="' + esc(R.ayah) + '"></span>'; };
+      var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
+      panel.innerHTML = '<h3>' + esc(R.title) + '</h3>' +
+        '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
+        '<option value="page">' + esc(R.page) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
+        '<div class="bk-rcustom"><div class="bk-rrow"><span>' + esc(R.from) + '</span>' + pt('from') + '</div><div class="bk-rrow"><span>' + esc(R.to) + '</span>' + pt('to') + '</div></div>' +
+        '<label class="bk-rrow"><span>' + esc(R.repAyah) + '</span><select class="bk-ctl" data-r="ayah">' + cOpts + '</select></label>' +
+        '<label class="bk-rrow bk-rrange"><span>' + esc(R.repRange) + '</span><select class="bk-ctl" data-r="range">' + cOpts + '</select></label>';
+      var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
+      function fill() {
+        f('mode').value = rep.mode; f('ayah').value = String(rep.ayah); f('range').value = String(rep.range);
+        f('froms').value = String(rep.from[0]); f('froma').value = rep.from[1]; f('tos').value = String(rep.to[0]); f('toa').value = rep.to[1];
+        f('froma').max = MAP ? MAP.verses[rep.from[0] - 1] : 286; f('toa').max = MAP ? MAP.verses[rep.to[0] - 1] : 286;
+        panel.classList.toggle('custom', rep.mode === 'custom');
+        panel.classList.toggle('cont', rep.mode === 'cont');
+      }
+      function read() {
+        var cl = function (s, a) { s = Math.max(1, Math.min(114, +s || 1)); a = Math.max(1, Math.min(MAP ? MAP.verses[s - 1] : 286, +a || 1)); return [s, a]; };
+        var was = rep.mode;
+        rep.mode = f('mode').value; rep.ayah = +f('ayah').value; rep.range = +f('range').value;
+        if (rep.mode === 'custom' && was !== 'custom') {       // start from the page being read
+          var pg = MAP.pages[cur - 1], last = MAP.pages[visible().slice(-1)[0] - 1];
+          rep.from = [pg[0], pg[1]]; rep.to = [last[2], last[3]];
+        } else if (rep.mode === 'custom') {
+          rep.from = cl(f('froms').value, f('froma').value); rep.to = cl(f('tos').value, f('toa').value);
+          if (rep.to[0] * 1000 + rep.to[1] < rep.from[0] * 1000 + rep.from[1]) rep.to = rep.from.slice();
+        }
+        if (!embed) store('lt_rec_rep', JSON.stringify(rep));
+        fill(); repRun = null;
+        if (playing) { stopAudio(); recState = null; startAudio(); }   // start again with the new settings
+      }
+      panel.addEventListener('change', read);
+      fill();
+      // the panel opens from a small button beside the reciter (on phones it sits in the «More» sheet instead)
+      var box = sel.parentNode, btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'bk-rsetbtn'; btn.setAttribute('aria-label', R.set); btn.title = R.set;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>';
+      var pop = document.createElement('div'); pop.className = 'bk-rpop'; pop.appendChild(panel);
+      box.appendChild(btn); box.appendChild(pop);
+      btn.onclick = function (e) { e.stopPropagation(); pop.classList.toggle('on'); };
+      document.addEventListener('click', function (e) { if (!pop.contains(e.target) && e.target !== btn) pop.classList.remove('on'); });
+      root.__repPanel = panel;
+    }
+    var rk = function (s, a) { return s * 1000 + a; };
+    // the passage for this play: [from, to] or null (read on)
+    function repStart() {
+      if (rep.mode === 'page') {
+        var vp = visible(), a = MAP.pages[vp[0] - 1], b = MAP.pages[vp[vp.length - 1] - 1];
+        repRun = { from: [a[0], a[1]], to: [b[2], b[3]], ay: 1, rg: 1 };
+      } else if (rep.mode === 'custom') repRun = { from: rep.from.slice(), to: rep.to.slice(), ay: 1, rg: 1 };
+      else repRun = { from: null, to: null, ay: 1, rg: 1 };
+      return repRun;
     }
 
     // Reader's choice of page frame (a preference, kept for every book on the site):
