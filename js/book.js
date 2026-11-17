@@ -726,7 +726,7 @@
       var sel = q('surahSel');
       if (sel) {
         sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + uiNum(i + 1) + '. ' + esc(n) + '</option>'; }).join('');
-        sel.onchange = function () { goNext = +sel.value; show(surahStart[+sel.value - 1], 0); goNext = 0; };
+        sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; };
       }
       var ts = q('trSel');
       if (ts) {
@@ -1242,7 +1242,7 @@
       }
       panel.addEventListener('change', function (e) {
         var r = e.target && e.target.getAttribute && e.target.getAttribute('data-r');
-        if (r === 'surah' || r === 'ha1' || r === 'ha2' || (e.target && e.target.hasAttribute && e.target.hasAttribute('data-hx'))) repPicked = true;
+        if (r === 'surah' || r === 'ha1' || r === 'ha2' || r === 'froms' || r === 'froma' || r === 'tos' || r === 'toa' || (e.target && e.target.hasAttribute && e.target.hasAttribute('data-hx'))) repPicked = true;
         read(e);
       });
       root.__repFill = fill;
@@ -1264,9 +1264,18 @@
     // a surah (or memorization passage) chosen earlier follows the page being read, unless chosen on this visit
     var repPicked = false;
     function repFollowPage() {
-      if (repPicked || (rep.mode !== 'surah' && rep.mode !== 'hifz')) return;
+      if (repPicked || (rep.mode !== 'surah' && rep.mode !== 'hifz' && rep.mode !== 'custom')) return;
       var vp = visible(), first = MAP.pages[vp[0] - 1], last = MAP.pages[vp[vp.length - 1] - 1];
       var gs = goSurah && vp.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : 0;
+      if (rep.mode === 'custom') {                       // a passage elsewhere in the Mushaf: take the one on screen
+        var kF = first[0] * 1000 + first[1], kL = last[2] * 1000 + last[3], k1 = rep.from[0] * 1000 + rep.from[1];
+        if (!gs && k1 >= kF && k1 <= kL) return;
+        if (gs && rep.from[0] === gs && rep.from[1] === 1) return;
+        rep.from = gs ? [gs, 1] : [first[0], first[1]]; rep.to = [last[2], last[3]];
+        if (!embed) store('lt_rec_rep', JSON.stringify(rep));
+        if (root.__repFill) try { root.__repFill(); } catch (e) {}
+        return;
+      }
       if (gs ? rep.surah === gs : (rep.surah >= first[0] && rep.surah <= last[2])) return;     // already a surah on these pages
       rep.surah = gs || first[0];
       if (rep.mode === 'hifz' && rep.hz) {
