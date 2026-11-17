@@ -256,7 +256,7 @@ body.bk-mob .bk-back{ font-size:0; width:40px; height:44px; display:flex; align-
 body.bk-mob .bk-back::before{ content:""; width:11px; height:11px; border-top:2px solid var(--gold-soft); border-right:2px solid var(--gold-soft); transform:rotate(45deg); }
 html[dir=rtl] body.bk-mob .bk-back::before{ transform:rotate(45deg); }
 html[dir=ltr] body.bk-mob .bk-back::before{ transform:rotate(-135deg); }
-body.bk-mob .bk-bar .bk-pageno, body.bk-mob .bk-bar [data-bk=trSel], body.bk-mob .bk-bar .lt-sbtn, body.bk-mob .bk-bar .bk-quizlink{ display:none; }
+body.bk-mob .bk-bar .bk-pageno, body.bk-mob .bk-bar [data-bk=trSel], body.bk-mob .bk-bar .lt-sbtn{ display:none; }
 body.bk-mob .bk-bar [data-bk=surahSel]{ flex:1 1 auto; min-width:0; max-width:none; height:40px; font-size:1rem; font-weight:700; border-radius:12px; background:var(--night); }
 body.bk-mob .bk-tabs{ flex:none; }
 body.bk-mob .bk-mpg{ display:block; flex:none; font-size:0.85rem; color:var(--gold-soft); white-space:nowrap; }
@@ -381,3 +381,11 @@ body.bk-mob .bk-msheet{ max-height:88vh; overflow-y:auto; }
 .bk-rhxh{ display:block; font-size:0.92rem; }
 .bk-rhxl .bk-rrow{ min-height:40px; padding-inline-start:10px; }
 .bk-rhxl select.own{ border-color:var(--gold); }
+
+/* phones: the quiz as a small round button in the top bar; «Done» closes the settings sheet */
+.bk-mquiz{ display:none; }
+body.bk-mob .bk-mquiz{ display:flex; flex:none; }
+body.bk-mob .bk-mquiz .bk-quizlink{ font-size:0; width:40px; height:40px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+body.bk-mob .bk-mquiz .bk-quizlink svg{ width:20px; height:20px; }
+.bk-quizlink svg{ display:none; } body.bk-mob .bk-mquiz .bk-quizlink svg{ display:block; }
+.bk-msok{ margin-top:6px; min-height:48px; border-radius:14px; border:0; background:var(--gold); color:var(--night-deep); font:inherit; font-size:1rem; font-weight:700; cursor:pointer; }

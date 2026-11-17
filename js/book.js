@@ -202,12 +202,12 @@
 
   // phone layout labels (mobileShell)
   var MOB = {
-    ar: { tools: 'أدوات المصحف', hint1: 'المس الصفحة لإظهار الأزرار أو إخفائها.', hint2: 'اضغط مطوّلًا على أي كلمة لمعرفة معناها وتفسير آيتها.', ok: 'فهمت', juzs: 'الأجزاء', juz: 'الجزء', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
-    ur: { tools: 'مصحف کے اوزار', hint1: 'بٹن دکھانے یا چھپانے کے لیے صفحے کو چھوئیں۔', hint2: 'کسی لفظ کا مطلب اور آیت کی تفسیر دیکھنے کے لیے اسے دبا کر رکھیں۔', ok: 'ٹھیک ہے', juzs: 'پارے', juz: 'پارہ', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
-    en: { tools: 'Book tools', hint1: 'Tap the page to show or hide the buttons.', hint2: 'Press and hold any word for its meaning and the verse explained.', ok: 'Got it', juzs: 'Juz', juz: 'Juz', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
-    fr: { tools: 'Outils', hint1: 'Touchez la page pour afficher ou masquer les boutons.', hint2: 'Appuyez longuement sur un mot pour son sens et l’explication du verset.', ok: 'Compris', juzs: 'Juz', juz: 'Juz', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
-    es: { tools: 'Herramientas', hint1: 'Toca la página para mostrar u ocultar los botones.', hint2: 'Mantén pulsada una palabra para ver su significado y la explicación del versículo.', ok: 'Entendido', juzs: 'Yuz', juz: 'Yuz', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
-    ru: { tools: 'Инструменты', hint1: 'Коснитесь страницы, чтобы показать или скрыть кнопки.', hint2: 'Нажмите и удерживайте слово, чтобы увидеть его смысл и толкование аята.', ok: 'Понятно', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
+    ar: { done: 'تم', tools: 'أدوات المصحف', hint1: 'المس الصفحة لإظهار الأزرار أو إخفائها.', hint2: 'اضغط مطوّلًا على أي كلمة لمعرفة معناها وتفسير آيتها.', ok: 'فهمت', juzs: 'الأجزاء', juz: 'الجزء', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
+    ur: { done: 'ٹھیک ہے', tools: 'مصحف کے اوزار', hint1: 'بٹن دکھانے یا چھپانے کے لیے صفحے کو چھوئیں۔', hint2: 'کسی لفظ کا مطلب اور آیت کی تفسیر دیکھنے کے لیے اسے دبا کر رکھیں۔', ok: 'ٹھیک ہے', juzs: 'پارے', juz: 'پارہ', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
+    en: { done: 'Done', tools: 'Book tools', hint1: 'Tap the page to show or hide the buttons.', hint2: 'Press and hold any word for its meaning and the verse explained.', ok: 'Got it', juzs: 'Juz', juz: 'Juz', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
+    fr: { done: 'Terminé', tools: 'Outils', hint1: 'Touchez la page pour afficher ou masquer les boutons.', hint2: 'Appuyez longuement sur un mot pour son sens et l’explication du verset.', ok: 'Compris', juzs: 'Juz', juz: 'Juz', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
+    es: { done: 'Listo', tools: 'Herramientas', hint1: 'Toca la página para mostrar u ocultar los botones.', hint2: 'Mantén pulsada una palabra para ver su significado y la explicación del versículo.', ok: 'Entendido', juzs: 'Yuz', juz: 'Yuz', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
+    ru: { done: 'Готово', tools: 'Инструменты', hint1: 'Коснитесь страницы, чтобы показать или скрыть кнопки.', hint2: 'Нажмите и удерживайте слово, чтобы увидеть его смысл и толкование аята.', ok: 'Понятно', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
   function mobTrial() {
@@ -617,9 +617,19 @@
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
       if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
       var qz = document.querySelector('.bk-quizlink');
-      if (qz) { var qr = document.createElement('div'); qr.className = 'bk-msrow bk-msquiz'; body.appendChild(qr); moves.push([qz, qr]); }
+      // the quiz: a small button in the top bar (not among the settings)
+      if (qz && bar) {
+        var qslot = document.createElement('span'); qslot.className = 'bk-mquiz'; bar.insertBefore(qslot, pg);
+        if (!qz.querySelector('svg')) qz.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17h.01"/></svg>');
+        qz.setAttribute('aria-label', qz.textContent.trim());
+        moves.push([qz, qslot]);
+      }
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
+      // done: the choices take effect as they are made; this closes the sheet
+      var okb = document.createElement('button'); okb.type = 'button'; okb.className = 'bk-msok'; okb.textContent = L.done;
+      okb.onclick = function () { shut(); };
+      body.appendChild(okb);
       if (q('play')) moves.push([q('play'), playSlot]);
       if (root.__repPanel) { var rs = document.createElement('div'); rs.className = 'bk-msrep'; body.insertBefore(rs, body.children[2] || null); moves.push([root.__repPanel, rs]); }
       // page arrows: beside the page slider, so they never cover the last line
