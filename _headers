@@ -1,0 +1,6 @@
+# Scripts and styles change often while the site grows: browsers must check for a newer copy on each visit
+# (a quick 304 when nothing changed), so an iPhone never keeps an old book.js / book.css.
+/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+/css/*
+  Cache-Control: public, max-age=0, must-revalidate
