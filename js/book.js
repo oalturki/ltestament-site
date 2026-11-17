@@ -29,6 +29,7 @@
      Urdu has no Mukhtasar yet, so it shows the verse's meaning (Junagarhi). No word-for-word glosses by
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
+  var WLISTEN = {"ar": "استمع إلى الكلمة", "ur": "لفظ سنیں", "en": "Hear the word", "fr": "Écouter le mot", "es": "Escuchar la palabra", "ru": "Послушать слово"};
   var EXPL = {
     ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
           src: ['السراج في بيان غريب القرآن', 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف'],
@@ -97,8 +98,12 @@
     sheet.querySelector('.bk-wsx').setAttribute('aria-label', L.close);
     var name = ar || C.lang === 'ur' ? 'سورة ' + C.arabicNames[s - 1] : ((C.names && C.names[C.lang === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s - 1];
     var ref = esc(name) + ' · ' + (rtl ? arNum(s) + ':' + arNum(a) : s + ':' + a);
-    body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div><div class="bk-wsc">…</div>';
+    body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div>' +
+      (C.__playWord && !isEnd && parts[2] ? '<button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' : '') +
+      '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
+    var pb = body.querySelector('.bk-wsplay');
+    if (pb) pb.onclick = function () { C.__playWord(loc, pb); };
     var out = body.querySelector('.bk-wsc');
     Promise.all(L.keys.map(function (k) { return getAya(k, s, a); })).then(function (rs) {
       var html = '';
@@ -223,12 +228,12 @@
   }
   // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
   var REPL = {
-    ar: { linkHow: 'طريقة الربط', lPrev: 'كل آيتين', lAll: 'كل ما سبق من المقطع', l2: 'كل ثلاث آيات', l3: 'كل أربع آيات', title: 'إعدادات التلاوة', hxNote: 'عدد مرات الآية الأولى يسري على ما بعدها، ويمكنك تغيير عدد أي آية بعينها.', hifz: 'أسلوب التحفيظ', fromA: 'من الآية', toA: 'إلى الآية', hx: 'خيارات التكرار:', hy: 'ثم ربطها بما قبلها', hz: 'ثم المقطع كاملًا في النهاية', none: 'بلا', hnote: 'تُكرَّر كل آية، ثم تُقرأ مع ما قبلها، حتى آخر المقطع، ثم يُكرَّر المقطع كاملًا.', surah: 'السورة', whole: 'سورة كاملة', range: 'ما يُتلى', cont: 'متابعة القراءة', page: 'الصفحة الحالية', custom: 'من آية إلى آية', from: 'من', to: 'إلى', ayah: 'الآية', repAyah: 'تكرار كل آية', repRange: 'تكرار المقطع', once: 'مرة واحدة', inf: 'بلا توقف', x: 'مرات', set: 'إعدادات التلاوة' },
-    ur: { linkHow: 'ربط کا طریقہ', lPrev: 'ہر دو آیات', lAll: 'حصے کی تمام سابقہ آیات', l2: 'ہر تین آیات', l3: 'ہر چار آیات', title: 'تلاوت کی ترتیبات', hxNote: 'پہلی آیت کی تکرار باقی آیات پر بھی لاگو ہوتی ہے؛ کسی بھی آیت کی تعداد الگ سے بدل سکتے ہیں۔', hifz: 'حفظ کا طریقہ', fromA: 'آیت سے', toA: 'آیت تک', hx: 'تکرار کے اختیارات:', hy: 'پھر پچھلی آیات کے ساتھ', hz: 'پھر آخر میں پورا حصہ', none: 'نہیں', hnote: 'ہر آیت دہرائی جاتی ہے، پھر پچھلی آیات کے ساتھ پڑھی جاتی ہے، حصے کے آخر تک، پھر پورا حصہ دہرایا جاتا ہے۔', surah: 'سورت', whole: 'پوری سورت', range: 'کیا پڑھا جائے', cont: 'پڑھتے جائیں', page: 'موجودہ صفحہ', custom: 'آیت سے آیت تک', from: 'سے', to: 'تک', ayah: 'آیت', repAyah: 'ہر آیت کی تکرار', repRange: 'حصے کی تکرار', once: 'ایک بار', inf: 'مسلسل', x: 'بار', set: 'تلاوت کی ترتیبات' },
-    en: { linkHow: 'How to link', lPrev: 'Every two verses', lAll: 'All the passage so far', l2: 'Every three verses', l3: 'Every four verses', title: 'Recitation settings', hxNote: 'The count for the first verse carries on to the rest; you can change any verse on its own.', hifz: 'Memorization method', fromA: 'From verse', toA: 'To verse', hx: 'Repetition options:', hy: 'Then link it with what came before', hz: 'Then the whole passage at the end', none: 'None', hnote: 'Each verse is repeated, then read with what came before it, to the end of the passage; then the whole passage is repeated.', surah: 'Surah', whole: 'A whole surah', range: 'What to recite', cont: 'Keep reading on', page: 'This page', custom: 'From one verse to another', from: 'From', to: 'To', ayah: 'Verse', repAyah: 'Repeat each verse', repRange: 'Repeat the passage', once: 'Once', inf: 'Without stopping', x: 'times', set: 'Recitation settings' },
-    fr: { linkHow: 'Façon de relier', lPrev: 'Par deux versets', lAll: 'Tout le passage jusque-là', l2: 'Par trois versets', l3: 'Par quatre versets', title: 'Réglages de la récitation', hxNote: 'Le nombre choisi pour le premier verset vaut pour les suivants ; vous pouvez modifier n’importe quel verset.', hifz: 'Méthode de mémorisation', fromA: 'Du verset', toA: 'Au verset', hx: 'Options de répétition :', hy: 'Puis la relier à ce qui précède', hz: 'Puis tout le passage à la fin', none: 'Aucun', hnote: 'Chaque verset est répété, puis lu avec ce qui le précède, jusqu’à la fin du passage ; puis tout le passage est répété.', surah: 'Sourate', whole: 'Une sourate entière', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
-    es: { linkHow: 'Cómo enlazar', lPrev: 'De dos en dos', lAll: 'Todo el pasaje hasta ahí', l2: 'De tres en tres', l3: 'De cuatro en cuatro', title: 'Ajustes de la recitación', hxNote: 'El número del primer versículo se aplica a los siguientes; puedes cambiar cualquier versículo por separado.', hifz: 'Método de memorización', fromA: 'Desde el versículo', toA: 'Hasta el versículo', hx: 'Opciones de repetición:', hy: 'Luego enlazarla con lo anterior', hz: 'Luego todo el pasaje al final', none: 'Ninguno', hnote: 'Cada versículo se repite y luego se lee con lo anterior, hasta el final del pasaje; después se repite todo el pasaje.', surah: 'Sura', whole: 'Una sura completa', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
-    ru: { linkHow: 'Как связывать', lPrev: 'По два аята', lAll: 'Весь отрывок до этого места', l2: 'По три аята', l3: 'По четыре аята', title: 'Настройки чтения', hxNote: 'Число повторов первого аята действует и для следующих; любой аят можно изменить отдельно.', hifz: 'Метод заучивания', fromA: 'С аята', toA: 'По аят', hx: 'Настройки повтора:', hy: 'Затем связать с предыдущим', hz: 'Затем весь отрывок в конце', none: 'Нет', hnote: 'Каждый аят повторяется, затем читается вместе с предыдущими до конца отрывка; затем повторяется весь отрывок.', surah: 'Сура', whole: 'Сура целиком', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
+    ar: { talq: "التلقين (الترديد خلف القارئ)", tOff: "بدون", tAyah: "آية آية", tSeg: "مقطعًا مقطعًا", tNote: "يقرأ الشيخ ثم يسكت بقدر ما قرأ لتردّد خلفه.", linkHow: 'طريقة الربط', lPrev: 'كل آيتين', lAll: 'كل ما سبق من المقطع', l2: 'كل ثلاث آيات', l3: 'كل أربع آيات', title: 'إعدادات التلاوة', hxNote: 'عدد مرات الآية الأولى يسري على ما بعدها، ويمكنك تغيير عدد أي آية بعينها.', hifz: 'أسلوب التحفيظ', fromA: 'من الآية', toA: 'إلى الآية', hx: 'خيارات التكرار:', hy: 'ثم ربطها بما قبلها', hz: 'ثم المقطع كاملًا في النهاية', none: 'بلا', hnote: 'تُكرَّر كل آية، ثم تُقرأ مع ما قبلها، حتى آخر المقطع، ثم يُكرَّر المقطع كاملًا.', surah: 'السورة', whole: 'سورة كاملة', range: 'ما يُتلى', cont: 'متابعة القراءة', page: 'الصفحة الحالية', custom: 'من آية إلى آية', from: 'من', to: 'إلى', ayah: 'الآية', repAyah: 'تكرار كل آية', repRange: 'تكرار المقطع', once: 'مرة واحدة', inf: 'بلا توقف', x: 'مرات', set: 'إعدادات التلاوة' },
+    ur: { talq: "تلقین (قاری کے پیچھے دہرانا)", tOff: "نہیں", tAyah: "آیت بہ آیت", tSeg: "ٹکڑا ٹکڑا", tNote: "قاری پڑھ کر اتنی دیر رکتا ہے کہ آپ اس کے پیچھے دہرا سکیں۔", linkHow: 'ربط کا طریقہ', lPrev: 'ہر دو آیات', lAll: 'حصے کی تمام سابقہ آیات', l2: 'ہر تین آیات', l3: 'ہر چار آیات', title: 'تلاوت کی ترتیبات', hxNote: 'پہلی آیت کی تکرار باقی آیات پر بھی لاگو ہوتی ہے؛ کسی بھی آیت کی تعداد الگ سے بدل سکتے ہیں۔', hifz: 'حفظ کا طریقہ', fromA: 'آیت سے', toA: 'آیت تک', hx: 'تکرار کے اختیارات:', hy: 'پھر پچھلی آیات کے ساتھ', hz: 'پھر آخر میں پورا حصہ', none: 'نہیں', hnote: 'ہر آیت دہرائی جاتی ہے، پھر پچھلی آیات کے ساتھ پڑھی جاتی ہے، حصے کے آخر تک، پھر پورا حصہ دہرایا جاتا ہے۔', surah: 'سورت', whole: 'پوری سورت', range: 'کیا پڑھا جائے', cont: 'پڑھتے جائیں', page: 'موجودہ صفحہ', custom: 'آیت سے آیت تک', from: 'سے', to: 'تک', ayah: 'آیت', repAyah: 'ہر آیت کی تکرار', repRange: 'حصے کی تکرار', once: 'ایک بار', inf: 'مسلسل', x: 'بار', set: 'تلاوت کی ترتیبات' },
+    en: { talq: "Repeat after the reciter", tOff: "Off", tAyah: "Verse by verse", tSeg: "Phrase by phrase", tNote: "The reciter reads, then pauses long enough for you to repeat after him.", linkHow: 'How to link', lPrev: 'Every two verses', lAll: 'All the passage so far', l2: 'Every three verses', l3: 'Every four verses', title: 'Recitation settings', hxNote: 'The count for the first verse carries on to the rest; you can change any verse on its own.', hifz: 'Memorization method', fromA: 'From verse', toA: 'To verse', hx: 'Repetition options:', hy: 'Then link it with what came before', hz: 'Then the whole passage at the end', none: 'None', hnote: 'Each verse is repeated, then read with what came before it, to the end of the passage; then the whole passage is repeated.', surah: 'Surah', whole: 'A whole surah', range: 'What to recite', cont: 'Keep reading on', page: 'This page', custom: 'From one verse to another', from: 'From', to: 'To', ayah: 'Verse', repAyah: 'Repeat each verse', repRange: 'Repeat the passage', once: 'Once', inf: 'Without stopping', x: 'times', set: 'Recitation settings' },
+    fr: { talq: "Répéter après le récitateur", tOff: "Non", tAyah: "Verset par verset", tSeg: "Par segments", tNote: "Le récitateur lit, puis marque une pause pour que vous répétiez après lui.", linkHow: 'Façon de relier', lPrev: 'Par deux versets', lAll: 'Tout le passage jusque-là', l2: 'Par trois versets', l3: 'Par quatre versets', title: 'Réglages de la récitation', hxNote: 'Le nombre choisi pour le premier verset vaut pour les suivants ; vous pouvez modifier n’importe quel verset.', hifz: 'Méthode de mémorisation', fromA: 'Du verset', toA: 'Au verset', hx: 'Options de répétition :', hy: 'Puis la relier à ce qui précède', hz: 'Puis tout le passage à la fin', none: 'Aucun', hnote: 'Chaque verset est répété, puis lu avec ce qui le précède, jusqu’à la fin du passage ; puis tout le passage est répété.', surah: 'Sourate', whole: 'Une sourate entière', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
+    es: { talq: "Repetir tras el recitador", tOff: "No", tAyah: "Versículo a versículo", tSeg: "Por frases", tNote: "El recitador lee y luego hace una pausa para que repitas tras él.", linkHow: 'Cómo enlazar', lPrev: 'De dos en dos', lAll: 'Todo el pasaje hasta ahí', l2: 'De tres en tres', l3: 'De cuatro en cuatro', title: 'Ajustes de la recitación', hxNote: 'El número del primer versículo se aplica a los siguientes; puedes cambiar cualquier versículo por separado.', hifz: 'Método de memorización', fromA: 'Desde el versículo', toA: 'Hasta el versículo', hx: 'Opciones de repetición:', hy: 'Luego enlazarla con lo anterior', hz: 'Luego todo el pasaje al final', none: 'Ninguno', hnote: 'Cada versículo se repite y luego se lee con lo anterior, hasta el final del pasaje; después se repite todo el pasaje.', surah: 'Sura', whole: 'Una sura completa', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
+    ru: { talq: "Повторять за чтецом", tOff: "Нет", tAyah: "По аятам", tSeg: "По фразам", tNote: "Чтец читает, затем делает паузу, чтобы вы повторили за ним.", linkHow: 'Как связывать', lPrev: 'По два аята', lAll: 'Весь отрывок до этого места', l2: 'По три аята', l3: 'По четыре аята', title: 'Настройки чтения', hxNote: 'Число повторов первого аята действует и для следующих; любой аят можно изменить отдельно.', hifz: 'Метод заучивания', fromA: 'С аята', toA: 'По аят', hx: 'Настройки повтора:', hy: 'Затем связать с предыдущим', hz: 'Затем весь отрывок в конце', none: 'Нет', hnote: 'Каждый аят повторяется, затем читается вместе с предыдущими до конца отрывка; затем повторяется весь отрывок.', surah: 'Сура', whole: 'Сура целиком', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
   };
   // colour-tajweed choice
   var TJL = {
@@ -857,10 +862,56 @@
       b.title = playing ? U.pause : U.listen;
       var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
     }
+    // Talqeen: the reciter reads a part, then is silent for about as long, so the learner repeats after him.
+    // 'ayah': a pause after each ayah; 'seg': also within the ayah, at the Mushaf's pause marks (ۖ ۗ ۚ ۘ),
+    // long stretches cut into parts of about four words (needs the word times of the reciter).
+    var WAQF = /[\u06D6\u06D7\u06D8\u06DA]/;
+    function talqMode() {
+      var r = rec(), m = (typeof rep !== 'undefined' && rep && rep.talq) || 'off';
+      if (m === 'off' || r.kind !== 'ayah' || r.then || r.meaningOnly) return 'off';
+      return m === 'seg' && !r.timed ? 'ayah' : m;
+    }
+    function talqSegs(s, a, words) {
+      var groups = [], g = [];
+      words.forEach(function (w, i) {
+        g.push(w);
+        if (WAQF.test(WTXT[s + ':' + a + ':' + w[0]] || '') && i < words.length - 1) { groups.push(g); g = []; }
+      });
+      if (g.length) groups.push(g);
+      var out = [];
+      groups.forEach(function (g2) {
+        var n = Math.ceil(g2.length / 4), size = Math.ceil(g2.length / n);
+        for (var k = 0; k < g2.length; k += size) out.push(g2.slice(k, k + size));
+      });
+      return out.map(function (x) { return { w0: x[0][0], w1: x[x.length - 1][0], t0: x[0][1] }; });
+    }
+    function talqWait(st, ms, w0, w1) {
+      st.waiting = true;
+      root.classList.add('bk-talqw');
+      if (w0) for (var w = w0; w <= w1; w++) root.querySelectorAll('[data-l="' + st.s + ':' + st.a + ':' + w + '"]').forEach(function (e) { e.classList.add('ht'); });
+      return new Promise(function (res) { setTimeout(function () { talqDone(); res(playing && recState === st); }, Math.max(1200, Math.min(12000, ms * 1.15 + 700))); });
+    }
+    function talqDone() {
+      root.classList.remove('bk-talqw');
+      root.querySelectorAll('.ht').forEach(function (e) { e.classList.remove('ht'); });
+    }
     function tick() {
       raf = 0;
       if (!playing || !recState) return;
       var t = audio.currentTime * 1000, st = recState;
+      if (st.kind === 'ayah' && st.phase === 'ayah' && st.words && st.words.length && !st.waiting && talqMode() === 'seg') {
+        if (!st.segs) { st.segs = talqSegs(st.s, st.a, st.words); st.si = 0; }
+        var nx = st.segs[st.si + 1];
+        if (nx && t >= nx.t0 - 30) {
+          var sg = st.segs[st.si];
+          audio.pause(); st.si++;
+          talqWait(st, nx.t0 - sg.t0, sg.w0, sg.w1).then(function (go) {
+            st.waiting = false;
+            if (go && audio.paused) { var pr = audio.play(); if (pr && pr.catch) pr.catch(function () {}); startTick(); }
+          });
+          raf = requestAnimationFrame(tick); return;
+        }
+      }
       if (st.kind === 'ayah' && st.phase === 'ayah' && st.words) {
         var w = 0;
         for (var i = 0; i < st.words.length; i++) if (st.words[i][1] <= t) w = st.words[i][0]; else break;
@@ -986,6 +1037,15 @@
     function onEnded() {
       if (!playing || !recState) return;
       var st = recState;
+      if (st.kind === 'ayah' && !st.waited && (st.phase === 'ayah' || st.phase === 'basmala') && talqMode() !== 'off') {
+        st.waited = true;                                // the learner's turn: the last part (or the whole ayah)
+        var dur = (audio.duration || 0) * 1000, sg2 = st.phase === 'ayah' && st.segs && st.segs[st.si];
+        var from = sg2 ? sg2.t0 : 0, w0 = st.phase === 'ayah' ? (sg2 ? sg2.w0 : 1) : 0;
+        var w1 = st.phase === 'ayah' ? (st.words && st.words.length ? st.words[st.words.length - 1][0] : 40) : 0;
+        if (st.phase === 'basmala') root.querySelectorAll('.ml-b').forEach(function (e) { e.classList.add('ht'); });
+        talqWait(st, Math.max(1500, dur - from), w0, w1).then(function (go) { if (go) onEnded(); });
+        return;
+      }
       if (st.kind === 'ayah') {
         if (st.phase === 'basmala') return playAyah(st.s, st.a, true);
         if (st.phase === 'ayah' && rec().then) return playMeaning(st.s, st.a);
@@ -1008,6 +1068,38 @@
         if (st.s < 114) playSurah(st.s + 1, 1); else stopAudio();
       }
     }
+    // a word heard on its own (word sheet): the reciter's voice from the word's start to the next word's start
+    var wAudio = null, wRaf = 0;
+    C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn) {
+      var p3 = loc.split(':'), s = +p3[0], a = +p3[1], w = +p3[2], r = rec();
+      if (!(r.timed && r.kind === 'ayah' && !r.meaningOnly)) r = RECS.filter(function (x) { return x.timed && x.kind === 'ayah' && !x.meaningOnly; })[0];
+      if (playing) stopAudio();
+      if (!wAudio) { wAudio = new Audio(); wAudio.preload = 'auto'; }
+      var url = srcOf(r, s, a);
+      if (wAudio.getAttribute('src') !== url) wAudio.src = url;
+      wAudio.muted = true;
+      var pr0 = wAudio.play(); if (pr0 && pr0.catch) pr0.catch(function () {});   // start inside the tap (phones), then seek
+      if (btn) btn.classList.add('on');
+      var off = function () { wAudio.pause(); wAudio.muted = false; if (btn) btn.classList.remove('on'); };
+      wordTimes(r, s, a).then(function (ws) {
+        var i = -1; ws.forEach(function (x, k) { if (x[0] === w) i = k; });
+        if (i < 0) return off();
+        var t0 = Math.max(0, ws[i][1] - 60) / 1000, t1 = ws[i + 1] ? ws[i + 1][1] / 1000 : 1e9;
+        var go = function () {
+          wAudio.pause();
+          try { wAudio.currentTime = t0; } catch (e) {}
+          wAudio.muted = false;
+          var pr = wAudio.play(); if (pr && pr.catch) pr.catch(off);
+          cancelAnimationFrame(wRaf);
+          var watch = function () {
+            if (wAudio.ended || wAudio.currentTime >= t1) return off();
+            wRaf = requestAnimationFrame(watch);
+          };
+          wRaf = requestAnimationFrame(watch);
+        };
+        if (wAudio.readyState >= 1) go(); else wAudio.addEventListener('loadedmetadata', go, { once: true });
+      }, off);
+    } : null;
     function startAudio() {
       if (!RECS.length) return;
       if (!audio) {
@@ -1034,6 +1126,7 @@
     function stopAudio() {
       if (!playing) return;
       playing = false;
+      talqDone();
       if (audio) audio.pause();
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       setPlayUI();
@@ -1071,6 +1164,8 @@
       panel.innerHTML = '<h3>' + esc(R.title) + '</h3>' +
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
         '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="hifz">' + esc(R.hifz) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.talq) + '</span><select class="bk-ctl" data-r="talq"><option value="off">' + esc(R.tOff) + '</option><option value="ayah">' + esc(R.tAyah) + '</option><option value="seg">' + esc(R.tSeg) + '</option></select></label>' +
+        '<p class="bk-rnote bk-rtalq">' + esc(R.tNote) + '</p>' +
         '<label class="bk-rrow bk-rsurah"><span>' + esc(R.surah) + '</span><select class="bk-ctl" data-r="surah">' + sOpts + '</select></label>' +
         '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label>' +
         '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label>' +
@@ -1084,6 +1179,7 @@
         '<label class="bk-rrow bk-rrange"><span>' + esc(R.repRange) + '</span><select class="bk-ctl" data-r="range">' + cOpts + '</select></label>';
       var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
       function fill() {
+        f('talq').value = rep.talq || 'off'; panel.classList.toggle('talq', !!rep.talq && rep.talq !== 'off');
         f('mode').value = rep.mode; f('ayah').value = String(rep.ayah); f('range').value = String(rep.range);
         f('froms').value = String(rep.from[0]); f('froma').value = rep.from[1]; f('tos').value = String(rep.to[0]); f('toa').value = rep.to[1];
         f('froma').max = MAP ? MAP.verses[rep.from[0] - 1] : 286; f('toa').max = MAP ? MAP.verses[rep.to[0] - 1] : 286;
@@ -1117,15 +1213,16 @@
         }
         var cl = function (s, a) { s = Math.max(1, Math.min(114, +s || 1)); a = Math.max(1, Math.min(MAP ? MAP.verses[s - 1] : 286, +a || 1)); return [s, a]; };
         var was = rep.mode;
+        rep.talq = f('talq').value;
         rep.mode = f('mode').value; rep.ayah = +f('ayah').value; rep.range = +f('range').value;
         if (rep.mode === 'surah' || rep.mode === 'hifz') {
           var oldS = rep.surah;
-          rep.surah = (was !== 'surah' && was !== 'hifz') ? MAP.pages[cur - 1][0] : Math.max(1, Math.min(114, +f('surah').value || 1));   // first: the surah being read
+          rep.surah = (was !== 'surah' && was !== 'hifz') ? (goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : MAP.pages[cur - 1][0]) : Math.max(1, Math.min(114, +f('surah').value || 1));   // first: the surah being read
         }
         if (rep.mode === 'hifz') {
           var nv = MAP.verses[rep.surah - 1], pg0 = MAP.pages[cur - 1], pgL = MAP.pages[visible().slice(-1)[0] - 1];
           if (was !== 'hifz' || oldS !== rep.surah || !rep.hz) {     // start with the ayahs of this surah on the page being read
-            var a1 = pg0[0] === rep.surah ? pg0[1] : 1, a2 = pgL[2] === rep.surah ? pgL[3] : nv;
+            var a1 = pg0[0] === rep.surah && rep.surah !== goSurah ? pg0[1] : 1, a2 = pgL[2] === rep.surah ? pgL[3] : nv;
             rep.hz = { a1: a1, a2: Math.max(a1, a2), x: (rep.hz && rep.hz.x) || 3, xs: {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value };
           } else {
             var b1 = Math.max(1, Math.min(nv, +f('ha1').value || 1)), b2 = Math.max(b1, Math.min(nv, +f('ha2').value || b1));

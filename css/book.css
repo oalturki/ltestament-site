@@ -392,3 +392,15 @@ body.bk-mob .bk-mquiz .bk-quizlink svg{ width:20px; height:20px; }
 
 /* colour tajweed: the basmala line uses page 1's tajweed font too */
 body.bk-tajweed .bk-mushaf .ml-b{ font-family:'qpc-p1t'; }
+
+/* Talqeen: the learner's turn — the words just recited glow softly while the reciter is silent */
+.bk-mushaf .ml > span.ht, .bk-mushaf .ml-b.ht > span{ background:rgba(60,140,90,0.30); border-radius:6px; animation:bkTalq 1.1s ease-in-out infinite alternate; }
+@keyframes bkTalq{ from{ background:rgba(60,140,90,0.14); } to{ background:rgba(60,140,90,0.38); } }
+.bk-talqw .bk-play, .bk-talqw .bk-mplay .bk-play{ box-shadow:0 0 0 3px rgba(60,140,90,0.55); }
+.bk-rset .bk-rtalq{ display:none; }
+.bk-rset.talq .bk-rtalq{ display:block; }
+/* Word sheet: hear the word on its own */
+.bk-wsplay{ display:inline-flex; align-items:center; gap:6px; margin:4px auto 10px; padding:7px 14px; border-radius:999px;
+  border:1px solid #c9a227; background:#fbf6e6; color:#7a5b00; font:inherit; font-size:15px; cursor:pointer; }
+.bk-wsplay.on{ background:#c9a227; color:#fff; }
+.bk-ws .bk-wsr + .bk-wsplay{ display:flex; width:max-content; }
