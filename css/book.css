@@ -371,3 +371,4 @@ html[dir=rtl] .bk-rpop{ right:0; } html[dir=ltr] .bk-rpop{ left:0; }
 body.bk-mob .bk-msrep{ border-bottom:1px solid rgba(246,238,218,0.08); padding:6px 0; }
 body.bk-mob .bk-msrep .bk-rset h3{ font-size:0.95rem; }
 body.bk-mob .bk-msheet{ max-height:88vh; overflow-y:auto; }
+.bk-rsurah{ display:none; } .bk-rset.surah .bk-rsurah{ display:flex; }
