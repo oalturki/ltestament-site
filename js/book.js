@@ -476,6 +476,7 @@
       if (q('rangeLbl')) q('rangeLbl').textContent = U.page + ' ' + uiNum(cur) + (last !== cur ? '–' + uiNum(last) : '') + ' / ' + uiNum(TOTAL);
       q('next').disabled = last >= TOTAL;
       q('prev').disabled = cur <= 1;
+      if (MAP && !repRun) try { repFollowPage(); } catch (e) {}   // the surah choice follows the page while nothing plays
       if (q('surahSel')) q('surahSel').value = String(MAP.pages[cur - 1][0]);
       var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.textContent = U.page + ' ' + uiNum(cur);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
@@ -1048,7 +1049,8 @@
     var rep = { mode: 'cont', ayah: 1, range: 1, from: [1, 1], to: [1, 7] }, repRun = null;
     function setupRepeat(sel) {
       var R = REPL[C.lang] || REPL.en;
-      try { var sv = JSON.parse(load('lt_rec_rep') || 'null'); if (sv && sv.mode) rep = sv; } catch (e) {}
+      try { var sv = JSON.parse(load('lt_rec_rep') || 'null'); if (sv && sv.mode) { for (var k0 in sv) rep[k0] = sv[k0]; } } catch (e) {}
+      if (!Array.isArray(rep.from)) rep.from = [1, 1]; if (!Array.isArray(rep.to)) rep.to = [1, 7];
       var counts = [1, 2, 3, 5, 10, 0];
       var cOpts = counts.map(function (n) { return '<option value="' + n + '">' + esc(n === 1 ? R.once : n === 0 ? R.inf : uiNum(n) + ' ' + R.x) + '</option>'; }).join('');
       var hOpts = function (ns) { return ns.map(function (n) { return '<option value="' + n + '">' + esc(n === 0 ? R.none : n === -1 ? R.inf : n === 1 ? R.once : uiNum(n) + ' ' + R.x) + '</option>'; }).join(''); };
@@ -1165,7 +1167,7 @@
         rep.hz.a1 = first[1]; rep.hz.a2 = last[2] === rep.surah ? last[3] : nv; rep.hz.xs = {};
       }
       if (!embed) store('lt_rec_rep', JSON.stringify(rep));
-      if (root.__repFill) root.__repFill();
+      if (root.__repFill) try { root.__repFill(); } catch (e) {}
     }
     function repStart() {
       repFollowPage();
