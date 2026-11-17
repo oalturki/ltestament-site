@@ -162,6 +162,22 @@
     var m = String(e && e.message || e);
     st.textContent = /^503/.test(m) ? 'الخدمة تستعد، أعد المحاولة بعد دقيقة.' : 'تعذّر الاتصال بخدمة التسميع، أعد المحاولة.';
   }
+  // the microphone is kept for a while after a stop, so the next start does not ask for permission again
+  // (Safari asks each time the microphone is opened anew); released after two idle minutes
+  var MIC = null, micT = 0;
+  function getMic() {
+    clearTimeout(micT);
+    if (MIC && MIC.getAudioTracks().some(function (t) { return t.readyState === 'live'; })) return Promise.resolve(MIC);
+    return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })
+      .then(function (m) { MIC = m; return m; });
+  }
+  function releaseMic() {
+    clearTimeout(micT);
+    micT = setTimeout(function () { if (MIC && !R) { MIC.getTracks().forEach(function (t) { t.stop(); }); MIC = null; } }, 120000);
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && MIC && !R) { MIC.getTracks().forEach(function (t) { t.stop(); }); MIC = null; }
+  });
   function start() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { st.textContent = 'المتصفح لا يدعم التسجيل.'; return; }
     var AC = window.AudioContext || window.webkitAudioContext;
@@ -171,7 +187,7 @@
     draw();
     box.classList.add('live');
     st.textContent = 'جارٍ تشغيل الميكروفون…';
-    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }).then(function (stream) {
+    getMic().then(function (stream) {
       var src = actx.createMediaStreamSource(stream), node = actx.createScriptProcessor(4096, 1, 1);
       R = { stream: stream, node: node, src: src, rate: actx.sampleRate, seg: [], pre: [], speaking: false, quiet: 0, segLen: 0,
             noise: 0.004, pos: 0, busy: false, queue: [], fresh: false, mute: false, say: true, tick: 0 };
@@ -208,7 +224,7 @@
     if (r0.seg.length && r0.segLen > 0.4) r0.queue.push(r0.seg);
     r0.seg = []; r0.speaking = false;
     try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {}
-    r0.stream.getTracks().forEach(function (t) { t.stop(); });
+    releaseMic();
     btn.classList.remove('on'); btn.setAttribute('aria-label', 'ابدأ');
     var drain = function () {
       if (r0.busy || r0.queue.length) { pump(); return setTimeout(drain, 300); }
