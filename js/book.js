@@ -30,18 +30,18 @@
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
   var EXPL = {
-    ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
+    ar: { l2: 'مع الآيتين اللتين قبلها', l3: 'مع الآيات الثلاث التي قبلها', keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
           src: ['السراج في بيان غريب القرآن', 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف'],
           words: 'معاني كلمات الآية', none: 'لم يُفرد «السراج» لهذه الكلمة شرحًا.', more: 'التفسير الموسّع (تفسير السعدي)', ayah: 'الآية', close: 'إغلاق', err: 'تعذّر التحميل، أعد المحاولة.' },
-    en: { keys: ['english_mokhtasar'], head: ['Explanation of the verse'], src: ['Al-Mukhtasar in Interpreting the Noble Quran — Tafsir Center for Quranic Studies'],
+    en: { l2: 'With the two verses before it', l3: 'With the three verses before it', keys: ['english_mokhtasar'], head: ['Explanation of the verse'], src: ['Al-Mukhtasar in Interpreting the Noble Quran — Tafsir Center for Quranic Studies'],
           ayah: 'Verse', close: 'Close', err: 'Could not load. Please try again.' },
-    fr: { keys: ['french_mokhtasar'], head: ['Explication du verset'], src: ['Al-Mukhtasar dans l’exégèse du Noble Coran — Centre Tafsir des études coraniques'],
+    fr: { l2: 'Avec les deux versets précédents', l3: 'Avec les trois versets précédents', keys: ['french_mokhtasar'], head: ['Explication du verset'], src: ['Al-Mukhtasar dans l’exégèse du Noble Coran — Centre Tafsir des études coraniques'],
           ayah: 'Verset', close: 'Fermer', err: 'Chargement impossible. Réessayez.' },
-    es: { keys: ['spanish_mokhtasar'], head: ['Explicación de la aleya'], src: ['Al-Mujtasar en la exégesis del Noble Corán — Centro Tafsir de Estudios Coránicos'],
+    es: { l2: 'Con los dos versículos anteriores', l3: 'Con los tres versículos anteriores', keys: ['spanish_mokhtasar'], head: ['Explicación de la aleya'], src: ['Al-Mujtasar en la exégesis del Noble Corán — Centro Tafsir de Estudios Coránicos'],
           ayah: 'Aleya', close: 'Cerrar', err: 'No se pudo cargar. Inténtelo de nuevo.' },
-    ru: { keys: ['russian_mokhtasar'], head: ['Толкование аята'], src: ['«Аль-Мухтасар» в толковании Благородного Корана — Центр Тафсир'],
+    ru: { l2: 'С двумя предыдущими аятами', l3: 'С тремя предыдущими аятами', keys: ['russian_mokhtasar'], head: ['Толкование аята'], src: ['«Аль-Мухтасар» в толковании Благородного Корана — Центр Тафсир'],
           ayah: 'Аят', close: 'Закрыть', err: 'Не удалось загрузить. Попробуйте ещё раз.' },
-    ur: { keys: ['urdu_junagarhi'], head: ['آیت کا ترجمہ'], src: ['محمد جوناگڑھی — QuranEnc.com'],
+    ur: { l2: 'پچھلی دو آیات کے ساتھ', l3: 'پچھلی تین آیات کے ساتھ', keys: ['urdu_junagarhi'], head: ['آیت کا ترجمہ'], src: ['محمد جوناگڑھی — QuranEnc.com'],
           ayah: 'آیت', close: 'بند کریں', err: 'لوڈ نہیں ہو سکا، دوبارہ کوشش کریں۔' }
   };
   var ayaCache = {}, tafCache = {};
@@ -1038,7 +1038,7 @@
         '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label>' +
         '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label>' +
         '<div class="bk-rhx"><span class="bk-rhxh">' + esc(R.hx) + '</span><p class="bk-rnote">' + esc(R.hxNote) + '</p><div class="bk-rhxl"></div></div>' +
-        '<label class="bk-rrow"><span>' + esc(R.linkHow) + '</span><select class="bk-ctl" data-r="hl"><option value="prev">' + esc(R.lPrev) + '</option><option value="all">' + esc(R.lAll) + '</option></select></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.linkHow) + '</span><select class="bk-ctl" data-r="hl"><option value="2">' + esc(R.lPrev) + '</option><option value="3">' + esc(R.l2) + '</option><option value="4">' + esc(R.l3) + '</option><option value="0">' + esc(R.lAll) + '</option></select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hy) + '</span><select class="bk-ctl" data-r="hy">' + hOpts([0, 1, 2, 3, 5, 7, 10]) + '</select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hz) + '</span><select class="bk-ctl" data-r="hz">' + hOpts([0, 1, 2, 3, 5, 7, 10, -1]) + '</select></label>' +
         '<p class="bk-rnote">' + esc(R.hnote) + '</p></div>' +
@@ -1062,7 +1062,7 @@
           rows += '<label class="bk-rrow"><span>' + esc(R.ayah) + ' ' + uiNum(ha) + '</span><select class="bk-ctl" data-hx="' + ha + '">' + hOpts([1, 2, 3, 5, 7, 10]) + '</select></label>';
         hl2.innerHTML = rows;
         hl2.querySelectorAll('[data-hx]').forEach(function (s2) { var a3 = +s2.getAttribute('data-hx'); s2.value = String((hz.xs && hz.xs[a3]) || hz.x || 3); s2.classList.toggle('own', !!(hz.xs && hz.xs[a3])); });
-        f('hl').value = hz.link || 'prev';
+        f('hl').value = String(linkN(hz.link));
         f('hy').value = String(hz.y == null ? 2 : hz.y); f('hz').value = String(hz.z == null ? 3 : hz.z);
         panel.classList.toggle('cont', rep.mode === 'cont');
       }
@@ -1089,10 +1089,10 @@
           var nv = MAP.verses[rep.surah - 1], pg0 = MAP.pages[cur - 1], pgL = MAP.pages[visible().slice(-1)[0] - 1];
           if (was !== 'hifz' || oldS !== rep.surah || !rep.hz) {     // start with the ayahs of this surah on the page being read
             var a1 = pg0[0] === rep.surah ? pg0[1] : 1, a2 = pgL[2] === rep.surah ? pgL[3] : nv;
-            rep.hz = { a1: a1, a2: Math.max(a1, a2), x: (rep.hz && rep.hz.x) || 3, xs: {}, link: f('hl').value, y: +f('hy').value, z: +f('hz').value };
+            rep.hz = { a1: a1, a2: Math.max(a1, a2), x: (rep.hz && rep.hz.x) || 3, xs: {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value };
           } else {
             var b1 = Math.max(1, Math.min(nv, +f('ha1').value || 1)), b2 = Math.max(b1, Math.min(nv, +f('ha2').value || b1));
-            rep.hz = { a1: b1, a2: b2, x: rep.hz.x || 3, xs: rep.hz.xs || {}, link: f('hl').value, y: +f('hy').value, z: +f('hz').value };
+            rep.hz = { a1: b1, a2: b2, x: rep.hz.x || 3, xs: rep.hz.xs || {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value };
           }
         }
         if (rep.mode === 'custom' && was !== 'custom') {       // start from the page being read
@@ -1119,6 +1119,8 @@
       root.__repPanel = panel;
     }
     var rk = function (s, a) { return s * 1000 + a; };
+    // link window: how many ayahs are read together when a new one is linked (0 = all the passage so far); default three
+    function linkN(v) { return v === 'prev' ? 2 : v === 'all' ? 0 : (v === 0 || v === 2 || v === 3 || v === 4) ? v : 3; }
     // the passage for this play: [from, to] or null (read on)
     function repStart() {
       if (rep.mode === 'page') {
@@ -1133,7 +1135,7 @@
           var xi = (h.xs && h.xs[i]) || h.x || 1;
           for (k = 0; k < xi; k++) L2.push([s0, i, bas(i) && L2.length === 0]);
           // link: with the ayah before it, or with all the passage so far
-          if (i > h.a1) for (k = 0; k < h.y; k++) for (var j2 = (h.link === 'all' ? h.a1 : i - 1); j2 <= i; j2++) L2.push([s0, j2, false]);
+          if (i > h.a1) for (k = 0; k < h.y; k++) for (var j2 = (linkN(h.link) === 0 ? h.a1 : Math.max(h.a1, i - linkN(h.link) + 1)); j2 <= i; j2++) L2.push([s0, j2, false]);
         }
         var whole = L2.length, zz = h.z === -1 ? 1 : h.z;
         for (k = 0; k < zz; k++) for (i = h.a1; i <= h.a2; i++) L2.push([s0, i, bas(i)]);
