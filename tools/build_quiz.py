@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Word-meaning quiz data — «اختبر معاني الكلمات» (/quiz/).
+"""Word-meaning quiz data — «مسابقة معاني الكلمات» (/quiz/).
 
 Source: «السراج في بيان غريب القرآن» (QuranEnc key arabic_seraj), every surah read from the QuranEnc API
 (https://quranenc.com/api/v1/translation/sura/arabic_seraj/<n>) and saved as tools/data/siraj.json:

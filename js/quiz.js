@@ -1,4 +1,4 @@
-/* «اختبر معاني الكلمات» — a quiz on the meanings of Quran words (/quiz/), Arabic.
+/* «مسابقة معاني الكلمات» — a quiz on the meanings of Quran words (/quiz/), Arabic.
    Source: «السراج في بيان غريب القرآن» (QuranEnc key arabic_seraj): data/quiz/siraj.json (tools/build_quiz.py);
    the ayah shown with each question is the site's copy of QuranEnc's text (data/tafsir/arabic_text).
    Every text shown is from the book: the right answer is the word's own meaning, and the two wrong answers are
