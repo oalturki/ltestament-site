@@ -495,8 +495,11 @@
     }
     function blankLike(el) { var c = document.createElement('section'); c.className = el.className.replace(/bk-(ar|tr)page|bk-mpage/g, ''); return c; }
     function place(n, b) { n.style.left = b.left + 'px'; n.style.top = b.top + 'px'; n.style.width = b.width + 'px'; n.style.height = b.height + 'px'; }
+    // a surah chosen from the index: recitation starts at its first ayah, even mid-page
+    var goSurah = 0, goNext = 0;
     function show(p, dir, auto) {
       p = norm(p);
+      if (!auto) { goSurah = goNext; goNext = 0; }
       if (!auto) stopAudio();          // the reader turned the page: stop the recitation
       if (busy) return Promise.resolve(false);
       busy = true;
@@ -715,7 +718,7 @@
       var sel = q('surahSel');
       if (sel) {
         sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + uiNum(i + 1) + '. ' + esc(n) + '</option>'; }).join('');
-        sel.onchange = function () { show(surahStart[+sel.value - 1], 0); };
+        sel.onchange = function () { goNext = +sel.value; show(surahStart[+sel.value - 1], 0); goNext = 0; };
       }
       var ts = q('trSel');
       if (ts) {
@@ -1018,6 +1021,7 @@
       var R1 = repStart();
       if (R1.list) { var e1 = R1.list[0]; if (e1) playAyah(e1[0], e1[1], !e1[2]); lastRec = r.id; return; }
       if (R1.from) first = [R1.from[0], R1.from[1]];
+      else if (goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0) first = [goSurah, 1];
       if (r.kind === 'ayah') playAyah(first[0], first[1]);
       else playSurah(first[0], first[1]);
       lastRec = r.id;
@@ -1160,11 +1164,12 @@
     function repFollowPage() {
       if (repPicked || (rep.mode !== 'surah' && rep.mode !== 'hifz')) return;
       var vp = visible(), first = MAP.pages[vp[0] - 1], last = MAP.pages[vp[vp.length - 1] - 1];
-      if (rep.surah >= first[0] && rep.surah <= last[2]) return;     // already a surah on these pages
-      rep.surah = first[0];
+      var gs = goSurah && vp.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : 0;
+      if (gs ? rep.surah === gs : (rep.surah >= first[0] && rep.surah <= last[2])) return;     // already a surah on these pages
+      rep.surah = gs || first[0];
       if (rep.mode === 'hifz' && rep.hz) {
         var nv = MAP.verses[rep.surah - 1];
-        rep.hz.a1 = first[1]; rep.hz.a2 = last[2] === rep.surah ? last[3] : nv; rep.hz.xs = {};
+        rep.hz.a1 = gs ? 1 : first[1]; rep.hz.a2 = last[2] === rep.surah ? last[3] : nv; rep.hz.xs = {};
       }
       if (!embed) store('lt_rec_rep', JSON.stringify(rep));
       if (root.__repFill) try { root.__repFill(); } catch (e) {}
