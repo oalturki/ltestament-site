@@ -460,9 +460,12 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         last = -1
         for i, j in pairs:
             if i is not None and j is not None and sim[i][j] >= 0.5: last = max(last, i)
-        if final:                                      # the stretch is over: a last word said wrongly counts too
-            for i, j in pairs:
-                if i is not None and j is not None: last = max(last, i)
+        # after the last word heard right, something else was said: like a teacher, stop at the first word that
+        # went wrong (the rest is not judged); the next stretch starts at it again, so it can be said again
+        lastj = max([j for i, j in pairs if i is not None and j is not None and i <= last and sim[i][j] >= 0.5] or [-1])
+        tail = hyp[lastj + 1:]
+        stop_at = None
+        if final and tail and last + 1 < len(win): stop_at = last + 1
         for i, j in pairs:
             if i is None or i > last: continue
             a, k = where[pos + i]
@@ -472,6 +475,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 w["heard"] = hyp[j]
                 w["status"] = "ok" if sim[i][j] >= 0.8 else "wrong"
             words.append(w)
+        if stop_at is not None:
+            a, k = where[pos + stop_at]
+            words.append({"k": pos + stop_at, "ayah": a, "i": k, "text": win[stop_at], "heard": " ".join(tail[:3]), "status": "wrong"})
         nxt = pos + last + 1
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000)}
