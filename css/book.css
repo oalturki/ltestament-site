@@ -372,3 +372,7 @@ body.bk-mob .bk-msrep{ border-bottom:1px solid rgba(246,238,218,0.08); padding:6
 body.bk-mob .bk-msrep .bk-rset h3{ font-size:0.95rem; }
 body.bk-mob .bk-msheet{ max-height:88vh; overflow-y:auto; }
 .bk-rsurah{ display:none; } .bk-rset.surah .bk-rsurah{ display:flex; }
+.bk-rhifz{ display:none; } .bk-rset.hifz .bk-rhifz{ display:block; }
+.bk-rset.hifz > .bk-rrow:has([data-r="ayah"]), .bk-rset.hifz .bk-rrange{ display:none; }
+.bk-rhifz input.bk-ctl{ width:80px; text-align:center; }
+.bk-rnote{ margin:4px 0 2px; font-size:0.8rem; line-height:1.6; color:rgba(246,238,218,0.65); }
