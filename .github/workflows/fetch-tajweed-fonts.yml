@@ -1,0 +1,32 @@
+# One-off: copies the King Fahd Complex's colour-tajweed Mushaf fonts (QPC V4, one per page, via QUL)
+# into fonts/qpc-v4/, so the site serves them itself as it does the V2 fonts (no dependency on another server).
+name: Fetch tajweed fonts
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/fetch-tajweed-fonts.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download 604 page fonts
+        run: |
+          mkdir -p fonts/qpc-v4
+          for p in $(seq 1 604); do
+            f=fonts/qpc-v4/p$p.woff2
+            [ -s "$f" ] && continue
+            curl -sSfL --retry 4 -o "$f" "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v4-tajweed/woff2/p$p.woff2"
+          done
+          ls fonts/qpc-v4 | wc -l; du -sh fonts/qpc-v4
+      - name: Commit
+        run: |
+          git config user.name "ltestament fonts"
+          git config user.email "fonts@ltestament.com"
+          git add fonts/qpc-v4
+          git commit -m "Fonts: QPC V4 colour-tajweed page fonts (King Fahd Complex, via QUL)" || exit 0
+          git pull --rebase -q origin main
+          git push origin HEAD:main
