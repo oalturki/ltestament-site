@@ -377,3 +377,7 @@ body.bk-mob .bk-msheet{ max-height:88vh; overflow-y:auto; }
 .bk-rhifz input.bk-ctl{ width:80px; text-align:center; }
 .bk-rnote{ margin:4px 0 2px; font-size:0.8rem; line-height:1.6; color:rgba(246,238,218,0.65); }
 .bk-rpop{ max-height:min(560px, 72vh); overflow-y:auto; }
+.bk-rhx{ padding:4px 0; }
+.bk-rhxh{ display:block; font-size:0.92rem; }
+.bk-rhxl .bk-rrow{ min-height:40px; padding-inline-start:10px; }
+.bk-rhxl select.own{ border-color:var(--gold); }
