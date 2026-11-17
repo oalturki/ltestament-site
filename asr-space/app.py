@@ -368,7 +368,7 @@ def whisper():
             try:
                 import torch
                 from transformers import WhisperForConditionalGeneration, WhisperProcessor
-                torch.set_num_threads(max(1, os.cpu_count() or 2))
+                torch.set_num_threads(int(os.environ.get("TORCH_THREADS", "2")))   # the Space has 2 vCPUs; os.cpu_count() reports the host's
                 try:
                     proc = WhisperProcessor.from_pretrained(WHISPER_REPO)
                 except Exception:                     # the fine-tuned repo may lack the processor files: same as base
@@ -422,7 +422,7 @@ def live_status():
 
 
 @app.post("/live")
-async def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
+def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
                pos: int = Form(0), final: bool = Form(False)):
     import time
     t0 = time.time()
@@ -430,7 +430,7 @@ async def live(audio: UploadFile = File(...), surah: int = Form(...), start: int
     ayahs = QURAN[str(surah)]
     end = end or start
     if not (1 <= start <= end <= len(ayahs)): raise HTTPException(400, "ayah range")
-    raw = await audio.read()
+    raw = audio.file.read()                            # a plain function: FastAPI runs it beside the event loop
     if len(raw) > 4_000_000: raise HTTPException(413, "audio too long")
     wav = decode_audio(raw)
     dur = len(wav) / SR
