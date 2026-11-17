@@ -30,6 +30,7 @@
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
   var WLISTEN = {"ar": "استمع إلى الكلمة", "ur": "لفظ سنیں", "en": "Hear the word", "fr": "Écouter le mot", "es": "Escuchar la palabra", "ru": "Послушать слово"};
+  var HIDEL = {"ar": {"hide": "إخفاء الآيات", "show": "إظهار الآيات", "hint": "سمّع لنفسك: المس الكلمة لتظهر، والمس رقم الآية لتظهر الآية كلها."}, "ur": {"hide": "آیات چھپائیں", "show": "آیات دکھائیں", "hint": "خود کو سنائیں: لفظ دکھانے کے لیے اسے چھوئیں، پوری آیت کے لیے آیت نمبر کو چھوئیں۔"}, "en": {"hide": "Hide verses", "show": "Show verses", "hint": "Recite from memory: tap a word to show it, or the verse number to show the whole verse."}, "fr": {"hide": "Masquer les versets", "show": "Afficher les versets", "hint": "Récitez de mémoire : touchez un mot pour l’afficher, ou le numéro du verset pour tout le verset."}, "es": {"hide": "Ocultar versículos", "show": "Mostrar versículos", "hint": "Recita de memoria: toca una palabra para verla, o el número del versículo para verlo entero."}, "ru": {"hide": "Скрыть аяты", "show": "Показать аяты", "hint": "Читайте по памяти: коснитесь слова, чтобы открыть его, или номера аята — чтобы открыть весь аят."}};
   var EXPL = {
     ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
           src: ['السراج في بيان غريب القرآن', 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف'],
@@ -306,7 +307,7 @@
         else if (L[0] === 'b') html += '<div class="ml ml-c ml-b">' + BASMALA.map(function (g) { return '<span>' + g + '</span>'; }).join('') + '</div>';
         else html += '<div class="ml' + (L[1] ? ' ml-c' : '') + '">' + L[2].map(function (w) {
           if (w[2]) WTXT[w[1]] = w[2];
-          return '<span data-l="' + w[1] + '">' + w[0] + '</span>';
+          return '<span data-l="' + w[1] + '"' + (/^[\u0660-\u0669\u06F0-\u06F9]+$/.test(w[2] || '') ? ' class="ae"' : '') + '>' + w[0] + '</span>';
         }).join('') + '</div>';
       });
       el.setAttribute('dir', 'rtl'); el.setAttribute('lang', 'ar'); el.style.fontFamily = '';
@@ -653,6 +654,11 @@
         qz.setAttribute('aria-label', qz.textContent.trim());
         moves.push([qz, qslot]);
       }
+      var hbn = document.querySelector('.bk-hidebtn');
+      if (hbn && bar) {
+        var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
+        moves.push([hbn, hslot]);
+      }
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
       // done: the choices take effect as they are made; this closes the sheet
@@ -853,7 +859,7 @@
       if (!hl) return;
       if (hl.basmala) { root.querySelectorAll('.ml-b').forEach(function (e) { e.classList.add('ha'); }); return; }
       root.querySelectorAll('[data-l^="' + hl.s + ':' + hl.a + ':"], [data-v="' + hl.s + ':' + hl.a + '"]').forEach(function (e) { e.classList.add('ha'); });
-      if (hl.w) root.querySelectorAll('[data-l="' + hl.s + ':' + hl.a + ':' + hl.w + '"]').forEach(function (e) { e.classList.add('hl'); });
+      if (hl.w) root.querySelectorAll('[data-l="' + hl.s + ':' + hl.a + ':' + hl.w + '"]').forEach(function (e) { e.classList.add('hl', 'rv'); });
     }
     function setPlayUI() {
       var b = q('play');
@@ -1404,6 +1410,42 @@
         qz.title = 'اختبر معرفتك بمعاني كلمات هذه الصفحة';
         qz.onclick = function () { qz.href = '/quiz/?p=' + cur; };
         bar.appendChild(qz);
+      }
+      // self-test: hide the words of the Mushaf; a tap shows a word, a tap on the ayah number shows the whole ayah
+      var hbar = !embed && document.querySelector('.bk-bar');
+      if (hbar) {
+        var HL = HIDEL[C.lang] || HIDEL.en, hb = document.createElement('button');
+        hb.type = 'button'; hb.className = 'bk-hidebtn';
+        hb.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg><span class="t"></span>';
+        var hset = function (on) {
+          root.classList.toggle('bk-hide', on);
+          root.querySelectorAll('.rv').forEach(function (e) { e.classList.remove('rv'); });
+          hb.classList.toggle('on', on);
+          hb.querySelector('.t').textContent = on ? HL.show : HL.hide;
+          hb.setAttribute('aria-label', on ? HL.show : HL.hide); hb.title = HL.hint;
+        };
+        hset(false);
+        hb.onclick = function () {
+          var on = !root.classList.contains('bk-hide');
+          hset(on);
+          if (on) {
+            var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = HL.hint;
+            document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 4500);
+          }
+        };
+        hbar.appendChild(hb);
+        root.addEventListener('click', function (e) {
+          if (!root.classList.contains('bk-hide')) return;
+          var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
+          if (!w || e.target.closest('.bk-flip,.bk-cover')) return;
+          var l = w.getAttribute('data-l');
+          if (w.classList.contains('ae')) {                // the ayah number: the whole ayah
+            var pr = l.split(':').slice(0, 2).join(':') + ':';
+            root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) { x.classList.add('rv'); });
+          } else if (w.classList.contains('rv')) return;   // shown already: a tap does what it always does
+          else root.querySelectorAll('[data-l="' + l + '"]').forEach(function (x) { x.classList.add('rv'); });
+          e.stopPropagation(); e.preventDefault();
+        }, true);
       }
       // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
       if (!embed && mobTrial()) mobileShell();
