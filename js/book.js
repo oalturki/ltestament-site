@@ -1132,7 +1132,12 @@
         fill(); repRun = null;
         if (playing) { stopAudio(); recState = null; startAudio(); }   // start again with the new settings
       }
-      panel.addEventListener('change', read);
+      panel.addEventListener('change', function (e) {
+        var r = e.target && e.target.getAttribute && e.target.getAttribute('data-r');
+        if (r === 'surah' || r === 'ha1' || r === 'ha2' || (e.target && e.target.hasAttribute && e.target.hasAttribute('data-hx'))) repPicked = true;
+        read(e);
+      });
+      root.__repFill = fill;
       fill();
       // the panel opens from a small button beside the reciter (on phones it sits in the «More» sheet instead)
       var box = sel.parentNode, btn = document.createElement('button');
@@ -1148,7 +1153,22 @@
     // link window: how many ayahs are read together when a new one is linked (0 = all the passage so far); default three
     function linkN(v) { return v === 'prev' ? 2 : v === 'all' ? 0 : (v === 0 || v === 2 || v === 3 || v === 4) ? v : 3; }
     // the passage for this play: [from, to] or null (read on)
+    // a surah (or memorization passage) chosen earlier follows the page being read, unless chosen on this visit
+    var repPicked = false;
+    function repFollowPage() {
+      if (repPicked || (rep.mode !== 'surah' && rep.mode !== 'hifz')) return;
+      var vp = visible(), first = MAP.pages[vp[0] - 1], last = MAP.pages[vp[vp.length - 1] - 1];
+      if (rep.surah >= first[0] && rep.surah <= last[2]) return;     // already a surah on these pages
+      rep.surah = first[0];
+      if (rep.mode === 'hifz' && rep.hz) {
+        var nv = MAP.verses[rep.surah - 1];
+        rep.hz.a1 = first[1]; rep.hz.a2 = last[2] === rep.surah ? last[3] : nv; rep.hz.xs = {};
+      }
+      if (!embed) store('lt_rec_rep', JSON.stringify(rep));
+      if (root.__repFill) root.__repFill();
+    }
     function repStart() {
+      repFollowPage();
       if (rep.mode === 'page') {
         var vp = visible(), a = MAP.pages[vp[0] - 1], b = MAP.pages[vp[vp.length - 1] - 1];
         repRun = { from: [a[0], a[1]], to: [b[2], b[3]], ay: 1, rg: 1 };
