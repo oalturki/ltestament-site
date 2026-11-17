@@ -184,7 +184,10 @@ async def check(audio: UploadFile = File(...), surah: int = Form(...), start: in
     dur = len(wav) / SR
     if dur > MAX_SECONDS: raise HTTPException(413, "audio too long")
     if dur < 0.5: raise HTTPException(400, "audio too short")
-    sess, tok = model()
+    try:
+        sess, tok = model()
+    except Exception as e:                  # e.g. the gated model not yet granted to this account
+        raise HTTPException(503, f"model not available: {type(e).__name__}")
     feats = log_mel(wav)[None, ...]
     out = sess.run(None, {"audio_signal": feats, "length": np.array([feats.shape[2]], dtype=np.int64)})
     logp = out[0][0].astype(np.float32)            # (T, V)

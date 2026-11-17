@@ -75,6 +75,7 @@
     fd.append('audio', blob, 'rec'); fd.append('surah', r.s); fd.append('start', r.a); fd.append('end', r.b);
     st.textContent = 'يُحلَّل التسجيل… (أول مرة قد تأخذ دقيقة حتى تستيقظ الخدمة)';
     fetch(API.replace(/\/$/, '') + '/check', { method: 'POST', body: fd }).then(function (x) {
+      if (x.status === 503) throw new Error('503');
       if (!x.ok) throw new Error(x.status);
       return x.json();
     }).then(function (res) {
@@ -87,7 +88,7 @@
         (res.extra.length ? '<p class="ts-heard">كلمات زائدة: ' + esc(res.extra.join(' ')) + '</p>' : '') +
         '<p class="ts-heard">ما سمعه النظام: ' + esc(res.heard) + '</p>';
       st.textContent = 'اضغط الزر لتسميع جديد.';
-    }).catch(function () { st.textContent = 'تعذّر التحليل، أعد المحاولة بعد قليل.'; });
+    }).catch(function (e) { st.textContent = e && e.message === '503' ? 'الخدمة لم تكتمل بعد: بانتظار تفعيل نموذج التعرّف على التلاوة.' : 'تعذّر التحليل، أعد المحاولة بعد قليل.'; });
   }
   btn.onclick = function () { if (rec && rec.state === 'recording') stop(); else start(); };
   load();
