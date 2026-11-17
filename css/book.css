@@ -388,4 +388,4 @@ body.bk-mob .bk-mquiz{ display:flex; flex:none; }
 body.bk-mob .bk-mquiz .bk-quizlink{ font-size:0; width:40px; height:40px; padding:0; border-radius:50%; display:flex; align-items:center; justify-content:center; }
 body.bk-mob .bk-mquiz .bk-quizlink svg{ width:20px; height:20px; }
 .bk-quizlink svg{ display:none; } body.bk-mob .bk-mquiz .bk-quizlink svg{ display:block; }
-.bk-msok{ margin-top:6px; min-height:48px; border-radius:14px; border:0; background:var(--gold); color:var(--night-deep); font:inherit; font-size:1rem; font-weight:700; cursor:pointer; }
+.bk-msok{ display:block; width:100%; margin-top:10px; min-height:48px; border-radius:14px; border:0; background:var(--gold); color:var(--night-deep); font:inherit; font-size:1rem; font-weight:700; cursor:pointer; }
