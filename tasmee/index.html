@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>التسميع (تجريبي)</title>
+<meta name="description" content="اقرأ من حفظك، ويبيّن لك الموقع الكلمات الصحيحة والناقصة والمختلفة.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#101B33">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/feedback.css">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{ font-family:'Tajawal',sans-serif; line-height:1.7; background:#0A1425; }
+  .fb-title{ font-family:'Tajawal',sans-serif; font-weight:600; }
+  .ts-badge{ display:inline-block; font-size:.8rem; color:#101b33; background:#DCC078; border-radius:10px; padding:1px 10px; margin-inline-start:8px; vertical-align:middle; }
+  .ts-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  .ts-row label{ color:#DCC078; font-weight:700; min-width:64px; }
+  .ts-row select, .ts-row input{ font:inherit; font-size:16px; padding:9px 12px; border-radius:8px; border:1px solid rgba(200,155,60,0.45); background:#0F1B33; color:#EFE6D8; }
+  .ts-row select{ flex:1; min-width:160px; } .ts-row input{ width:84px; text-align:center; }
+  .ts-chk{ color:#C9C2AE; display:flex; gap:8px; align-items:center; margin-bottom:14px; }
+  .ts-text{ font-family:'Noto Naskh Arabic','Amiri',serif; font-size:1.45rem; line-height:2.3; color:#EFE6D8; text-align:justify; margin:10px 0 16px; min-height:2em; }
+  .ts-text.hide .w{ color:transparent; text-shadow:0 0 14px rgba(239,230,216,.55); }
+  .ts-text .num{ font-size:.7em; color:#DCC078; margin:0 4px; }
+  .ts-text .w{ border-radius:6px; padding:0 2px; }
+  .ts-text .w.ok{ color:#9fe3c0; } .ts-text .w.harakat{ background:rgba(230,170,60,.28); }
+  .ts-text .w.wrong{ background:rgba(200,70,60,.38); } .ts-text .w.missing{ background:rgba(200,70,60,.22); text-decoration:line-through; }
+  .ts-text .w.unsure{ border-bottom:2px dashed #E6AA3C; }
+  .ts-text.done .w{ color:#EFE6D8; text-shadow:none; }
+  .ts-text.done .w.ok{ color:#9fe3c0; }
+  .ts-rec{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:8px 0 6px; }
+  .ts-btn{ width:84px; height:84px; border-radius:50%; border:none; background:#C89B3C; color:#101b33; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .ts-btn.on{ background:#C8463C; color:#fff; animation:pulse 1.2s infinite; }
+  @keyframes pulse{ 50%{ box-shadow:0 0 0 12px rgba(200,70,60,.15); } }
+  .ts-st{ color:#C9C2AE; min-height:1.6em; text-align:center; }
+  .ts-legend{ display:flex; flex-wrap:wrap; gap:8px 14px; font-size:.85rem; color:#C9C2AE; margin-top:8px; }
+  .ts-legend span::before{ content:""; display:inline-block; width:12px; height:12px; border-radius:3px; margin-inline-end:6px; vertical-align:-1px; }
+  .lg-ok::before{ background:#9fe3c0; } .lg-h::before{ background:rgba(230,170,60,.6); } .lg-w::before{ background:rgba(200,70,60,.7); }
+  .lg-m::before{ background:rgba(200,70,60,.35); } .lg-u::before{ border-bottom:2px dashed #E6AA3C; }
+  .ts-sum{ color:#EFE6D8; text-align:center; font-weight:700; margin-top:10px; }
+  .ts-heard{ color:#8a8270; font-size:.85rem; margin-top:10px; font-family:'Noto Naskh Arabic',serif; }
+  .ts-note{ color:#8a8270; font-size:.8rem; margin-top:18px; line-height:1.8; }
+</style>
+</head>
+<body>
+<main class="fb-page">
+  <div class="fb-inner">
+    <a class="fb-back" href="/book/">→ العودة إلى المصحف</a>
+    <h1 class="fb-title">التسميع<span class="ts-badge">تجريبي</span></h1>
+    <p class="fb-sub">اختر الآيات، ثم اضغط زر التسجيل واقرأ من حفظك. يبيّن لك الموقع الكلمات التي قرأتها كما هي، والكلمات الناقصة، والكلمات التي قرأتها بغير ما كُتبت.</p>
+    <div class="fb-card">
+      <div class="ts-row"><label for="tsS">السورة</label><select id="tsS"><option value="1">1. الفاتحة</option><option value="2">2. البقرة</option><option value="3">3. آل عمران</option><option value="4">4. النساء</option><option value="5">5. المائدة</option><option value="6">6. الأنعام</option><option value="7">7. الأعراف</option><option value="8">8. الأنفال</option><option value="9">9. التوبة</option><option value="10">10. يونس</option><option value="11">11. هود</option><option value="12">12. يوسف</option><option value="13">13. الرعد</option><option value="14">14. إبراهيم</option><option value="15">15. الحجر</option><option value="16">16. النحل</option><option value="17">17. الإسراء</option><option value="18">18. الكهف</option><option value="19">19. مريم</option><option value="20">20. طه</option><option value="21">21. الأنبياء</option><option value="22">22. الحج</option><option value="23">23. المؤمنون</option><option value="24">24. النور</option><option value="25">25. الفرقان</option><option value="26">26. الشعراء</option><option value="27">27. النمل</option><option value="28">28. القصص</option><option value="29">29. العنكبوت</option><option value="30">30. الروم</option><option value="31">31. لقمان</option><option value="32">32. السجدة</option><option value="33">33. الأحزاب</option><option value="34">34. سبأ</option><option value="35">35. فاطر</option><option value="36">36. يس</option><option value="37">37. الصافات</option><option value="38">38. ص</option><option value="39">39. الزمر</option><option value="40">40. غافر</option><option value="41">41. فصلت</option><option value="42">42. الشورى</option><option value="43">43. الزخرف</option><option value="44">44. الدخان</option><option value="45">45. الجاثية</option><option value="46">46. الأحقاف</option><option value="47">47. محمد</option><option value="48">48. الفتح</option><option value="49">49. الحجرات</option><option value="50">50. ق</option><option value="51">51. الذاريات</option><option value="52">52. الطور</option><option value="53">53. النجم</option><option value="54">54. القمر</option><option value="55">55. الرحمن</option><option value="56">56. الواقعة</option><option value="57">57. الحديد</option><option value="58">58. المجادلة</option><option value="59">59. الحشر</option><option value="60">60. الممتحنة</option><option value="61">61. الصف</option><option value="62">62. الجمعة</option><option value="63">63. المنافقون</option><option value="64">64. التغابن</option><option value="65">65. الطلاق</option><option value="66">66. التحريم</option><option value="67">67. الملك</option><option value="68">68. القلم</option><option value="69">69. الحاقة</option><option value="70">70. المعارج</option><option value="71">71. نوح</option><option value="72">72. الجن</option><option value="73">73. المزمل</option><option value="74">74. المدثر</option><option value="75">75. القيامة</option><option value="76">76. الإنسان</option><option value="77">77. المرسلات</option><option value="78">78. النبأ</option><option value="79">79. النازعات</option><option value="80">80. عبس</option><option value="81">81. التكوير</option><option value="82">82. الانفطار</option><option value="83">83. المطففين</option><option value="84">84. الانشقاق</option><option value="85">85. البروج</option><option value="86">86. الطارق</option><option value="87">87. الأعلى</option><option value="88">88. الغاشية</option><option value="89">89. الفجر</option><option value="90">90. البلد</option><option value="91">91. الشمس</option><option value="92">92. الليل</option><option value="93">93. الضحى</option><option value="94">94. الشرح</option><option value="95">95. التين</option><option value="96">96. العلق</option><option value="97">97. القدر</option><option value="98">98. البينة</option><option value="99">99. الزلزلة</option><option value="100">100. العاديات</option><option value="101">101. القارعة</option><option value="102">102. التكاثر</option><option value="103">103. العصر</option><option value="104">104. الهمزة</option><option value="105">105. الفيل</option><option value="106">106. قريش</option><option value="107">107. الماعون</option><option value="108">108. الكوثر</option><option value="109">109. الكافرون</option><option value="110">110. النصر</option><option value="111">111. المسد</option><option value="112">112. الإخلاص</option><option value="113">113. الفلق</option><option value="114">114. الناس</option></select></div>
+      <div class="ts-row"><label for="tsA">من الآية</label><input id="tsA" type="number" inputmode="numeric" min="1" value="1">
+        <label for="tsB">إلى الآية</label><input id="tsB" type="number" inputmode="numeric" min="1" value="7"></div>
+      <label class="ts-chk"><input type="checkbox" id="tsHide" checked> إخفاء النص أثناء القراءة</label>
+      <div class="ts-text hide" id="tsText" translate="no"></div>
+      <div class="ts-rec">
+        <button type="button" class="ts-btn" id="tsBtn" aria-label="ابدأ التسجيل"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        <div class="ts-st" id="tsSt">اضغط الزر وابدأ القراءة، ثم اضغطه مرة أخرى عند الانتهاء.</div>
+      </div>
+      <div id="tsOut"></div>
+      <div class="ts-legend"><span class="lg-ok">صحيحة</span><span class="lg-h">اختلاف في الحركات</span><span class="lg-w">كلمة مختلفة</span><span class="lg-m">ناقصة</span><span class="lg-u">غير واضحة</span></div>
+    </div>
+    <p class="ts-note">هذه خدمة تجريبية لرواية حفص، وقد تخطئ، خاصة مع الضجيج وأصوات الأطفال. لا تُغني عن القراءة على شيخ متقن. لا يُحفظ التسجيل؛ يُرسل للتحليل ثم يُحذف.<br>التعرّف على التلاوة: نموذج FastConformer-Quran (للاستخدام غير الربحي). النص: Tanzil.</p>
+  </div>
+</main>
+<script>window.TS_VERSES = [7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6];</script>
+<script src="/js/tasmee.js"></script>
+<script src="/js/site.js" defer></script>
+</body>
+</html>
