@@ -104,6 +104,7 @@
     sheet.classList.add('on');
     var pb = body.querySelector('.bk-wsplay');
     if (pb) pb.onclick = function () { C.__playWord(loc, pb); };
+    if (pb && C.__prepWord) C.__prepWord(loc);
     var out = body.querySelector('.bk-wsc');
     Promise.all(L.keys.map(function (k) { return getAya(k, s, a); })).then(function (rs) {
       var html = '';
@@ -1068,37 +1069,61 @@
         if (st.s < 114) playSurah(st.s + 1, 1); else stopAudio();
       }
     }
-    // a word heard on its own (word sheet): the reciter's voice from the word's start to the next word's start
-    var wAudio = null, wRaf = 0;
+    // a word heard on its own (word sheet): the reciter's voice from the word's start to the next word's start.
+    // The ayah's file is fetched and decoded once (when the sheet opens), then the word plays at once from memory
+    // (Web Audio) — seeking an <audio> element on phones waits for the network each time.
+    var wCtx = null, wBuf = {}, wOrder = [], wSrc = null;
+    var wRec = function () {
+      var r = rec();
+      return r.timed && r.kind === 'ayah' && !r.meaningOnly ? r : RECS.filter(function (x) { return x.timed && x.kind === 'ayah' && !x.meaningOnly; })[0];
+    };
+    var wCtxGet = function () {
+      if (!wCtx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        wCtx = new AC();
+        try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}   // iPhone: sound even on silent, as <audio>
+      }
+      return wCtx;
+    };
+    var wDecode = function (url) {
+      if (!wBuf[url]) {
+        var ctx = wCtxGet();
+        wBuf[url] = fetch(url).then(function (r) { if (!r.ok) throw r.status; return r.arrayBuffer(); }).then(function (buf) {
+          return new Promise(function (ok, bad) { var q2 = ctx.decodeAudioData(buf, ok, bad); if (q2 && q2.then) q2.then(ok, bad); });
+        });
+        wBuf[url].catch(function () { delete wBuf[url]; });
+        wOrder.push(url); if (wOrder.length > 8) delete wBuf[wOrder.shift()];
+      }
+      return wBuf[url];
+    };
+    var wParts = function (loc) {
+      var p3 = loc.split(':'), s = +p3[0], a = +p3[1], r = wRec();
+      return { s: s, a: a, w: +p3[2], r: r, url: srcOf(r, s, a) };
+    };
+    C.__prepWord = function (loc) {                    // the sheet opened: get the ayah ready
+      if (!window.fetch || !wCtxGet()) return;
+      var P = wParts(loc); wDecode(P.url); wordTimes(P.r, P.s, P.a);
+    };
     C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn) {
-      var p3 = loc.split(':'), s = +p3[0], a = +p3[1], w = +p3[2], r = rec();
-      if (!(r.timed && r.kind === 'ayah' && !r.meaningOnly)) r = RECS.filter(function (x) { return x.timed && x.kind === 'ayah' && !x.meaningOnly; })[0];
+      var P = wParts(loc), ctx = wCtxGet();
       if (playing) stopAudio();
-      if (!wAudio) { wAudio = new Audio(); wAudio.preload = 'auto'; }
-      var url = srcOf(r, s, a);
-      if (wAudio.getAttribute('src') !== url) wAudio.src = url;
-      wAudio.muted = true;
-      var pr0 = wAudio.play(); if (pr0 && pr0.catch) pr0.catch(function () {});   // start inside the tap (phones), then seek
+      if (!ctx || !window.fetch) return;
+      if (ctx.state !== 'running') ctx.resume();          // inside the tap: phones allow sound only from a tap
+      if (wSrc) { try { wSrc.onended = null; wSrc.stop(); } catch (e) {} wSrc = null; }
+      document.querySelectorAll('.bk-wsplay.on').forEach(function (x) { x.classList.remove('on'); });
       if (btn) btn.classList.add('on');
-      var off = function () { wAudio.pause(); wAudio.muted = false; if (btn) btn.classList.remove('on'); };
-      wordTimes(r, s, a).then(function (ws) {
-        var i = -1; ws.forEach(function (x, k) { if (x[0] === w) i = k; });
+      var off = function () { if (btn) btn.classList.remove('on'); };
+      Promise.all([wDecode(P.url), wordTimes(P.r, P.s, P.a)]).then(function (res) {
+        var buf = res[0], ws = res[1], i = -1;
+        ws.forEach(function (x, k) { if (x[0] === P.w) i = k; });
         if (i < 0) return off();
-        var t0 = Math.max(0, ws[i][1] - 60) / 1000, t1 = ws[i + 1] ? ws[i + 1][1] / 1000 : 1e9;
-        var go = function () {
-          wAudio.pause();
-          try { wAudio.currentTime = t0; } catch (e) {}
-          wAudio.muted = false;
-          var pr = wAudio.play(); if (pr && pr.catch) pr.catch(off);
-          cancelAnimationFrame(wRaf);
-          var watch = function () {
-            if (wAudio.ended || wAudio.currentTime >= t1) return off();
-            wRaf = requestAnimationFrame(watch);
-          };
-          wRaf = requestAnimationFrame(watch);
-        };
-        if (wAudio.readyState >= 1) go(); else wAudio.addEventListener('loadedmetadata', go, { once: true });
-      }, off);
+        var t0 = Math.max(0, ws[i][1] - 60) / 1000, t1 = ws[i + 1] ? ws[i + 1][1] / 1000 : buf.duration;
+        var src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination);
+        src.onended = function () { if (wSrc === src) wSrc = null; off(); };
+        wSrc = src;
+        src.start(0, t0, Math.max(0.2, t1 - t0));
+      }).catch(off);
     } : null;
     function startAudio() {
       if (!RECS.length) return;
