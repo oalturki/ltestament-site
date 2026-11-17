@@ -162,13 +162,18 @@
     return trCache[id];
   }
   // The Complex's font for one Mushaf page; every page has its own glyphs, so each page needs its own font.
+  // Colour tajweed: the Complex's V4 fonts (same glyphs and lines as V2, the letters coloured by the tajweed rules).
+  var TAJ = load('lt_book_tajweed') === '1';
+  function famOf(p) { return 'qpc-p' + p + (TAJ ? 't' : ''); }
   function pageFont(p) {
-    if (!fontCache[p]) {
-      var f = new FontFace('qpc-p' + p, 'url(' + BASE + '/fonts/qpc-v2/p' + p + '.woff2)', { display: 'block' });
-      fontCache[p] = f.load().then(function (ff) { document.fonts.add(ff); });
-      fontCache[p].catch(function () { delete fontCache[p]; });
+    var key = (TAJ ? 't' : 'v') + p;
+    if (!fontCache[key]) {
+      var fam = famOf(p), dir = TAJ ? 'qpc-v4' : 'qpc-v2';
+      var get = function (d) { var f = new FontFace(fam, 'url(' + BASE + '/fonts/' + d + '/p' + p + '.woff2)', { display: 'block' }); return f.load().then(function (ff) { document.fonts.add(ff); }); };
+      fontCache[key] = get(dir).catch(function () { if (dir !== 'qpc-v2') return get('qpc-v2'); throw 0; });   // a tajweed page missing: the plain one
+      fontCache[key].catch(function () { delete fontCache[key]; });
     }
-    return fontCache[p];
+    return fontCache[key];
   }
   // Page-head artwork of the printed Mushaf: surah name and juz name (QUL header fonts; item N at U+E000 + N).
   var headFonts = null;
@@ -189,13 +194,14 @@
     }
     return headerFont;
   }
-  function mushafPage(p) {
-    if (!mCache[p]) {
-      mCache[p] = Promise.all([getJSON(BASE + '/data/mushaf/p' + p + '.json'), pageFont(p), pageFont(1), surahHeaderFont(), pageHeadFonts()])
+  function mushafPage(p0) {
+    var p = p0, k = (TAJ ? 't' : '') + p0;
+    if (!mCache[k]) {
+      mCache[k] = Promise.all([getJSON(BASE + '/data/mushaf/p' + p + '.json'), pageFont(p), pageFont(1), surahHeaderFont(), pageHeadFonts()])
         .then(function (r) { return r[0]; });
-      mCache[p].catch(function () { delete mCache[p]; });
+      mCache[k].catch(function () { delete mCache[k]; });
     }
-    return mCache[p];
+    return mCache[k];
   }
   function cleanTr(t) { return String(t || '').replace(/^\s*\(?\d+\)?[.\-–]\s*/, ''); }
   function cleanAr(t) { return String(t || '').replace(/ /g, ' ').trim(); }
@@ -223,6 +229,15 @@
     fr: { linkHow: 'Façon de relier', lPrev: 'Par deux versets', lAll: 'Tout le passage jusque-là', l2: 'Par trois versets', l3: 'Par quatre versets', title: 'Réglages de la récitation', hxNote: 'Le nombre choisi pour le premier verset vaut pour les suivants ; vous pouvez modifier n’importe quel verset.', hifz: 'Méthode de mémorisation', fromA: 'Du verset', toA: 'Au verset', hx: 'Options de répétition :', hy: 'Puis la relier à ce qui précède', hz: 'Puis tout le passage à la fin', none: 'Aucun', hnote: 'Chaque verset est répété, puis lu avec ce qui le précède, jusqu’à la fin du passage ; puis tout le passage est répété.', surah: 'Sourate', whole: 'Une sourate entière', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
     es: { linkHow: 'Cómo enlazar', lPrev: 'De dos en dos', lAll: 'Todo el pasaje hasta ahí', l2: 'De tres en tres', l3: 'De cuatro en cuatro', title: 'Ajustes de la recitación', hxNote: 'El número del primer versículo se aplica a los siguientes; puedes cambiar cualquier versículo por separado.', hifz: 'Método de memorización', fromA: 'Desde el versículo', toA: 'Hasta el versículo', hx: 'Opciones de repetición:', hy: 'Luego enlazarla con lo anterior', hz: 'Luego todo el pasaje al final', none: 'Ninguno', hnote: 'Cada versículo se repite y luego se lee con lo anterior, hasta el final del pasaje; después se repite todo el pasaje.', surah: 'Sura', whole: 'Una sura completa', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
     ru: { linkHow: 'Как связывать', lPrev: 'По два аята', lAll: 'Весь отрывок до этого места', l2: 'По три аята', l3: 'По четыре аята', title: 'Настройки чтения', hxNote: 'Число повторов первого аята действует и для следующих; любой аят можно изменить отдельно.', hifz: 'Метод заучивания', fromA: 'С аята', toA: 'По аят', hx: 'Настройки повтора:', hy: 'Затем связать с предыдущим', hz: 'Затем весь отрывок в конце', none: 'Нет', hnote: 'Каждый аят повторяется, затем читается вместе с предыдущими до конца отрывка; затем повторяется весь отрывок.', surah: 'Сура', whole: 'Сура целиком', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
+  };
+  // colour-tajweed choice
+  var TJL = {
+    ar: { label: 'ألوان التجويد', off: 'بلا ألوان التجويد', on: 'ألوان التجويد' },
+    ur: { label: 'تجوید کے رنگ', off: 'تجوید کے رنگوں کے بغیر', on: 'تجوید کے رنگ' },
+    en: { label: 'Tajweed colours', off: 'No tajweed colours', on: 'Tajweed colours' },
+    fr: { label: 'Couleurs du tajwid', off: 'Sans couleurs du tajwid', on: 'Couleurs du tajwid' },
+    es: { label: 'Colores del tajwid', off: 'Sin colores del tajwid', on: 'Colores del tajwid' },
+    ru: { label: 'Цвета таджвида', off: 'Без цветов таджвида', on: 'Цвета таджвида' }
   };
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
@@ -310,7 +325,7 @@
         '</div>' +
         // the frame is ornamented on three sides; toward the spine it runs into the fold of the book
         '<div class="bk-mframe ' + (side === 'r' ? 'sp-l' : 'sp-r') + '">' +
-          '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'qpc-p' + p + '\'">' + html + '</div>' +
+          '<div class="bk-mushaf' + (p <= 2 ? ' bk-m-open' : '') + '" data-p="' + p + '" style="font-family:\'' + famOf(p) + '\'">' + html + '</div>' +
         '</div>' +
         notes;
     }
@@ -614,6 +629,7 @@
       var moves = [];
       var pageNo = root.querySelector('.bk-pageno');
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
+      if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
       if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
       var qz = document.querySelector('.bk-quizlink');
@@ -1183,6 +1199,22 @@
       sel.value = v;
       sel.onchange = function () { frameChoice = sel.value; store('lt_book_frame', sel.value); applyFrame(); fitAll(); };
     }
+    // colour tajweed on / off (a select beside the page frame; on phones it moves to the «More» sheet with it)
+    function setupTajweed() {
+      var fs = q('frameSel');
+      if (!mushaf || !fs) return;
+      var L = TJL[C.lang] || TJL.en, s = document.createElement('select');
+      s.className = 'bk-ctl bk-tajsel'; s.setAttribute('data-bk', 'tajSel'); s.setAttribute('aria-label', L.label); s.title = L.label;
+      s.innerHTML = '<option value="0">' + esc(L.off) + '</option><option value="1">' + esc(L.on) + '</option>';
+      s.value = TAJ ? '1' : '0';
+      fs.parentNode.insertBefore(s, fs.nextSibling);
+      document.body.classList.toggle('bk-tajweed', TAJ);
+      s.onchange = function () {
+        TAJ = s.value === '1'; store('lt_book_tajweed', TAJ ? '1' : '');
+        document.body.classList.toggle('bk-tajweed', TAJ);
+        Promise.all([pageFont(1)]).then(function () { show(cur, 0); });
+      };
+    }
 
     function startPage() {
       if (embed) return 1;
@@ -1200,7 +1232,7 @@
       buildIndex();
       buildControls();
       setupAudio();
-      setupFrame();
+      setupFrame(); setupTajweed();
       // Arabic full book: «اختبر نفسك» opens the word-meaning quiz on the words of the page in view (/quiz/?p=N)
       var bar = !embed && (C.lang || 'ar') === 'ar' && document.querySelector('.bk-bar');
       if (bar) {

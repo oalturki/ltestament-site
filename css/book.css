@@ -266,7 +266,7 @@ body.bk-mob .bk-book{ flex:1 1 auto; width:100%; min-width:0; }
 body.bk-mob .bk-marrow{ display:flex; flex:none; }
 body.bk-mob .bk-marrow .bk-nav{ width:40px; height:40px; flex:none; }
 body.bk-mob .bk-bottom{ flex:0 0 auto; padding:4px 18px 2px; min-height:0; gap:10px; flex-wrap:nowrap; }
-body.bk-mob .bk-bottom .bk-audio, body.bk-mob .bk-bottom .bk-framesel, body.bk-mob .bk-bottom .bk-hint{ display:none; }
+body.bk-mob .bk-bottom .bk-audio, body.bk-mob .bk-bottom .bk-framesel, body.bk-mob .bk-bottom .bk-tajsel, body.bk-mob .bk-bottom .bk-hint{ display:none; }
 body.bk-mob .bk-bottom input[type=range]{ flex:1; min-width:0; }
 body.bk-mob .bk-bottom small[data-bk=rangeLbl]{ font-size:0.72rem; }
 /* the bottom bar */
@@ -389,3 +389,6 @@ body.bk-mob .bk-mquiz .bk-quizlink{ font-size:0; width:40px; height:40px; paddin
 body.bk-mob .bk-mquiz .bk-quizlink svg{ width:20px; height:20px; }
 .bk-quizlink svg{ display:none; } body.bk-mob .bk-mquiz .bk-quizlink svg{ display:block; }
 .bk-msok{ display:block; width:100%; margin-top:10px; min-height:48px; border-radius:14px; border:0; background:var(--gold); color:var(--night-deep); font:inherit; font-size:1rem; font-weight:700; cursor:pointer; }
+
+/* colour tajweed: the basmala line uses page 1's tajweed font too */
+body.bk-tajweed .bk-mushaf .ml-b{ font-family:'qpc-p1t'; }
