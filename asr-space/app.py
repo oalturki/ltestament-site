@@ -375,6 +375,12 @@ def whisper():
                     proc = WhisperProcessor.from_pretrained("openai/whisper-base")
                 m = WhisperForConditionalGeneration.from_pretrained(WHISPER_REPO)
                 m.eval()
+                try:                                  # older fine-tunes lack the language table: take the base model's
+                    if not getattr(m.generation_config, "lang_to_id", None):
+                        from transformers import GenerationConfig
+                        m.generation_config = GenerationConfig.from_pretrained("openai/whisper-base")
+                except Exception:
+                    pass
                 _wh["model"], _wh["proc"] = m, proc
             except Exception as e:
                 _wh["err"] = f"{type(e).__name__}: {e}"[:300]
@@ -389,7 +395,11 @@ def transcribe(wav):
     m, proc = whisper()
     feats = proc.feature_extractor(wav, sampling_rate=SR, return_tensors="pt").input_features
     with torch.inference_mode():
-        ids = m.generate(feats, language="ar", task="transcribe", num_beams=1, max_new_tokens=200)
+        try:
+            ids = m.generate(feats, language="ar", task="transcribe", num_beams=1, max_new_tokens=200)
+        except Exception:
+            ids = m.generate(feats, forced_decoder_ids=proc.get_decoder_prompt_ids(language="ar", task="transcribe"),
+                             num_beams=1, max_new_tokens=200)
     return proc.batch_decode(ids, skip_special_tokens=True)[0].strip()
 
 
@@ -430,7 +440,12 @@ async def live(audio: UploadFile = File(...), surah: int = Form(...), start: int
         for k, w in enumerate(ayahs[a - 1].split()):
             exp.append(w); where.append((a, k))
     if not 0 <= pos <= len(exp): raise HTTPException(400, "pos")
-    heard = transcribe(wav) if dur >= 0.3 else ""
+    try:
+        heard = transcribe(wav) if dur >= 0.3 else ""
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"transcribe: {type(e).__name__}: {e}"[:400])
     hyp = heard.split()
     # set aside the isti'adha and the basmala said before the passage (not part of it, except Al-Fatiha 1)
     sk = [skeleton(w) for w in hyp]
