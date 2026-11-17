@@ -342,3 +342,10 @@ body.bk-mob.bk-chrome-off .bk-bar{ transform:translateY(-140%); }
 body.bk-mob .bk-mnav{ display:grid; grid-template-columns:repeat(5, 1fr); justify-items:center; }
 /* phones: the page number sits low, just above the first line, like the juz and surah names */
 body.bk-mob .bk-mhead .hp{ align-self:flex-end; line-height:1; padding-bottom:2px; }
+/* phones: no text selection or callout on the page, so a long press on a word opens its meaning */
+body.bk-mob .bk-mushaf{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+/* first-visit hint */
+.bk-mhint{ position:fixed; left:16px; right:16px; top:50%; transform:translateY(-50%); z-index:70; background:var(--night); color:var(--parch);
+  border:1px solid rgba(200,155,60,0.45); border-radius:18px; padding:18px 18px 14px; box-shadow:0 16px 40px rgba(0,0,0,0.45); text-align:center; }
+.bk-mhint p{ margin:0 0 10px; font-size:1rem; line-height:1.7; }
+.bk-mhint button{ margin-top:4px; min-width:120px; min-height:44px; border-radius:12px; border:0; background:var(--gold); color:var(--night-deep); font:inherit; font-weight:700; cursor:pointer; }

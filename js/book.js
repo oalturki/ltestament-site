@@ -14,6 +14,7 @@
   var QE = 'https://quranenc.com/api/v1/translation/sura/';
   var TOTAL = 604;
   var TURN_MS = 760;                      // page-turn duration (both halves)
+  var ONE_MS = 260;                       // one page (phones): a quick turn, for reading at a pace
   var AR_DIGITS = '٠١٢٣٤٥٦٧٨٩';
   var MAP_P = null;                       // Mushaf page map, one request per page view
   var trCache = {};                       // key|surah -> verses, shared by every book on the page
@@ -201,12 +202,12 @@
 
   // phone layout labels (mobileShell)
   var MOB = {
-    ar: { tools: 'أدوات المصحف', juzs: 'الأجزاء', juz: 'الجزء', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
-    ur: { tools: 'مصحف کے اوزار', juzs: 'پارے', juz: 'پارہ', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
-    en: { tools: 'Book tools', juzs: 'Juz', juz: 'Juz', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
-    fr: { tools: 'Outils', juzs: 'Juz', juz: 'Juz', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
-    es: { tools: 'Herramientas', juzs: 'Yuz', juz: 'Yuz', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
-    ru: { tools: 'Инструменты', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
+    ar: { tools: 'أدوات المصحف', hint1: 'المس الصفحة لإظهار الأزرار أو إخفائها.', hint2: 'اضغط مطوّلًا على أي كلمة لمعرفة معناها وتفسير آيتها.', ok: 'فهمت', juzs: 'الأجزاء', juz: 'الجزء', index: 'الفهرس', tr: 'الترجمة', search: 'بحث', more: 'المزيد', settings: 'إعدادات المصحف', close: 'إغلاق', frame: 'إطار الصفحة', reciter: 'القارئ', page: 'الذهاب إلى صفحة' },
+    ur: { tools: 'مصحف کے اوزار', hint1: 'بٹن دکھانے یا چھپانے کے لیے صفحے کو چھوئیں۔', hint2: 'کسی لفظ کا مطلب اور آیت کی تفسیر دیکھنے کے لیے اسے دبا کر رکھیں۔', ok: 'ٹھیک ہے', juzs: 'پارے', juz: 'پارہ', index: 'فہرست', tr: 'ترجمہ', search: 'تلاش', more: 'مزید', settings: 'ترتیبات', close: 'بند کریں', frame: 'صفحے کا فریم', reciter: 'قاری', page: 'صفحے پر جائیں' },
+    en: { tools: 'Book tools', hint1: 'Tap the page to show or hide the buttons.', hint2: 'Press and hold any word for its meaning and the verse explained.', ok: 'Got it', juzs: 'Juz', juz: 'Juz', index: 'Index', tr: 'Translation', search: 'Search', more: 'More', settings: 'Settings', close: 'Close', frame: 'Page frame', reciter: 'Reciter', page: 'Go to page' },
+    fr: { tools: 'Outils', hint1: 'Touchez la page pour afficher ou masquer les boutons.', hint2: 'Appuyez longuement sur un mot pour son sens et l’explication du verset.', ok: 'Compris', juzs: 'Juz', juz: 'Juz', index: 'Sommaire', tr: 'Traduction', search: 'Rechercher', more: 'Plus', settings: 'Réglages', close: 'Fermer', frame: 'Cadre de la page', reciter: 'Récitateur', page: 'Aller à la page' },
+    es: { tools: 'Herramientas', hint1: 'Toca la página para mostrar u ocultar los botones.', hint2: 'Mantén pulsada una palabra para ver su significado y la explicación del versículo.', ok: 'Entendido', juzs: 'Yuz', juz: 'Yuz', index: 'Índice', tr: 'Traducción', search: 'Buscar', more: 'Más', settings: 'Ajustes', close: 'Cerrar', frame: 'Marco de la página', reciter: 'Recitador', page: 'Ir a la página' },
+    ru: { tools: 'Инструменты', hint1: 'Коснитесь страницы, чтобы показать или скрыть кнопки.', hint2: 'Нажмите и удерживайте слово, чтобы увидеть его смысл и толкование аята.', ok: 'Понятно', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Ещё', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
   function mobTrial() {
@@ -478,7 +479,7 @@
       return pageData(p).then(function (d) {
         clearTimeout(slow); book.style.opacity = '';
         var animate = dir && !window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-        if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); return true; }
+        if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); next(); return true; }
         // Page turn, drawn in 2D so it looks the same in every browser and never leaves the book:
         // the turning page narrows toward the spine, then its other side opens out on the facing page.
         // Forward (RTL): the LEFT page folds onto the right; back: the mirror. On a phone (one page) forward folds
@@ -497,14 +498,14 @@
           n.style.transform = 'scaleX(' + sx + ')';
           return wait(ms);
         };
-        var done = function () { layers.forEach(function (n) { n.remove(); }); busy = false; prefetch(); return true; };
+        var done = function () { layers.forEach(function (n) { n.remove(); }); busy = false; prefetch(); next(); return true; };
         if (one && !fwd) {
           var oldV = snap(vis);
           cur = p; renderAll(p, d); fitAll(); updateControls();
           var newV = snap(vis);
           lay(oldV, 'bk-cover');
           var opening = lay(newV, 'bk-flip', 'right', 0.001);
-          return anim(opening, 1, TURN_MS * 0.5, 'cubic-bezier(0.2,0.6,0.35,1)').then(done);
+          return anim(opening, 1, ONE_MS, 'cubic-bezier(0.2,0.6,0.35,1)').then(done);
         }
         var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
         var oldA = snap(A), oldB = B ? snap(B) : null;
@@ -512,7 +513,7 @@
         var newB = B ? snap(B) : null;
         if (oldB) lay(oldB, 'bk-cover');
         var folding = lay(oldA, 'bk-flip', fwd ? 'right' : 'left', 1);
-        return anim(folding, 0.001, one ? TURN_MS * 0.5 : half, 'cubic-bezier(0.55,0,0.8,0.4)').then(function () {
+        return anim(folding, 0.001, one ? ONE_MS : half, 'cubic-bezier(0.55,0,0.8,0.4)').then(function () {
           if (!newB) return done();
           folding.style.visibility = 'hidden';
           var opening = lay(newB, 'bk-flip', fwd ? 'left' : 'right', 0.001);
@@ -523,8 +524,13 @@
         showMsg(U.error, true);
       });
     }
-    function go(delta) { show(cur + delta * step(), delta); }
-    function prefetch() { var n = cur + step(); if (n <= TOTAL) pageData(norm(n)).catch(function () {}); }
+    // a turn asked for while a page is still turning is kept and done right after, so fast readers can flip quickly
+    var queued = 0;
+    function go(delta) { if (busy) { queued = delta; return; } show(cur + delta * step(), delta); }
+    function next() { if (queued) { var q = queued; queued = 0; go(q); } }
+    function prefetch() {   // the next two pages and the one before, so turning either way does not wait
+      [cur + step(), cur + 2 * step(), cur - step()].forEach(function (n) { if (n >= 1 && n <= TOTAL) pageData(norm(n)).catch(function () {}); });
+    }
 
     /* ---------- phones (≤600px), full book only: the page fills the screen ----------
        Top: back · surah · page number. Bottom: one bar — index, translation, listen, search, more.
@@ -627,14 +633,42 @@
         clearTimeout(hideT);
         document.body.classList.toggle('bk-chrome-off', !show);
       }
+      // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
+      var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
+      book.addEventListener('touchstart', function (e) {
+        lpDone = false; clearTimeout(lpT);
+        var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
+        if (!mq.matches || !w || e.touches.length > 1) return;
+        lpX = e.touches[0].clientX; lpY = e.touches[0].clientY;
+        lpT = setTimeout(function () {
+          lpDone = true;
+          root.querySelectorAll('.bk-wsel').forEach(function (x) { x.classList.remove('bk-wsel'); });
+          w.classList.add('bk-wsel');
+          wordSheet(C, w.getAttribute('data-l'));
+        }, 450);
+      }, { passive: true });
+      book.addEventListener('touchmove', function (e) {
+        if (Math.abs(e.touches[0].clientX - lpX) > 10 || Math.abs(e.touches[0].clientY - lpY) > 10) clearTimeout(lpT);
+      }, { passive: true });
+      book.addEventListener('touchend', function () { clearTimeout(lpT); }, { passive: true });
+      book.addEventListener('contextmenu', function (e) { if (mq.matches) e.preventDefault(); });
       root.addEventListener('click', function (e) {
         if (!mq.matches || ov.classList.contains('on')) return;
-        if (e.target.closest('[data-l], .bk-bar, .bk-bottom, .bk-mnav, .bk-msov, .bk-wsov, a, button, select, input, label')) return;
+        if (lpDone) { lpDone = false; return; }
+        if (e.target.closest('.bk-bar, .bk-bottom, .bk-mnav, .bk-msov, .bk-wsov, a, button, select, input, label')) return;
         if (!e.target.closest('.bk-stage')) return;
         chrome(document.body.classList.contains('bk-chrome-off'));
       });
       book.addEventListener('touchend', function () { if (mq.matches && !ov.classList.contains('on')) hideT = setTimeout(function () { chrome(false); }, 300); }, { passive: true });
       hideT = setTimeout(function () { chrome(false); }, 3500);
+      // the first time: say how it works, once
+      if (mq.matches && load('lt_mob_hint') !== '1') {
+        var hint = document.createElement('div'); hint.className = 'bk-mhint'; hint.setAttribute('role', 'status');
+        hint.innerHTML = '<p>' + esc(L.hint1) + '</p><p>' + esc(L.hint2) + '</p><button type="button">' + esc(L.ok) + '</button>';
+        document.body.appendChild(hint);
+        clearTimeout(hideT);
+        hint.querySelector('button').onclick = function () { store('lt_mob_hint', '1'); hint.remove(); chrome(false); };
+      }
       if (mq.addEventListener) mq.addEventListener('change', apply); else mq.addListener(apply);
       apply();
     }
@@ -1014,6 +1048,7 @@
       if (!embed && mobTrial()) mobileShell();
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
+        if (document.body.classList.contains('bk-mob')) return;   // phones: a long press (mobileShell); a tap shows the bars
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
         if (!w || e.target.closest('.bk-flip,.bk-cover')) return;
         root.querySelectorAll('.bk-wsel').forEach(function (x) { x.classList.remove('bk-wsel'); });
