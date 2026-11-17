@@ -477,7 +477,10 @@
       q('next').disabled = last >= TOTAL;
       q('prev').disabled = cur <= 1;
       if (MAP && !repRun) try { repFollowPage(); } catch (e) {}   // the surah choice follows the page while nothing plays
-      if (q('surahSel')) q('surahSel').value = String(MAP.pages[cur - 1][0]);
+      // the index shows the surah being recited, or the one chosen from it, else the surah the page opens with
+      var vis0 = visible(), ss = playing && recState && vis0.indexOf(pageOf(recState.s, recState.a)) >= 0 ? recState.s
+        : goSurah && vis0.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : MAP.pages[cur - 1][0];
+      if (q('surahSel')) q('surahSel').value = String(ss);
       var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.textContent = U.page + ' ' + uiNum(cur);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
       else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
@@ -941,6 +944,7 @@
     function playAyah(s, a, skipBasmala) {
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
+      if (q('surahSel')) q('surahSel').value = String(s);
       var go1 = function () {
         if (!playing) return;
         if (a === 1 && s !== 1 && s !== 9 && !skipBasmala) {
@@ -965,6 +969,7 @@
     function playSurah(s, a) {
       var r = rec(), url = srcOf(r, s);
       recState = { kind: 'surah', s: s, a: a, times: null };
+      if (q('surahSel')) q('surahSel').value = String(s);
       ensureVisible(s, a);
       playSrc(url);
       if (!r.timed) { setHl(null); return; }
