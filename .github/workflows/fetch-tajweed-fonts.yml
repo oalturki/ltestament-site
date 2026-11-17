@@ -19,7 +19,8 @@ jobs:
           for p in $(seq 1 604); do
             f=fonts/qpc-v4/p$p.woff2
             [ -s "$f" ] && continue
-            curl -sSfL --retry 4 -o "$f" "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v4-tajweed/woff2/p$p.woff2"
+            curl -sSfL --retry 4 -o "$f" "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v4-tajweed/woff2/p$p.woff2" \
+              || { rm -f "$f"; echo "missing woff2: p$p"; }
           done
           ls fonts/qpc-v4 | wc -l; du -sh fonts/qpc-v4
       - name: Commit
