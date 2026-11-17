@@ -217,12 +217,12 @@
   }
   // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
   var REPL = {
-    ar: { title: 'إعدادات التلاوة', surah: 'السورة', whole: 'سورة كاملة', range: 'ما يُتلى', cont: 'متابعة القراءة', page: 'الصفحة الحالية', custom: 'من آية إلى آية', from: 'من', to: 'إلى', ayah: 'الآية', repAyah: 'تكرار كل آية', repRange: 'تكرار المقطع', once: 'مرة واحدة', inf: 'بلا توقف', x: 'مرات', set: 'إعدادات التلاوة' },
-    ur: { title: 'تلاوت کی ترتیبات', surah: 'سورت', whole: 'پوری سورت', range: 'کیا پڑھا جائے', cont: 'پڑھتے جائیں', page: 'موجودہ صفحہ', custom: 'آیت سے آیت تک', from: 'سے', to: 'تک', ayah: 'آیت', repAyah: 'ہر آیت کی تکرار', repRange: 'حصے کی تکرار', once: 'ایک بار', inf: 'مسلسل', x: 'بار', set: 'تلاوت کی ترتیبات' },
-    en: { title: 'Recitation settings', surah: 'Surah', whole: 'A whole surah', range: 'What to recite', cont: 'Keep reading on', page: 'This page', custom: 'From one verse to another', from: 'From', to: 'To', ayah: 'Verse', repAyah: 'Repeat each verse', repRange: 'Repeat the passage', once: 'Once', inf: 'Without stopping', x: 'times', set: 'Recitation settings' },
-    fr: { title: 'Réglages de la récitation', surah: 'Sourate', whole: 'Une sourate entière', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
-    es: { title: 'Ajustes de la recitación', surah: 'Sura', whole: 'Una sura completa', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
-    ru: { title: 'Настройки чтения', surah: 'Сура', whole: 'Сура целиком', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
+    ar: { title: 'إعدادات التلاوة', hifz: 'أسلوب التحفيظ', fromA: 'من الآية', toA: 'إلى الآية', hx: 'تكرار كل آية جديدة', hy: 'ثم ربطها بالآية التي قبلها', hz: 'ثم المقطع كاملًا في النهاية', none: 'بلا', hnote: 'تُكرَّر كل آية، ثم تُقرأ مع التي قبلها، حتى آخر المقطع، ثم يُكرَّر المقطع كاملًا.', surah: 'السورة', whole: 'سورة كاملة', range: 'ما يُتلى', cont: 'متابعة القراءة', page: 'الصفحة الحالية', custom: 'من آية إلى آية', from: 'من', to: 'إلى', ayah: 'الآية', repAyah: 'تكرار كل آية', repRange: 'تكرار المقطع', once: 'مرة واحدة', inf: 'بلا توقف', x: 'مرات', set: 'إعدادات التلاوة' },
+    ur: { title: 'تلاوت کی ترتیبات', hifz: 'حفظ کا طریقہ', fromA: 'آیت سے', toA: 'آیت تک', hx: 'ہر نئی آیت کی تکرار', hy: 'پھر پچھلی آیت کے ساتھ', hz: 'پھر آخر میں پورا حصہ', none: 'نہیں', hnote: 'ہر آیت دہرائی جاتی ہے، پھر پچھلی آیت کے ساتھ پڑھی جاتی ہے، حصے کے آخر تک، پھر پورا حصہ دہرایا جاتا ہے۔', surah: 'سورت', whole: 'پوری سورت', range: 'کیا پڑھا جائے', cont: 'پڑھتے جائیں', page: 'موجودہ صفحہ', custom: 'آیت سے آیت تک', from: 'سے', to: 'تک', ayah: 'آیت', repAyah: 'ہر آیت کی تکرار', repRange: 'حصے کی تکرار', once: 'ایک بار', inf: 'مسلسل', x: 'بار', set: 'تلاوت کی ترتیبات' },
+    en: { title: 'Recitation settings', hifz: 'Memorization method', fromA: 'From verse', toA: 'To verse', hx: 'Repeat each new verse', hy: 'Then with the verse before it', hz: 'Then the whole passage at the end', none: 'None', hnote: 'Each verse is repeated, then read with the one before it, to the end of the passage; then the whole passage is repeated.', surah: 'Surah', whole: 'A whole surah', range: 'What to recite', cont: 'Keep reading on', page: 'This page', custom: 'From one verse to another', from: 'From', to: 'To', ayah: 'Verse', repAyah: 'Repeat each verse', repRange: 'Repeat the passage', once: 'Once', inf: 'Without stopping', x: 'times', set: 'Recitation settings' },
+    fr: { title: 'Réglages de la récitation', hifz: 'Méthode de mémorisation', fromA: 'Du verset', toA: 'Au verset', hx: 'Répéter chaque nouveau verset', hy: 'Puis avec le verset précédent', hz: 'Puis tout le passage à la fin', none: 'Aucun', hnote: 'Chaque verset est répété, puis lu avec le précédent, jusqu’à la fin du passage ; puis tout le passage est répété.', surah: 'Sourate', whole: 'Une sourate entière', range: 'Ce qui est récité', cont: 'Continuer la lecture', page: 'Cette page', custom: 'D’un verset à un autre', from: 'De', to: 'À', ayah: 'Verset', repAyah: 'Répéter chaque verset', repRange: 'Répéter le passage', once: 'Une fois', inf: 'Sans arrêt', x: 'fois', set: 'Réglages de la récitation' },
+    es: { title: 'Ajustes de la recitación', hifz: 'Método de memorización', fromA: 'Desde el versículo', toA: 'Hasta el versículo', hx: 'Repetir cada versículo nuevo', hy: 'Luego junto al anterior', hz: 'Luego todo el pasaje al final', none: 'Ninguno', hnote: 'Cada versículo se repite y luego se lee con el anterior, hasta el final del pasaje; después se repite todo el pasaje.', surah: 'Sura', whole: 'Una sura completa', range: 'Qué recitar', cont: 'Seguir leyendo', page: 'Esta página', custom: 'De un versículo a otro', from: 'Desde', to: 'Hasta', ayah: 'Versículo', repAyah: 'Repetir cada versículo', repRange: 'Repetir el pasaje', once: 'Una vez', inf: 'Sin parar', x: 'veces', set: 'Ajustes de la recitación' },
+    ru: { title: 'Настройки чтения', hifz: 'Метод заучивания', fromA: 'С аята', toA: 'По аят', hx: 'Повтор каждого нового аята', hy: 'Затем вместе с предыдущим', hz: 'Затем весь отрывок в конце', none: 'Нет', hnote: 'Каждый аят повторяется, затем читается вместе с предыдущим до конца отрывка; затем повторяется весь отрывок.', surah: 'Сура', whole: 'Сура целиком', range: 'Что читать', cont: 'Читать дальше', page: 'Эта страница', custom: 'От аята до аята', from: 'С', to: 'По', ayah: 'Аят', repAyah: 'Повтор каждого аята', repRange: 'Повтор отрывка', once: 'Один раз', inf: 'Без остановки', x: 'раз', set: 'Настройки чтения' }
   };
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
@@ -955,6 +955,12 @@
         if (st.phase === 'basmala') return playAyah(st.s, st.a, true);
         if (st.phase === 'ayah' && rec().then) return playMeaning(st.s, st.a);
         var R0 = repRun || repStart();
+        if (R0.list) {                                   // memorization: follow the list
+          R0.i++;
+          if (R0.i >= R0.list.length) { if (R0.loopFrom >= 0 && R0.loopFrom < R0.list.length) R0.i = R0.loopFrom; else { repRun = null; return stopAudio(); } }
+          var e2 = R0.list[R0.i];
+          return playAyah(e2[0], e2[1], !e2[2]);
+        }
         if (rep.ayah === 0 || R0.ay < rep.ayah) { R0.ay++; return playAyah(st.s, st.a, true); }   // this ayah again
         R0.ay = 1;
         if (R0.to && rk(st.s, st.a) >= rk(R0.to[0], R0.to[1])) {                             // end of the passage
@@ -983,6 +989,7 @@
         audio.play(); startTick(); return;
       }
       var R1 = repStart();
+      if (R1.list) { var e1 = R1.list[0]; if (e1) playAyah(e1[0], e1[1], !e1[2]); lastRec = r.id; return; }
       if (R1.from) first = [R1.from[0], R1.from[1]];
       if (r.kind === 'ayah') playAyah(first[0], first[1]);
       else playSurah(first[0], first[1]);
@@ -1018,6 +1025,7 @@
       try { var sv = JSON.parse(load('lt_rec_rep') || 'null'); if (sv && sv.mode) rep = sv; } catch (e) {}
       var counts = [1, 2, 3, 5, 10, 0];
       var cOpts = counts.map(function (n) { return '<option value="' + n + '">' + esc(n === 1 ? R.once : n === 0 ? R.inf : uiNum(n) + ' ' + R.x) + '</option>'; }).join('');
+      var hOpts = function (ns) { return ns.map(function (n) { return '<option value="' + n + '">' + esc(n === 0 ? R.none : n === -1 ? R.inf : n === 1 ? R.once : uiNum(n) + ' ' + R.x) + '</option>'; }).join(''); };
       var names = (C.uiNames || C.arabicNames || []);
       var sOpts = (q('surahSel') ? q('surahSel').innerHTML : names.map(function (n, i) { return '<option value="' + (i + 1) + '">' + esc(n) + '</option>'; }).join(''));
       var pt = function (k) { return '<span class="bk-rpt"><select class="bk-ctl" data-r="' + k + 's" aria-label="' + esc(R[k]) + '">' + sOpts + '</select>' +
@@ -1025,8 +1033,14 @@
       var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
       panel.innerHTML = '<h3>' + esc(R.title) + '</h3>' +
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
-        '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
+        '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="hifz">' + esc(R.hifz) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
         '<label class="bk-rrow bk-rsurah"><span>' + esc(R.surah) + '</span><select class="bk-ctl" data-r="surah">' + sOpts + '</select></label>' +
+        '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.hx) + '</span><select class="bk-ctl" data-r="hx">' + hOpts([1, 2, 3, 5, 7, 10]) + '</select></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.hy) + '</span><select class="bk-ctl" data-r="hy">' + hOpts([0, 1, 2, 3, 5, 7, 10]) + '</select></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.hz) + '</span><select class="bk-ctl" data-r="hz">' + hOpts([0, 1, 2, 3, 5, 7, 10, -1]) + '</select></label>' +
+        '<p class="bk-rnote">' + esc(R.hnote) + '</p></div>' +
         '<div class="bk-rcustom"><div class="bk-rrow"><span>' + esc(R.from) + '</span>' + pt('from') + '</div><div class="bk-rrow"><span>' + esc(R.to) + '</span>' + pt('to') + '</div></div>' +
         '<label class="bk-rrow"><span>' + esc(R.repAyah) + '</span><select class="bk-ctl" data-r="ayah">' + cOpts + '</select></label>' +
         '<label class="bk-rrow bk-rrange"><span>' + esc(R.repRange) + '</span><select class="bk-ctl" data-r="range">' + cOpts + '</select></label>';
@@ -1037,14 +1051,31 @@
         f('froma').max = MAP ? MAP.verses[rep.from[0] - 1] : 286; f('toa').max = MAP ? MAP.verses[rep.to[0] - 1] : 286;
         f('surah').value = String(rep.surah || 1);
         panel.classList.toggle('custom', rep.mode === 'custom');
-        panel.classList.toggle('surah', rep.mode === 'surah');
+        panel.classList.toggle('surah', rep.mode === 'surah' || rep.mode === 'hifz');
+        panel.classList.toggle('hifz', rep.mode === 'hifz');
+        var hz = rep.hz || {};
+        f('ha1').value = hz.a1 || 1; f('ha2').value = hz.a2 || 1; f('ha1').max = f('ha2').max = MAP ? MAP.verses[(rep.surah || 1) - 1] : 286;
+        f('hx').value = String(hz.x || 3); f('hy').value = String(hz.y == null ? 2 : hz.y); f('hz').value = String(hz.z == null ? 3 : hz.z);
         panel.classList.toggle('cont', rep.mode === 'cont');
       }
       function read() {
         var cl = function (s, a) { s = Math.max(1, Math.min(114, +s || 1)); a = Math.max(1, Math.min(MAP ? MAP.verses[s - 1] : 286, +a || 1)); return [s, a]; };
         var was = rep.mode;
         rep.mode = f('mode').value; rep.ayah = +f('ayah').value; rep.range = +f('range').value;
-        if (rep.mode === 'surah') rep.surah = was !== 'surah' ? MAP.pages[cur - 1][0] : Math.max(1, Math.min(114, +f('surah').value || 1));   // first: the surah being read
+        if (rep.mode === 'surah' || rep.mode === 'hifz') {
+          var oldS = rep.surah;
+          rep.surah = (was !== 'surah' && was !== 'hifz') ? MAP.pages[cur - 1][0] : Math.max(1, Math.min(114, +f('surah').value || 1));   // first: the surah being read
+        }
+        if (rep.mode === 'hifz') {
+          var nv = MAP.verses[rep.surah - 1], pg0 = MAP.pages[cur - 1], pgL = MAP.pages[visible().slice(-1)[0] - 1];
+          if (was !== 'hifz' || oldS !== rep.surah || !rep.hz) {     // start with the ayahs of this surah on the page being read
+            var a1 = pg0[0] === rep.surah ? pg0[1] : 1, a2 = pgL[2] === rep.surah ? pgL[3] : nv;
+            rep.hz = { a1: a1, a2: Math.max(a1, a2), x: +f('hx').value || 3, y: +f('hy').value, z: +f('hz').value };
+          } else {
+            var b1 = Math.max(1, Math.min(nv, +f('ha1').value || 1)), b2 = Math.max(b1, Math.min(nv, +f('ha2').value || b1));
+            rep.hz = { a1: b1, a2: b2, x: +f('hx').value || 1, y: +f('hy').value, z: +f('hz').value };
+          }
+        }
         if (rep.mode === 'custom' && was !== 'custom') {       // start from the page being read
           var pg = MAP.pages[cur - 1], last = MAP.pages[visible().slice(-1)[0] - 1];
           rep.from = [pg[0], pg[1]]; rep.to = [last[2], last[3]];
@@ -1075,6 +1106,19 @@
         var vp = visible(), a = MAP.pages[vp[0] - 1], b = MAP.pages[vp[vp.length - 1] - 1];
         repRun = { from: [a[0], a[1]], to: [b[2], b[3]], ay: 1, rg: 1 };
       } else if (rep.mode === 'custom') repRun = { from: rep.from.slice(), to: rep.to.slice(), ay: 1, rg: 1 };
+      else if (rep.mode === 'hifz') {
+        // the order to recite: each new ayah x times, then it with the one before it y times; at the end the whole passage z times
+        var h = rep.hz, s0 = rep.surah, L2 = [], i, k;
+        var bas = function (a) { return a === 1 && s0 !== 1 && s0 !== 9; };
+        for (i = h.a1; i <= h.a2; i++) {
+          for (k = 0; k < h.x; k++) L2.push([s0, i, bas(i) && L2.length === 0]);
+          if (i > h.a1) for (k = 0; k < h.y; k++) { L2.push([s0, i - 1, false]); L2.push([s0, i, false]); }
+        }
+        var whole = L2.length, zz = h.z === -1 ? 1 : h.z;
+        for (k = 0; k < zz; k++) for (i = h.a1; i <= h.a2; i++) L2.push([s0, i, bas(i)]);
+        repRun = { list: L2, i: 0, loopFrom: h.z === -1 ? whole : -1, from: [s0, h.a1], to: [s0, h.a2], ay: 1, rg: 1 };
+        return repRun;
+      }
       else if (rep.mode === 'surah') { var su = rep.surah || MAP.pages[cur - 1][0]; repRun = { from: [su, 1], to: [su, MAP.verses[su - 1]], ay: 1, rg: 1 }; }
       else repRun = { from: null, to: null, ay: 1, rg: 1 };
       return repRun;
