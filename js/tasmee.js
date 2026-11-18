@@ -115,16 +115,25 @@
     new Int16Array(buf, 44).set(pcm);
     return new Blob([buf], { type: 'audio/wav' });
   }
-  function send(chunks, final) {
-    var r = range(), fd = new FormData();
-    fd.append('audio', wav16(chunks, R.rate), 'a.wav');
+  // a stretch (seg: its audio blocks) is sent in pieces: only what the service has not had yet, under the stretch's id
+  var DEBUG = /[?&]debug/.test(location.search);
+  function send(seg, final) {
+    var r = range(), fd = new FormData(), from = seg.sent || 0;
+    fd.append('audio', wav16(seg.slice(from), R.rate), 'a.wav');
+    fd.append('sid', seg.sid || ''); fd.append('append', from > 0 ? 'true' : 'false');
+    seg.sent = seg.length;
+    var t0 = Date.now();
     fd.append('surah', r.s); fd.append('start', r.a); fd.append('end', r.b);
     fd.append('pos', R.pos); fd.append('final', final ? 'true' : 'false');
     R.busy = true;
     return fetch(API + '/live', { method: 'POST', body: fd }).then(function (x) {
       if (!x.ok) return x.text().then(function (t) { throw new Error(x.status + ' ' + t); });
       return x.json();
-    }).then(function (res) { R.busy = false; return res; }, function (e) { R.busy = false; throw e; });
+    }).then(function (res) {
+      R.busy = false;
+      if (DEBUG) st.textContent = '⏱ ' + ((Date.now() - t0) / 1000).toFixed(1) + ' ث (الخادم ' + (res.ms / 1000).toFixed(1) + ') · ' + res.seconds + ' ث صوت';
+      return res;
+    }, function (e) { R.busy = false; seg.sent = 0; throw e; });
   }
   // where the reader is: a soft marker on the next word expected
   function cursor() {
@@ -164,7 +173,7 @@
     }
     if (R.speaking && R.seg.length && R.fresh) {
       R.fresh = false;
-      send(R.seg.slice(), false).then(function (res) { if (R && res.pos === R.pos) interim(res); }).catch(function () {}).then(pump);
+      send(R.seg, false).then(function (res) { if (R && res.pos === R.pos) interim(res); }).catch(function () {}).then(pump);
     }
   }
   function fail(e) {
@@ -212,7 +221,7 @@
         if (!R.speaking) {
           R.noise = R.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
           R.pre.push(x); if (R.pre.length > 4) R.pre.shift();
-          if (rms > thr && !R.mute) { R.speaking = true; R.seg = R.pre.slice(); R.pre = []; R.quiet = 0; R.segLen = R.seg.length * blk; }
+          if (rms > thr && !R.mute) { R.speaking = true; R.seg = R.pre.slice(); R.seg.sid = Math.random().toString(36).slice(2) + Date.now().toString(36); R.seg.sent = 0; R.pre = []; R.quiet = 0; R.segLen = R.seg.length * blk; }
           return;
         }
         R.seg.push(x); R.segLen += blk;

@@ -450,9 +450,23 @@ def live_status():
             "error": _wh["err"]}
 
 
+_sess = {}
+
+
+def pcm_wav(raw):
+    """16 kHz mono 16-bit WAV (what the page sends): read directly, without ffmpeg."""
+    try:
+        if raw[:4] != b"RIFF" or raw[8:12] != b"WAVE": return None
+        ch = int.from_bytes(raw[22:24], "little"); rate = int.from_bytes(raw[24:28], "little"); bits = int.from_bytes(raw[34:36], "little")
+        if ch != 1 or rate != SR or bits != 16 or raw[36:40] != b"data": return None
+        return np.frombuffer(raw[44:], dtype="<i2").astype(np.float32) / 32768.0
+    except Exception:
+        return None
+
+
 @app.post("/live")
 def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
-               pos: int = Form(0), final: bool = Form(False)):
+               pos: int = Form(0), final: bool = Form(False), sid: str = Form(""), append: bool = Form(False)):
     import time
     t0 = time.time()
     if not 1 <= surah <= 114: raise HTTPException(400, "surah")
@@ -461,7 +475,15 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     if not (1 <= start <= end <= len(ayahs)): raise HTTPException(400, "ayah range")
     raw = audio.file.read()                            # a plain function: FastAPI runs it beside the event loop
     if len(raw) > 4_000_000: raise HTTPException(413, "audio too long")
-    wav = decode_audio(raw)
+    wav = pcm_wav(raw)
+    if wav is None: wav = decode_audio(raw)
+    # a session: the page sends only the new audio, the stretch so far is kept here (much less to upload)
+    if sid:
+        now = time.time()
+        for k in [k for k, v in _sess.items() if now - v["t"] > 120]: _sess.pop(k, None)
+        if append and sid in _sess: wav = np.concatenate([_sess[sid]["pcm"], wav])
+        _sess[sid] = {"pcm": wav, "t": now}
+        if final: _sess.pop(sid, None)
     dur = len(wav) / SR
     if dur > 30: raise HTTPException(413, "audio too long (30 s at most per stretch)")
     exp, where = [], []
