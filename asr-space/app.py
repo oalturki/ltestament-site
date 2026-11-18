@@ -390,7 +390,35 @@ def whisper():
 
 
 
+# faster engine: the same model converted to CTranslate2 (int8) while building (Dockerfile); about 3-4x faster on CPU
+CT2_DIR = os.environ.get("CT2_DIR", "/home/user/ct2-whisper")
+_ct2 = {"m": None, "tried": False}
+
+
+def ct2():
+    with _wh_lock:
+        if not _ct2["tried"]:
+            _ct2["tried"] = True
+            try:
+                if os.path.isdir(CT2_DIR):
+                    from faster_whisper import WhisperModel
+                    _ct2["m"] = WhisperModel(CT2_DIR, device="cpu", compute_type="int8",
+                                             cpu_threads=int(os.environ.get("TORCH_THREADS", "2")))
+            except Exception as e:
+                _wh["err"] = f"ct2 {type(e).__name__}: {e}"[:300]
+    return _ct2["m"]
+
+
 def transcribe(wav):
+    m2 = ct2()
+    if m2 is not None:
+        segs, _ = m2.transcribe(wav.astype(np.float32), language="ar", task="transcribe", beam_size=1,
+                                without_timestamps=True, condition_on_previous_text=False, vad_filter=False)
+        return " ".join(sg.text.strip() for sg in segs).strip()
+    return transcribe_hf(wav)
+
+
+def transcribe_hf(wav):
     import torch
     m, proc = whisper()
     feats = proc.feature_extractor(wav, sampling_rate=SR, return_tensors="pt").input_features
@@ -408,7 +436,7 @@ ISTI = ["اعوذ", "بالله", "من", "الشيطان", "الرجيم"]
 
 @app.on_event("startup")
 def _warm_start():
-    threading.Thread(target=lambda: _safe(whisper), daemon=True).start()
+    threading.Thread(target=lambda: (_safe(ct2), _safe(whisper)), daemon=True).start()
 
 
 def _safe(f):
@@ -418,7 +446,8 @@ def _safe(f):
 
 @app.get("/live")
 def live_status():
-    return {"model": WHISPER_REPO, "loaded": _wh["model"] is not None, "error": _wh["err"]}
+    return {"model": WHISPER_REPO, "loaded": _wh["model"] is not None, "engine": "ctranslate2-int8" if _ct2["m"] else "transformers",
+            "error": _wh["err"]}
 
 
 @app.post("/live")
