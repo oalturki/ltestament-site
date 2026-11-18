@@ -29,6 +29,8 @@
   .ts-text .w.fixed, .ts-text.hide .w.fixed{ color:#E6C36A; border-bottom:none; }
   .ts-text.hide .w.wrong, .ts-text.hide .w.missing{ color:#F2B8B0; }
   .ts-text .w{ transition:color .3s, background .3s; }
+  .ts-text .w.cur{ border-bottom:2px solid #DCC078; animation:tsCur 1s ease-in-out infinite alternate; }
+  @keyframes tsCur{ from{ border-bottom-color:rgba(220,192,120,.25); } to{ border-bottom-color:rgba(220,192,120,1); } }
   .ts-text .num{ font-size:.7em; color:#DCC078; margin:0 4px; }
   .ts-text .w{ border-radius:6px; padding:0 2px; }
   .ts-text .w.ok{ color:#9fe3c0; } .ts-text .w.harakat{ background:rgba(230,170,60,.28); }
@@ -38,7 +40,7 @@
   .ts-text.done .w.ok{ color:#9fe3c0; }
   .ts-rec{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:8px 0 6px; }
   .ts-btn{ width:84px; height:84px; border-radius:50%; border:none; background:#C89B3C; color:#101b33; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .ts-btn.on{ background:#C8463C; color:#fff; animation:pulse 1.2s infinite; }
+  .ts-btn.on{ background:#C8463C; color:#fff; transition:box-shadow .08s; }
   @keyframes pulse{ 50%{ box-shadow:0 0 0 12px rgba(200,70,60,.15); } }
   .ts-st{ color:#C9C2AE; min-height:1.6em; text-align:center; }
   .ts-legend{ display:flex; flex-wrap:wrap; gap:8px 14px; font-size:.85rem; color:#C9C2AE; margin-top:8px; }
@@ -73,7 +75,7 @@
   </div>
 </main>
 <script>window.TS_VERSES = [7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43, 52, 99, 128, 111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54, 45, 83, 182, 88, 75, 85, 54, 53, 89, 59, 37, 35, 38, 29, 18, 45, 60, 49, 62, 55, 78, 96, 29, 22, 24, 13, 14, 11, 11, 18, 12, 12, 30, 52, 52, 44, 28, 28, 20, 56, 40, 31, 50, 40, 46, 42, 29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5, 4, 7, 3, 6, 3, 5, 4, 5, 6];</script>
-<script src="/js/tasmee.js?v=3"></script>
+<script src="/js/tasmee.js?v=4"></script>
 <script src="/js/site.js" defer></script>
 </body>
 </html>

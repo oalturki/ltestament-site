@@ -126,10 +126,18 @@
       return x.json();
     }).then(function (res) { R.busy = false; return res; }, function (e) { R.busy = false; throw e; });
   }
+  // where the reader is: a soft marker on the next word expected
+  function cursor() {
+    box.querySelectorAll('.cur').forEach(function (e) { e.classList.remove('cur'); });
+    if (!R) return;
+    var k = R.pos; while (wEl(k) && wEl(k).classList.contains('ti')) k++;
+    var e = wEl(k); if (e) e.classList.add('cur');
+  }
   function interim(res) {
     // a stretch still being recited: show the words heard right so far (lightly), nothing else yet
     box.querySelectorAll('.ti').forEach(function (e) { e.classList.remove('ti'); });
     res.words.forEach(function (w) { if (w.status === 'ok' && !wEl(w.k).classList.contains('ok')) mark(w.k, 'ti'); });
+    cursor();
   }
   function commit(res) {
     box.querySelectorAll('.ti').forEach(function (e) { e.classList.remove('ti'); });
@@ -140,6 +148,7 @@
       else { mark(w.k, w.status); if (e && w.heard) e.title = 'سُمع: ' + w.heard; errs.push(w); }
     });
     R.pos = Math.max(R.pos, res.next);
+    cursor();
     if (errs.length && R.say) {                              // the reciter says the first word that went wrong
       R.mute = true;
       say(words[errs[0].k]).then(function () { setTimeout(function () { R.mute = false; }, 250); });
@@ -190,7 +199,7 @@
     getMic().then(function (stream) {
       var src = actx.createMediaStreamSource(stream), node = actx.createScriptProcessor(4096, 1, 1);
       R = { stream: stream, node: node, src: src, rate: actx.sampleRate, seg: [], pre: [], speaking: false, quiet: 0, segLen: 0,
-            noise: 0.004, pos: 0, busy: false, queue: [], fresh: false, mute: false, say: true, tick: 0 };
+            noise: 0.004, lvl: 0, pos: 0, busy: false, queue: [], fresh: false, mute: false, say: true, tick: 0 };
       var blk = 4096 / actx.sampleRate;                     // seconds per block (~85 ms)
       node.onaudioprocess = function (ev) {
         if (!R) return;
@@ -198,6 +207,8 @@
         if (R.mute) { x.fill(0); }                           // the reciter is speaking: do not listen to him
         var e = 0; for (var i = 0; i < x.length; i++) e += x[i] * x[i];
         var rms = Math.sqrt(e / x.length), thr = Math.max(0.01, R.noise * 3.2);
+        R.lvl = R.lvl * 0.6 + Math.min(1, rms / 0.12) * 0.4;     // the button breathes with the voice: «I hear you»
+        btn.style.boxShadow = '0 0 0 ' + Math.round(4 + R.lvl * 22) + 'px rgba(200,70,60,' + (0.12 + R.lvl * 0.3).toFixed(2) + ')';
         if (!R.speaking) {
           R.noise = R.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
           R.pre.push(x); if (R.pre.length > 4) R.pre.shift();
@@ -211,11 +222,12 @@
           pump(); return;
         }
         R.tick += blk;
-        if (R.tick >= 1.8) { R.tick = 0; R.fresh = true; pump(); }
+        if (R.tick >= 0.9) { R.tick = 0; R.fresh = true; pump(); }
       };
       src.connect(node); node.connect(actx.destination);
       btn.classList.add('on'); btn.setAttribute('aria-label', 'إيقاف');
       st.textContent = 'اقرأ من حفظك… تظهر الكلمات وأنت تقرأ.';
+      cursor();
     }).catch(function () { st.textContent = 'لم يُسمح بالميكروفون.'; box.classList.remove('live'); });
   }
   function stop(keep) {
@@ -225,7 +237,8 @@
     r0.seg = []; r0.speaking = false;
     try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {}
     releaseMic();
-    btn.classList.remove('on'); btn.setAttribute('aria-label', 'ابدأ');
+    btn.classList.remove('on'); btn.setAttribute('aria-label', 'ابدأ'); btn.style.boxShadow = '';
+    box.querySelectorAll('.cur').forEach(function (e) { e.classList.remove('cur'); });
     var drain = function () {
       if (r0.busy || r0.queue.length) { pump(); return setTimeout(drain, 300); }
       R = null; summary();
