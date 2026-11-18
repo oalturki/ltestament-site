@@ -51,6 +51,13 @@
   aIn.onchange = bIn.onchange = draw;
   hide.onchange = function () { box.classList.toggle('hide', hide.checked && !box.classList.contains('done')); };
   load();
+  // open the connection to the service before the first word (the first call otherwise waits several seconds
+  // for the connection and the service to wake), and again when recitation starts
+  var warmT = 0;
+  function warm() { if (Date.now() - warmT < 20000) return; warmT = Date.now(); fetch(API + '/live', { cache: 'no-store' }).catch(function () {}); }
+  warm();
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) warm(); });
+  [sSel, aIn, bIn].forEach(function (e) { e.addEventListener('focus', warm); });
 
   function wEl(k) { return box.querySelector('[data-k="' + k + '"]'); }
   function mark(k, cls) {
@@ -197,6 +204,7 @@
     if (document.hidden && MIC && !R) { MIC.getTracks().forEach(function (t) { t.stop(); }); MIC = null; }
   });
   function start() {
+    warm();
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { st.textContent = 'المتصفح لا يدعم التسجيل.'; return; }
     var AC = window.AudioContext || window.webkitAudioContext;
     actx = actx || new AC();
