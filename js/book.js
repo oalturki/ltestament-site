@@ -887,10 +887,11 @@
         shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
         // while listening: the audio's path as a thin line on the frame's bottom line, the pause button riding on it
-        var d = 34, y = Math.min(r.bottom, window.innerHeight - d / 2 - 6);
+        // the line is the frame's bottom border, below the text; the button hangs under it, its point on the line
+        var y = Math.min(r.bottom - 1.5, window.innerHeight - 30);
         trk.style.top = Math.round(y - 1.5) + 'px';
-        trk.style.left = Math.round(r.left + 14) + 'px'; trk.style.width = Math.round(r.width - 28) + 'px';
-        mp.style.top = Math.round(y - d / 2) + 'px';
+        trk.style.left = Math.round(r.left + 4) + 'px'; trk.style.width = Math.round(r.width - 8) + 'px';
+        mp.style.top = Math.round(y + 7) + 'px';
         progFr = fr; progKey = ''; progSet(progF);
       }
       var trk = document.createElement('div'); trk.className = 'bk-mtrack'; trk.innerHTML = '<i></i>';
@@ -898,7 +899,7 @@
       var progFr = null, progKey = '', progF = 0, rtl = (document.documentElement.dir || 'rtl') === 'rtl';
       function progSet(f) {
         progF = f;
-        var w = trk.offsetWidth || parseFloat(trk.style.width) || 0, x = parseFloat(trk.style.left) || 0, d = 34;
+        var w = trk.offsetWidth || parseFloat(trk.style.width) || 0, x = parseFloat(trk.style.left) || 0, d = 26;
         trk.firstChild.style.width = (f * 100) + '%';
         var cx = rtl ? x + w - f * w : x + f * w;      // the Mushaf reads right to left
         mp.style.left = Math.round(cx - d / 2) + 'px';

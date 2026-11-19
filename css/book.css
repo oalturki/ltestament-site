@@ -620,11 +620,13 @@ body.bk-mob .bk-viewbtn svg{ flex:none; color:var(--gold-soft); }
 /* phones, while listening or reciting (body.bk-focus): the page alone, with its controls — the bottom bar stays even when the bars are hidden */
 /* listening with the bars hidden: only a small pause button, on the frame's bottom line */
 .bk-mpause{ display:none; }
-body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mpause{ display:flex; position:fixed; z-index:30; width:34px; height:34px; padding:0; gap:4px; z-index:31; transition:left .25s linear;
+body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mpause{ display:flex; position:fixed; z-index:30; width:26px; height:26px; padding:0; gap:3px; z-index:31; transition:left .25s linear;
   align-items:center; justify-content:center; border-radius:50%; border:none; cursor:pointer;
-  background:linear-gradient(160deg, #d4ae3c, #b8892e); box-shadow:0 0 0 3px rgba(251,248,239,.9), 0 3px 10px rgba(0,0,0,.25); }
-.bk-mpause i{ width:4px; height:13px; border-radius:2px; background:#1b2a3a; }
-.bk-mpause::before{ content:""; position:absolute; inset:-8px; }
+  background:linear-gradient(160deg, #d4ae3c, #b8892e); box-shadow:0 2px 6px rgba(0,0,0,.25); }
+.bk-mpause i{ width:3px; height:10px; border-radius:2px; background:#1b2a3a; }
+.bk-mpause::after{ content:""; position:absolute; inset:-10px; }
+/* the point on the line, like the head of an arrow */
+.bk-mpause::before{ content:""; position:absolute; top:-6px; left:50%; margin-left:-6px; border:6px solid transparent; border-top:0; border-bottom:7px solid #c9a227; }
 body.bk-mob.bk-focus.bk-chrome-off .bk-mshow{ display:none; }
 /* the stop button breathes while the microphone listens */
 body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:bk-lvpulse 2s ease-out infinite; }
@@ -636,7 +638,7 @@ body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:bk-lvpulse 2s ease-out infin
 /* the audio's path: a thin line on the frame's bottom line; the part heard so far in gold */
 .bk-mtrack{ display:none; }
 body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mtrack{ display:block; position:fixed; z-index:30; height:3px; border-radius:2px;
-  background:rgba(184,137,46,.25); overflow:hidden; pointer-events:none; }
+  background:rgba(184,137,46,.3); overflow:hidden; pointer-events:none; }
 .bk-mtrack i{ display:block; height:100%; width:0; background:#c9a227; border-radius:2px; float:right; transition:width .25s linear; }
 html[dir="ltr"] .bk-mtrack i{ float:left; }
 
@@ -648,3 +650,15 @@ body.bk-mob .bk-bar .bk-viewbtn, body.bk-mob .bk-bar .bk-tabs{ order:3; }
 body.bk-mob .bk-bar select.bk-mpg{ -webkit-appearance:none; appearance:none; height:40px; padding:0 8px; border-radius:12px; text-align:center; text-align-last:center;
   border:1px solid rgba(200,155,60,.5); background:var(--night); color:var(--gold-soft); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; flex:none; }
 body.bk-mob .bk-bar .bk-viewbtn{ flex:0 1 auto; max-width:34%; }
+
+/* phones: a little room under the page, so the audio line's button (and the bars' handle) hang below the text */
+body.bk-mob.bk-is-mushaf .bk-stage{ padding-bottom:calc(30px + env(safe-area-inset-bottom)); }
+
+/* phones, the top bar: the surah and the view button the same size, the page in the middle */
+body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar .bk-viewbtn{ flex:1 1 0; min-width:0; max-width:none; }
+body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar select.bk-mpg{ -webkit-appearance:none; appearance:none; }
+body.bk-mob .bk-bar [data-bk=surahSel]{ border:1px solid rgba(200,155,60,.5); padding-inline:10px 24px; text-align:center; text-align-last:center; color:var(--parch);
+  background:var(--night) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23DCC078' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat left 10px center; }
+html[dir=ltr] body.bk-mob .bk-bar [data-bk=surahSel]{ background-position:right 10px center; }
+body.bk-mob .bk-bar .bk-viewbtn{ justify-content:center; background:var(--night); }
+body.bk-mob .bk-bar select.bk-mpg{ width:auto; min-width:78px; }
