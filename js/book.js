@@ -386,8 +386,17 @@
       el.querySelectorAll('.mm').forEach(function (n) {
         var ln = lines[+n.dataset.line];
         if (!ln) return;
-        n.style.fontSize = Math.max(7, Math.min(11, room * 0.42)) + 'px';
         n.style.top = (fr.offsetTop + box.offsetTop + ln.offsetTop + ln.offsetHeight / 2) + 'px';
+        if (root.getAttribute('data-frame') === 'edge' && room < 24) {
+          // the ornament band on the outer edge is the margin: the note sits on it, as a small medallion
+          n.classList.add('mm-band'); n.classList.toggle('mm-sj', /سجدة/.test(n.textContent));
+          n.style.fontSize = '9.5px';
+          var band = 13, w0 = n.offsetWidth;
+          n.style.left = (fr.classList.contains('sp-l') ? fr.offsetLeft + fr.offsetWidth - band / 2 - w0 / 2 : fr.offsetLeft + band / 2 - w0 / 2) + 'px';
+          return;
+        }
+        n.classList.remove('mm-band');
+        n.style.fontSize = Math.max(7, Math.min(11, room * 0.42)) + 'px';
         var w = n.offsetWidth;
         var x = n.classList.contains('mm-l') ? fr.offsetLeft - w - 3 : fr.offsetLeft + fr.offsetWidth + 3;
         n.style.left = Math.max(1, Math.min(el.clientWidth - w - 1, x)) + 'px';

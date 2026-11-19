@@ -419,3 +419,10 @@ body.bk-mob .bk-mquiz .bk-hidebtn svg{ width:20px; height:20px; }
   background-size:7px 1px; background-repeat:repeat-x; background-position:0 80%; }
 .bk-toast{ position:fixed; left:50%; bottom:110px; transform:translateX(-50%); z-index:60; max-width:min(92vw,420px); padding:10px 16px;
   border-radius:14px; background:rgba(20,32,48,0.94); color:#f6eeda; font-size:.95rem; line-height:1.7; text-align:center; box-shadow:0 6px 24px rgba(0,0,0,.25); }
+
+/* phones, ornament on the outer edge: the margin notes (hizb quarters, sajdas) sit on the band itself */
+.mm.mm-band{ z-index:3; padding:5px 2px; gap:3px; border-radius:9px; background:#fdfaf1; border:1px solid #c9a227;
+  box-shadow:0 1px 3px rgba(120,90,20,.25); color:#6d5214; font-weight:700; }
+.mm.mm-band i{ font-size:1.35em; color:#b8892e; }
+.mm.mm-band.mm-sj{ background:#f3ead2; border-color:#2f6b3a; color:#2f6b3a; }
+.mm.mm-band.mm-sj i{ color:#2f6b3a; }
