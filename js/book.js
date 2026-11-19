@@ -487,6 +487,7 @@
       }
     }
     function updateControls() {
+      if (root.__placeShow) setTimeout(root.__placeShow, 380);
       var last = step() === 2 ? Math.min(TOTAL, cur + 1) : cur;
       if (q('pageInput')) q('pageInput').value = cur;
       if (q('range')) q('range').value = cur;
@@ -697,7 +698,27 @@
       function chrome(show) {
         clearTimeout(hideT);
         document.body.classList.toggle('bk-chrome-off', !show);
+        if (!show) placeShow();
       }
+      // while the bars are hidden: a small handle on the ornament band (bottom of the outer edge) says they are there
+      var shw = document.createElement('button');
+      shw.type = 'button'; shw.className = 'bk-mshow'; shw.setAttribute('aria-label', L.tools); shw.title = L.tools;
+      shw.innerHTML = '<span></span><span></span><span></span>';
+      shw.onclick = function (e) { e.stopPropagation(); chrome(true); };
+      document.body.appendChild(shw);
+      function placeShow() {
+        var fr = null, W = window.innerWidth;
+        root.querySelectorAll('.bk-mpage .bk-mframe').forEach(function (f) {
+          var r = f.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) fr = f;
+        });
+        if (!fr) { shw.style.display = 'none'; return; }
+        var r = fr.getBoundingClientRect(), right = fr.classList.contains('sp-l'), w = 22;
+        shw.style.display = '';
+        shw.style.top = Math.round(r.bottom - 54) + 'px';
+        shw.style.left = Math.round(right ? r.right - 6.5 - w / 2 : r.left + 6.5 - w / 2) + 'px';
+      }
+      window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
+      root.__placeShow = placeShow;
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
       book.addEventListener('touchstart', function (e) {
