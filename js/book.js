@@ -881,11 +881,37 @@
         // its top on the frame's bottom line, hanging below it, so it never touches the text
         shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
-        // while listening: a small pause button on the same line, its middle on the frame's bottom line
-        var d = 36;
-        mp.style.top = Math.round(Math.min(r.bottom - d / 2, window.innerHeight - d - 6)) + 'px';
-        mp.style.left = Math.round(r.left + r.width / 2 - d / 2) + 'px';
+        // while listening: the audio's path as a thin line on the frame's bottom line, the pause button riding on it
+        var d = 34, y = Math.min(r.bottom, window.innerHeight - d / 2 - 6);
+        trk.style.top = Math.round(y - 1.5) + 'px';
+        trk.style.left = Math.round(r.left + 14) + 'px'; trk.style.width = Math.round(r.width - 28) + 'px';
+        mp.style.top = Math.round(y - d / 2) + 'px';
+        progFr = fr; progKey = ''; progSet(progF);
       }
+      var trk = document.createElement('div'); trk.className = 'bk-mtrack'; trk.innerHTML = '<i></i>';
+      document.body.appendChild(trk);
+      var progFr = null, progKey = '', progF = 0, rtl = (document.documentElement.dir || 'rtl') === 'rtl';
+      function progSet(f) {
+        progF = f;
+        var w = trk.offsetWidth || parseFloat(trk.style.width) || 0, x = parseFloat(trk.style.left) || 0, d = 34;
+        trk.firstChild.style.width = (f * 100) + '%';
+        var cx = rtl ? x + w - f * w : x + f * w;      // the Mushaf reads right to left
+        mp.style.left = Math.round(cx - d / 2) + 'px';
+      }
+      // how far through the page the reciter is: the word (or ayah) being read among the page's words
+      root.__prog = function (s, a, w) {
+        var k = s + ':' + a + ':' + w;
+        if (k === progKey || !progFr) return;
+        progKey = k;
+        var ws = progFr.querySelectorAll('[data-l]'), n = ws.length, at = -1;
+        if (!n) return;
+        var pre = s + ':' + a + ':';
+        for (var i = 0; i < n; i++) {
+          var l = ws[i].getAttribute('data-l');
+          if (l === pre + w || (at < 0 && l.indexOf(pre) === 0)) { at = i; if (w && l === pre + w) break; if (!w) break; }
+        }
+        if (at >= 0) progSet(Math.min(1, (at + 1) / n));
+      };
       var mp = document.createElement('button');
       mp.type = 'button'; mp.className = 'bk-mpause'; mp.setAttribute('aria-label', U.pause); mp.title = U.pause;
       mp.innerHTML = '<i></i><i></i>';
@@ -1181,6 +1207,7 @@
         var w = 0;
         for (var i = 0; i < st.words.length; i++) if (st.words[i][1] <= t) w = st.words[i][0]; else break;
         setHl({ s: st.s, a: st.a, w: w });
+        if (root.__prog) root.__prog(st.s, st.a, w);
       } else if (st.kind === 'surah' && st.times) {
         var cur2 = null;
         for (var j = 0; j < st.times.length; j++) if (st.times[j][1] <= t) cur2 = st.times[j]; else break;
@@ -1188,7 +1215,7 @@
           st.a = cur2[0];
           ensureVisible(st.s, st.a);
         }
-        if (cur2) setHl({ s: st.s, a: st.a, w: 0 });
+        if (cur2) { setHl({ s: st.s, a: st.a, w: 0 }); if (root.__prog) root.__prog(st.s, st.a, 0); }
       }
       raf = requestAnimationFrame(tick);
     }

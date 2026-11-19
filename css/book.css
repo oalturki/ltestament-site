@@ -620,7 +620,7 @@ body.bk-mob .bk-viewbtn svg{ flex:none; color:var(--gold-soft); }
 /* phones, while listening or reciting (body.bk-focus): the page alone, with its controls — the bottom bar stays even when the bars are hidden */
 /* listening with the bars hidden: only a small pause button, on the frame's bottom line */
 .bk-mpause{ display:none; }
-body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mpause{ display:flex; position:fixed; z-index:30; width:36px; height:36px; padding:0; gap:4px;
+body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mpause{ display:flex; position:fixed; z-index:30; width:34px; height:34px; padding:0; gap:4px; z-index:31; transition:left .25s linear;
   align-items:center; justify-content:center; border-radius:50%; border:none; cursor:pointer;
   background:linear-gradient(160deg, #d4ae3c, #b8892e); box-shadow:0 0 0 3px rgba(251,248,239,.9), 0 3px 10px rgba(0,0,0,.25); }
 .bk-mpause i{ width:4px; height:13px; border-radius:2px; background:#1b2a3a; }
@@ -632,3 +632,10 @@ body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:bk-lvpulse 2s ease-out infin
   70%{ box-shadow:0 0 0 5px rgba(16,27,51,.96), 0 0 0 18px rgba(200,70,60,0); }
   100%{ box-shadow:0 0 0 5px rgba(16,27,51,.96), 0 0 0 5px rgba(200,70,60,0); } }
 @media (prefers-reduced-motion:reduce){ body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:none; } }
+
+/* the audio's path: a thin line on the frame's bottom line; the part heard so far in gold */
+.bk-mtrack{ display:none; }
+body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mtrack{ display:block; position:fixed; z-index:30; height:3px; border-radius:2px;
+  background:rgba(184,137,46,.25); overflow:hidden; pointer-events:none; }
+.bk-mtrack i{ display:block; height:100%; width:0; background:#c9a227; border-radius:2px; float:right; transition:width .25s linear; }
+html[dir="ltr"] .bk-mtrack i{ float:left; }
