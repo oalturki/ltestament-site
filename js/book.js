@@ -492,6 +492,7 @@
     function updateControls() {
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
+      if (window.Fam && window.Fam.current()) window.Fam.lastPage(cur);
       var last = step() === 2 ? Math.min(TOTAL, cur + 1) : cur;
       if (q('pageInput')) q('pageInput').value = cur;
       if (q('range')) q('range').value = cur;
@@ -660,6 +661,8 @@
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
+      var fb0 = document.querySelector('.bk-fambtn');
+      if (fb0) moves.push([fb0, row('', fb0)]);
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
       if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
       var qz = document.querySelector('.bk-quizlink');
@@ -670,7 +673,7 @@
         qz.setAttribute('aria-label', qz.textContent.trim());
         moves.push([qz, qslot]);
       }
-      var hbn = document.querySelector('.bk-hidebtn:not(.bk-tsbtn)'), tsn = document.querySelector('.bk-tsbtn');
+      var hbn = document.querySelector('.bk-hidebtn:not(.bk-tsbtn):not(.bk-fambtn)'), tsn = document.querySelector('.bk-tsbtn');
       if (hbn && bar) {
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
         moves.push([hbn, hslot]);
@@ -1171,8 +1174,10 @@
         src.start(0, t0, Math.max(0.2, t1 - t0));
       }).catch(off);
     } : null;
+    var playT0 = 0;
     function startAudio() {
       if (!RECS.length) return;
+      playT0 = Date.now();
       if (!audio) {
         audio = new Audio(); audio.preload = 'auto';
         audio.addEventListener('ended', onEnded);
@@ -1198,6 +1203,7 @@
       if (!playing) return;
       playing = false;
       talqDone();
+      if (root.__famPractice) try { root.__famPractice(); } catch (e) {}
       if (audio) audio.pause();
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       setPlayUI();
@@ -1569,12 +1575,39 @@
           root.classList.toggle('bk-living', on);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
+        // the student record: per page, the words recited and the mistakes, sent to the current profile's record
+        var famPg = {}, famT0 = 0;
+        var famWord = function (sN, w, cls) {
+          var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
+          r.done[loc] = 1;
+          if (cls === 'wrong' || cls === 'missing') r.errs[loc] = cls;
+        };
+        var famFlush = function (complete) {
+          var F = window.Fam, prof = F && F.current();
+          var secs = famT0 ? (Date.now() - famT0) / 1000 : 0; famT0 = Date.now();
+          Object.keys(famPg).forEach(function (pg) {
+            var r = famPg[pg], done = Object.keys(r.done).length;
+            if (prof && done) {
+              var seen = {}, total = 0;
+              root.querySelectorAll('.bk-mpage [data-l]:not(.ae)').forEach(function (e) {
+                var l = e.getAttribute('data-l'), x = l.split(':');
+                if (!seen[l] && pageOf(+x[0], +x[1]) === +pg) { seen[l] = 1; total++; }
+              });
+              var locs = Object.keys(r.errs);
+              F.recital({ page: +pg, words: done, total: Math.max(total, done), mistakes: locs.length, seconds: secs,
+                          complete: complete || done >= total, locs: locs, kinds: locs.map(function (l) { return r.errs[l]; }) })
+                .then(function () { if (root.__famRefresh) root.__famRefresh(); }).catch(function () {});
+            }
+          });
+          famPg = {};
+        };
         var startLive = function () {
           if (playing) stopAudio();
           var parts = pagePartsNow();
           live = LiveRecite({
             parts: parts,
             onWord: function (p, w, cls) {
+              if (cls !== 'ti') famWord(live.__parts[p].s, w, cls);
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
                 e.classList.add('rv');
@@ -1587,6 +1620,7 @@
             },
             onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
             onDone: function () {                             // the page is recited: the next one, and go on listening
+              famFlush(true);
               if (cur >= TOTAL) { live.stop(); return; }
               liveTurning = true;
               show(cur + (visible().length > 1 ? 2 : 1), 1);
@@ -1594,6 +1628,8 @@
             },
             onLevel: function (x) { mic.style.boxShadow = '0 0 0 ' + Math.round(3 + x * 18) + 'px rgba(200,70,60,' + (0.15 + x * 0.3).toFixed(2) + ')'; },
             onState: function (st) {
+              if (st === 'listening') famT0 = Date.now();
+              if (st === 'stopped') famFlush(false);
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
               else if (st === 'stopped') liveSet(false);
               else if (st === 'denied') { liveSet(false); toast(LV[2]); }
@@ -1623,6 +1659,94 @@
           if (!live || !live.running || liveTurning) return;
           live.__parts = pagePartsNow(); live.setParts(live.__parts);
         };
+
+        // ---- the student record (سجل الطالب): who is reading (the profile the record goes to), switching between the
+        // family's profiles, today's review; the record itself is kept by js/family.js (Supabase)
+        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ تقدّم أبنائك: أنشئ حساب الأسرة أو ادخل.", "دخول / حساب جديد", "رمز ملف الوالد", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے بچوں کی پیش رفت محفوظ کریں: خاندان کا اکاؤنٹ بنائیں یا لاگ اِن کریں۔", "لاگ اِن / نیا اکاؤنٹ", "والد/والدہ کا پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your children’s progress: create a family account or sign in.", "Sign in / New account", "Parent profile PIN", "Wrong PIN.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez les progrès de vos enfants : créez un compte famille ou connectez-vous.", "Connexion / Nouveau compte", "Code du profil parent", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda el progreso de tus hijos: crea una cuenta familiar o entra.", "Entrar / Cuenta nueva", "PIN del perfil del padre", "PIN incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте успехи детей: создайте семейный аккаунт или войдите.", "Вход / Новый аккаунт", "PIN профиля родителя", "Неверный PIN.", "стр."]};
+        var FL = FLS[C.lang] || FLS.en, ACC = '/account/?lang=' + C.lang;
+        var famLoad = function () {
+          if (window.Fam) return Promise.resolve(window.Fam);
+          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=1'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
+        };
+        var famBtn = document.createElement('button');
+        famBtn.type = 'button'; famBtn.className = 'bk-hidebtn bk-fambtn';
+        famBtn.innerHTML = '<span class="av">👤</span><span class="t">' + esc(FL[0]) + '</span>';
+        famBtn.setAttribute('aria-label', FL[0]); famBtn.title = FL[0];
+        hbar.appendChild(famBtn);
+        var micAv = document.createElement('button');                 // beside the microphone: whose recitation this is
+        micAv.type = 'button'; micAv.className = 'bk-micav'; micAv.style.display = 'none';
+        lwrap.insertBefore(micAv, lwrap.firstChild);
+        var famShow = function () {
+          var F = window.Fam, pr = F && F.current();
+          famBtn.querySelector('.av').textContent = pr ? F.avatar(pr.avatar) : '👤';
+          famBtn.querySelector('.t').textContent = pr ? pr.name : FL[0];
+          micAv.style.display = pr ? '' : 'none';
+          if (pr) { micAv.textContent = F.avatar(pr.avatar); micAv.title = pr.name; micAv.setAttribute('aria-label', FL[1] + ' ' + pr.name); }
+        };
+        var todayStr = function () { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); };
+        var famSheet = function () {
+          var ov2 = document.createElement('div'); ov2.className = 'bk-tjkey bk-famsheet';
+          var box = document.createElement('div'); box.className = 'bk-tjbox'; box.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
+          box.innerHTML = '<b>' + esc(FL[0]) + '</b><div class="fs-body">…</div><button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
+          ov2.appendChild(box); document.body.appendChild(ov2);
+          var shut = function () { ov2.remove(); };
+          ov2.onclick = function (e) { if (e.target === ov2) shut(); };
+          box.querySelector('.fs-close').onclick = shut;
+          var body = box.querySelector('.fs-body');
+          famLoad().then(function (F) {
+            if (!F.signedIn()) {
+              body.innerHTML = '<p>' + esc(FL[6]) + '</p><a class="fs-go" href="' + ACC + '">' + esc(FL[7]) + '</a>';
+              return;
+            }
+            return F.profiles().then(function (list) {
+              if (!list.length) { body.innerHTML = '<a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>'; return; }
+              var cur0 = F.current();
+              if (!cur0 || !list.some(function (x) { return x.id === cur0.id; })) { F.use(list[0]); cur0 = F.current(); famShow(); }
+              body.innerHTML = '<span class="fs-l">' + esc(FL[1]) + '</span><div class="fs-profs">' + list.map(function (x) {
+                return '<button type="button" data-id="' + x.id + '" class="' + (x.id === cur0.id ? 'on' : '') + '"><span>' + F.avatar(x.avatar) + '</span>' + esc(x.name) + '</button>';
+              }).join('') + '</div><div class="fs-rev">…</div><a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>';
+              body.querySelectorAll('.fs-profs button').forEach(function (b) {
+                b.onclick = function () {
+                  var x = list.filter(function (y) { return y.id === b.dataset.id; })[0], cu = F.current();
+                  var go = function () { F.use(x); famShow(); shut(); famSheet(); };
+                  if (x.is_parent && cu && !cu.parent && F.pinSet()) {
+                    var v = prompt(FL[8]); if (v == null) return;
+                    F.pinCheck(v.trim()).then(function (ok) { if (ok) go(); else alert(FL[9]); });
+                  } else go();
+                };
+              });
+              // today's review: the pages of this profile whose review is due
+              return F.ready().then(function (cl) {
+                if (!cl) return;
+                return cl.from('page_state').select('page').eq('profile_id', cur0.id).eq('state', 'mastered').lte('due', todayStr()).order('page').limit(604).then(function (r) {
+                  var due = (r.data || []).map(function (x) { return x.page; }), el = body.querySelector('.fs-rev');
+                  if (!el) return;
+                  el.innerHTML = due.length ? '<span class="fs-l">' + esc(FL[2]) + ': ' + due.length + ' ' + esc(FL[10]) + '</span><button type="button" class="fs-go">' + esc(FL[3]) + '</button>'
+                    : '<span class="fs-l">' + esc(FL[4]) + '</span>';
+                  var b2 = el.querySelector('button');
+                  if (b2) b2.onclick = function () { shut(); show(due[0], 0); };
+                });
+              });
+            });
+          }).catch(function () { body.innerHTML = '<a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>'; });
+        };
+        famBtn.onclick = function (e) { e.stopPropagation(); famSheet(); };
+        micAv.onclick = function (e) { e.stopPropagation(); famSheet(); };
+        window.addEventListener('lt-profile', famShow);
+        root.__famRefresh = function () {};
+        // practice (memorization by repetition, talqeen) of 30 s or more: recorded when it stops
+        root.__famPractice = function () {
+          var F = window.Fam; if (!F || !F.current() || Date.now() - playT0 < 30000) return;
+          var kind = rep && rep.mode === 'hifz' ? 'hifz' : (talqMode() !== 'off' ? 'talqeen' : null);
+          if (!kind) return;
+          var sN, a1, a2;
+          if (kind === 'hifz' && rep.hz) { sN = rep.surah; a1 = rep.hz.a1; a2 = rep.hz.a2; }
+          else { var pg0 = MAP.pages[cur - 1]; sN = pg0[0]; a1 = pg0[1]; a2 = pg0[2] === sN ? pg0[3] : MAP.verses[sN - 1]; }
+          var pgs = []; for (var a = a1; a <= a2; a++) { var pp = pageOf(sN, a); if (pgs.indexOf(pp) < 0) pgs.push(pp); }
+          F.practice({ kind: kind, surah: sN, from: a1, to: a2, pages: pgs, seconds: (Date.now() - playT0) / 1000 }).catch(function () {});
+        };
+        // a family signed in on this device: load the record now, so the profile shows and the recitations are kept
+        try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token') || localStorage.getItem('lt_profile')) famLoad().then(famShow); } catch (e) {}
         // hiding off: stop listening
         hb.addEventListener('click', function () { if (!root.classList.contains('bk-hide') && live && live.running) live.stop(); });
         root.addEventListener('click', function (e) {

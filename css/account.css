@@ -65,3 +65,4 @@
 .ac-word small{ color:#a89f83; font-size:.72rem; }
 .ac-set{ margin-top:10px; }
 .ac-set summary{ color:#DCC078; cursor:pointer; margin-bottom:10px; }
+.ac-page input, .ac-page textarea{ box-sizing:border-box; max-width:100%; }

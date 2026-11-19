@@ -473,3 +473,21 @@ body.bk-mob.bk-hide:not(.bk-chrome-off) .bk-livewrap{ bottom:150px; }
 .bk-twcur{ display:none; position:absolute; z-index:5; height:3px; border-radius:2px; background:#c9a227; pointer-events:none;
   animation:bkTwCur 1s ease-in-out infinite alternate; }
 @keyframes bkTwCur{ from{ opacity:.3; } to{ opacity:1; } }
+
+/* the student record in the Mushaf: who is reading (button in the bar / the "more" sheet), beside the microphone, and the sheet */
+.bk-fambtn .av{ font-size:1.05rem; line-height:1; }
+body.bk-mob .bk-msrow .bk-fambtn{ width:100%; justify-content:center; padding:9px 14px; font-size:1rem; }
+body.bk-mob .bk-msrow .bk-fambtn .t{ display:inline; }
+.bk-micav{ width:44px; height:44px; border-radius:50%; border:1px solid #c9a227; background:#1b2a3a; font-size:22px; cursor:pointer;
+  box-shadow:0 6px 18px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; padding:0; }
+.bk-famsheet .fs-l{ display:block; color:#6d5214; font-size:.92rem; margin:6px 0 8px; }
+.bk-famsheet .fs-profs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.bk-famsheet .fs-profs button{ display:inline-flex; align-items:center; gap:6px; padding:7px 12px 7px 10px; border-radius:999px; border:1px solid #e3d3a3;
+  background:#fff; font:inherit; font-size:.95rem; cursor:pointer; color:#2a2a22; }
+.bk-famsheet .fs-profs button span{ font-size:1.25rem; }
+.bk-famsheet .fs-profs button.on{ border:2px solid #c9a227; background:#fbf3d9; font-weight:700; }
+.bk-famsheet .fs-rev{ padding:10px 0; border-top:1px solid #eee3c4; border-bottom:1px solid #eee3c4; margin-bottom:12px; }
+.bk-famsheet .fs-go{ display:block; text-align:center; margin-top:8px; padding:10px; border-radius:10px; background:#1b2a3a; color:#F3E8D0;
+  text-decoration:none; font:inherit; font-weight:700; border:none; width:100%; cursor:pointer; }
+.bk-famsheet .fs-body p{ line-height:1.8; margin:0 0 10px; }
+.bk-famsheet .fs-close{ margin-top:12px; }
