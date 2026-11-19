@@ -648,9 +648,15 @@
         js.onchange = function () { show(jStart[+js.value - 1], 0); };
         item(I.juz, L.juzs).appendChild(js);
       }
-      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel'));   // Arabic: Mushaf, tajweed, tafsir or translation
+      // the bar, as in the Mushaf apps readers know: juz | listen | recite (in the middle, the main action) | view | more
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
-      item(I.search, L.search).onclick = function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
+      var RCL = { ar: 'سمِّع', ur: 'سنائیں', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Читать' };
+      var mmic = document.createElement('button'); mmic.type = 'button'; mmic.className = 'bk-mmic';
+      mmic.setAttribute('aria-label', RCL[C.lang] || RCL.en); mmic.title = RCL[C.lang] || RCL.en;
+      mmic.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+      mmic.onclick = function (e) { e.stopPropagation(); if (root.__liveToggle) root.__liveToggle(); };
+      nav.appendChild(mmic);
+      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel'));   // Arabic: Mushaf, tajweed, tafsir or translation
       var moreBtn = item(I.more, L.more);
       document.body.appendChild(nav);
 
@@ -670,6 +676,12 @@
         var r = document.createElement('label'); r.className = 'bk-msrow';
         r.innerHTML = '<span>' + esc(label) + '</span>'; body.appendChild(r); return r;
       }
+      // search: first in the sheet
+      var srow = document.createElement('button'); srow.type = 'button'; srow.className = 'bk-msrow bk-mssearch';
+      srow.innerHTML = svg(I.search) + '<span>' + esc(L.search) + '</span>';
+      srow.onclick = function () { shut(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
+      body.appendChild(srow);
+      root.__sheetBody = body;
       // what moves where on a phone: [element, new parent]
       var moves = [];
       var pageNo = root.querySelector('.bk-pageno');
@@ -693,10 +705,7 @@
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
         moves.push([hbn, hslot]);
       }
-      if (tsn && bar) {
-        var tslot = document.createElement('span'); tslot.className = 'bk-mquiz'; bar.insertBefore(tslot, pg);
-        moves.push([tsn, tslot]);
-      }
+      if (tsn) moves.push([tsn, row('', tsn)]);
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
       // done: the choices take effect as they are made; this closes the sheet
@@ -1628,6 +1637,7 @@
           mic.classList.toggle('on', on);
           mic.querySelector('.t').textContent = on ? LV[1] : LV[0];
           root.classList.toggle('bk-living', on);
+          if (root.__liveBar) root.__liveBar(on);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
@@ -1711,6 +1721,76 @@
           var sc = document.createElement('script'); sc.src = '/js/live.js'; sc.onload = startLive;
           sc.onerror = function () { toast(LV[4]); }; document.head.appendChild(sc);
         };
+        // the recite button in the phone bar: hides the verses and starts listening in one tap (a second tap stops)
+        root.__liveToggle = function () {
+          if (live && live.running) { live.stop(); return; }
+          if (!root.classList.contains('bk-hide')) hset(true);
+          mic.onclick({ stopPropagation: function () {} });
+        };
+        // phones: while listening, the bottom bar becomes the recitation bar — time, show/hide the verses, stop, mistakes
+        var LBL = { ar: ['إظهار النص', 'إخفاء النص', 'أوقف', 'الأخطاء', 'لا أخطاء، بارك الله فيك.', 'المس الكلمة لتسمعها'],
+                    ur: ['متن دکھائیں', 'متن چھپائیں', 'روکیں', 'غلطیاں', 'کوئی غلطی نہیں۔', 'سننے کے لیے لفظ چھوئیں'],
+                    en: ['Show the text', 'Hide the text', 'Stop', 'Mistakes', 'No mistakes — well done.', 'Tap a word to hear it'],
+                    fr: ['Afficher le texte', 'Masquer le texte', 'Arrêter', 'Erreurs', 'Aucune erreur, bravo.', 'Touchez un mot pour l’écouter'],
+                    es: ['Mostrar el texto', 'Ocultar el texto', 'Parar', 'Errores', 'Sin errores, bien hecho.', 'Toca una palabra para oírla'],
+                    ru: ['Показать текст', 'Скрыть текст', 'Стоп', 'Ошибки', 'Ошибок нет — молодец.', 'Коснитесь слова, чтобы услышать'] };
+        var LB = LBL[C.lang] || LBL.en, nmb = function (x) { return C.lang === 'ar' ? arNum(x) : String(x); };
+        var lbar = document.createElement('div'); lbar.className = 'bk-mlive';
+        var eyeSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+        lbar.innerHTML = '<span class="lv-time">٠٠:٠٠</span>' +
+          '<button type="button" class="lv-eye" aria-label="' + esc(LB[0]) + '" title="' + esc(LB[0]) + '">' + eyeSvg + '</button>' +
+          '<button type="button" class="lv-stop" aria-label="' + esc(LB[2]) + '" title="' + esc(LB[2]) + '"><i></i></button>' +
+          '<button type="button" class="lv-err"><span>' + esc(LB[3]) + '</span><b>' + nmb(0) + '</b></button>' +
+          '<span class="lv-pad"></span>';
+        document.body.appendChild(lbar);
+        lbar.addEventListener('click', function (e) { e.stopPropagation(); });
+        var lvT0 = 0, lvTick = 0;
+        var lvUpdate = function () {
+          var sec = lvT0 ? Math.floor((Date.now() - lvT0) / 1000) : 0;
+          var t = ('0' + Math.floor(sec / 60)).slice(-2) + ':' + ('0' + (sec % 60)).slice(-2);
+          lbar.querySelector('.lv-time').textContent = C.lang === 'ar' ? arNum(t) : t;
+          var n = Object.keys(famAll.errs).length;
+          lbar.querySelector('.lv-err b').textContent = nmb(n);
+          lbar.querySelector('.lv-err').classList.toggle('has', n > 0);
+        };
+        root.__liveBar = function (on) {
+          clearInterval(lvTick);
+          if (on) { lvT0 = Date.now(); lvUpdate(); lvTick = setInterval(lvUpdate, 1000); }
+          else { root.classList.remove('bk-peek'); }
+        };
+        lbar.querySelector('.lv-stop').onclick = function () { if (live && live.running) live.stop(); };
+        lbar.querySelector('.lv-eye').onclick = function () {
+          var on = root.classList.toggle('bk-peek'), b = lbar.querySelector('.lv-eye');
+          b.classList.toggle('on', on); b.setAttribute('aria-label', on ? LB[1] : LB[0]); b.title = on ? LB[1] : LB[0];
+        };
+        // the session's mistakes: each word as in the Mushaf; a tap plays it
+        lbar.querySelector('.lv-err').onclick = function () {
+          var locs = Object.keys(famAll.errs);
+          var ov3 = document.createElement('div'); ov3.className = 'bk-tjkey bk-famsheet';
+          var bx = document.createElement('div'); bx.className = 'bk-tjbox'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
+          bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + locs.map(function (l) {
+            var x = l.split(':');
+            return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small></button>';
+          }).join('') + '</div>' : '<p>' + esc(LB[4]) + '</p>') + '<button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
+          ov3.appendChild(bx); document.body.appendChild(ov3);
+          ov3.onclick = function (e) { if (e.target === ov3) ov3.remove(); };
+          bx.querySelector('.fs-close').onclick = function () { ov3.remove(); };
+          bx.querySelectorAll('.lv-words button').forEach(function (b) {
+            b.onclick = function () { if (live && live.hold) live.hold(); if (C.__playWord) C.__playWord(b.dataset.l, b); };
+          });
+        };
+        // phones: the choice of what happens on a mistake lives in the «More» sheet
+        var eoHome = document.createComment(''); lwrap.insertBefore(eoHome, eo);
+        var eoRow = null, mqL = window.matchMedia('(max-width:600px)');
+        var eoPlace = function () {
+          var sb = root.__sheetBody;
+          if (mqL.matches && sb) {
+            if (!eoRow) { eoRow = document.createElement('label'); eoRow.className = 'bk-msrow'; eoRow.innerHTML = '<span>' + esc(EOL[0]) + '</span>'; sb.insertBefore(eoRow, sb.children[1] || null); }
+            eoRow.appendChild(eo);
+          } else if (eo.parentNode !== lwrap) lwrap.insertBefore(eo, eoHome);
+        };
+        setTimeout(eoPlace, 0);
+        if (mqL.addEventListener) mqL.addEventListener('change', eoPlace);
         // the reader turned the page himself while listening: the check follows him
         root.__liveFollow = function () {
           if (!live || !live.running || liveTurning) return;
