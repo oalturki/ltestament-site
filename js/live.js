@@ -207,6 +207,8 @@
     return {
       start: start, stop: stop, warm: function () { warm(API); },
       setParts: function (list) { loadParts(list); if (R) cursor(); },
+      // stop listening while something plays (a word said on request), so the microphone does not take it for the reader
+      hold: function (pr) { if (!R) return; R.mute = true; Promise.resolve(pr).catch(noop).then(function () { setTimeout(function () { if (R) R.mute = false; }, 250); }); },
       get running() { return !!R; }
     };
   }

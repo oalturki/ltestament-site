@@ -1514,7 +1514,36 @@
         mic.type = 'button'; mic.className = 'bk-livemic';
         mic.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="t">' + esc(LV[0]) + '</span>';
         mic.setAttribute('aria-label', LV[0]);
-        document.body.appendChild(mic);
+        var EO = { ar: ['عند الخطأ', 'تنبيه صوتي', 'تنبيه وإظهار الآية', 'الشيخ ينطق الكلمة', 'بلا صوت'],
+                   ur: ['غلطی پر', 'آواز سے تنبیہ', 'تنبیہ اور آیت دکھائیں', 'قاری لفظ پڑھے', 'بغیر آواز'],
+                   en: ['On a mistake', 'Alert tone', 'Tone and show the verse', 'Reciter says the word', 'Silent'],
+                   fr: ['En cas d’erreur', 'Signal sonore', 'Signal et afficher le verset', 'Le récitateur dit le mot', 'Silencieux'],
+                   es: ['Ante un error', 'Tono de aviso', 'Tono y mostrar el versículo', 'El recitador dice la palabra', 'Silencio'],
+                   ru: ['При ошибке', 'Звуковой сигнал', 'Сигнал и показать аят', 'Чтец произносит слово', 'Без звука'] };
+        var EOL = EO[C.lang] || EO.en, eo = document.createElement('select');
+        eo.className = 'bk-liveopt'; eo.setAttribute('aria-label', EOL[0]); eo.title = EOL[0];
+        eo.innerHTML = ['beep', 'ayah', 'say', 'none'].map(function (v, i) { return '<option value="' + v + '">' + esc(EOL[i + 1]) + '</option>'; }).join('');
+        eo.value = load('lt_live_err') || 'beep';
+        eo.onchange = function () { store('lt_live_err', eo.value); };
+        eo.onclick = function (e) { e.stopPropagation(); };
+        var lwrap = document.createElement('div'); lwrap.className = 'bk-livewrap';
+        lwrap.appendChild(mic); lwrap.appendChild(eo);
+        document.body.appendChild(lwrap);
+        // a short soft tone (two notes), made here: no file to load
+        var toneCtx = null;
+        var tone = function () {
+          var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return Promise.resolve();
+          toneCtx = toneCtx || new AC(); if (toneCtx.state !== 'running') toneCtx.resume();
+          var t = toneCtx.currentTime + 0.02;
+          [[660, 0], [520, 0.13]].forEach(function (n) {
+            var o2 = toneCtx.createOscillator(), g = toneCtx.createGain();
+            o2.type = 'sine'; o2.frequency.value = n[0];
+            g.gain.setValueAtTime(0.0001, t + n[1]); g.gain.exponentialRampToValueAtTime(0.25, t + n[1] + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.12);
+            o2.connect(g); g.connect(toneCtx.destination); o2.start(t + n[1]); o2.stop(t + n[1] + 0.13);
+          });
+          return new Promise(function (res) { setTimeout(res, 320); });
+        };
         var curMark = document.createElement('div'); curMark.className = 'bk-twcur'; document.body.appendChild(curMark);
         var toast = function (t) {
           var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = t;
@@ -1571,12 +1600,15 @@
               else if (st === 'waking') toast(LV[3]);
               else if (st === 'error') toast(LV[4]);
             },
-            say: C.__playWord ? function (p, w) {
-              var pt = live.__parts[p];
-              return new Promise(function (res) { C.__playWord(pt.s + ':' + w.ayah + ':' + w.n, null, res); setTimeout(res, 4000); });
-            } : null
+            say: function (p, w) {                          // on a mistake, as the reader chose
+              var pt = live.__parts[p], how = eo.value;
+              if (how === 'none') return Promise.resolve();
+              if (how === 'say' && C.__playWord) return new Promise(function (res) { C.__playWord(pt.s + ':' + w.ayah + ':' + w.n, null, res); setTimeout(res, 4000); });
+              if (how === 'ayah') root.querySelectorAll('.bk-mpage [data-l^="' + pt.s + ':' + w.ayah + ':"]').forEach(function (e) { if (!e.classList.contains('rv')) e.classList.add('rv', 'tw-hint'); });
+              return tone();
+            }
           });
-          live.__parts = parts;
+          live.__parts = parts; window.__bkLive = live;
           live.start();
         };
         mic.onclick = function (e) {
@@ -1601,6 +1633,10 @@
           if (w.classList.contains('ae')) {                // the ayah number: the whole ayah
             var pr = l.split(':').slice(0, 2).join(':') + ':';
             root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) { x.classList.add('rv'); });
+          } else if (w.classList.contains('tw-err') && C.__playWord) {   // a mistake: hear the word, when the reader wants it
+            var lw = window.__bkLive;
+            var pr = new Promise(function (res) { C.__playWord(l, null, res); setTimeout(res, 4000); });
+            if (lw && lw.running) lw.hold(pr);
           } else if (w.classList.contains('rv')) return;   // shown already: a tap does what it always does
           else root.querySelectorAll('[data-l="' + l + '"]').forEach(function (x) { x.classList.add('rv'); });
           e.stopPropagation(); e.preventDefault();

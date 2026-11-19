@@ -457,12 +457,16 @@ body.bk-mob .bk-bar{ gap:5px; }
 body.bk-mob .bk-mpg{ font-size:0.78rem; }
 
 /* live recitation on the page (verses hidden): the microphone, and the words as they are recited */
-.bk-livemic{ display:none; }
-.bk-hide .bk-livemic{ display:flex; position:fixed; z-index:40; left:50%; transform:translateX(-50%); bottom:24px; align-items:center; gap:8px;
+.bk-livewrap{ display:none; }
+.bk-hide .bk-livewrap{ display:flex; position:fixed; z-index:40; left:50%; transform:translateX(-50%); bottom:24px; align-items:center; gap:8px; }
+.bk-liveopt{ height:40px; border-radius:20px; border:1px solid rgba(200,155,60,.7); background:#1b2a3a; color:#F3E8D0; font:inherit; font-size:.85rem;
+  padding:0 10px; max-width:150px; box-shadow:0 6px 18px rgba(0,0,0,.25); }
+.bk-hide .bk-livemic{ display:flex; align-items:center; gap:8px;
   height:52px; padding:0 20px 0 16px; border-radius:26px; border:1px solid #c9a227; background:#1b2a3a; color:#F3E8D0;
   font:inherit; font-size:1rem; font-weight:700; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.3); transition:box-shadow .08s; }
 .bk-hide .bk-livemic.on{ background:#C8463C; border-color:#C8463C; color:#fff; }
-body.bk-mob.bk-hide:not(.bk-chrome-off) .bk-livemic{ bottom:150px; }
+body.bk-mob.bk-hide:not(.bk-chrome-off) .bk-livewrap{ bottom:150px; }
+.bk-hide .bk-mpage .ml > span[data-l].tw-hint{ opacity:.55; }
 .bk-hide .bk-mpage .ml > span[data-l].tw-ti{ opacity:.45; }
 .bk-hide .bk-mpage .ml > span[data-l].tw-err{ background:rgba(200,60,50,.22); border-radius:6px; color:#a3241b; }
 .bk-hide .bk-mpage .ml > span[data-l].tw-fix{ background:rgba(201,162,39,.25); border-radius:6px; }
