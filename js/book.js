@@ -653,18 +653,39 @@
         var jsync = function () { js.value = String(MAP.juz[cur - 1]); };
         js.addEventListener('pointerdown', jsync); js.addEventListener('focus', jsync);
         js.onchange = function () { show(jStart[+js.value - 1], 0); };
-        item(I.juz, L.juzs).appendChild(js);
+        var juzIt = item(I.juz, L.juzs); juzIt.appendChild(js); juzIt.classList.add('bk-mjuz');
       }
-      // the bar, as in the Mushaf apps readers know: juz | listen | recite (in the middle, the main action) | view | more
+      // Two modes. Reading (as the Mushaf opens): juz | view | listen (middle) | memorize | more.
+      // Memorization, on request: exit | hide the verses | recite (middle) | listen | more.
+      var MML = { ar: ['الحفظ', 'خروج', 'إخفاء', 'إظهار'], ur: ['حفظ', 'باہر', 'چھپائیں', 'دکھائیں'], en: ['Memorize', 'Exit', 'Hide', 'Show'],
+                  fr: ['Mémoriser', 'Quitter', 'Masquer', 'Afficher'], es: ['Memorizar', 'Salir', 'Ocultar', 'Mostrar'], ru: ['Заучивать', 'Выход', 'Скрыть', 'Показать'] };
+      var ML = MML[C.lang] || MML.en;
+      var I2 = { memo: '<path d="M9.5 3.5a3.5 3.5 0 0 0-3.4 4.3A3.5 3.5 0 0 0 5 14.6 3.5 3.5 0 0 0 9.5 20h.5V3.5zM14.5 3.5a3.5 3.5 0 0 1 3.4 4.3 3.5 3.5 0 0 1 1.1 6.8A3.5 3.5 0 0 1 14.5 20H14V3.5z"/>',
+                 exit: '<path d="M6 6l12 12M18 6L6 18"/>',
+                 eye: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>' };
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
+      var memoBtn = item(I2.memo, ML[0]); memoBtn.classList.add('bk-mmemo');
+      var exitBtn = item(I2.exit, ML[1]); exitBtn.classList.add('bk-mexit');
+      var eyeBtn = item(I2.eye, ML[2]); eyeBtn.classList.add('bk-meye');
+      var hideNow = function () { return root.classList.contains('bk-hide'); };
+      var syncEye = function () { var on = hideNow(); eyeBtn.classList.toggle('on', on); eyeBtn.querySelector('span').textContent = on ? ML[3] : ML[2]; };
+      var hideBtn = function () { return document.querySelector('.bk-hidebtn:not(.bk-tsbtn):not(.bk-fambtn)'); };
+      memoBtn.onclick = function (e) { e.stopPropagation(); root.classList.add('bk-memo'); syncEye(); };
+      exitBtn.onclick = function (e) {
+        e.stopPropagation();
+        if (window.__bkLive && window.__bkLive.running) window.__bkLive.stop();
+        if (hideNow() && hideBtn()) hideBtn().click();
+        root.classList.remove('bk-memo');
+      };
+      eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       var RCL = { ar: 'سمِّع', ur: 'سنائیں', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Читать' };
       var mmic = document.createElement('button'); mmic.type = 'button'; mmic.className = 'bk-mmic';
       mmic.setAttribute('aria-label', RCL[C.lang] || RCL.en); mmic.title = RCL[C.lang] || RCL.en;
       mmic.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
-      mmic.onclick = function (e) { e.stopPropagation(); if (root.__liveToggle) root.__liveToggle(); };
+      mmic.onclick = function (e) { e.stopPropagation(); if (root.__liveToggle) root.__liveToggle(); setTimeout(syncEye, 50); };
       nav.appendChild(mmic);
-      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel'));   // Arabic: Mushaf, tajweed, tafsir or translation
-      var moreBtn = item(I.more, L.more);
+      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel')).classList.add('bk-mview');   // Arabic: Mushaf, tajweed, tafsir or translation
+      var moreBtn = item(I.more, L.more); moreBtn.classList.add('bk-mmore');
       document.body.appendChild(nav);
 
       var ov = document.createElement('div'); ov.className = 'bk-msov';

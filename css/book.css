@@ -581,3 +581,20 @@ button.bk-msplace, .bk-msplace > button:first-child{ flex:1; display:grid; justi
 body.bk-mob .bk-mnav .bk-mplay .bk-play{ width:40px; height:40px; background:transparent; color:var(--gold-soft); border:1.5px solid rgba(200,155,60,.7); box-shadow:none; }
 body.bk-mob .bk-mnav .bk-mplay .bk-play svg{ width:17px; height:17px; }
 body.bk-mob .bk-mnav .bk-mplay .bk-play.on{ background:var(--gold); color:var(--night-deep); border-color:var(--gold); }
+/* ---------- phones: reading mode (as the Mushaf opens) and memorization mode (on request) ---------- */
+body.bk-mob .bk-mnav > *{ order:9; }
+body.bk-mob:not(.bk-memo) .bk-mjuz{ order:1; } body.bk-mob:not(.bk-memo) .bk-mview{ order:2; } body.bk-mob:not(.bk-memo) .bk-mplay{ order:3; }
+body.bk-mob:not(.bk-memo) .bk-mmemo{ order:4; } body.bk-mob .bk-mmore{ order:5; }
+body.bk-mob:not(.bk-memo) .bk-mexit, body.bk-mob:not(.bk-memo) .bk-meye, body.bk-mob:not(.bk-memo) .bk-mmic{ display:none !important; }
+body.bk-mob.bk-memo .bk-mexit{ order:1; } body.bk-mob.bk-memo .bk-meye{ order:2; } body.bk-mob.bk-memo .bk-mmic{ order:3; } body.bk-mob.bk-memo .bk-mplay{ order:4; }
+body.bk-mob.bk-memo .bk-mjuz, body.bk-mob.bk-memo .bk-mview, body.bk-mob.bk-memo .bk-mmemo{ display:none !important; }
+.bk-mmemo, .bk-mexit, .bk-meye{ display:none; }
+body.bk-mob .bk-mmemo, body.bk-mob .bk-mexit, body.bk-mob .bk-meye{ display:flex; }
+body.bk-mob .bk-meye.on svg{ color:#1b2a3a; background:var(--gold); border-radius:8px; }
+/* reading: listen is the main button, in the middle */
+body.bk-mob:not(.bk-memo) .bk-mnav .bk-mplay .bk-play{ width:56px; height:56px; margin-top:-16px; background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#1b2a3a;
+  border:none; box-shadow:0 0 0 5px rgba(16,27,51,.85), 0 6px 14px rgba(0,0,0,.3); }
+body.bk-mob:not(.bk-memo) .bk-mnav .bk-mplay .bk-play svg{ width:22px; height:22px; }
+/* the top bar: the self-test eye is in the memorization bar; the quiz shows in memorization only */
+body.bk-mob .bk-bar .bk-mquiz:has(.bk-hidebtn){ display:none; }
+body.bk-mob:not(.bk-memo) .bk-bar .bk-mquiz:has(.bk-quizlink){ display:none; }
