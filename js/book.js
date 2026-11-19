@@ -725,10 +725,10 @@
         });
         if (!fr) { shw.style.display = 'none'; return; }
         // always in the same place: the middle of the frame's bottom band, whichever side the page is on
-        var r = fr.getBoundingClientRect(), w = 44, h = 22;
+        var r = fr.getBoundingClientRect(), w = 40, h = 14;
         shw.style.display = '';
         // its top on the frame's bottom line, hanging below it, so it never touches the text
-        shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h - 2)) + 'px';
+        shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
       }
       window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
