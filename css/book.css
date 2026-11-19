@@ -598,3 +598,21 @@ body.bk-mob:not(.bk-memo) .bk-mnav .bk-mplay .bk-play svg{ width:22px; height:22
 /* the top bar: the self-test eye is in the memorization bar; the quiz shows in memorization only */
 body.bk-mob .bk-bar .bk-mquiz:has(.bk-hidebtn){ display:none; }
 body.bk-mob:not(.bk-memo) .bk-bar .bk-mquiz:has(.bk-quizlink){ display:none; }
+/* Arabic on phones: what is shown is chosen from the top button; no text/translation tabs */
+.bk-viewbtn{ display:none; }
+body.bk-mob.bk-viewsel .bk-tabs{ display:none !important; }
+body.bk-mob .bk-viewbtn{ display:inline-flex; align-items:center; gap:4px; flex:0 1 auto; min-width:0; max-width:46%; height:40px; padding:0 10px;
+  border-radius:12px; border:1px solid rgba(200,155,60,.5); background:rgba(255,255,255,.04); color:var(--parch); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; }
+body.bk-mob .bk-viewbtn span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+body.bk-mob .bk-viewbtn svg{ flex:none; color:var(--gold-soft); }
+/* the view sheet: groups of choices, each with its source; the one shown has a check */
+.bk-viewov .bk-msbody{ max-height:70vh; overflow:auto; }
+.bk-viewov h3{ margin:16px 4px 8px; font-size:1.05rem; color:var(--parch); }
+.bk-vlist{ border-radius:16px; background:rgba(255,255,255,.05); overflow:hidden; }
+.bk-vlist button{ display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; padding:12px 14px; background:none; border:none;
+  border-bottom:1px solid rgba(246,238,218,.08); color:var(--parch); font:inherit; text-align:start; cursor:pointer; }
+.bk-vlist button:last-child{ border-bottom:none; }
+.bk-vlist button span{ display:grid; gap:3px; }
+.bk-vlist button b{ font-size:1rem; } .bk-vlist button small{ color:#a89f83; font-size:.8rem; line-height:1.5; }
+.bk-vlist button i{ font-style:normal; color:#3c9a5a; font-size:1.2rem; visibility:hidden; }
+.bk-vlist button.on i{ visibility:visible; }

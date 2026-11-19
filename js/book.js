@@ -684,7 +684,48 @@
       mmic.innerHTML = '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
       mmic.onclick = function (e) { e.stopPropagation(); if (root.__liveToggle) root.__liveToggle(); setTimeout(syncEye, 50); };
       nav.appendChild(mmic);
-      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel')).classList.add('bk-mview');   // Arabic: Mushaf, tajweed, tafsir or translation
+      var arView = C.lang === 'ar' && optTr;
+      if (q('trSel') && !arView) item(I.tr, L.tr, q('trSel')).classList.add('bk-mview');
+      if (arView) {
+        // Arabic: what is shown (Mushaf, tajweed, a tafsir, a translation) is chosen from a button at the top;
+        // the bottom bar has search in its place
+        item(I.search, L.search, null).classList.add('bk-mview');
+        nav.lastChild.onclick = function (e) { e.stopPropagation(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
+        var vb = document.createElement('button'); vb.type = 'button'; vb.className = 'bk-viewbtn';
+        if (bar) bar.insertBefore(vb, pg);
+        var VSUB = { '': 'مصحف المدينة النبوية — مجمع الملك فهد', '__taj': 'ألوان أحكام التجويد — مجمع الملك فهد' };
+        var vName = function () {
+          var ts = q('trSel'); if (!ts) return 'المصحف';
+          var o = ts.options[ts.selectedIndex];
+          return o ? o.text.replace(/\s*\(.*\)$/, '') : 'المصحف';
+        };
+        var vSync = function () { vb.innerHTML = '<span>' + esc(vName()) + '</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'; };
+        setTimeout(vSync, 0);
+        if (q('trSel')) q('trSel').addEventListener('change', function () { setTimeout(vSync, 0); });
+        vb.onclick = function (e) {
+          e.stopPropagation();
+          var ts = q('trSel'); if (!ts) return;
+          var ov4 = document.createElement('div'); ov4.className = 'bk-msov on bk-viewov';
+          var sec = '';
+          ts.querySelectorAll('optgroup').forEach(function (g) {
+            sec += '<h3>' + esc(g.label) + '</h3><div class="bk-vlist">' + Array.prototype.map.call(g.children, function (o) {
+              var t = C.translations.filter(function (x) { return x.key === o.value; })[0];
+              var sub = VSUB[o.value] != null ? VSUB[o.value] : (t ? String(t.credit || '').replace(/<[^>]+>/g, '').split('·')[0].trim() : '');
+              return '<button type="button" data-v="' + esc(o.value) + '"' + (o.value === ts.value ? ' class="on"' : '') + '><span><b>' + esc(o.text) + '</b>' +
+                (sub && sub !== o.text ? '<small>' + esc(sub) + '</small>' : '') + '</span><i>✓</i></button>';
+            }).join('') + '</div>';
+          });
+          ov4.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true"><div class="bk-msgrip"></div><div class="bk-mshead"><h2>اختيار المصحف أو التفسير أو الترجمة</h2>' +
+            '<button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div><div class="bk-msbody">' + sec + '</div></section>';
+          document.body.appendChild(ov4);
+          var close4 = function () { ov4.remove(); };
+          ov4.addEventListener('click', function (ev) { if (ev.target === ov4) close4(); });
+          ov4.querySelector('.bk-msx').onclick = close4;
+          ov4.querySelectorAll('[data-v]').forEach(function (b) {
+            b.onclick = function () { close4(); if (ts.value !== b.dataset.v) { ts.value = b.dataset.v; ts.dispatchEvent(new Event('change')); } };
+          });
+        };
+      }
       var moreBtn = item(I.more, L.more); moreBtn.classList.add('bk-mmore');
       document.body.appendChild(nav);
 
@@ -945,6 +986,9 @@
             var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = t.fontUrl; l.dataset.font = t.key; document.head.appendChild(l);
           }
           track('book_open', trKey);
+          if (document.body.classList.contains('bk-mob') && root.classList.contains('bk-viewsel')) {
+            var tbt = root.querySelector('.bk-tab[data-show="tr"]'); if (tbt) tbt.click();
+          }
           show(cur, 0, true);
           tabLabel();
         };
@@ -990,7 +1034,8 @@
         requestAnimationFrame(fitAll);
       }
       tabs.forEach(function (b) { b.onclick = function () { setShow(b.dataset.show); }; });
-      setShow(mushaf ? 'ar' : ((!embed && load('lt_book_show')) || C.defaultShow));
+      // Arabic on phones: no text/translation tabs — a tafsir or translation chosen is what the page shows
+      setShow(mushaf ? 'ar' : (optTr && C.lang === 'ar' && window.matchMedia('(max-width:600px)').matches) ? 'tr' : ((!embed && load('lt_book_show')) || C.defaultShow));
 
       var wasStep = step(), rt;
       window.addEventListener('resize', function () {
