@@ -71,7 +71,7 @@ def index_names(lang):
 UI = {
  'ar': dict(frame='شكل الإطار', frameEdge='زخرفة على الحافة', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
-            loading='جارِ فتح المصحف…', text='النص', meaning='المعنى', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
+            loading='جارِ فتح المصحف…', text='النص', meaning='الترجمة', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
  'en': dict(frame='Page frame', frameEdge='Outer edge ornament', frameFull='Full ornament', frameSides='Right / left pages', frameNone='Plain', listen='Listen', pause='Pause', reciter='Reciter', full='Open the full Quran', fontCredit='Mushaf font: King Fahd Glorious Quran Printing Complex', title='The Quran as a book', sub='Page through the Quran as laid out in the Madinah Mushaf, with the meaning in your language on the facing page.',
             page='Page', notes='Translator’s notes', retry='Try again', error='The page could not be loaded. Check your connection and try again.',
