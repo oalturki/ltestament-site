@@ -727,7 +727,8 @@
         // always in the same place: the middle of the frame's bottom band, whichever side the page is on
         var r = fr.getBoundingClientRect(), w = 44, h = 22;
         shw.style.display = '';
-        shw.style.top = Math.round(Math.min(r.bottom, window.innerHeight) - 6.5 - h / 2) + 'px';
+        // its top on the frame's bottom line, hanging below it, so it never touches the text
+        shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h - 2)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
       }
       window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
