@@ -3,7 +3,7 @@
    Language: ?lang=ar|ur|en|fr|es|ru (the Mushaf passes its own), else the last one used, else Arabic. */
 (function () {
   var T = {
-    ar: { title: 'سجل الطالب', sub: 'حساب واحد للأسرة، وملف لكل ابن: ما حفظه وما سمّعه وما حان وقت مراجعته، وأين توقف.', back: '→ العودة إلى المصحف',
+    ar: { mailFail: "تعذّر إرسال رسالة البريد الآن؛ أعد المحاولة بعد قليل.", title: 'سجل الطالب', sub: 'حساب واحد للأسرة، وملف لكل ابن: ما حفظه وما سمّعه وما حان وقت مراجعته، وأين توقف.', back: '→ العودة إلى المصحف',
       signin: 'دخول', signup: 'حساب جديد', email: 'البريد الإلكتروني', password: 'كلمة المرور', name: 'اسمك', go: 'دخول', create: 'إنشاء الحساب',
       magic: 'أرسل لي رابط دخول', forgot: 'نسيت كلمة المرور', sent: 'أرسلنا رسالة إلى بريدك، افتحها واضغط الرابط الذي فيها.',
       checkEmail: 'أُنشئ الحساب. أرسلنا إلى بريدك رسالة تأكيد، اضغط الرابط الذي فيها ثم ادخل.', consent: 'أوافق على أن يحفظ الموقع ما يلزم لسجل التحفيظ كما هو موضّح أدناه.',
@@ -20,7 +20,7 @@
       weak: 'كلمة المرور قصيرة: ٨ أحرف على الأقل.', limit: 'بلغت الأسرة الحد الأعلى: ١٠ ملفات.', fill: 'أكمل الحقول.', board: 'لوحة المتابعة',
       delAccount: 'حذف الحساب', delAccAsk: 'لحذف الحساب وكل سجلات الأسرة نهائيًا، راسلنا من صفحة «رأيك يهمنا» وسنحذفه خلال أيام.', settings: 'الإعدادات',
       unconfirmed: 'لم يُؤكَّد البريد بعد: افتح رسالة التأكيد في بريدك أولًا.' },
-    en: { title: 'Student record', sub: 'One account for the family and a profile for each child: what they memorized, recited and should review, and where they stopped.', back: '← Back to the Mushaf',
+    en: { mailFail: "The email could not be sent just now; please try again shortly.", title: 'Student record', sub: 'One account for the family and a profile for each child: what they memorized, recited and should review, and where they stopped.', back: '← Back to the Mushaf',
       signin: 'Sign in', signup: 'New account', email: 'Email', password: 'Password', name: 'Your name', go: 'Sign in', create: 'Create account',
       magic: 'Email me a sign-in link', forgot: 'Forgot password', sent: 'We sent you an email; open it and tap the link.',
       checkEmail: 'Account created. We sent a confirmation email; tap its link, then sign in.', consent: 'I agree that the site keeps what the memorization record needs, as described below.',
@@ -37,7 +37,7 @@
       weak: 'Password too short: at least 8 characters.', limit: 'The family has reached the limit of 10 profiles.', fill: 'Please fill in the fields.', board: 'Progress board',
       delAccount: 'Delete account', delAccAsk: 'To delete the account and all the family’s records for good, write to us from the Feedback page and we will delete it within days.', settings: 'Settings',
       unconfirmed: 'Email not confirmed yet: open the confirmation email first.' },
-    ur: { title: 'طالب علم کا ریکارڈ', sub: 'خاندان کے لیے ایک اکاؤنٹ اور ہر بچے کا الگ پروفائل: کیا یاد کیا، کیا سنایا، کس کی دہرائی باقی ہے، اور کہاں رکے۔', back: '→ مصحف پر واپس',
+    ur: { mailFail: "ابھی ای میل نہیں بھیجی جا سکی؛ تھوڑی دیر بعد دوبارہ کوشش کریں۔", title: 'طالب علم کا ریکارڈ', sub: 'خاندان کے لیے ایک اکاؤنٹ اور ہر بچے کا الگ پروفائل: کیا یاد کیا، کیا سنایا، کس کی دہرائی باقی ہے، اور کہاں رکے۔', back: '→ مصحف پر واپس',
       signin: 'لاگ اِن', signup: 'نیا اکاؤنٹ', email: 'ای میل', password: 'پاس ورڈ', name: 'آپ کا نام', go: 'لاگ اِن', create: 'اکاؤنٹ بنائیں',
       magic: 'مجھے لاگ اِن لنک بھیجیں', forgot: 'پاس ورڈ بھول گئے', sent: 'ہم نے آپ کو ای میل بھیجی ہے؛ اسے کھول کر لنک دبائیں۔',
       checkEmail: 'اکاؤنٹ بن گیا۔ تصدیقی ای میل بھیجی گئی ہے؛ اس کا لنک دبائیں، پھر لاگ اِن کریں۔', consent: 'میں اتفاق کرتا ہوں کہ سائٹ حفظ کے ریکارڈ کے لیے ضروری معلومات محفوظ رکھے، جیسا کہ نیچے بیان ہے۔',
@@ -54,7 +54,7 @@
       weak: 'پاس ورڈ کم از کم ۸ حروف کا ہو۔', limit: 'خاندان ۱۰ پروفائلز کی حد تک پہنچ گیا۔', fill: 'خانے پُر کریں۔', board: 'پیش رفت',
       delAccount: 'اکاؤنٹ حذف کریں', delAccAsk: 'اکاؤنٹ اور تمام ریکارڈ حذف کرنے کے لیے رائے کے صفحے سے ہمیں لکھیں، ہم چند دنوں میں حذف کر دیں گے۔', settings: 'ترتیبات',
       unconfirmed: 'ای میل کی تصدیق ابھی نہیں ہوئی: پہلے تصدیقی ای میل کھولیں۔' },
-    fr: { title: 'Dossier de l’élève', sub: 'Un compte pour la famille et un profil par enfant : ce qu’il a mémorisé, récité, doit réviser, et où il s’est arrêté.', back: '← Retour au Mushaf',
+    fr: { mailFail: "L’e-mail n’a pas pu être envoyé ; réessayez dans un moment.", title: 'Dossier de l’élève', sub: 'Un compte pour la famille et un profil par enfant : ce qu’il a mémorisé, récité, doit réviser, et où il s’est arrêté.', back: '← Retour au Mushaf',
       signin: 'Connexion', signup: 'Nouveau compte', email: 'E-mail', password: 'Mot de passe', name: 'Votre nom', go: 'Se connecter', create: 'Créer le compte',
       magic: 'M’envoyer un lien de connexion', forgot: 'Mot de passe oublié', sent: 'Nous vous avons envoyé un e-mail ; ouvrez-le et touchez le lien.',
       checkEmail: 'Compte créé. Un e-mail de confirmation vous a été envoyé ; touchez son lien, puis connectez-vous.', consent: 'J’accepte que le site conserve ce qu’exige le dossier de mémorisation, comme décrit ci-dessous.',
@@ -71,7 +71,7 @@
       weak: 'Mot de passe trop court : 8 caractères au moins.', limit: 'La famille a atteint la limite de 10 profils.', fill: 'Remplissez les champs.', board: 'Suivi',
       delAccount: 'Supprimer le compte', delAccAsk: 'Pour supprimer le compte et tous les dossiers, écrivez-nous depuis la page Avis ; nous le supprimerons sous quelques jours.', settings: 'Réglages',
       unconfirmed: 'E-mail non confirmé : ouvrez d’abord l’e-mail de confirmation.' },
-    es: { title: 'Registro del alumno', sub: 'Una cuenta para la familia y un perfil por hijo: lo que memorizó, recitó y debe repasar, y dónde se detuvo.', back: '← Volver al Mushaf',
+    es: { mailFail: "No se pudo enviar el correo ahora; inténtalo de nuevo en un momento.", title: 'Registro del alumno', sub: 'Una cuenta para la familia y un perfil por hijo: lo que memorizó, recitó y debe repasar, y dónde se detuvo.', back: '← Volver al Mushaf',
       signin: 'Entrar', signup: 'Cuenta nueva', email: 'Correo', password: 'Contraseña', name: 'Tu nombre', go: 'Entrar', create: 'Crear cuenta',
       magic: 'Envíame un enlace de acceso', forgot: 'Olvidé la contraseña', sent: 'Te enviamos un correo; ábrelo y toca el enlace.',
       checkEmail: 'Cuenta creada. Te enviamos un correo de confirmación; toca su enlace y luego entra.', consent: 'Acepto que el sitio guarde lo que necesita el registro de memorización, como se describe abajo.',
@@ -88,7 +88,7 @@
       weak: 'Contraseña corta: al menos 8 caracteres.', limit: 'La familia llegó al límite de 10 perfiles.', fill: 'Completa los campos.', board: 'Seguimiento',
       delAccount: 'Borrar la cuenta', delAccAsk: 'Para borrar la cuenta y todos los registros, escríbenos desde la página de Opiniones; la borraremos en unos días.', settings: 'Ajustes',
       unconfirmed: 'Correo sin confirmar: abre primero el correo de confirmación.' },
-    ru: { title: 'Журнал ученика', sub: 'Один аккаунт для семьи и профиль для каждого ребёнка: что выучено, прочитано наизусть, что пора повторить и где остановились.', back: '← Назад к Мусхафу',
+    ru: { mailFail: "Письмо сейчас не удалось отправить; попробуйте чуть позже.", title: 'Журнал ученика', sub: 'Один аккаунт для семьи и профиль для каждого ребёнка: что выучено, прочитано наизусть, что пора повторить и где остановились.', back: '← Назад к Мусхафу',
       signin: 'Вход', signup: 'Новый аккаунт', email: 'Эл. почта', password: 'Пароль', name: 'Ваше имя', go: 'Войти', create: 'Создать аккаунт',
       magic: 'Прислать ссылку для входа', forgot: 'Забыли пароль', sent: 'Мы отправили письмо; откройте его и нажмите ссылку.',
       checkEmail: 'Аккаунт создан. Мы отправили письмо для подтверждения; нажмите ссылку, затем войдите.', consent: 'Я согласен, что сайт хранит то, что нужно для журнала заучивания, как описано ниже.',
@@ -123,6 +123,7 @@
   function msg(el, t, bad) { el.textContent = t || ''; el.classList.toggle('err', !!bad); }
   function errText(e) {
     var m = String(e && (e.message || e.code) || e);
+    if (/sending|confirmation email|smtp|magic link email|recovery email/i.test(m)) return L.mailFail;
     if (/invalid login/i.test(m)) return L.badLogin;
     if (/already registered|already been registered|user_already_exists/i.test(m)) return L.exists;
     if (/password/i.test(m) && /(short|least|weak)/i.test(m)) return L.weak;
