@@ -163,7 +163,7 @@
       // the site's own copy first (data/tr/<key>/<surah>.json, tools/build_translations.py); QuranEnc only if it is missing
       if (key === 'arabic_moyassar') {   // the site's copy of al-Muyassar (data/tafsir): a list of the verses' explanations
         trCache[id] = getJSON(BASE + '/data/tafsir/' + key + '/' + s + '.json', 8000).then(function (l) {
-          return l.map(function (t, i) { return { aya: i + 1, translation: t }; });
+          return l.map(function (t, i) { return { sura: String(s), aya: i + 1, translation: t }; });
         }, function () { return getJSON(QE + key + '/' + s).then(function (d) { return d.result; }); });
         trCache[id].catch(function () { delete trCache[id]; });
         return trCache[id];
