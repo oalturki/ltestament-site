@@ -1737,11 +1737,10 @@
         var LB = LBL[C.lang] || LBL.en, nmb = function (x) { return C.lang === 'ar' ? arNum(x) : String(x); };
         var lbar = document.createElement('div'); lbar.className = 'bk-mlive';
         var eyeSvg = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-        lbar.innerHTML = '<span class="lv-time">٠٠:٠٠</span>' +
-          '<button type="button" class="lv-eye" aria-label="' + esc(LB[0]) + '" title="' + esc(LB[0]) + '">' + eyeSvg + '</button>' +
+        lbar.innerHTML = '<div class="lv-side"><span class="lv-time">٠٠:٠٠</span>' +
+          '<button type="button" class="lv-eye" aria-label="' + esc(LB[0]) + '" title="' + esc(LB[0]) + '">' + eyeSvg + '</button></div>' +
           '<button type="button" class="lv-stop" aria-label="' + esc(LB[2]) + '" title="' + esc(LB[2]) + '"><i></i></button>' +
-          '<button type="button" class="lv-err"><span>' + esc(LB[3]) + '</span><b>' + nmb(0) + '</b></button>' +
-          '<span class="lv-pad"></span>';
+          '<div class="lv-side"><button type="button" class="lv-err"><span>' + esc(LB[3]) + '</span><b>' + nmb(0) + '</b></button></div>';
         document.body.appendChild(lbar);
         lbar.addEventListener('click', function (e) { e.stopPropagation(); });
         var lvT0 = 0, lvTick = 0;
