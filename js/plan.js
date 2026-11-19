@@ -128,8 +128,11 @@
       oldNear = plan.ord === 'reverse' ? after.concat(before) : before.concat(after);
     }
     var out = [], li = 0, cyc = 0, ps = null, d = parse(plan.start_date);
-    for (var guard = 0; guard < 4000 && out.length < maxSlots && li < ls.length; guard++, d.setDate(d.getDate() + 1)) {
+    var lastSp = Object.keys(days).filter(function (k) { return days[k] !== 'off'; }).sort().pop() || '';   // exam days after the last lesson
+    for (var guard = 0; guard < 4000 && out.length < maxSlots; guard++, d.setDate(d.getDate() + 1)) {
       var key = ymd(d), wd = d.getDay();
+      if (li >= ls.length && key > lastSp) break;
+      if (li >= ls.length && !days[key]) continue;
       if (!(plan.days & (1 << wd))) continue;
       var kind = days[key] || 'lesson';
       if (kind === 'off') continue;
@@ -241,11 +244,16 @@
     return s + ':' + Math.min(a, D.cnt[s - 1]);
   }
   function importText(text) {
-    var rows = [], errors = [], days = {};
+    var rows = [], errors = [], days = {}, old = null;
     String(text).split(/\r?\n/).forEach(function (line, i) {
       line = line.replace(/^[\s|`*-]+|[\s|`*]+$/g, '');
       if (!line || /^(التاريخ|date)/i.test(line)) return;
       var f = line.split(/\s*[,،;|\t]\s*/);
+      if (/^(مراجعه|المراجعه|review)/i.test(norm(f[0]))) {          // the earlier memorized range, for distant review
+        var o1 = surahNo(f[1] || ''), o2 = surahNo(f[2] || f[1] || '');
+        if (o1 && o2) { old = [Math.min(o1, o2), Math.max(o1, o2)]; } else errors.push(i + 1);
+        return;
+      }
       var dm = (f[0] || '').replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
       if (!dm) { errors.push(i + 1); return; }
       var d = dm[1] + '-' + ('0' + dm[2]).slice(-2) + '-' + ('0' + dm[3]).slice(-2);
@@ -268,7 +276,8 @@
     var lines = rows.reduce(function (t2, r) { return t2 + linesOf(walk(r.a_from, r.a_to, s0 > s1 ? 'reverse' : 'mushaf')); }, 0);
     return {
       plan: { new_from: rows[0].a_from, new_to: rows[rows.length - 1].a_to, ord: s0 > s1 ? 'reverse' : 'mushaf', unit: 'line',
-              amount: Math.max(1, Math.round(lines / rows.length * 2) / 2), days: mask, start_date: all[0] },
+              amount: Math.max(1, Math.round(lines / rows.length * 2) / 2), days: mask, start_date: all[0],
+              old_from: old ? old[0] + ':1' : null, old_to: old ? lastRef(old[1]) : null },
       lessons: rows.map(function (r, i) { return { idx: i, a_from: r.a_from, a_to: r.a_to, edited: true, done_at: null, done_how: null, mistakes: null }; }),
       days: days, errors: errors
     };
@@ -277,7 +286,8 @@
   function importPrompt(lang) {
     return 'حوِّل خطة الحفظ المرفقة إلى جدول نصي بالتنسيق التالي بالضبط، سطر لكل يوم دراسي، بلا أي شرح قبله أو بعده:\n\n' +
       'التاريخ الميلادي (YYYY-MM-DD), نوع اليوم, بداية الحفظ الجديد (السورة:الآية), نهاية الحفظ الجديد (السورة:الآية)\n\n' +
-      'أمثلة:\n2026-08-24, درس, الصف:1, الصف:7\n2026-08-25, درس, الصف:8, الصف:هـ\n2026-09-23, إجازة\n2026-11-05, ضبط\n2026-11-10, اختبار\n\n' +
+      'وإن ذكرت الخطة مقرر المراجعة البعيدة (المحفوظ السابق) فاكتبه أولًا في سطر بهذا الشكل: مراجعة, أول سورة, آخر سورة\n\n' +
+      'أمثلة:\nمراجعة, الجمعة, الناس\n2026-08-24, درس, الصف:1, الصف:7\n2026-08-25, درس, الصف:8, الصف:هـ\n2026-09-23, إجازة\n2026-11-05, ضبط\n2026-11-10, اختبار\n\n' +
       'القواعد:\n- نوع اليوم واحد من: درس، ضبط (يوم ضبط وتثبيت بلا حفظ جديد)، اختبار، إجازة.\n' +
       '- في أيام الدرس اكتب الحفظ الجديد فقط (لا المراجعة القريبة ولا البعيدة).\n' +
       '- اكتب اسم السورة كما في المصحف، و«هـ» لآخر آية في السورة.\n' +

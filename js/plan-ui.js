@@ -207,6 +207,8 @@
       document.getElementById('plN').value = r.plan.amount; document.getElementById('plU').value = 'line';
       f.querySelectorAll('.pl-days input').forEach(function (x) { x.checked = !!(r.plan.days & (1 << +x.value)); });
       document.getElementById('plD').value = r.plan.start_date;
+      if (r.plan.old_from) { document.getElementById('plOF').value = r.plan.old_from.split(':')[0]; document.getElementById('plOT').value = r.plan.old_to.split(':')[0]; }
+      f.querySelector('.pl-more:not(.pl-imp)').open = true;   // the reviews are set here, so show them
       O.msg(im, L.impOk.replace('{n}', n(r.lessons.length)) + (r.errors.length ? ' ' + L.impBad + ' ' + r.errors.map(n).join('، ') : ''), !!r.errors.length);
       var b = build(read());
       document.getElementById('plPreview').innerHTML = endLine(b.slots) + table(b, 0, true);
