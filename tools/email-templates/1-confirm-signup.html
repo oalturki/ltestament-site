@@ -1,0 +1,49 @@
+{{ if eq .Data.lang "ar" }}
+<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">العهد الأخير</p>
+<p style="margin:0 0 10px;font-size:16px">أهلًا{{ if .Data.name }} {{ .Data.name }}{{ end }}،</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">اضغط الزر لتأكيد بريدك وتفعيل حساب «سجل الطالب».</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">تأكيد البريد</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">إن لم تطلب هذا فتجاهل الرسالة.</p>
+</div>
+{{ else if eq .Data.lang "ur" }}
+<div dir="rtl" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">العهد الأخیر</p>
+<p style="margin:0 0 10px;font-size:16px">السلام علیکم{{ if .Data.name }} {{ .Data.name }}{{ end }}،</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">اپنی ای میل کی تصدیق اور اکاؤنٹ فعال کرنے کے لیے بٹن دبائیں۔</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">ای میل کی تصدیق</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">اگر آپ نے یہ درخواست نہیں کی تو اس پیغام کو نظرانداز کریں۔</p>
+</div>
+{{ else if eq .Data.lang "fr" }}
+<div dir="ltr" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">Le Dernier Testament</p>
+<p style="margin:0 0 10px;font-size:16px">Bonjour{{ if .Data.name }} {{ .Data.name }}{{ end }},</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">Cliquez sur le bouton pour confirmer votre e-mail et activer votre compte.</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">Confirmer</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>
+</div>
+{{ else if eq .Data.lang "es" }}
+<div dir="ltr" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">El Último Testamento</p>
+<p style="margin:0 0 10px;font-size:16px">Hola{{ if .Data.name }} {{ .Data.name }}{{ end }}:</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">Pulsa el botón para confirmar tu correo y activar tu cuenta.</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">Confirmar</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">Si no lo pediste, ignora este mensaje.</p>
+</div>
+{{ else if eq .Data.lang "ru" }}
+<div dir="ltr" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">Последний Завет</p>
+<p style="margin:0 0 10px;font-size:16px">Здравствуйте{{ if .Data.name }},{{ if .Data.name }} {{ .Data.name }}{{ end }}{{ end }}!</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">Нажмите кнопку, чтобы подтвердить почту и активировать аккаунт.</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">Подтвердить</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">Если вы этого не запрашивали, просто проигнорируйте письмо.</p>
+</div>
+{{ else }}
+<div dir="ltr" style="font-family:Tahoma,Arial,sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#0A1425;color:#F3E8D0;border-radius:12px">
+<p style="margin:0 0 18px;color:#C89B3C;font-size:18px;font-weight:bold">The Last Testament</p>
+<p style="margin:0 0 10px;font-size:16px">Hello{{ if .Data.name }} {{ .Data.name }}{{ end }},</p>
+<p style="margin:0 0 22px;font-size:15px;line-height:1.7;color:#C9C2AE">Press the button to confirm your email and activate your account.</p>
+<p style="margin:0 0 24px"><a href="{{ .ConfirmationURL }}" style="background:#C89B3C;color:#0A1425;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:bold;display:inline-block">Confirm email</a></p>
+<p style="margin:0;font-size:12px;color:#8a8470">If you didn't ask for this, just ignore this email.</p>
+</div>
+{{ end }}
