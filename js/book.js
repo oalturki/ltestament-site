@@ -1721,7 +1721,7 @@
                 return cl.from('page_state').select('page').eq('profile_id', cur0.id).eq('state', 'mastered').lte('due', todayStr()).order('page').limit(604).then(function (r) {
                   var due = (r.data || []).map(function (x) { return x.page; }), el = body.querySelector('.fs-rev');
                   if (!el) return;
-                  el.innerHTML = due.length ? '<span class="fs-l">' + esc(FL[2]) + ': ' + due.length + ' ' + esc(FL[10]) + '</span><button type="button" class="fs-go">' + esc(FL[3]) + '</button>'
+                  el.innerHTML = due.length ? '<span class="fs-l">' + esc(FL[2]) + ': ' + (C.lang === 'ar' ? arNum(due.length) : due.length) + ' ' + esc(FL[10]) + '</span><button type="button" class="fs-go">' + esc(FL[3]) + '</button>'
                     : '<span class="fs-l">' + esc(FL[4]) + '</span>';
                   var b2 = el.querySelector('button');
                   if (b2) b2.onclick = function () { shut(); show(due[0], 0); };

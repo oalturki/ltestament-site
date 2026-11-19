@@ -46,7 +46,7 @@
 .lg.o::before, .ac-grid .c.o{ background:#d0645a; }
 .lg.l::before, .ac-grid .c.l{ background:#d8b440; }
 .lg.n::before, .ac-grid .c.n{ background:rgba(255,255,255,0.10); }
-.ac-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:8px 14px; }
+.ac-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:6px 18px; }
 .ac-juz{ display:flex; gap:6px; align-items:flex-start; }
 .ac-juz .jn{ flex:0 0 22px; color:#a89f83; font-size:.75rem; text-align:center; padding-top:1px; }
 .ac-juz .cells{ display:flex; flex-wrap:wrap; gap:2px; }
