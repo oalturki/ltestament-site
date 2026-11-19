@@ -533,7 +533,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         if not first_ok:
             o = seek_start(exp, hyp)
             if o: pos, sought = o, o
-            elif len(hyp) < 4: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
+            elif len(hyp) < 8: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
                                          "ms": int((time.time() - t0) * 1000), "seeking": True}
     win = exp[pos:pos + len(hyp) + 6]
     words, nxt = [], pos
