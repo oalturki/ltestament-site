@@ -655,10 +655,10 @@ body.bk-mob .bk-bar .bk-viewbtn{ flex:0 1 auto; max-width:34%; }
 body.bk-mob.bk-is-mushaf .bk-stage{ padding-bottom:calc(30px + env(safe-area-inset-bottom)); }
 
 /* phones, the top bar: the surah and the view button the same size, the page in the middle */
-body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar .bk-viewbtn{ flex:1 1 0; min-width:0; max-width:none; }
+body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar .bk-viewbtn{ flex:1 1 0; width:0; min-width:0; max-width:none; box-sizing:border-box; }
 body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar select.bk-mpg{ -webkit-appearance:none; appearance:none; }
 body.bk-mob .bk-bar [data-bk=surahSel]{ border:1px solid rgba(200,155,60,.5); padding-inline:10px 24px; text-align:center; text-align-last:center; color:var(--parch);
   background:var(--night) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23DCC078' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat left 10px center; }
 html[dir=ltr] body.bk-mob .bk-bar [data-bk=surahSel]{ background-position:right 10px center; }
-body.bk-mob .bk-bar .bk-viewbtn{ justify-content:center; background:var(--night); }
+body.bk-mob .bk-bar .bk-viewbtn{ justify-content:center; background:var(--night); padding-inline:17px; }   /* the same padding as the surah box, so both are the same width */
 body.bk-mob .bk-bar select.bk-mpg{ width:auto; min-width:78px; }
