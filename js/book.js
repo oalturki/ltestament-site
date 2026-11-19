@@ -161,6 +161,13 @@
     var id = key + '|' + s;
     if (!trCache[id]) {
       // the site's own copy first (data/tr/<key>/<surah>.json, tools/build_translations.py); QuranEnc only if it is missing
+      if (key === 'arabic_moyassar') {   // the site's copy of al-Muyassar (data/tafsir): a list of the verses' explanations
+        trCache[id] = getJSON(BASE + '/data/tafsir/' + key + '/' + s + '.json', 8000).then(function (l) {
+          return l.map(function (t, i) { return { aya: i + 1, translation: t }; });
+        }, function () { return getJSON(QE + key + '/' + s).then(function (d) { return d.result; }); });
+        trCache[id].catch(function () { delete trCache[id]; });
+        return trCache[id];
+      }
       trCache[id] = getJSON(BASE + '/data/tr/' + key + '/' + s + '.json', 8000).catch(function () {
         return getJSON(QE + key + '/' + s).then(function (d) { return d.result; });
       }).then(function (l) { return l.slice().sort(function (a, b) { return a.aya - b.aya; }); });
@@ -254,6 +261,14 @@
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
     // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
     var optTr = !!C.translationOptional;
+    // One list for what is shown (Arabic book): the Mushaf, the tajweed Mushaf, the Arabic tafsirs, the translations
+    var TAFS = [
+      { key: 'arabic_moyassar', label: 'التفسير الميسر', tafsir: true, lang: 'ar', dir: 'rtl', font: "'Amiri',serif", names: 'ar', juz: 'الجزء',
+        credit: 'التفسير الميسر — مجمع الملك فهد لطباعة المصحف الشريف' },
+      { key: 'arabic_mokhtasar', label: 'المختصر في تفسير القرآن', tafsir: true, lang: 'ar', dir: 'rtl', font: "'Amiri',serif", names: 'ar', juz: 'الجزء',
+        credit: 'المختصر في تفسير القرآن الكريم — مركز تفسير للدراسات القرآنية · <a href="https://quranenc.com/ar/browse/arabic_mokhtasar" target="_blank" rel="noopener">QuranEnc.com</a>' }
+    ];
+    if (optTr && C.lang === 'ar' && !C.translations.some(function (t) { return t.tafsir; })) C.translations = TAFS.concat(C.translations);
     if (optTr && !embed) {
       var arTr = load('lt_book_artr');
       if (arTr && C.translations.some(function (t) { return t.key === arTr; })) { mushaf = false; C.defaultTranslation = arTr; }
@@ -633,7 +648,7 @@
         js.onchange = function () { show(jStart[+js.value - 1], 0); };
         item(I.juz, L.juzs).appendChild(js);
       }
-      if (q('trSel')) item(I.tr, L.tr, q('trSel'));
+      if (q('trSel')) item(I.tr, C.lang === 'ar' && optTr ? 'العرض' : L.tr, q('trSel'));   // Arabic: Mushaf, tajweed, tafsir or translation
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
       item(I.search, L.search).onclick = function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
       var moreBtn = item(I.more, L.more);
@@ -797,10 +812,25 @@
       }
       var ts = q('trSel');
       if (ts) {
-        ts.innerHTML = (optTr ? '<option value="">' + esc(U.noTr) + '</option>' : '') +
-          C.translations.map(function (t) { return '<option value="' + t.key + '">' + esc(t.label) + '</option>'; }).join('');
-        ts.value = optTr && mushaf ? '' : trKey;
+        var opt = function (t) { return '<option value="' + t.key + '">' + esc(t.label) + '</option>'; };
+        if (optTr && C.lang === 'ar') {
+          root.classList.add('bk-viewsel');
+          ts.innerHTML = '<optgroup label="المصحف"><option value="">المصحف</option><option value="__taj">مصحف التجويد (ملوّن)</option></optgroup>' +
+            '<optgroup label="التفسير">' + C.translations.filter(function (t) { return t.tafsir; }).map(opt).join('') + '</optgroup>' +
+            '<optgroup label="الترجمة">' + C.translations.filter(function (t) { return !t.tafsir; }).map(opt).join('') + '</optgroup>';
+          ts.setAttribute('aria-label', 'العرض'); ts.title = 'العرض';
+        } else {
+          ts.innerHTML = (optTr ? '<option value="">' + esc(U.noTr) + '</option>' : '') + C.translations.map(opt).join('');
+        }
+        var viewVal = function () { return optTr && mushaf ? (TAJ && root.classList.contains('bk-viewsel') ? '__taj' : '') : trKey; };
+        ts.value = viewVal();
         ts.onchange = function () {
+          if (ts.value === '__taj' || (ts.value === '' && root.classList.contains('bk-viewsel'))) {
+            // the Mushaf, plain or in tajweed colours (the colour switch lives in this list here)
+            var want = ts.value === '__taj', tj = q('tajSel');
+            if (tj && (tj.value === '1') !== want) { tj.value = want ? '1' : '0'; tj.dispatchEvent(new Event('change')); }
+            ts.value = '';
+          }
           if (optTr) {
             // switch between the Mushaf (two Arabic pages) and the Mushaf with the meaning
             var wasMushaf = mushaf;
@@ -811,7 +841,7 @@
               book.dataset.show = 'ar';
               root.querySelectorAll('.bk-tab[data-show]').forEach(function (b) { b.classList.toggle('on', b.dataset.show === 'ar'); });
             }
-            if (mushaf) { applyFrame(); show(cur, 0, true); return; }
+            if (mushaf) { applyFrame(); show(cur, 0, true); ts.value = viewVal(); tabLabel(); return; }
           }
           trKey = ts.value;
           if (!embed) store('lt_book_tr', trKey);
@@ -821,7 +851,14 @@
           }
           track('book_open', trKey);
           show(cur, 0, true);
+          tabLabel();
         };
+        // the second tab names what it shows: the tafsir or the translation
+        var tabLabel = function () {
+          var b = root.querySelector('.bk-tab[data-show="tr"]');
+          if (b && C.lang === 'ar') b.textContent = tr().tafsir ? 'التفسير' : 'الترجمة';
+        };
+        tabLabel();
       }
       var pi = q('pageInput');
       if (pi) pi.onchange = function () { show(+pi.value || 1, 0); };

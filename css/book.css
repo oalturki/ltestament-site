@@ -505,3 +505,6 @@ body.bk-mob .bk-mhead{ transform:translateY(7px); }
 /* the tajweed colours apply to the Mushaf view only: hidden on the meaning view (also its row in the phone «More» sheet) */
 .bk:not(.bk-is-mushaf) .bk-tajsel, .bk:not(.bk-is-mushaf) .bk-tjkeybtn{ display:none !important; }
 body:not(.bk-is-mushaf) .bk-msrow:has(.bk-tajsel), body:not(.bk-is-mushaf) .bk-msrow:has(.bk-tjkeybtn){ display:none; }
+/* Arabic book: the tajweed colours are chosen in the one view list (Mushaf / tajweed / tafsir / translation) */
+.bk-viewsel .bk-tajsel{ display:none !important; }
+.bk-viewsel .bk-msrow:has(.bk-tajsel){ display:none; }
