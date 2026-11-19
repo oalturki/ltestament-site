@@ -503,7 +503,7 @@
       // the index shows the surah being recited, or the one chosen from it, else the surah the page opens with
       var vis0 = visible(), ss = playing && recState && vis0.indexOf(pageOf(recState.s, recState.a)) >= 0 ? recState.s
         : goSurah && vis0.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : MAP.pages[cur - 1][0];
-      if (q('surahSel')) q('surahSel').value = String(ss);
+      if (q('surahSel')) q('surahSel').value = String(ss); fitSel();
       var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.textContent = U.page + ' ' + uiNum(cur);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
       else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
@@ -773,6 +773,19 @@
       apply();
     }
 
+    // phones: the chosen surah's name always whole — the type gets smaller when the bar is narrow
+    function fitSel() {
+      var sel = q('surahSel');
+      if (!sel || !document.body.classList.contains('bk-mob') || !sel.options.length) { if (sel) sel.style.fontSize = ''; return; }
+      sel.style.fontSize = '';
+      var cs = getComputedStyle(sel), cv = fitSel.c || (fitSel.c = document.createElement('canvas').getContext('2d'));
+      var t = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+      var room = sel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 16, fs = parseFloat(cs.fontSize);
+      cv.font = cs.fontWeight + ' ' + fs + 'px ' + cs.fontFamily;
+      var w = cv.measureText(t).width;
+      if (w > room && room > 0) sel.style.fontSize = Math.max(11, Math.floor(fs * room / w)) + 'px';
+    }
+    window.addEventListener('resize', function () { setTimeout(fitSel, 250); });
     /* ---------- controls ---------- */
     function buildControls() {
       var sel = q('surahSel');
@@ -780,7 +793,7 @@
         // phones: the name alone, so the whole name fits the narrow bar (the number is shown on larger screens)
         var narrow = window.matchMedia && window.matchMedia('(max-width:600px)').matches;
         sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + (narrow ? '' : uiNum(i + 1) + '. ') + esc(n) + '</option>'; }).join('');
-        sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; };
+        sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; fitSel(); };
       }
       var ts = q('trSel');
       if (ts) {
@@ -1049,7 +1062,7 @@
     function playAyah(s, a, skipBasmala) {
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
-      if (q('surahSel')) q('surahSel').value = String(s);
+      if (q('surahSel')) q('surahSel').value = String(s); fitSel();
       var go1 = function () {
         if (!playing) return;
         if (a === 1 && s !== 1 && s !== 9 && !skipBasmala) {
@@ -1074,7 +1087,7 @@
     function playSurah(s, a) {
       var r = rec(), url = srcOf(r, s);
       recState = { kind: 'surah', s: s, a: a, times: null };
-      if (q('surahSel')) q('surahSel').value = String(s);
+      if (q('surahSel')) q('surahSel').value = String(s); fitSel();
       ensureVisible(s, a);
       playSrc(url);
       if (!r.timed) { setHl(null); return; }

@@ -251,14 +251,14 @@ body.bk{ display:flex; flex-direction:column; height:100vh; height:100dvh; backg
 
 /* ---------- phones, full book (body.bk-mob, set by book.js mobileShell) ---------- */
 .bk-mnav, .bk-msov, .bk-mpg{ display:none; }
-body.bk-mob .bk-bar{ flex-wrap:nowrap; min-height:54px; padding:4px 10px; padding-top:max(4px, env(safe-area-inset-top)); gap:8px; }
+body.bk-mob .bk-bar{ flex-wrap:nowrap; min-height:54px; padding:4px 8px; padding-top:max(4px, env(safe-area-inset-top)); gap:5px; }
 body.bk-mob .bk-back{ font-size:0; width:40px; height:44px; display:flex; align-items:center; justify-content:center; margin:0; flex:none; }
 body.bk-mob .bk-back::before{ content:""; width:11px; height:11px; border-top:2px solid var(--gold-soft); border-right:2px solid var(--gold-soft); transform:rotate(45deg); }
 html[dir=rtl] body.bk-mob .bk-back::before{ transform:rotate(45deg); }
 html[dir=ltr] body.bk-mob .bk-back::before{ transform:rotate(-135deg); }
 body.bk-mob .bk-bar .bk-pageno, body.bk-mob .bk-bar [data-bk=trSel], body.bk-mob .bk-bar .lt-sbtn{ display:none; }
 body.bk-mob .bk-bar [data-bk=surahSel]{ flex:1 1 auto; min-width:0; max-width:none; height:40px; font-size:1rem; font-weight:700; border-radius:12px; background:var(--night);
-  padding-inline:8px 4px; text-overflow:clip; }
+  padding-inline:6px 2px; text-overflow:clip; font-size:.95rem; }
 body.bk-mob .bk-tabs{ flex:none; }
 body.bk-mob .bk-mpg{ display:block; flex:none; font-size:0.85rem; color:var(--gold-soft); white-space:nowrap; }
 body.bk-mob .bk-stage{ position:relative; padding:6px 8px 2px; gap:0; }
@@ -301,7 +301,8 @@ body.bk-mob .bk-msov.on{ visibility:visible; opacity:1; }
 .bk-msfoot .bk-fontcredit{ max-width:none; color:#8f8775; }
 /* with the text/meaning tabs in the top bar, the page number stays in the slider row only */
 body.bk-mob:not(.bk-is-mushaf) .bk-mpg{ display:none; }
-body.bk-mob .bk-tab{ padding:7px 8px; font-size:0.8rem; }
+body.bk-mob .bk-tab{ padding:7px 7px; font-size:0.78rem; }
+body.bk-mob .bk-tabs{ gap:3px; }
 
 /* phones: the page fills the screen edge to edge, like a printed Mushaf; the bars float over it and hide (body.bk-chrome-off) */
 body.bk-mob{ background:#FBF7EC; }
