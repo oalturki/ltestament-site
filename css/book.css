@@ -450,3 +450,8 @@ body:not(.bk-tajweed) .bk-tjkeybtn, body:not(.bk-tajweed) .bk-msrow:has(.bk-tjke
 .bk-tjbox li i{ flex:0 0 22px; height:22px; border-radius:6px; }
 .bk-tjbox button{ margin-top:12px; width:100%; padding:10px; border-radius:10px; border:none; background:#c9a227; color:#1b2a3a; font:inherit; font-weight:700; cursor:pointer; }
 .bk-tsbtn{ text-decoration:none; }
+/* phones: three round buttons in the top bar (quiz, hide, recite) — a little smaller, so the surah name keeps its room */
+body.bk-mob .bk-mquiz .bk-quizlink, body.bk-mob .bk-mquiz .bk-hidebtn{ width:34px; height:34px; }
+body.bk-mob .bk-mquiz .bk-quizlink svg, body.bk-mob .bk-mquiz .bk-hidebtn svg{ width:17px; height:17px; }
+body.bk-mob .bk-bar{ gap:5px; }
+body.bk-mob .bk-mpg{ font-size:0.78rem; }
