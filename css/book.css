@@ -618,7 +618,13 @@ body.bk-mob .bk-viewbtn svg{ flex:none; color:var(--gold-soft); }
 .bk-vlist button.on i{ visibility:visible; }
 
 /* phones, while listening or reciting (body.bk-focus): the page alone, with its controls — the bottom bar stays even when the bars are hidden */
-body.bk-mob.bk-focus.bk-chrome-off .bk-mnav{ transform:none; opacity:1; pointer-events:auto; }
+/* listening with the bars hidden: only a small pause button, on the frame's bottom line */
+.bk-mpause{ display:none; }
+body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mpause{ display:flex; position:fixed; z-index:30; width:36px; height:36px; padding:0; gap:4px;
+  align-items:center; justify-content:center; border-radius:50%; border:none; cursor:pointer;
+  background:linear-gradient(160deg, #d4ae3c, #b8892e); box-shadow:0 0 0 3px rgba(251,248,239,.9), 0 3px 10px rgba(0,0,0,.25); }
+.bk-mpause i{ width:4px; height:13px; border-radius:2px; background:#1b2a3a; }
+.bk-mpause::before{ content:""; position:absolute; inset:-8px; }
 body.bk-mob.bk-focus.bk-chrome-off .bk-mshow{ display:none; }
 /* the stop button breathes while the microphone listens */
 body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:bk-lvpulse 2s ease-out infinite; }

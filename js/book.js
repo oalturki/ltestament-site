@@ -881,7 +881,16 @@
         // its top on the frame's bottom line, hanging below it, so it never touches the text
         shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
+        // while listening: a small pause button on the same line, its middle on the frame's bottom line
+        var d = 36;
+        mp.style.top = Math.round(Math.min(r.bottom - d / 2, window.innerHeight - d - 6)) + 'px';
+        mp.style.left = Math.round(r.left + r.width / 2 - d / 2) + 'px';
       }
+      var mp = document.createElement('button');
+      mp.type = 'button'; mp.className = 'bk-mpause'; mp.setAttribute('aria-label', U.pause); mp.title = U.pause;
+      mp.innerHTML = '<i></i><i></i>';
+      mp.onclick = function (e) { e.stopPropagation(); var pb = q('play'); if (pb) pb.click(); };
+      document.body.appendChild(mp);
       window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
       root.__placeShow = placeShow;
       // while listening or reciting: the top bar and the page slider go away, so the page is whole;
