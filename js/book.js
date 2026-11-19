@@ -884,6 +884,17 @@
       }
       window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
       root.__placeShow = placeShow;
+      // while listening or reciting: the top bar and the page slider go away, so the page is whole;
+      // only the controls that serve it stay at the bottom (pause, or the recitation bar). A tap on the page still brings the bars.
+      var focusOn = {};
+      root.__focus = function (key, on) {
+        var was = !!(focusOn.play || focusOn.live);
+        focusOn[key] = on;
+        var now = !!(focusOn.play || focusOn.live);
+        document.body.classList.toggle('bk-focus', now);
+        if (now && !was && mq.matches) chrome(false);
+        else if (was && !now && mq.matches) chrome(true);
+      };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
       book.addEventListener('touchstart', function (e) {
@@ -1105,6 +1116,7 @@
       b.setAttribute('aria-label', playing ? U.pause : U.listen);
       b.title = playing ? U.pause : U.listen;
       var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
+      if (root.__focus) root.__focus('play', playing);
     }
     // Talqeen: the reciter reads a part, then is silent for about as long, so the learner repeats after him.
     // 'ayah': a pause after each ayah; 'seg': also within the ayah, at the Mushaf's pause marks (ۖ ۗ ۚ ۘ),
@@ -1769,6 +1781,7 @@
           mic.querySelector('.t').textContent = on ? LV[1] : LV[0];
           root.classList.toggle('bk-living', on);
           if (root.__liveBar) root.__liveBar(on);
+          if (root.__focus) root.__focus('live', on);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record

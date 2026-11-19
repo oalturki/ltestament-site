@@ -616,3 +616,13 @@ body.bk-mob .bk-viewbtn svg{ flex:none; color:var(--gold-soft); }
 .bk-vlist button b{ font-size:1rem; } .bk-vlist button small{ color:#a89f83; font-size:.8rem; line-height:1.5; }
 .bk-vlist button i{ font-style:normal; color:#3c9a5a; font-size:1.2rem; visibility:hidden; }
 .bk-vlist button.on i{ visibility:visible; }
+
+/* phones, while listening or reciting (body.bk-focus): the page alone, with its controls — the bottom bar stays even when the bars are hidden */
+body.bk-mob.bk-focus.bk-chrome-off .bk-mnav{ transform:none; opacity:1; pointer-events:auto; }
+body.bk-mob.bk-focus.bk-chrome-off .bk-mshow{ display:none; }
+/* the stop button breathes while the microphone listens */
+body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:bk-lvpulse 2s ease-out infinite; }
+@keyframes bk-lvpulse{ 0%{ box-shadow:0 0 0 5px rgba(16,27,51,.96), 0 0 0 5px rgba(200,70,60,.55); }
+  70%{ box-shadow:0 0 0 5px rgba(16,27,51,.96), 0 0 0 18px rgba(200,70,60,0); }
+  100%{ box-shadow:0 0 0 5px rgba(16,27,51,.96), 0 0 0 5px rgba(200,70,60,0); } }
+@media (prefers-reduced-motion:reduce){ body.bk-mob.bk-living .bk-mlive .lv-stop{ animation:none; } }
