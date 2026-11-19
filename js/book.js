@@ -433,15 +433,15 @@
         var s = sv[0], v = sv[1], x = d.tr[s + ':' + v] || {};
         if (v === 1) {
           html += '<div class="bk-surah">' + esc(names[s - 1]) + '</div>';
-          if (s !== 1 && s !== 9 && d.basmala) html += '<div class="bk-basmala">' + esc(cleanTr(d.basmala.translation).replace(/\[\d+\]/g, '')) + '</div>';
+          if (s !== 1 && s !== 9 && d.basmala && !t.tafsir) html += '<div class="bk-basmala">' + esc(cleanTr(d.basmala.translation).replace(/\[\d+\]/g, '')) + '</div>';
         }
-        html += '<span class="v" data-v="' + s + ':' + v + '"><span class="vn">' + v + '</span>' + fnMarks(cleanTr(x.translation)) + '</span> ';
+        html += '<span class="v" data-v="' + s + ':' + v + '"><span class="vn">' + (t.lang === 'ar' ? arNum(v) : v) + '</span>' + fnMarks(cleanTr(x.translation)) + '</span> ';
         if (x.footnotes) notes.push('(' + s + ':' + v + ') ' + x.footnotes);
       });
       el.setAttribute('dir', t.dir); el.setAttribute('lang', t.lang); el.style.fontFamily = t.font;
       el.classList.add('bk-trpage'); el.classList.remove('bk-arpage', 'bk-mpage', 'pg-r', 'pg-l');
       el.innerHTML =
-        '<div class="bk-head"><b>' + esc(names[first - 1]) + '</b><span>' + esc(t.juz) + ' ' + MAP.juz[p - 1] + '</span></div>' +
+        '<div class="bk-head"><b>' + esc(names[first - 1]) + '</b><span>' + esc(t.juz) + ' ' + (t.lang === 'ar' ? arNum(MAP.juz[p - 1]) : MAP.juz[p - 1]) + '</span></div>' +
         '<div class="bk-content">' + html +
           (notes.length ? '<details class="bk-fn"><summary>' + esc(U.notes) + ' (' + notes.length + ')</summary><p>' + fnMarks(notes.join('\n\n')) + '</p></details>' : '') +
           '<p class="bk-credit">' + t.credit + '</p>' +
