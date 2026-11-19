@@ -498,3 +498,5 @@ body.bk-mob .bk-msrow .bk-fambtn .t{ display:inline; }
 .bk-famsheet .fs-part b{ font-size:.95rem; }
 .bk-famsheet .fs-part.r{ border-inline-start-color:#4a78dc; } .bk-famsheet .fs-part.n{ border-inline-start-color:#c9a227; } .bk-famsheet .fs-part.d{ border-inline-start-color:#3c9a5a; }
 .bk-famsheet .fs-l.small{ font-size:.8rem; margin-top:10px; color:#8a7440; }
+/* phones: the juz, page number and surah name sit a little lower, nearer the frame (as in print) */
+body.bk-mob .bk-mhead{ transform:translateY(7px); }
