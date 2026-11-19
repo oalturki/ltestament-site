@@ -127,7 +127,7 @@
     var t = SHOWPW[lang] || SHOWPW.en;
     app.querySelectorAll('input[type=password]').forEach(function (inp) {
       if (inp.parentNode.classList.contains('ac-pw')) return;
-      var w = document.createElement('div'); w.className = 'ac-pw';
+      var w = document.createElement('div'); w.className = 'ac-pw'; w.dir = 'ltr';
       inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
       var b = document.createElement('button'); b.type = 'button'; b.className = 'ac-eye'; b.setAttribute('aria-label', t[0]); b.title = t[0];
       b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path class="ac-slash" stroke="currentColor" stroke-width="1.8" d="M4 4l16 16"/></svg>';
