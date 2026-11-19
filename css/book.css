@@ -502,3 +502,6 @@ body.bk-mob .bk-msrow .bk-fambtn .t{ display:inline; }
 .bk-famsheet .fs-l.small{ font-size:.8rem; margin-top:10px; color:#8a7440; }
 /* phones: the juz, page number and surah name sit a little lower, nearer the frame (as in print) */
 body.bk-mob .bk-mhead{ transform:translateY(7px); }
+/* the tajweed colours apply to the Mushaf view only: hidden on the meaning view (also its row in the phone «More» sheet) */
+.bk:not(.bk-is-mushaf) .bk-tajsel, .bk:not(.bk-is-mushaf) .bk-tjkeybtn{ display:none !important; }
+body:not(.bk-is-mushaf) .bk-msrow:has(.bk-tajsel), body:not(.bk-is-mushaf) .bk-msrow:has(.bk-tjkeybtn){ display:none; }

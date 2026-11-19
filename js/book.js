@@ -1433,8 +1433,9 @@
     }
     // colour tajweed on / off (a select beside the page frame; on phones it moves to the «More» sheet with it)
     function setupTajweed() {
+      // made even when the page opened on the meaning view, so it is there after switching back to the Mushaf
       var fs = q('frameSel');
-      if (!mushaf || !fs) return;
+      if (!fs) return;
       var L = TJL[C.lang] || TJL.en, s = document.createElement('select');
       s.className = 'bk-ctl bk-tajsel'; s.setAttribute('data-bk', 'tajSel'); s.setAttribute('aria-label', L.label); s.title = L.label;
       s.innerHTML = '<option value="0">' + esc(L.off) + '</option><option value="1">' + esc(L.on) + '</option>';
