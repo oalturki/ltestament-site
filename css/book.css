@@ -577,3 +577,7 @@ button.bk-msplace, .bk-msplace > button:first-child{ flex:1; display:grid; justi
 .bk-msdel{ width:36px; height:36px; border-radius:50%; border:1px solid rgba(232,163,163,.4); background:none; color:#e8a3a3; font-size:1.1rem; cursor:pointer; }
 .bk-msnone{ color:#a89f83; font-size:.9rem; padding:18px 4px; line-height:1.8; }
 .bk-msheet .bk-mspane[data-t="recent"], .bk-msheet .bk-mspane[data-t="marks"]{ max-height:52vh; overflow:auto; }
+/* phones: listen sits beside recite as a quieter button, so recite alone stands out */
+body.bk-mob .bk-mnav .bk-mplay .bk-play{ width:40px; height:40px; background:transparent; color:var(--gold-soft); border:1.5px solid rgba(200,155,60,.7); box-shadow:none; }
+body.bk-mob .bk-mnav .bk-mplay .bk-play svg{ width:17px; height:17px; }
+body.bk-mob .bk-mnav .bk-mplay .bk-play.on{ background:var(--gold); color:var(--night-deep); border-color:var(--gold); }
