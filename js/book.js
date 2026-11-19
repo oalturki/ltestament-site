@@ -247,6 +247,9 @@
     es: { label: 'Colores del tajwid', off: 'Sin colores del tajwid', on: 'Colores del tajwid' },
     ru: { label: 'Цвета таджвида', off: 'Без цветов таджвида', on: 'Цвета таджвида' }
   };
+  // the colours of the tajweed Mushaf font (QPC V4, King Fahd Complex), in the order of its palette, and what each marks
+  var TJCOL = ["#b50000", "#f40000", "#ff7b00", "#ce9e00", "#09b000", "#3f48e6", "#2fadff", "#a5a5a5"];
+  var TJKEY = {"ar": {"key": "دليل الألوان", "items": ["مدّ لازم: ٦ حركات", "مدّ واجب: ٤ أو ٥ حركات", "مدّ جائز: ٢ أو ٤ أو ٦ حركات", "مدّ حركتان", "غنّة وإخفاء: حركتان", "تفخيم", "قلقلة", "ما لا يُلفظ: إدغام، همزة وصل، لام شمسية"]}, "ur": {"key": "رنگوں کی وضاحت", "items": ["مدِ لازم: ۶ حرکات", "مدِ واجب: ۴ یا ۵ حرکات", "مدِ جائز: ۲، ۴ یا ۶ حرکات", "دو حرکات کا مد", "غنہ اور اخفاء: ۲ حرکات", "تفخیم (پُر پڑھنا)", "قلقلہ", "نہیں پڑھا جاتا: ادغام، ہمزۂ وصل، لامِ شمسیہ"]}, "en": {"key": "Colour key", "items": ["Necessary madd: 6 counts", "Obligatory madd: 4 or 5 counts", "Permissible madd: 2, 4 or 6 counts", "Madd of 2 counts", "Ghunnah and ikhfa’: 2 counts", "Heavy letters (tafkhim)", "Qalqalah (echo)", "Not pronounced: idgham, hamzat al-wasl, silent lam"]}, "fr": {"key": "Légende des couleurs", "items": ["Madd nécessaire : 6 temps", "Madd obligatoire : 4 ou 5 temps", "Madd permis : 2, 4 ou 6 temps", "Madd de 2 temps", "Ghunna et ikhfa’ : 2 temps", "Emphase (tafkhim)", "Qalqala (rebond)", "Non prononcé : idgham, hamzat al-wasl, lam solaire"]}, "es": {"key": "Leyenda de colores", "items": ["Madd necesario: 6 tiempos", "Madd obligatorio: 4 o 5 tiempos", "Madd permitido: 2, 4 o 6 tiempos", "Madd de 2 tiempos", "Ghunna e ikhfa’: 2 tiempos", "Énfasis (tafjim)", "Qalqala (rebote)", "No se pronuncia: idgam, hamzat al-wasl, lam solar"]}, "ru": {"key": "Значение цветов", "items": ["Мадд лязим: 6 счётов", "Мадд ваджиб: 4 или 5 счётов", "Мадд джаиз: 2, 4 или 6 счётов", "Мадд в 2 счёта", "Гунна и ихфа: 2 счёта", "Тафхым (твёрдое произношение)", "Калькаля", "Не произносится: идгам, хамзат аль-васль, солнечная лям"]}};
   function Book(root, C) {
     var U = C.ui, embed = !!C.embed, mushaf = C.mode === 'mushaf';
     // The Arabic book opens as the Mushaf; a translation can be added from the list (C.translationOptional).
@@ -655,6 +658,7 @@
       var pageNo = root.querySelector('.bk-pageno');
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
+      if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
       if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
       var qz = document.querySelector('.bk-quizlink');
@@ -1408,6 +1412,19 @@
       s.innerHTML = '<option value="0">' + esc(L.off) + '</option><option value="1">' + esc(L.on) + '</option>';
       s.value = TAJ ? '1' : '0';
       fs.parentNode.insertBefore(s, fs.nextSibling);
+      // the colour key: a small button beside the choice, shown while the colours are on
+      var K = TJKEY[C.lang] || TJKEY.en, kb = document.createElement('button');
+      kb.type = 'button'; kb.className = 'bk-ctl bk-tjkeybtn'; kb.setAttribute('data-bk', 'tajKey');
+      kb.innerHTML = '<span class="dots">' + TJCOL.slice(0, 4).map(function (c) { return '<i style="background:' + c + '"></i>'; }).join('') + '</span>' + esc(K.key);
+      s.parentNode.insertBefore(kb, s.nextSibling);
+      kb.onclick = function () {
+        var ov = document.createElement('div'); ov.className = 'bk-tjkey'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', K.key);
+        ov.innerHTML = '<div class="bk-tjbox" dir="' + (C.lang === 'ar' || C.lang === 'ur' ? 'rtl' : 'ltr') + '"><b>' + esc(K.key) + '</b><ul>' +
+          K.items.map(function (t, i) { return '<li><i style="background:' + TJCOL[i] + '"></i><span>' + esc(t) + '</span></li>'; }).join('') +
+          '</ul><button type="button">' + esc((MOB[C.lang] || MOB.en).ok) + '</button></div>';
+        document.body.appendChild(ov);
+        ov.onclick = function (e) { if (e.target === ov || e.target.tagName === 'BUTTON') ov.remove(); };
+      };
       document.body.classList.toggle('bk-tajweed', TAJ);
       s.onchange = function () {
         TAJ = s.value === '1'; store('lt_book_tajweed', TAJ ? '1' : '');

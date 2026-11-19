@@ -434,3 +434,18 @@ body.bk-mob.bk-chrome-off .bk-mshow{ display:flex; position:fixed; z-index:30; w
   box-shadow:0 2px 6px rgba(0,0,0,.25); opacity:.88; cursor:pointer; }
 body.bk-mob.bk-chrome-off .bk-mshow span{ width:4px; height:4px; border-radius:50%; background:#DCC078; }
 body.bk-mob.bk-chrome-off .bk-mshow::before{ content:""; position:absolute; inset:-10px -8px; }   /* a larger touch area */
+
+/* the tajweed colour key: a button beside the colour choice (while the colours are on) and a small card */
+.bk-tjkeybtn{ display:inline-flex; align-items:center; gap:6px; cursor:pointer; white-space:nowrap; }
+.bk-tjkeybtn .dots{ display:inline-flex; gap:2px; }
+.bk-tjkeybtn .dots i{ width:7px; height:7px; border-radius:50%; display:inline-block; }
+body:not(.bk-tajweed) .bk-tjkeybtn, body:not(.bk-tajweed) .bk-msrow:has(.bk-tjkeybtn){ display:none; }
+.bk-tjkey{ position:fixed; inset:0; z-index:80; background:rgba(10,18,32,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
+.bk-tjbox{ background:#fdfaf1; color:#2a2a22; border-radius:16px; padding:18px 18px 14px; width:min(420px,100%); max-height:86vh; overflow:auto;
+  box-shadow:0 12px 40px rgba(0,0,0,.35); border:1px solid #c9a227; }
+.bk-tjbox b{ display:block; font-size:1.1rem; margin-bottom:10px; color:#6d5214; }
+.bk-tjbox ul{ list-style:none; margin:0; padding:0; }
+.bk-tjbox li{ display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid #eee3c4; font-size:.98rem; line-height:1.5; }
+.bk-tjbox li:last-child{ border-bottom:none; }
+.bk-tjbox li i{ flex:0 0 22px; height:22px; border-radius:6px; }
+.bk-tjbox button{ margin-top:12px; width:100%; padding:10px; border-radius:10px; border:none; background:#c9a227; color:#1b2a3a; font:inherit; font-weight:700; cursor:pointer; }
