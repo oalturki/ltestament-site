@@ -5,7 +5,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const TO = "ltestament4u@gmail.com";
-const FROM = "العهد الأخير <onboarding@resend.dev>";
+const FROM = "العهد الأخير <noreply@ltestament.com>";
 const ADMIN = "https://ltestament.com/admin/";
 const LANGS: Record<string, string> = { ar: "العربية", en: "English", ur: "اردو", fr: "Français", es: "Español", ru: "Русский" };
 const METHODS: Record<string, string> = { email: "البريد", whatsapp: "واتساب", telegram: "تيليجرام" };
