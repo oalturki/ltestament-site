@@ -491,6 +491,7 @@
     }
     function updateControls() {
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
+      if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
       var last = step() === 2 ? Math.min(TOTAL, cur + 1) : cur;
       if (q('pageInput')) q('pageInput').value = cur;
       if (q('range')) q('range').value = cur;
@@ -1150,7 +1151,7 @@
       if (!window.fetch || !wCtxGet()) return;
       var P = wParts(loc); wDecode(P.url); wordTimes(P.r, P.s, P.a);
     };
-    C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn) {
+    C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn, done) {
       var P = wParts(loc), ctx = wCtxGet();
       if (playing) stopAudio();
       if (!ctx || !window.fetch) return;
@@ -1158,7 +1159,7 @@
       if (wSrc) { try { wSrc.onended = null; wSrc.stop(); } catch (e) {} wSrc = null; }
       document.querySelectorAll('.bk-wsplay.on').forEach(function (x) { x.classList.remove('on'); });
       if (btn) btn.classList.add('on');
-      var off = function () { if (btn) btn.classList.remove('on'); };
+      var off = function () { if (btn) btn.classList.remove('on'); if (done) { var d = done; done = null; d(); } };
       Promise.all([wDecode(P.url), wordTimes(P.r, P.s, P.a)]).then(function (res) {
         var buf = res[0], ws = res[1], i = -1;
         ws.forEach(function (x, k) { if (x[0] === P.w) i = k; });
@@ -1499,6 +1500,99 @@
           tb.href = '/tasmee/?s=' + sN + '&a=' + a + '&b=' + b;
         };
         hbar.appendChild(tb);
+        // ---- live recitation on the page itself: with the verses hidden, a microphone; each word shows in its place
+        // as it is recited (lightly while the stretch goes on, then for good); a word said wrongly or left out shows
+        // in red and the reciter says it; at the end of the page the next one opens and the listening goes on.
+        var LVL = { ar: ['سمِّع', 'أوقف', 'اسمح للمتصفح باستخدام الميكروفون.', 'الخدمة تستعد، أعد المحاولة بعد دقيقة.', 'تعذّر الاتصال بخدمة التسميع.', 'اقرأ من حفظك… تظهر الكلمات وأنت تقرأ.'],
+                    ur: ['سنائیں', 'روکیں', 'براؤزر کو مائیکروفون کی اجازت دیں۔', 'سروس تیار ہو رہی ہے، ایک منٹ بعد دوبارہ کوشش کریں۔', 'سروس سے رابطہ نہیں ہو سکا۔', 'یاد سے پڑھیں… الفاظ پڑھتے ہی ظاہر ہوں گے۔'],
+                    en: ['Recite', 'Stop', 'Please allow the browser to use the microphone.', 'The service is waking up; try again in a minute.', 'Could not reach the recitation service.', 'Recite from memory… the words appear as you recite.'],
+                    fr: ['Réciter', 'Arrêter', 'Autorisez le navigateur à utiliser le micro.', 'Le service démarre ; réessayez dans une minute.', 'Service de récitation injoignable.', 'Récitez de mémoire… les mots apparaissent au fil de la récitation.'],
+                    es: ['Recitar', 'Parar', 'Permite al navegador usar el micrófono.', 'El servicio se está iniciando; inténtalo en un minuto.', 'No se pudo contactar el servicio.', 'Recita de memoria… las palabras aparecen mientras recitas.'],
+                    ru: ['Читать', 'Стоп', 'Разрешите браузеру доступ к микрофону.', 'Сервис запускается; попробуйте через минуту.', 'Сервис недоступен.', 'Читайте по памяти… слова появляются по мере чтения.'] };
+        var LV = LVL[C.lang] || LVL.en, live = null, liveTurning = false;
+        var mic = document.createElement('button');
+        mic.type = 'button'; mic.className = 'bk-livemic';
+        mic.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="t">' + esc(LV[0]) + '</span>';
+        mic.setAttribute('aria-label', LV[0]);
+        document.body.appendChild(mic);
+        var curMark = document.createElement('div'); curMark.className = 'bk-twcur'; document.body.appendChild(curMark);
+        var toast = function (t) {
+          var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = t;
+          document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 4000);
+        };
+        var pagePartsNow = function () {
+          var vp = visible(), f = MAP.pages[vp[0] - 1], l = MAP.pages[vp[vp.length - 1] - 1], out = [];
+          for (var sN = f[0]; sN <= l[2]; sN++) out.push({ s: sN, a: sN === f[0] ? f[1] : 1, b: sN === l[2] ? l[3] : MAP.verses[sN - 1] });
+          return out;
+        };
+        var wordEls = function (w, p) { var pt = live && live.__parts ? live.__parts[p] : null; return pt ? root.querySelectorAll('.bk-mpage [data-l="' + pt.s + ':' + w.ayah + ':' + w.n + '"]') : []; };
+        var placeCur = function (els) {
+          var e = els && els[0];
+          if (!e) { curMark.style.display = 'none'; return; }
+          var r = e.getBoundingClientRect();
+          curMark.style.display = 'block';
+          curMark.style.left = (r.left + window.scrollX) + 'px'; curMark.style.width = r.width + 'px';
+          curMark.style.top = (r.bottom + window.scrollY - 4) + 'px';
+        };
+        var liveSet = function (on) {
+          mic.classList.toggle('on', on);
+          mic.querySelector('.t').textContent = on ? LV[1] : LV[0];
+          root.classList.toggle('bk-living', on);
+          if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
+        };
+        var startLive = function () {
+          if (playing) stopAudio();
+          var parts = pagePartsNow();
+          live = LiveRecite({
+            parts: parts,
+            onWord: function (p, w, cls) {
+              wordEls(w, p).forEach(function (e) {
+                e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
+                e.classList.add('rv');
+                if (cls === 'ti') e.classList.add('tw-ti');
+                else { e.classList.add('tw-done'); if (cls === 'wrong' || cls === 'missing') e.classList.add('tw-err'); if (cls === 'fixed') e.classList.add('tw-fix'); }
+              });
+            },
+            onClear: function () {
+              root.querySelectorAll('.bk-mpage .tw-ti').forEach(function (e) { e.classList.remove('tw-ti'); if (!e.classList.contains('tw-done')) e.classList.remove('rv'); });
+            },
+            onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
+            onDone: function () {                             // the page is recited: the next one, and go on listening
+              if (cur >= TOTAL) { live.stop(); return; }
+              liveTurning = true;
+              show(cur + (visible().length > 1 ? 2 : 1), 1);
+              setTimeout(function () { liveTurning = false; if (live) { live.__parts = pagePartsNow(); live.setParts(live.__parts); } }, 700);
+            },
+            onLevel: function (x) { mic.style.boxShadow = '0 0 0 ' + Math.round(3 + x * 18) + 'px rgba(200,70,60,' + (0.15 + x * 0.3).toFixed(2) + ')'; },
+            onState: function (st) {
+              if (st === 'listening') { liveSet(true); toast(LV[5]); }
+              else if (st === 'stopped') liveSet(false);
+              else if (st === 'denied') { liveSet(false); toast(LV[2]); }
+              else if (st === 'waking') toast(LV[3]);
+              else if (st === 'error') toast(LV[4]);
+            },
+            say: C.__playWord ? function (p, w) {
+              var pt = live.__parts[p];
+              return new Promise(function (res) { C.__playWord(pt.s + ':' + w.ayah + ':' + w.n, null, res); setTimeout(res, 4000); });
+            } : null
+          });
+          live.__parts = parts;
+          live.start();
+        };
+        mic.onclick = function (e) {
+          e.stopPropagation();
+          if (live && live.running) { live.stop(); return; }
+          if (window.LiveRecite) return startLive();
+          var sc = document.createElement('script'); sc.src = '/js/live.js'; sc.onload = startLive;
+          sc.onerror = function () { toast(LV[4]); }; document.head.appendChild(sc);
+        };
+        // the reader turned the page himself while listening: the check follows him
+        root.__liveFollow = function () {
+          if (!live || !live.running || liveTurning) return;
+          live.__parts = pagePartsNow(); live.setParts(live.__parts);
+        };
+        // hiding off: stop listening
+        hb.addEventListener('click', function () { if (!root.classList.contains('bk-hide') && live && live.running) live.stop(); });
         root.addEventListener('click', function (e) {
           if (!root.classList.contains('bk-hide')) return;
           var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
