@@ -712,7 +712,7 @@
         document.body.classList.toggle('bk-chrome-off', !show);
         if (!show) placeShow();
       }
-      // while the bars are hidden: a small handle on the ornament band (bottom of the outer edge) says they are there
+      // while the bars are hidden: a small handle in the middle of the frame's bottom band says they are there
       var shw = document.createElement('button');
       shw.type = 'button'; shw.className = 'bk-mshow'; shw.setAttribute('aria-label', L.tools); shw.title = L.tools;
       shw.innerHTML = '<span></span><span></span><span></span>';
@@ -724,10 +724,11 @@
           var r = f.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) fr = f;
         });
         if (!fr) { shw.style.display = 'none'; return; }
-        var r = fr.getBoundingClientRect(), right = fr.classList.contains('sp-l'), w = 22;
+        // always in the same place: the middle of the frame's bottom band, whichever side the page is on
+        var r = fr.getBoundingClientRect(), w = 44, h = 22;
         shw.style.display = '';
-        shw.style.top = Math.round(r.bottom - 54) + 'px';
-        shw.style.left = Math.round(right ? r.right - 6.5 - w / 2 : r.left + 6.5 - w / 2) + 'px';
+        shw.style.top = Math.round(Math.min(r.bottom, window.innerHeight) - 6.5 - h / 2) + 'px';
+        shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
       }
       window.addEventListener('resize', function () { setTimeout(placeShow, 200); });
       root.__placeShow = placeShow;
