@@ -102,15 +102,23 @@
         function (e) { R && (R.busy = false); seg.sent = 0; throw e; });
     }
     function interim(res) {
+      // while a stretch goes on: show every word up to the furthest one heard right — no holes in between (a word
+      // in the middle that was not clear yet is shown too; the end of the stretch judges it), and never fewer words
+      // than already shown (no flicker as the guess changes)
       var pt = parts[res.part]; if (!pt || res.part !== P || res.pos !== pt.pos) return;
-      pt.words.forEach(function (w) { w.ti = false; });
-      o.onClear(P);
-      res.words.forEach(function (x) { var w = pt.words[x.k]; if (w && x.status === 'ok' && !w.done) { w.ti = true; o.onWord(P, w, 'ti'); } });
+      var far = pt.tiTo || -1;
+      res.words.forEach(function (x) { if (x.status === 'ok') far = Math.max(far, x.k); });
+      pt.tiTo = far;
+      for (var k = pt.pos; k <= far && k < pt.words.length; k++) {
+        var w = pt.words[k];
+        if (!w.done && !w.ti) { w.ti = true; o.onWord(P, w, 'ti'); }
+      }
       cursor();
     }
     function commit(res) {
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
       pt.words.forEach(function (w) { w.ti = false; });
+      pt.tiTo = -1;
       o.onClear(P);
       var errs = [];
       res.words.forEach(function (x) {
