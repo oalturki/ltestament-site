@@ -224,9 +224,10 @@
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
   function mobTrial() {
+    // the phone design is now the default; ?old keeps the earlier one for whoever asks, ?new restores the default
     if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
-    if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '');
-    return load('lt_mob_trial') === '1';
+    if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '0');
+    return load('lt_mob_trial') !== '0';
   }
   // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
   var REPL = {
@@ -1361,8 +1362,8 @@
     }
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');
-      // no choice made yet: plain on phones (the page edge to edge, as in Mushaf apps), the ornament elsewhere
-      if (['sides', 'full', 'edge', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'none' : 'sides';
+      // no choice made yet: on phones the ornament on the outer edge (the margin carries the juz/hizb marks), elsewhere both sides
+      if (['sides', 'full', 'edge', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'edge' : 'sides';
       frameChoice = v; applyFrame();
       if (!sel) return;
       sel.value = v;
