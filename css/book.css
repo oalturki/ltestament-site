@@ -639,3 +639,12 @@ body.bk-mob.bk-focus.bk-chrome-off:not(.bk-living) .bk-mtrack{ display:block; po
   background:rgba(184,137,46,.25); overflow:hidden; pointer-events:none; }
 .bk-mtrack i{ display:block; height:100%; width:0; background:#c9a227; border-radius:2px; float:right; transition:width .25s linear; }
 html[dir="ltr"] .bk-mtrack i{ float:left; }
+
+/* phones, the top bar: the surah (number and name) on the reading side, the page list in the middle, the view button on the other side */
+body.bk-mob .bk-bar .bk-back{ order:0; }
+body.bk-mob .bk-bar [data-bk=surahSel]{ order:1; }
+body.bk-mob .bk-bar .bk-mpg{ order:2; }
+body.bk-mob .bk-bar .bk-viewbtn, body.bk-mob .bk-bar .bk-tabs{ order:3; }
+body.bk-mob .bk-bar select.bk-mpg{ -webkit-appearance:none; appearance:none; height:40px; padding:0 8px; border-radius:12px; text-align:center; text-align-last:center;
+  border:1px solid rgba(200,155,60,.5); background:var(--night); color:var(--gold-soft); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; flex:none; }
+body.bk-mob .bk-bar .bk-viewbtn{ flex:0 1 auto; max-width:34%; }

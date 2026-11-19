@@ -526,7 +526,7 @@
       var vis0 = visible(), ss = playing && recState && vis0.indexOf(pageOf(recState.s, recState.a)) >= 0 ? recState.s
         : goSurah && vis0.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : MAP.pages[cur - 1][0];
       if (q('surahSel')) q('surahSel').value = String(ss); fitSel();
-      var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.textContent = U.page + ' ' + uiNum(cur);
+      var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.value = String(cur);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
       else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
     }
@@ -624,7 +624,12 @@
         x: '<path d="M6 6l12 12M18 6L6 18"/>'
       };
       var bar = document.querySelector('.bk-bar');
-      var pg = document.createElement('span'); pg.className = 'bk-mpg'; pg.textContent = U.page + ' ' + uiNum(cur);
+      // the page, in the middle of the top bar: a list to go to any page
+      var pg = document.createElement('select'); pg.className = 'bk-mpg'; pg.setAttribute('aria-label', U.page);
+      var po = [];
+      for (var pi = 1; pi <= MAP.pages.length; pi++) po.push('<option value="' + pi + '">' + esc(U.page) + ' ' + uiNum(pi) + '</option>');
+      pg.innerHTML = po.join(''); pg.value = String(cur);
+      pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
 
       // a select laid invisibly over a bar button: a tap opens the phone's own list (works on iPhone too)
@@ -987,9 +992,9 @@
     function buildControls() {
       var sel = q('surahSel');
       if (sel) {
-        // phones: the name alone, so the whole name fits the narrow bar (the number is shown on larger screens)
+        // the surah's number and name (on phones without the dot, to save room)
         var narrow = window.matchMedia && window.matchMedia('(max-width:600px)').matches;
-        sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + (narrow ? '' : uiNum(i + 1) + '. ') + esc(n) + '</option>'; }).join('');
+        sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + uiNum(i + 1) + (narrow ? ' ' : '. ') + esc(n) + '</option>'; }).join('');
         sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; fitSel(); };
       }
       var ts = q('trSel');
