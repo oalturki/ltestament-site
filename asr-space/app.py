@@ -464,9 +464,31 @@ def pcm_wav(raw):
         return None
 
 
+def seek_start(exp, hyp):
+    """Where in the passage the reader began: the offset whose words best match the first words heard, in order.
+    None when it is not clear yet (fewer than 2 words heard, or no clear best place)."""
+    hs = [skeleton(w) for w in hyp[:6]]
+    if len(hs) < 2: return None
+    es = [skeleton(w) for w in exp]
+    best, best_o, second = 0.0, None, 0.0
+    for o in range(len(es)):
+        sc = 0.0
+        for i, h in enumerate(hs):
+            if o + i >= len(es): break
+            r = edit_ratio(es[o + i], h)
+            if r < 0.6: break                       # in order: the run of matches stops at the first miss
+            sc += r
+        if sc > best: best, best_o, second = sc, o, best
+        elif sc > second: second = sc
+    need = min(len(hs), 3) * 0.75
+    if best_o is None or best < need or best - second < 0.5: return None
+    return best_o
+
+
 @app.post("/live")
 def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
-               pos: int = Form(0), final: bool = Form(False), sid: str = Form(""), append: bool = Form(False)):
+               pos: int = Form(0), final: bool = Form(False), sid: str = Form(""), append: bool = Form(False),
+               seek: bool = Form(False)):
     import time
     t0 = time.time()
     if not 1 <= surah <= 114: raise HTTPException(400, "surah")
@@ -503,6 +525,16 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     if sk[:5] == ISTI: hyp, sk = hyp[5:], sk[5:]
     bas = [skeleton(w) for w in QURAN["1"][0].split()]
     if pos == 0 and sk[:4] == bas and not (surah == 1 and start == 1): hyp = hyp[4:]
+    # "recite from anywhere": nothing recited yet in this passage, and the reader did not begin at its first word —
+    # find where he began, and go on from there
+    sought = None
+    if seek and pos == 0 and hyp:
+        first_ok = len(exp) and edit_ratio(skeleton(exp[0]), skeleton(hyp[0])) >= 0.6
+        if not first_ok:
+            o = seek_start(exp, hyp)
+            if o: pos, sought = o, o
+            elif len(hyp) < 4: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
+                                         "ms": int((time.time() - t0) * 1000), "seeking": True}
     win = exp[pos:pos + len(hyp) + 6]
     words, nxt = [], pos
     if hyp and win:
@@ -531,4 +563,4 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             words.append({"k": pos + stop_at, "ayah": a, "i": k, "text": win[stop_at], "heard": " ".join(tail[:3]), "status": "wrong"})
         nxt = pos + last + 1
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000)}
+            "ms": int((time.time() - t0) * 1000), "sought": sought}

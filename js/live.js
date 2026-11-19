@@ -93,6 +93,7 @@
       seg.sent = seg.length;
       fd.append('surah', pt.s); fd.append('start', pt.a); fd.append('end', pt.b);
       fd.append('pos', pt.pos); fd.append('final', final ? 'true' : 'false');
+      if (!pt.started && pt.pos === 0) fd.append('seek', 'true');   // nothing recited yet: he may begin anywhere
       R.busy = true;
       var myP = P;
       return fetch(API + '/live', { method: 'POST', body: fd }).then(function (x) {
@@ -105,7 +106,9 @@
       // while a stretch goes on: show every word up to the furthest one heard right — no holes in between (a word
       // in the middle that was not clear yet is shown too; the end of the stretch judges it), and never fewer words
       // than already shown (no flicker as the guess changes)
-      var pt = parts[res.part]; if (!pt || res.part !== P || res.pos !== pt.pos) return;
+      var pt = parts[res.part]; if (!pt || res.part !== P) return;
+      sought(pt, res);
+      if (res.pos !== pt.pos) return;
       var far = pt.tiTo || -1;
       res.words.forEach(function (x) { if (x.status === 'ok') far = Math.max(far, x.k); });
       pt.tiTo = far;
@@ -115,8 +118,14 @@
       }
       cursor();
     }
+    // the reader began further on: the passage goes on from where he began
+    function sought(pt, res) {
+      if (res.sought && !pt.started && pt.pos === 0) { pt.pos = res.sought; pt.started = true; if (o.onSought) o.onSought(P, pt.words[res.sought]); }
+    }
     function commit(res) {
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
+      sought(pt, res);
+      if (res.words.length) pt.started = true;
       pt.words.forEach(function (w) { w.ti = false; });
       pt.tiTo = -1;
       o.onClear(P);

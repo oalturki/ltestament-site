@@ -1573,12 +1573,12 @@
         // ---- live recitation on the page itself: with the verses hidden, a microphone; each word shows in its place
         // as it is recited (lightly while the stretch goes on, then for good); a word said wrongly or left out shows
         // in red and the reciter says it; at the end of the page the next one opens and the listening goes on.
-        var LVL = { ar: ['سمِّع', 'أوقف', 'اسمح للمتصفح باستخدام الميكروفون.', 'الخدمة تستعد، أعد المحاولة بعد دقيقة.', 'تعذّر الاتصال بخدمة التسميع.', 'اقرأ من حفظك… تظهر الكلمات وأنت تقرأ.'],
-                    ur: ['سنائیں', 'روکیں', 'براؤزر کو مائیکروفون کی اجازت دیں۔', 'سروس تیار ہو رہی ہے، ایک منٹ بعد دوبارہ کوشش کریں۔', 'سروس سے رابطہ نہیں ہو سکا۔', 'یاد سے پڑھیں… الفاظ پڑھتے ہی ظاہر ہوں گے۔'],
-                    en: ['Recite', 'Stop', 'Please allow the browser to use the microphone.', 'The service is waking up; try again in a minute.', 'Could not reach the recitation service.', 'Recite from memory… the words appear as you recite.'],
-                    fr: ['Réciter', 'Arrêter', 'Autorisez le navigateur à utiliser le micro.', 'Le service démarre ; réessayez dans une minute.', 'Service de récitation injoignable.', 'Récitez de mémoire… les mots apparaissent au fil de la récitation.'],
-                    es: ['Recitar', 'Parar', 'Permite al navegador usar el micrófono.', 'El servicio se está iniciando; inténtalo en un minuto.', 'No se pudo contactar el servicio.', 'Recita de memoria… las palabras aparecen mientras recitas.'],
-                    ru: ['Читать', 'Стоп', 'Разрешите браузеру доступ к микрофону.', 'Сервис запускается; попробуйте через минуту.', 'Сервис недоступен.', 'Читайте по памяти… слова появляются по мере чтения.'] };
+        var LVL = { ar: ['سمِّع', 'أوقف', 'اسمح للمتصفح باستخدام الميكروفون.', 'الخدمة تستعد، أعد المحاولة بعد دقيقة.', 'تعذّر الاتصال بخدمة التسميع.', 'اقرأ من حفظك، من أي موضع في الصفحة… تظهر الكلمات وأنت تقرأ.'],
+                    ur: ['سنائیں', 'روکیں', 'براؤزر کو مائیکروفون کی اجازت دیں۔', 'سروس تیار ہو رہی ہے، ایک منٹ بعد دوبارہ کوشش کریں۔', 'سروس سے رابطہ نہیں ہو سکا۔', 'یاد سے پڑھیں، صفحے میں کہیں سے بھی… الفاظ پڑھتے ہی ظاہر ہوں گے۔'],
+                    en: ['Recite', 'Stop', 'Please allow the browser to use the microphone.', 'The service is waking up; try again in a minute.', 'Could not reach the recitation service.', 'Recite from memory, from anywhere on the page… the words appear as you recite.'],
+                    fr: ['Réciter', 'Arrêter', 'Autorisez le navigateur à utiliser le micro.', 'Le service démarre ; réessayez dans une minute.', 'Service de récitation injoignable.', 'Récitez de mémoire, depuis n’importe où sur la page… les mots apparaissent au fil de la récitation.'],
+                    es: ['Recitar', 'Parar', 'Permite al navegador usar el micrófono.', 'El servicio se está iniciando; inténtalo en un minuto.', 'No se pudo contactar el servicio.', 'Recita de memoria, desde cualquier punto de la página… las palabras aparecen mientras recitas.'],
+                    ru: ['Читать', 'Стоп', 'Разрешите браузеру доступ к микрофону.', 'Сервис запускается; попробуйте через минуту.', 'Сервис недоступен.', 'Читайте по памяти, с любого места страницы… слова появляются по мере чтения.'] };
         var LV = LVL[C.lang] || LVL.en, live = null, liveTurning = false;
         var mic = document.createElement('button');
         mic.type = 'button'; mic.className = 'bk-livemic';
