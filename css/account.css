@@ -67,3 +67,17 @@
 .ac-set{ margin-top:10px; }
 .ac-set summary{ color:#DCC078; cursor:pointer; margin-bottom:10px; }
 .ac-page input, .ac-page textarea{ box-sizing:border-box; max-width:100%; }
+
+/* phone: compact cards, three buttons on one row */
+@media (max-width:560px){
+  .ac-head{ font-size:.8rem; margin-bottom:14px; }
+  .ac-cards{ gap:10px; }
+  .ac-card{ padding:12px; gap:10px; align-items:center; flex-wrap:wrap; }
+  .ac-av{ flex-basis:42px; height:42px; font-size:22px; }
+  .ac-cbody{ display:contents; }
+  .ac-cbody > b{ flex:1; min-width:0; font-size:1rem; align-self:center; }
+  .ac-stats{ flex-basis:100%; margin-top:0; font-size:.78rem; }
+  .ac-last{ flex-basis:100%; font-size:.8rem; }
+  .ac-btns{ flex-basis:100%; display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:6px; margin-top:2px; }
+  .ac-btn{ padding:7px 6px; font-size:.82rem; text-align:center; white-space:nowrap; }
+}
