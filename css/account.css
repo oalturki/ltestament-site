@@ -153,3 +153,11 @@
 .pl-card input[type=radio]{ width:16px; height:16px; flex:0 0 16px; margin:4px 0 0; padding:0; accent-color:#C89B3C; }
 .pl-card .pl-day input{ width:15px; height:15px; margin:0 2px; accent-color:#C89B3C; }
 .pl-card .pl-ref{ flex-wrap:nowrap; }
+/* show / hide the password */
+.ac-pw{ position:relative; }
+.ac-pw input{ padding-inline-end:46px !important; }
+.ac-eye{ position:absolute; top:50%; inset-inline-end:6px; transform:translateY(-50%); width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:#a89f83; cursor:pointer; border-radius:6px; }
+.ac-eye:hover, .ac-eye.on{ color:#DCC078; }
+.ac-eye .ac-slash{ display:none; }
+.ac-eye.on .ac-slash{ display:inline; }

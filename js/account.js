@@ -120,6 +120,24 @@
   $('acTitle').textContent = L.title; $('acSub').textContent = L.sub; $('acBack').textContent = L.back; $('acBack').href = BOOK;
   document.title = L.title + ' — ' + (lang === 'ar' ? 'العهد الأخير' : 'The Last Testament');
   var app = $('acApp');
+  // an eye beside each password field, to show what was typed
+  var SHOWPW = { ar: ['إظهار كلمة المرور', 'إخفاء كلمة المرور'], ur: ['پاس ورڈ دکھائیں', 'پاس ورڈ چھپائیں'], en: ['Show password', 'Hide password'],
+                 fr: ['Afficher le mot de passe', 'Masquer le mot de passe'], es: ['Mostrar la contraseña', 'Ocultar la contraseña'], ru: ['Показать пароль', 'Скрыть пароль'] };
+  function eyes() {
+    var t = SHOWPW[lang] || SHOWPW.en;
+    app.querySelectorAll('input[type=password]').forEach(function (inp) {
+      if (inp.parentNode.classList.contains('ac-pw')) return;
+      var w = document.createElement('div'); w.className = 'ac-pw';
+      inp.parentNode.insertBefore(w, inp); w.appendChild(inp);
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'ac-eye'; b.setAttribute('aria-label', t[0]); b.title = t[0];
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path class="ac-slash" stroke="currentColor" stroke-width="1.8" d="M4 4l16 16"/></svg>';
+      b.onclick = function () {
+        var show = inp.type === 'password'; inp.type = show ? 'text' : 'password';
+        b.classList.toggle('on', show); b.setAttribute('aria-label', t[show ? 1 : 0]); b.title = t[show ? 1 : 0]; inp.focus();
+      };
+      w.appendChild(b);
+    });
+  }
   function msg(el, t, bad) { el.textContent = t || ''; el.classList.toggle('err', !!bad); }
   function errText(e) {
     var m = String(e && (e.message || e.code) || e);
@@ -148,6 +166,7 @@
         '<p class="fb-msg" id="acMsg"></p>' +
       '</form><p class="ac-privacy">' + esc(L.privacy) + '</p>';
     app.querySelectorAll('.ac-tabs button').forEach(function (b) { b.onclick = function () { authView(b.dataset.m); }; });
+    eyes();
     var form = app.querySelector('form'), m = $('acMsg'), btn = form.querySelector('.fb-submit');
     var redirect = location.origin + '/account/?lang=' + lang;
     form.onsubmit = function (e) {
@@ -182,6 +201,7 @@
   function resetView() {
     app.innerHTML = '<form class="fb-card ac-form" novalidate><label class="fb-label" for="acNew">' + esc(L.newPass) + '</label>' +
       '<input id="acNew" type="password" autocomplete="new-password" dir="ltr" minlength="8"><button class="fb-submit" type="submit">' + esc(L.savePass) + '</button><p class="fb-msg" id="acMsg"></p></form>';
+    eyes();
     app.querySelector('form').onsubmit = function (e) {
       e.preventDefault();
       var p = $('acNew').value, m = $('acMsg');
