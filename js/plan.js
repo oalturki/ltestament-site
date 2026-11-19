@@ -353,6 +353,13 @@
       return c.from('plan_lessons').update(v).eq('plan_id', planId).eq('idx', idx).then(function (r) { if (r.error) throw r.error; return v; });
     });
   }
+  // the lessons whose dates have passed, marked done at once (a plan set up after the term started)
+  function markMany(planId, idxs) {
+    return db().then(function (c) {
+      var v = { done_at: new Date().toISOString(), done_how: 'manual', mistakes: null };
+      return c.from('plan_lessons').update(v).eq('plan_id', planId).in('idx', idxs).then(function (r) { if (r.error) throw r.error; return v; });
+    });
+  }
   function uploadFile(file) {
     return db().then(function (c) {
       return c.auth.getUser().then(function (u) {
@@ -375,6 +382,6 @@
     gOf: function (r) { return gOf(r); }, refOf: function (g) { return refOf(g); }, saOf: function (g) { return saOf(g); },
     count: function (s) { return D.cnt[s - 1]; }, lastRef: lastRef, names: names, linesOf: linesOf,
     today: today, ymd: ymd, parse: parse, importText: function (t) { return importText(t); }, importPrompt: importPrompt,
-    fetch: fetchPlan, save: savePlan, end: endPlan, mark: mark, upload: uploadFile, fileUrl: fileUrl
+    fetch: fetchPlan, save: savePlan, end: endPlan, mark: mark, markMany: markMany, upload: uploadFile, fileUrl: fileUrl
   };
 })();
