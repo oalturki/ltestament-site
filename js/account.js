@@ -232,7 +232,7 @@
       html += '<div class="ac-card' + (cur && cur.id === p.id ? ' cur' : '') + '" data-id="' + p.id + '">' +
         '<div class="ac-av" style="' + (p.color ? 'background:' + p.color : '') + '">' + Fam.avatar(p.avatar) + '</div>' +
         '<div class="ac-cbody"><b>' + esc(p.name) + (p.is_parent ? ' <small>' + esc(L.you) + '</small>' : '') + '</b>' +
-        '<div class="ac-stats"><span class="st-m">' + num(k.mastered) + ' ' + esc(L.mastered) + '</span>' +
+        '<div class="ac-stats">' + (k.mastered || k.learning ? '<span class="st-m">' + num(k.mastered) + ' ' + esc(L.mastered) + '</span>' : '<span class="st-n">' + esc(L.notStarted) + '</span>') +
         (k.learning ? '<span class="st-l">' + num(k.learning) + ' ' + esc(L.learning) + '</span>' : '') +
         (k.due ? '<span class="st-d">' + esc(L.today) + ': ' + num(k.due) + '</span>' : '') + '</div>' +
         (p.last_page ? '<div class="ac-last">' + esc(L.lastPage) + ' ' + num(p.last_page) + '</div>' : '') +

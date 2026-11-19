@@ -22,6 +22,7 @@
 .ac-stats{ display:flex; flex-wrap:wrap; gap:6px 10px; margin-top:6px; font-size:.85rem; }
 .ac-stats span{ padding:2px 10px; border-radius:999px; background:rgba(255,255,255,0.06); color:#C9C2AE; }
 .ac-stats .st-m{ background:rgba(60,150,90,.22); color:#9fe3c0; }
+.ac-stats .st-n{ background:rgba(255,255,255,.07); color:#b9bfcc; }
 .ac-stats .st-l{ background:rgba(220,180,60,.18); color:#E6C36A; }
 .ac-stats .st-d{ background:rgba(70,120,220,.25); color:#a9c7ff; }
 .ac-last{ color:#a89f83; font-size:.85rem; margin-top:6px; }
