@@ -146,3 +146,10 @@
 }
 .pl-imp textarea{ width:100%; box-sizing:border-box; font:inherit; font-size:.85rem; }
 .pl-imp{ margin-top:0; margin-bottom:14px; padding:10px 12px; border:1px dashed rgba(200,155,60,.45); border-radius:10px; }
+.pl-card .pl-ref select{ flex:1 1 150px; width:auto; }
+.pl-card .pl-ref input, .pl-card .pl-amt input, .pl-card .pl-inline input{ width:84px; flex:0 0 84px; padding:10px; }
+.pl-card .pl-amt select{ width:auto; flex:0 0 auto; }
+.pl-card .pl-radio label{ display:flex; align-items:flex-start; gap:6px; line-height:1.6; cursor:pointer; }
+.pl-card input[type=radio]{ width:16px; height:16px; flex:0 0 16px; margin:4px 0 0; padding:0; accent-color:#C89B3C; }
+.pl-card .pl-day input{ width:15px; height:15px; margin:0 2px; accent-color:#C89B3C; }
+.pl-card .pl-ref{ flex-wrap:nowrap; }
