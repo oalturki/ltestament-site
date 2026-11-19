@@ -669,10 +669,14 @@
         qz.setAttribute('aria-label', qz.textContent.trim());
         moves.push([qz, qslot]);
       }
-      var hbn = document.querySelector('.bk-hidebtn');
+      var hbn = document.querySelector('.bk-hidebtn:not(.bk-tsbtn)'), tsn = document.querySelector('.bk-tsbtn');
       if (hbn && bar) {
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
         moves.push([hbn, hslot]);
+      }
+      if (tsn && bar) {
+        var tslot = document.createElement('span'); tslot.className = 'bk-mquiz'; bar.insertBefore(tslot, pg);
+        moves.push([tsn, tslot]);
       }
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
@@ -681,7 +685,7 @@
       okb.onclick = function () { shut(); };
       body.appendChild(okb);
       if (q('play')) moves.push([q('play'), playSlot]);
-      if (root.__repPanel) { var rs = document.createElement('div'); rs.className = 'bk-msrep'; body.insertBefore(rs, body.children[2] || null); moves.push([root.__repPanel, rs]); }
+      if (root.__repPanel) { var rs = document.createElement('div'); rs.className = 'bk-msrep'; body.insertBefore(rs, body.children[q('tajKey') ? 3 : 2] || null); moves.push([root.__repPanel, rs]); }
       // page arrows: beside the page slider, so they never cover the last line
       var bottom = root.querySelector('.bk-bottom');
       if (bottom) {
@@ -1482,6 +1486,19 @@
           }
         };
         hbar.appendChild(hb);
+        // tasmee: recite this page from memory (the live check), opened on the surah and ayahs in view
+        var tb = document.createElement('a');
+        tb.className = 'bk-hidebtn bk-tsbtn'; tb.href = '/tasmee/';
+        var TSL = { ar: 'التسميع', ur: 'تسمیع', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Чтение наизусть' };
+        tb.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="t">' + esc(TSL[C.lang] || TSL.en) + '</span>';
+        tb.setAttribute('aria-label', TSL[C.lang] || TSL.en); tb.title = TSL[C.lang] || TSL.en;
+        tb.onclick = function () {
+          var vp = visible(), pg = MAP.pages[vp[0] - 1], last = MAP.pages[vp[vp.length - 1] - 1];
+          var gs = goSurah && vp.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : 0, sN = gs || pg[0];
+          var a = gs ? 1 : pg[1], b = last[2] === sN ? last[3] : MAP.verses[sN - 1];
+          tb.href = '/tasmee/?s=' + sN + '&a=' + a + '&b=' + b;
+        };
+        hbar.appendChild(tb);
         root.addEventListener('click', function (e) {
           if (!root.classList.contains('bk-hide')) return;
           var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
