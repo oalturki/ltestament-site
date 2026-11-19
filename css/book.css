@@ -559,3 +559,21 @@ body.bk-mob.bk-living .bk-mlive{ display:grid; grid-template-columns:minmax(0,1f
 .bk-mssearch svg{ width:20px; height:20px; color:var(--gold-soft); }
 
 .bk-mlive .lv-side{ display:flex; align-items:center; justify-content:center; gap:12px; }
+/* the «More» sheet: quick actions, three tabs (main / recent places / bookmarks), groups */
+.bk-msquick{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:10px 0 12px; }
+.bk-msq{ display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; border-radius:14px; border:1px solid rgba(200,155,60,.4);
+  background:rgba(255,255,255,.04); color:var(--parch); font:inherit; font-size:.92rem; cursor:pointer; }
+.bk-msq svg{ width:20px; height:20px; color:var(--gold-soft); }
+.bk-msq.on{ border-color:var(--gold); background:rgba(200,155,60,.15); }
+.bk-mstabs{ display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; padding:4px; border-radius:14px; background:rgba(255,255,255,.05); margin-bottom:8px; }
+.bk-mstabs button{ min-height:40px; border:none; border-radius:10px; background:none; color:#C9C2AE; font:inherit; font-size:.9rem; cursor:pointer; }
+.bk-mstabs button.on{ background:var(--parch); color:var(--night-deep); font-weight:700; }
+.bk-mspane{ display:none; }
+.bk-mspane.on{ display:block; }
+.bk-msgroup{ margin:14px 0 2px; color:var(--gold-soft); font-size:.8rem; font-weight:700; letter-spacing:.02em; }
+.bk-msplace{ display:flex; align-items:center; gap:8px; width:100%; border-bottom:1px solid rgba(246,238,218,0.08); }
+button.bk-msplace, .bk-msplace > button:first-child{ flex:1; display:grid; justify-items:start; gap:2px; padding:12px 4px; background:none; border:none; color:var(--parch); font:inherit; cursor:pointer; text-align:start; }
+.bk-msplace b{ font-size:1rem; } .bk-msplace small{ color:#a89f83; font-size:.8rem; }
+.bk-msdel{ width:36px; height:36px; border-radius:50%; border:1px solid rgba(232,163,163,.4); background:none; color:#e8a3a3; font-size:1.1rem; cursor:pointer; }
+.bk-msnone{ color:#a89f83; font-size:.9rem; padding:18px 4px; line-height:1.8; }
+.bk-msheet .bk-mspane[data-t="recent"], .bk-msheet .bk-mspane[data-t="marks"]{ max-height:52vh; overflow:auto; }

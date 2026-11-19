@@ -508,6 +508,13 @@
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
       if (window.Fam && window.Fam.current()) window.Fam.lastPage(cur);
+      clearTimeout(updateControls.rt);
+      updateControls.rt = setTimeout(function () {
+        if (embed) return;
+        var r; try { r = JSON.parse(load('lt_book_recent') || '[]'); } catch (e) { r = []; }
+        var pp = cur; r = r.filter(function (x) { return Math.abs(x - pp) > 1; }); r.unshift(pp);
+        store('lt_book_recent', JSON.stringify(r.slice(0, 12)));
+      }, 4000);
       var last = step() === 2 ? Math.min(TOTAL, cur + 1) : cur;
       if (q('pageInput')) q('pageInput').value = cur;
       if (q('range')) q('range').value = cur;
@@ -665,8 +672,64 @@
         '<div class="bk-mshead"><h2>' + esc(L.settings) + '</h2><button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div>' +
         '<div class="bk-msbody"></div></section>';
       document.body.appendChild(ov);
-      var body = ov.querySelector('.bk-msbody');
-      var open = function () { ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
+      var SH = {
+        ar: { main: 'أساسي', recent: 'آخر المواضع', marks: 'علاماتي', view: 'العرض', listen: 'الاستماع', recite: 'التسميع', rec: 'سجل الطالب', go: 'الانتقال',
+              mark: 'علامة على الصفحة', unmark: 'إزالة العلامة', noRecent: 'لا مواضع بعد.', noMarks: 'لا علامات بعد. ضع علامة على الصفحة من الزر أعلاه.', page: 'صفحة', juz: 'الجزء', del: 'حذف' },
+        ur: { main: 'بنیادی', recent: 'حالیہ مقامات', marks: 'میرے نشانات', view: 'منظر', listen: 'سننا', recite: 'تسمیع', rec: 'طالب علم کا ریکارڈ', go: 'جائیں',
+              mark: 'صفحے پر نشان', unmark: 'نشان ہٹائیں', noRecent: 'ابھی کوئی مقام نہیں۔', noMarks: 'ابھی کوئی نشان نہیں۔', page: 'صفحہ', juz: 'پارہ', del: 'حذف' },
+        en: { main: 'Main', recent: 'Recent places', marks: 'My bookmarks', view: 'View', listen: 'Listening', recite: 'Recitation', rec: 'Student record', go: 'Go to',
+              mark: 'Bookmark this page', unmark: 'Remove bookmark', noRecent: 'No places yet.', noMarks: 'No bookmarks yet. Bookmark a page with the button above.', page: 'Page', juz: 'Juz', del: 'Delete' },
+        fr: { main: 'Principal', recent: 'Derniers passages', marks: 'Mes signets', view: 'Affichage', listen: 'Écoute', recite: 'Récitation', rec: 'Dossier de l’élève', go: 'Aller à',
+              mark: 'Marquer la page', unmark: 'Retirer le signet', noRecent: 'Aucun passage encore.', noMarks: 'Aucun signet encore.', page: 'Page', juz: 'Juz', del: 'Supprimer' },
+        es: { main: 'Principal', recent: 'Últimos lugares', marks: 'Mis marcadores', view: 'Vista', listen: 'Escucha', recite: 'Recitación', rec: 'Registro del alumno', go: 'Ir a',
+              mark: 'Marcar la página', unmark: 'Quitar el marcador', noRecent: 'Aún no hay lugares.', noMarks: 'Aún no hay marcadores.', page: 'Página', juz: 'Juz', del: 'Borrar' },
+        ru: { main: 'Основное', recent: 'Недавние места', marks: 'Мои закладки', view: 'Вид', listen: 'Слушание', recite: 'Чтение наизусть', rec: 'Журнал ученика', go: 'Перейти',
+              mark: 'Закладка на страницу', unmark: 'Убрать закладку', noRecent: 'Пока ничего.', noMarks: 'Закладок пока нет.', page: 'Стр.', juz: 'Джуз', del: 'Удалить' } };
+      var S2 = SH[C.lang] || SH.en;
+      var sbody = ov.querySelector('.bk-msbody');
+      // quick actions: search and the bookmark of this page
+      var quick = document.createElement('div'); quick.className = 'bk-msquick';
+      var srch = document.createElement('button'); srch.type = 'button'; srch.className = 'bk-msq';
+      srch.innerHTML = svg(I.search) + '<span>' + esc(L.search) + '</span>';
+      var bmk = document.createElement('button'); bmk.type = 'button'; bmk.className = 'bk-msq';
+      quick.appendChild(bmk); quick.appendChild(srch); sbody.appendChild(quick);
+      // three tabs: the settings, the last places read, the bookmarks
+      var tabsEl = document.createElement('div'); tabsEl.className = 'bk-mstabs';
+      tabsEl.innerHTML = ['main', 'recent', 'marks'].map(function (k, i) { return '<button type="button" data-t="' + k + '"' + (i ? '' : ' class="on"') + '>' + esc(S2[k]) + '</button>'; }).join('');
+      sbody.appendChild(tabsEl);
+      var body = document.createElement('div'); body.className = 'bk-mspane on'; body.dataset.t = 'main';
+      var paneR = document.createElement('div'); paneR.className = 'bk-mspane'; paneR.dataset.t = 'recent';
+      var paneM = document.createElement('div'); paneM.className = 'bk-mspane'; paneM.dataset.t = 'marks';
+      sbody.appendChild(body); sbody.appendChild(paneR); sbody.appendChild(paneM);
+      var pageLabel = function (p) {
+        var pg = MAP.pages[p - 1];
+        return '<b>' + esc(C.uiNames[pg[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
+      };
+      var listJ = function (k) { try { return JSON.parse(load(k) || '[]'); } catch (e) { return []; } };
+      var fillPanes = function () {
+        var rec = listJ('lt_book_recent'), marks = listJ('lt_book_marks');
+        paneR.innerHTML = rec.length ? rec.map(function (p) { return '<button type="button" class="bk-msplace" data-p="' + p + '">' + pageLabel(p) + '</button>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noRecent) + '</p>';
+        paneM.innerHTML = marks.length ? marks.map(function (p) { return '<div class="bk-msplace"><button type="button" data-p="' + p + '">' + pageLabel(p) + '</button><button type="button" class="bk-msdel" data-d="' + p + '" aria-label="' + esc(S2.del) + '">×</button></div>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noMarks) + '</p>';
+        [paneR, paneM].forEach(function (pn) { pn.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { shut(); show(+b.dataset.p, 0); }; }); });
+        paneM.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { store('lt_book_marks', JSON.stringify(listJ('lt_book_marks').filter(function (x) { return x !== +b.dataset.d; }))); fillPanes(); }; });
+        var on = marks.indexOf(cur) >= 0;
+        bmk.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="' + (on ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>' + esc(on ? S2.unmark : S2.mark) + '</span>';
+        bmk.classList.toggle('on', on);
+      };
+      bmk.onclick = function () {
+        var m = listJ('lt_book_marks'), i = m.indexOf(cur);
+        if (i >= 0) m.splice(i, 1); else m.unshift(cur);
+        store('lt_book_marks', JSON.stringify(m.slice(0, 50))); fillPanes();
+      };
+      srch.onclick = function () { shut(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
+      tabsEl.querySelectorAll('button').forEach(function (b) {
+        b.onclick = function () {
+          tabsEl.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+          sbody.querySelectorAll('.bk-mspane').forEach(function (x) { x.classList.toggle('on', x.dataset.t === b.dataset.t); });
+        };
+      });
+      var group = function (t) { var h = document.createElement('div'); h.className = 'bk-msgroup'; h.textContent = t; body.appendChild(h); return h; };
+      var open = function () { fillPanes(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
       moreBtn.onclick = open;
       ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
       ov.querySelector('.bk-msx').onclick = shut;
@@ -676,21 +739,22 @@
         var r = document.createElement('label'); r.className = 'bk-msrow';
         r.innerHTML = '<span>' + esc(label) + '</span>'; body.appendChild(r); return r;
       }
-      // search: first in the sheet
-      var srow = document.createElement('button'); srow.type = 'button'; srow.className = 'bk-msrow bk-mssearch';
-      srow.innerHTML = svg(I.search) + '<span>' + esc(L.search) + '</span>';
-      srow.onclick = function () { shut(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
-      body.appendChild(srow);
       root.__sheetBody = body;
       // what moves where on a phone: [element, new parent]
       var moves = [];
       var pageNo = root.querySelector('.bk-pageno');
+      group(S2.view);
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
-      var fb0 = document.querySelector('.bk-fambtn');
-      if (fb0) moves.push([fb0, row('', fb0)]);
+      group(S2.listen);
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
+      var repSlot = document.createElement('div'); repSlot.className = 'bk-msrep'; body.appendChild(repSlot);
+      group(S2.recite);
+      var reciteGroup = body.lastChild;
+      var fb0 = document.querySelector('.bk-fambtn');
+      if (fb0) { group(S2.rec); moves.push([fb0, row('', fb0)]); }
+      group(S2.go);
       if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
       var qz = document.querySelector('.bk-quizlink');
       // the quiz: a small button in the top bar (not among the settings)
@@ -705,15 +769,16 @@
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
         moves.push([hbn, hslot]);
       }
-      if (tsn) moves.push([tsn, row('', tsn)]);
+      if (tsn) { var tsRow = row('', tsn); body.insertBefore(tsRow, reciteGroup.nextSibling); moves.push([tsn, tsRow]); }
+      root.__reciteGroup = reciteGroup;
       var fc = root.querySelector('.bk-fontcredit');
-      if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; body.appendChild(fr); moves.push([fc, fr]); }
+      if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; sbody.appendChild(fr); moves.push([fc, fr]); }
       // done: the choices take effect as they are made; this closes the sheet
       var okb = document.createElement('button'); okb.type = 'button'; okb.className = 'bk-msok'; okb.textContent = L.done;
       okb.onclick = function () { shut(); };
-      body.appendChild(okb);
+      sbody.appendChild(okb);
       if (q('play')) moves.push([q('play'), playSlot]);
-      if (root.__repPanel) { var rs = document.createElement('div'); rs.className = 'bk-msrep'; body.insertBefore(rs, body.children[q('tajKey') ? 3 : 2] || null); moves.push([root.__repPanel, rs]); }
+      if (root.__repPanel) moves.push([root.__repPanel, repSlot]); else repSlot.remove();
       // page arrows: beside the page slider, so they never cover the last line
       var bottom = root.querySelector('.bk-bottom');
       if (bottom) {
@@ -1784,7 +1849,7 @@
         var eoPlace = function () {
           var sb = root.__sheetBody;
           if (mqL.matches && sb) {
-            if (!eoRow) { eoRow = document.createElement('label'); eoRow.className = 'bk-msrow'; eoRow.innerHTML = '<span>' + esc(EOL[0]) + '</span>'; sb.insertBefore(eoRow, sb.children[1] || null); }
+            if (!eoRow) { eoRow = document.createElement('label'); eoRow.className = 'bk-msrow'; eoRow.innerHTML = '<span>' + esc(EOL[0]) + '</span>'; var rg = root.__reciteGroup; sb.insertBefore(eoRow, rg ? rg.nextSibling : null); }
             eoRow.appendChild(eo);
           } else if (eo.parentNode !== lwrap) lwrap.insertBefore(eo, eoHome);
         };
