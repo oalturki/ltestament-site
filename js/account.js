@@ -236,7 +236,9 @@
         (k.learning ? '<span class="st-l">' + num(k.learning) + ' ' + esc(L.learning) + '</span>' : '') +
         (k.due ? '<span class="st-d">' + esc(L.today) + ': ' + num(k.due) + '</span>' : '') + '</div>' +
         (p.last_page ? '<div class="ac-last">' + esc(L.lastPage) + ' ' + num(p.last_page) + '</div>' : '') +
+        '<div class="ac-plan" data-plan="' + p.id + '"></div>' +
         '<div class="ac-btns"><button type="button" data-a="open" class="ac-btn pri">' + esc(L.open) + '</button>' +
+        '<button type="button" data-a="plan" class="ac-btn">' + esc(PlanUI.T[lang].planLine) + '</button>' +
         '<button type="button" data-a="map" class="ac-btn">' + esc(L.mapBtn) + '</button>' +
         '<button type="button" data-a="edit" class="ac-btn">' + esc(L.edit) + '</button></div></div></div>';
     });
@@ -258,6 +260,7 @@
       var p = list.filter(function (x) { return x.id === card.dataset.id; })[0];
       card.querySelector('[data-a=open]').onclick = function () { guard(p, function () { Fam.use(p); location.href = BOOK + (p.last_page ? '#p=' + p.last_page : ''); }); };
       card.querySelector('[data-a=map]').onclick = function () { guard(p, function () { mapView(c, p, states); }); };
+      card.querySelector('[data-a=plan]').onclick = function () { guard(p, function () { planView(p); }); };
       card.querySelector('[data-a=edit]').onclick = function () { guard(null, function () { editView(c, p); }); };
     });
     var add = app.querySelector('.ac-add');
@@ -279,6 +282,22 @@
     if ($('acPinO')) $('acPinO').onclick = function () { guard(null, function () { Fam.pinSave(null).then(home); }); };
     var cp = list.filter(function (x) { return cur && x.id === cur.id; })[0];
     if (cp) mapView(c, cp, states, true);
+    planLines(list);
+  }
+  // each card's plan line: lessons done and how far behind
+  function planLines(list) {
+    PlanUI.summary(list.map(function (p) { return p.id; })).then(function (m) {
+      Object.keys(m).forEach(function (pid) {
+        var el = app.querySelector('.ac-plan[data-plan="' + pid + '"]'); if (!el) return;
+        el.textContent = PlanUI.summaryText(m[pid], lang, num);
+        el.classList.toggle('late', m[pid].behind > 0);
+      });
+    });
+  }
+  function planView(p) {
+    PlanUI.open($('acPanel'), { profile: p, lang: lang, num: num, esc: esc, book: BOOK, msg: msg,
+      guard: function (fn) { guard(null, fn); },
+      onChange: function () { Fam.profiles().then(planLines); } });
   }
   // the parent's profile (and settings, editing) behind the device PIN, when one is set and a child's profile is in use
   function guard(p, then) {

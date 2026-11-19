@@ -1577,10 +1577,11 @@
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
         var famPg = {}, famT0 = 0;
+        var famAll = { done: {}, errs: {} };               // the whole listening session, for the plan's lesson check
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
-          r.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') r.errs[loc] = cls;
+          r.done[loc] = 1; famAll.done[loc] = 1;
+          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; }
         };
         var famFlush = function (complete) {
           var F = window.Fam, prof = F && F.current();
@@ -1600,6 +1601,7 @@
             }
           });
           famPg = {};
+          if (root.__planCheck) root.__planCheck(famAll);
         };
         var startLive = function () {
           if (playing) stopAudio();
@@ -1628,7 +1630,7 @@
             },
             onLevel: function (x) { mic.style.boxShadow = '0 0 0 ' + Math.round(3 + x * 18) + 'px rgba(200,70,60,' + (0.15 + x * 0.3).toFixed(2) + ')'; },
             onState: function (st) {
-              if (st === 'listening') famT0 = Date.now();
+              if (st === 'listening') { famT0 = Date.now(); famAll = { done: {}, errs: {} }; }
               if (st === 'stopped') famFlush(false);
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
               else if (st === 'stopped') liveSet(false);
@@ -1664,10 +1666,75 @@
         // family's profiles, today's review; the record itself is kept by js/family.js (Supabase)
         var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ تقدّم أبنائك: أنشئ حساب الأسرة أو ادخل.", "دخول / حساب جديد", "رمز ملف الوالد", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے بچوں کی پیش رفت محفوظ کریں: خاندان کا اکاؤنٹ بنائیں یا لاگ اِن کریں۔", "لاگ اِن / نیا اکاؤنٹ", "والد/والدہ کا پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your children’s progress: create a family account or sign in.", "Sign in / New account", "Parent profile PIN", "Wrong PIN.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez les progrès de vos enfants : créez un compte famille ou connectez-vous.", "Connexion / Nouveau compte", "Code du profil parent", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda el progreso de tus hijos: crea una cuenta familiar o entra.", "Entrar / Cuenta nueva", "PIN del perfil del padre", "PIN incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте успехи детей: создайте семейный аккаунт или войдите.", "Вход / Новый аккаунт", "PIN профиля родителя", "Неверный PIN.", "стр."]};
         var FL = FLS[C.lang] || FLS.en, ACC = '/account/?lang=' + C.lang;
+        var PLS = {"ar": ["ورد اليوم", "المراجعة القريبة", "الحفظ الجديد", "المراجعة البعيدة", "متأخر", "دروس", "أتممت درس اليوم، بارك الله فيك.", "أعد الدرس؛ الأخطاء:", "أتمّ المنهج، بارك الله فيه.", "ضبط وتثبيت", "اختبار", "أنجز"],
+          "ur": ["آج کا ورد", "قریبی دہرائی", "نیا حفظ", "دور کی دہرائی", "پیچھے", "اسباق", "آج کا سبق مکمل، اللہ برکت دے۔", "سبق دوبارہ پڑھیں؛ غلطیاں:", "نصاب مکمل، اللہ برکت دے۔", "پختگی کا دن", "امتحان", "مکمل"],
+          "en": ["Today", "Recent review", "New memorization", "Long review", "Behind by", "lessons", "Today’s lesson is done — may God bless you.", "Recite the lesson again; mistakes:", "Plan completed — may God bless him.", "Consolidation", "Exam", "Done"],
+          "fr": ["Aujourd’hui", "Révision récente", "Nouvelle mémorisation", "Révision lointaine", "En retard de", "leçons", "Leçon du jour terminée — qu’Allah te bénisse.", "Reprends la leçon ; erreurs :", "Programme achevé — qu’Allah le bénisse.", "Consolidation", "Examen", "Fait"],
+          "es": ["Hoy", "Repaso reciente", "Memorización nueva", "Repaso lejano", "Atrasado", "lecciones", "Lección de hoy terminada — que Dios te bendiga.", "Repite la lección; errores:", "Plan completado — que Dios lo bendiga.", "Consolidación", "Examen", "Hecho"],
+          "ru": ["Сегодня", "Ближнее повторение", "Новое заучивание", "Дальнее повторение", "Отстаёт на", "уроков", "Урок на сегодня выполнен — да благословит тебя Аллах.", "Повтори урок; ошибок:", "План выполнен — да благословит его Аллах.", "Закрепление", "Экзамен", "Сделано"]};
+        var PL = PLS[C.lang] || PLS.en;
+        var nm = function (x) { return C.lang === 'ar' ? arNum(x) : String(x); };
         var famLoad = function () {
           if (window.Fam) return Promise.resolve(window.Fam);
           return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=1'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
         };
+        var planLoad = function () {
+          if (window.Plan) return Promise.resolve(window.Plan);
+          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/plan.js?v=1'; sc.onload = function () { ok(window.Plan); }; sc.onerror = bad; document.head.appendChild(sc); });
+        };
+        // the current profile's plan, kept while the page is open: {plan, lessons, days, slots, mastery}
+        var famPlan = null, famPlanFor = null;
+        var planGet = function (force) {
+          var F = window.Fam, pr = F && F.current();
+          if (!pr) { famPlan = null; famPlanFor = null; return Promise.resolve(null); }
+          if (!force && famPlanFor === pr.id) return Promise.resolve(famPlan);
+          return planLoad().then(function (P) { return P.load().then(function () { return P.fetch(pr.id); }); }).then(function (r) {
+            famPlanFor = pr.id; famPlan = r ? { plan: r.plan, lessons: r.lessons, days: r.days, slots: window.Plan.schedule(r.plan, r.lessons, r.days) } : null;
+            return famPlan;
+          }).catch(function () { return null; });
+        };
+        var planLabel = function (vs) { return window.Plan.label(vs, C.lang === 'ur' ? 'ar' : C.lang, nm); };
+        var planHtml = function (fp) {
+          var w = window.Plan.wird(fp.plan, fp.lessons, fp.slots);
+          if (w.finished) return '<p class="fs-l">' + esc(PL[8]) + '</p>';
+          if (!w.slot) return '';
+          var s = w.slot, part = function (vs, cls, t) {
+            if (!vs || !vs.length) return '';
+            return '<button type="button" class="fs-part ' + cls + '" data-p="' + window.Plan.pageOf(Math.min.apply(null, vs)) + '"><span>' + esc(t) + '</span><b>' + esc(planLabel(vs)) + '</b></button>';
+          };
+          var st = w.status;
+          return '<span class="fs-l">' + esc(PL[0]) + (s.kind === 'fix' ? ' — ' + esc(PL[9]) : s.kind === 'exam' ? ' — ' + esc(PL[10]) : '') + '</span>' +
+            '<div class="fs-wird">' + part(s.recent, 'r', PL[1]) + part(s.fresh, 'n', PL[2]) + part(s.distant, 'd', PL[3]) + '</div>' +
+            '<span class="fs-l small">' + esc(PL[11]) + ' ' + nm(st.done) + '/' + nm(st.total) + (st.behind > 0 ? ' · ' + esc(PL[4]) + ' ' + nm(st.behind) + ' ' + esc(PL[5]) : '') + '</span>';
+        };
+        // after a recitation: if it covered the next lesson of the plan, mark it done (within the profile's mistake limit)
+        root.__planCheck = function (all) {
+          var F = window.Fam, pr = F && F.current();
+          if (!pr || !famPlan || famPlanFor !== pr.id) return;
+          var fp = famPlan, st = window.Plan.status(fp.plan, fp.lessons, fp.slots);
+          if (st.next < 0) return;
+          var l = fp.lessons[st.next], vs = window.Plan.lessonVerses(fp.plan, l), want = {}, pgs = [];
+          vs.forEach(function (g) { var sa = window.Plan.saOf(g); want[sa[0] + ':' + sa[1]] = 1; var pg = window.Plan.pageOf(g); if (pgs.indexOf(pg) < 0) pgs.push(pg); });
+          Promise.all(pgs.map(function (pg) { return fetch('/data/mushaf/p' + pg + '.json').then(function (r) { return r.json(); }); })).then(function (ds) {
+            var total = 0, done = 0, errs = 0;
+            ds.forEach(function (d) {
+              (d.l || []).forEach(function (L2) {
+                if (L2[0] !== 'a') return;
+                L2[2].forEach(function (y) {
+                  var x = y[1].split(':'); if (!want[x[0] + ':' + x[1]] || /^[\u0660-\u0669\d]+$/.test(y[2] || '')) return;
+                  total++; if (all.done[y[1]]) done++; if (all.errs[y[1]]) errs++;
+                });
+              });
+            });
+            if (!total || done < total * 0.95) return;
+            var max = pr.mastery_max != null ? pr.mastery_max : 2;
+            F.profiles().then(function (list) { list.forEach(function (x) { if (x.id === pr.id) max = x.mastery_max; }); }).catch(function () {}).then(function () {
+              if (errs > max) { toast(PL[7] + ' ' + nm(errs)); return; }
+              window.Plan.mark(fp.plan.id, l.idx, 'auto', errs).then(function (v) { Object.assign(l, v); toast(PL[6]); }).catch(function () {});
+            });
+          }).catch(function () {});
+        };
+        window.addEventListener('lt-profile', function () { famPlan = null; famPlanFor = null; planGet(); });
         var famBtn = document.createElement('button');
         famBtn.type = 'button'; famBtn.className = 'bk-hidebtn bk-fambtn';
         famBtn.innerHTML = '<span class="av">👤</span><span class="t">' + esc(FL[0]) + '</span>';
@@ -1715,6 +1782,14 @@
                   } else go();
                 };
               });
+              // today's wird from the plan, if this profile has one
+              return planGet(true).then(function (fp) {
+                var el0 = body.querySelector('.fs-rev');
+                if (fp && el0) {
+                  el0.innerHTML = planHtml(fp);
+                  el0.querySelectorAll('.fs-part').forEach(function (b3) { b3.onclick = function () { shut(); show(+b3.dataset.p, 0); }; });
+                  return;
+                }
               // today's review: the pages of this profile whose review is due
               return F.ready().then(function (cl) {
                 if (!cl) return;
@@ -1726,6 +1801,7 @@
                   var b2 = el.querySelector('button');
                   if (b2) b2.onclick = function () { shut(); show(due[0], 0); };
                 });
+              });
               });
             });
           }).catch(function () { body.innerHTML = '<a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>'; });
@@ -1746,7 +1822,7 @@
           F.practice({ kind: kind, surah: sN, from: a1, to: a2, pages: pgs, seconds: (Date.now() - playT0) / 1000 }).catch(function () {});
         };
         // a family signed in on this device: load the record now, so the profile shows and the recitations are kept
-        try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token') || localStorage.getItem('lt_profile')) famLoad().then(famShow); } catch (e) {}
+        try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token') || localStorage.getItem('lt_profile')) famLoad().then(function () { famShow(); planGet(); }); } catch (e) {}
         // hiding off: stop listening
         hb.addEventListener('click', function () { if (!root.classList.contains('bk-hide') && live && live.running) live.stop(); });
         root.addEventListener('click', function (e) {

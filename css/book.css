@@ -491,3 +491,10 @@ body.bk-mob .bk-msrow .bk-fambtn .t{ display:inline; }
   text-decoration:none; font:inherit; font-weight:700; border:none; width:100%; cursor:pointer; }
 .bk-famsheet .fs-body p{ line-height:1.8; margin:0 0 10px; }
 .bk-famsheet .fs-close{ margin-top:12px; }
+/* today's wird from the study plan, in the record sheet */
+.bk-famsheet .fs-wird{ display:grid; gap:6px; }
+.bk-famsheet .fs-part{ display:grid; gap:2px; text-align:start; padding:8px 12px; border-radius:10px; border:1px solid #eee3c4; border-inline-start:4px solid; background:#fffdf6; font:inherit; cursor:pointer; color:#2a2416; }
+.bk-famsheet .fs-part span{ font-size:.78rem; color:#8a7440; }
+.bk-famsheet .fs-part b{ font-size:.95rem; }
+.bk-famsheet .fs-part.r{ border-inline-start-color:#4a78dc; } .bk-famsheet .fs-part.n{ border-inline-start-color:#c9a227; } .bk-famsheet .fs-part.d{ border-inline-start-color:#3c9a5a; }
+.bk-famsheet .fs-l.small{ font-size:.8rem; margin-top:10px; color:#8a7440; }
