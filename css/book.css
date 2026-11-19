@@ -508,3 +508,14 @@ body:not(.bk-is-mushaf) .bk-msrow:has(.bk-tajsel), body:not(.bk-is-mushaf) .bk-m
 /* Arabic book: the tajweed colours are chosen in the one view list (Mushaf / tajweed / tafsir / translation) */
 .bk-viewsel .bk-tajsel{ display:none !important; }
 .bk-viewsel .bk-msrow:has(.bk-tajsel){ display:none; }
+/* self-test (verses hidden): each hidden word keeps a line under its place, so the reader sees how many words and how long,
+   while the ayah numbers stay. Plain Mushaf only: the tajweed font paints its own colours, so there the line's dots stay. */
+.bk-hide:not(.bk-tajweed) .bk-mpage .ml:not(.ml-s):not(.ml-b){ background-image:none; }
+.bk-hide:not(.bk-tajweed) .bk-mpage .ml > span[data-l]:not(.rv):not(.ae){ opacity:1; color:transparent; -webkit-text-fill-color:transparent;
+  background-image:linear-gradient(rgba(140,110,40,.5), rgba(140,110,40,.5)); background-repeat:no-repeat;
+  background-size:calc(100% - 0.35em) 1.5px; background-position:center 88%; }
+.bk-hide .bk-mpage .ml > span[data-l].rv{ -webkit-text-fill-color:currentColor; }
+/* the microphone invites: a soft pulse while it waits */
+@keyframes bk-micpulse{ 0%{ box-shadow:0 0 0 0 rgba(201,162,39,.55), 0 6px 18px rgba(0,0,0,.3); } 70%{ box-shadow:0 0 0 16px rgba(201,162,39,0), 0 6px 18px rgba(0,0,0,.3); } 100%{ box-shadow:0 0 0 0 rgba(201,162,39,0), 0 6px 18px rgba(0,0,0,.3); } }
+.bk-hide .bk-livemic:not(.on){ animation:bk-micpulse 2.2s ease-out infinite; }
+@media (prefers-reduced-motion:reduce){ .bk-hide .bk-livemic:not(.on){ animation:none; } }
