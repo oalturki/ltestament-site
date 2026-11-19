@@ -144,3 +144,5 @@
   .pl-two{ grid-template-columns:1fr; }
   .ac-card .ac-btns .ac-btn{ font-size:.78rem; padding:7px 4px; }
 }
+.pl-imp textarea{ width:100%; box-sizing:border-box; font:inherit; font-size:.85rem; }
+.pl-imp{ margin-top:0; margin-bottom:14px; padding:10px 12px; border:1px dashed rgba(200,155,60,.45); border-radius:10px; }

@@ -4,7 +4,7 @@
    Engine and storage: js/plan.js. */
 (function () {
   var T = {
-    ar: { title: 'المنهج المقرر', none: 'لم يُحدَّد منهج بعد. حدّد ما يحفظه الابن ومقداره اليومي، فيُولَّد جدول بالتواريخ تعدّل فيه ما تشاء.',
+    ar: { imp: 'استيراد خطة المدرسة بالذكاء الاصطناعي', imp1: '١. انسخ التعليمات، ثم افتح أي ذكاء اصطناعي (ChatGPT أو Claude أو غيرهما)، وأرفق ملف الخطة، والصق التعليمات.', imp2: '٢. انسخ ردّه كاملًا والصقه هنا:', impCopy: 'نسخ التعليمات', impCopied: 'نُسخت التعليمات.', impRead: 'قراءة الخطة', impOk: 'قُرئت الخطة: {n} درسًا. راجع الجدول ثم احفظ.', impBad: 'لم أفهم الأسطر:', impNone: 'لم أجد أيام دراسة في النص.', title: 'المنهج المقرر', none: 'لم يُحدَّد منهج بعد. حدّد ما يحفظه الابن ومقداره اليومي، فيُولَّد جدول بالتواريخ تعدّل فيه ما تشاء.',
       setup: 'تحديد المنهج', newFrom: 'يبدأ الحفظ من', newTo: 'وينتهي عند', surah: 'السورة', ayah: 'الآية', ord: 'الترتيب',
       ordM: 'بترتيب المصحف', ordR: 'عكسي بالسور (الناس ← … أو الصف ← الممتحنة …)', amount: 'مقدار الحفظ اليومي', lines: 'أسطر', ayat: 'آيات',
       linesHint: 'الوجه ١٥ سطرًا؛ لا تُقطع الآية أبدًا.', days: 'أيام الدراسة', start: 'تاريخ البدء', oldT: 'المحفوظ سابقًا (للمراجعة البعيدة) — اختياري',
@@ -17,7 +17,7 @@
       auto: 'بالتسميع', manual: 'سجّله الأب', lessonEnd: 'ينتهي هذا الدرس عند', applyEnd: 'تطبيق (تتعدّل الدروس بعده)', open: 'افتح في المصحف',
       ends: 'ينتهي المنهج تقريبًا في', wd: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
       fill: 'أكمل الحقول.', err: 'تعذّر الحفظ؛ أعد المحاولة.', saved: 'حُفظ.', more: 'عرض بقية الجدول', planLine: 'المنهج' },
-    en: { title: 'Study plan', none: 'No plan yet. Set what your child memorizes and how much each day, and a dated table is made that you can edit.',
+    en: { imp: 'Import the school’s plan with AI', imp1: '1. Copy the instructions, open any AI (ChatGPT, Claude…), attach the plan file and paste the instructions.', imp2: '2. Copy its whole reply and paste it here:', impCopy: 'Copy the instructions', impCopied: 'Instructions copied.', impRead: 'Read the plan', impOk: 'Plan read: {n} lessons. Check the table, then save.', impBad: 'Could not read lines:', impNone: 'No study days found in the text.', title: 'Study plan', none: 'No plan yet. Set what your child memorizes and how much each day, and a dated table is made that you can edit.',
       setup: 'Set the plan', newFrom: 'Memorization starts at', newTo: 'and ends at', surah: 'Surah', ayah: 'Verse', ord: 'Order',
       ordM: 'Mushaf order', ordR: 'Surahs in reverse (An-Nas ← … or As-Saff ← Al-Mumtahanah …)', amount: 'New memorization each day', lines: 'lines', ayat: 'verses',
       linesHint: 'A page is 15 lines; a verse is never cut.', days: 'Study days', start: 'Start date', oldT: 'Already memorized (for long review) — optional',
@@ -30,7 +30,7 @@
       auto: 'by recitation', manual: 'marked by parent', lessonEnd: 'This lesson ends at', applyEnd: 'Apply (later lessons adjust)', open: 'Open in the Mushaf',
       ends: 'The plan ends around', wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
       fill: 'Fill in the fields.', err: 'Could not save; try again.', saved: 'Saved.', more: 'Show the rest of the table', planLine: 'Plan' },
-    ur: { title: 'مقررہ نصاب', none: 'ابھی نصاب مقرر نہیں۔ بچہ کیا یاد کرے اور روزانہ کتنا، یہ طے کریں تو تاریخوں والا جدول بن جائے گا جس میں آپ ترمیم کر سکیں گے۔',
+    ur: { imp: 'مدرسے کا منصوبہ مصنوعی ذہانت سے درآمد کریں', imp1: '۱۔ ہدایات نقل کریں، کوئی بھی مصنوعی ذہانت کھولیں، منصوبے کی فائل منسلک کریں اور ہدایات چسپاں کریں۔', imp2: '۲۔ اس کا پورا جواب یہاں چسپاں کریں:', impCopy: 'ہدایات نقل کریں', impCopied: 'ہدایات نقل ہو گئیں۔', impRead: 'منصوبہ پڑھیں', impOk: 'منصوبہ پڑھ لیا: {n} اسباق۔ جدول دیکھ کر محفوظ کریں۔', impBad: 'یہ سطریں سمجھ نہیں آئیں:', impNone: 'متن میں پڑھائی کے دن نہیں ملے۔', title: 'مقررہ نصاب', none: 'ابھی نصاب مقرر نہیں۔ بچہ کیا یاد کرے اور روزانہ کتنا، یہ طے کریں تو تاریخوں والا جدول بن جائے گا جس میں آپ ترمیم کر سکیں گے۔',
       setup: 'نصاب مقرر کریں', newFrom: 'حفظ یہاں سے شروع', newTo: 'اور یہاں ختم', surah: 'سورت', ayah: 'آیت', ord: 'ترتیب',
       ordM: 'مصحف کی ترتیب', ordR: 'سورتیں الٹی ترتیب سے', amount: 'روزانہ نیا حفظ', lines: 'سطریں', ayat: 'آیات',
       linesHint: 'ایک صفحہ ۱۵ سطریں؛ آیت کبھی نہیں کٹتی۔', days: 'پڑھائی کے دن', start: 'آغاز کی تاریخ', oldT: 'پہلے سے یاد (دور کی دہرائی کے لیے) — اختیاری',
@@ -43,7 +43,7 @@
       auto: 'تلاوت سے', manual: 'والد نے درج کیا', lessonEnd: 'یہ سبق یہاں ختم', applyEnd: 'لاگو کریں (بعد کے اسباق بدل جائیں گے)', open: 'مصحف میں کھولیں',
       ends: 'نصاب تقریباً ختم ہوگا', wd: ['اتوار', 'پیر', 'منگل', 'بدھ', 'جمعرات', 'جمعہ', 'ہفتہ'],
       fill: 'خانے پُر کریں۔', err: 'محفوظ نہ ہو سکا؛ دوبارہ کوشش کریں۔', saved: 'محفوظ ہو گیا۔', more: 'باقی جدول دکھائیں', planLine: 'نصاب' },
-    fr: { title: 'Programme', none: 'Aucun programme. Indiquez ce que votre enfant mémorise et combien par jour : un tableau daté est créé, que vous pouvez modifier.',
+    fr: { imp: 'Importer le programme de l’école avec une IA', imp1: '1. Copiez les instructions, ouvrez une IA (ChatGPT, Claude…), joignez le fichier et collez les instructions.', imp2: '2. Copiez toute sa réponse et collez-la ici :', impCopy: 'Copier les instructions', impCopied: 'Instructions copiées.', impRead: 'Lire le programme', impOk: 'Programme lu : {n} leçons. Vérifiez le tableau puis enregistrez.', impBad: 'Lignes illisibles :', impNone: 'Aucun jour d’étude trouvé.', title: 'Programme', none: 'Aucun programme. Indiquez ce que votre enfant mémorise et combien par jour : un tableau daté est créé, que vous pouvez modifier.',
       setup: 'Définir le programme', newFrom: 'La mémorisation commence à', newTo: 'et se termine à', surah: 'Sourate', ayah: 'Verset', ord: 'Ordre',
       ordM: 'Ordre du Mushaf', ordR: 'Sourates à rebours', amount: 'Mémorisation par jour', lines: 'lignes', ayat: 'versets',
       linesHint: 'Une page fait 15 lignes ; un verset n’est jamais coupé.', days: 'Jours d’étude', start: 'Date de début', oldT: 'Déjà mémorisé (révision lointaine) — facultatif',
@@ -56,7 +56,7 @@
       auto: 'par récitation', manual: 'noté par le parent', lessonEnd: 'Cette leçon se termine à', applyEnd: 'Appliquer (les leçons suivantes s’ajustent)', open: 'Ouvrir dans le Mushaf',
       ends: 'Fin prévue vers', wd: ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'],
       fill: 'Remplissez les champs.', err: 'Échec ; réessayez.', saved: 'Enregistré.', more: 'Voir la suite du tableau', planLine: 'Programme' },
-    es: { title: 'Plan de estudio', none: 'Aún no hay plan. Indica qué memoriza tu hijo y cuánto al día, y se crea una tabla con fechas que puedes editar.',
+    es: { imp: 'Importar el plan de la escuela con IA', imp1: '1. Copia las instrucciones, abre una IA (ChatGPT, Claude…), adjunta el archivo y pega las instrucciones.', imp2: '2. Copia toda su respuesta y pégala aquí:', impCopy: 'Copiar las instrucciones', impCopied: 'Instrucciones copiadas.', impRead: 'Leer el plan', impOk: 'Plan leído: {n} lecciones. Revisa la tabla y guarda.', impBad: 'No se entendieron las líneas:', impNone: 'No hay días de estudio en el texto.', title: 'Plan de estudio', none: 'Aún no hay plan. Indica qué memoriza tu hijo y cuánto al día, y se crea una tabla con fechas que puedes editar.',
       setup: 'Fijar el plan', newFrom: 'La memorización empieza en', newTo: 'y termina en', surah: 'Sura', ayah: 'Versículo', ord: 'Orden',
       ordM: 'Orden del Mushaf', ordR: 'Suras en orden inverso', amount: 'Memorización diaria', lines: 'líneas', ayat: 'versículos',
       linesHint: 'Una página tiene 15 líneas; nunca se corta un versículo.', days: 'Días de estudio', start: 'Fecha de inicio', oldT: 'Ya memorizado (repaso lejano) — opcional',
@@ -69,7 +69,7 @@
       auto: 'por recitación', manual: 'marcado por el padre', lessonEnd: 'Esta lección termina en', applyEnd: 'Aplicar (se ajustan las siguientes)', open: 'Abrir en el Mushaf',
       ends: 'El plan termina hacia', wd: ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'],
       fill: 'Completa los campos.', err: 'No se pudo guardar; inténtalo de nuevo.', saved: 'Guardado.', more: 'Ver el resto de la tabla', planLine: 'Plan' },
-    ru: { title: 'Учебный план', none: 'Плана пока нет. Укажите, что ребёнок заучивает и сколько в день, — появится таблица по датам, которую можно править.',
+    ru: { imp: 'Импорт плана школы через ИИ', imp1: '1. Скопируйте инструкцию, откройте любой ИИ (ChatGPT, Claude…), приложите файл плана и вставьте инструкцию.', imp2: '2. Скопируйте весь ответ и вставьте сюда:', impCopy: 'Скопировать инструкцию', impCopied: 'Инструкция скопирована.', impRead: 'Прочитать план', impOk: 'План прочитан: {n} уроков. Проверьте таблицу и сохраните.', impBad: 'Не удалось прочитать строки:', impNone: 'В тексте нет учебных дней.', title: 'Учебный план', none: 'Плана пока нет. Укажите, что ребёнок заучивает и сколько в день, — появится таблица по датам, которую можно править.',
       setup: 'Задать план', newFrom: 'Заучивание начинается с', newTo: 'и заканчивается на', surah: 'Сура', ayah: 'Аят', ord: 'Порядок',
       ordM: 'По порядку Мусхафа', ordR: 'Суры в обратном порядке', amount: 'Новое заучивание в день', lines: 'строк', ayat: 'аятов',
       linesHint: 'На странице 15 строк; аят никогда не разрывается.', days: 'Учебные дни', start: 'Дата начала', oldT: 'Уже выучено (дальнее повторение) — по желанию',
@@ -135,7 +135,12 @@
     var p = plan || { new_from: '78:1', new_to: '114:6', ord: 'mushaf', unit: 'line', amount: 7, days: 31, start_date: Plan.today(), recent_n: 5, old_from: null, old_to: null, old_days: 5 };
     var dayBoxes = L.wd.map(function (w, i) { return '<label class="pl-day"><input type="checkbox" value="' + i + '"' + (p.days & (1 << i) ? ' checked' : '') + '><span>' + E(w) + '</span></label>'; }).join('');
     var oS = p.old_from ? +p.old_from.split(':')[0] : 0, oE = p.old_to ? +p.old_to.split(':')[0] : 0;
+    var imp = null;   // a plan read from an AI's reply: its lessons and days are kept as given
     panel.innerHTML = '<form class="fb-card pl-card pl-form" novalidate>' + head() +
+      '<details class="pl-more pl-imp"><summary>' + E(L.imp) + '</summary><p class="pl-note">' + E(L.imp1) + '</p>' +
+        '<div class="ac-btns"><button type="button" class="ac-btn" id="plCopy">' + E(L.impCopy) + '</button></div>' +
+        '<p class="pl-note">' + E(L.imp2) + '</p><textarea id="plTxt" rows="6" dir="auto"></textarea>' +
+        '<div class="ac-btns"><button type="button" class="ac-btn pri" id="plRead">' + E(L.impRead) + '</button></div><p class="fb-msg" id="plIM"></p></details>' +
       '<span class="fb-label">' + E(L.newFrom) + '</span>' + refPick('plF', p.new_from) +
       '<span class="fb-label">' + E(L.newTo) + '</span>' + refPick('plT', p.new_to) +
       '<span class="fb-label">' + E(L.ord) + '</span><div class="pl-radio">' +
@@ -179,10 +184,33 @@
       });
     }
     function build(pl) {
+      if (imp) return { plan: pl, lessons: imp.lessons, days: imp.days, slots: Plan.schedule(pl, imp.lessons, imp.days) };
       var ls = Plan.lessons(pl, plan ? state.lessons : []);
       var days = plan ? state.days : {};
       return { plan: pl, lessons: ls, days: days, slots: Plan.schedule(pl, ls, days) };
     }
+    document.getElementById('plCopy').onclick = function () {
+      var t = Plan.importPrompt(O.lang), im = document.getElementById('plIM');
+      var done = function () { O.msg(im, L.impCopied); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, function () { fallback(); });
+      else fallback();
+      function fallback() { var ta = document.getElementById('plTxt'); ta.value = t; ta.select(); try { document.execCommand('copy'); done(); } catch (e) {} ta.value = ''; }
+    };
+    document.getElementById('plRead').onclick = function () {
+      var im = document.getElementById('plIM'), r = Plan.importText(document.getElementById('plTxt').value);
+      if (!r.lessons) return O.msg(im, L.impNone, true);
+      imp = r;
+      // the form shows what was read, so the reviews (and anything else) can still be set
+      var setRef = function (id, ref) { var x = ref.split(':'); document.getElementById(id + 'S').value = x[0]; document.getElementById(id + 'A').value = x[1]; };
+      setRef('plF', r.plan.new_from); setRef('plT', r.plan.new_to);
+      f.querySelector('input[name=plO][value=' + r.plan.ord + ']').checked = true;
+      document.getElementById('plN').value = r.plan.amount; document.getElementById('plU').value = 'line';
+      f.querySelectorAll('.pl-days input').forEach(function (x) { x.checked = !!(r.plan.days & (1 << +x.value)); });
+      document.getElementById('plD').value = r.plan.start_date;
+      O.msg(im, L.impOk.replace('{n}', n(r.lessons.length)) + (r.errors.length ? ' ' + L.impBad + ' ' + r.errors.map(n).join('، ') : ''), !!r.errors.length);
+      var b = build(read());
+      document.getElementById('plPreview').innerHTML = endLine(b.slots) + table(b, 0, true);
+    };
     document.getElementById('plPrev').onclick = function () {
       var pl = read(); if (!pl) return O.msg(m, L.fill, true);
       O.msg(m, '');
@@ -216,16 +244,16 @@
     return '<p class="pl-status"><b>' + E(L.done) + ' ' + n(st.done) + ' ' + E(L.of) + ' ' + n(st.total) + ' ' + E(L.lessonsN) + '</b> ' + b + '</p>' +
       '<div class="pl-bar"><i style="width:' + Math.round(100 * st.done / Math.max(1, st.total)) + '%"></i></div>';
   }
-  function partLink(vs, cls, title) {
+  function partLink(vs, cls, title, text) {
     if (!vs || !vs.length) return '';
     var pg = Plan.pageOf(Math.min.apply(null, vs));
-    return '<a class="pl-part ' + cls + '" href="' + O.book + '#p=' + pg + '"><span>' + E(title) + '</span><b>' + E(lab(vs)) + '</b></a>';
+    return '<a class="pl-part ' + cls + '" href="' + O.book + '#p=' + pg + '"><span>' + E(title) + '</span><b>' + E(text || lab(vs)) + '</b></a>';
   }
   function wirdBox(w) {
     if (w.finished || !w.slot) return '';
     var s = w.slot, kind = s.kind !== 'lesson' ? '<span class="pl-kind ' + s.kind + '">' + E(L[s.kind]) + '</span>' : '';
     return '<div class="pl-wird"><b>' + E(L.wird) + '</b>' + kind +
-      partLink(s.recent, 'r', L.recent) + partLink(s.fresh, 'n', L.fresh) + partLink(s.distant, 'd', L.distant) + '</div>';
+      partLink(s.recent, 'r', L.recent) + partLink(s.fresh, 'n', L.fresh, w.lesson ? Plan.lessonLabel(w.lesson, O.lang === 'ur' ? 'ar' : O.lang, n) : '') + partLink(s.distant, 'd', L.distant) + '</div>';
   }
   function table(b, limit, preview) {
     var t = Plan.today(), rows = '', shown = 0, startAt = 0;

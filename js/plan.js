@@ -195,7 +195,7 @@
     var A = saOf(a), B = saOf(b);
     var whole = A[1] === 1 && B[1] === D.cnt[B[0] - 1];
     if (whole) return A[0] === B[0] ? nm[A[0] - 1] : nm[A[0] - 1] + ' – ' + nm[B[0] - 1];
-    if (A[0] === B[0]) return nm[A[0] - 1] + ' ' + num(A[1]) + '–' + num(B[1]);
+    if (A[0] === B[0]) return nm[A[0] - 1] + ' ' + num(A[1]) + (A[1] === B[1] ? '' : '–' + num(B[1]));
     return nm[A[0] - 1] + ' ' + num(A[1]) + ' – ' + nm[B[0] - 1] + ' ' + num(B[1]);
   }
   // a lesson's label in plan order ("المجادلة ٢٢ – الحديد ٤" for a reversed plan)
@@ -204,6 +204,86 @@
     var A = l.a_from.split(':').map(Number), B = l.a_to.split(':').map(Number);
     if (A[0] === B[0]) return nm[A[0] - 1] + ' ' + num(A[1]) + '–' + num(B[1]);
     return nm[A[0] - 1] + ' ' + num(A[1]) + ' – ' + nm[B[0] - 1] + ' ' + num(B[1]);
+  }
+
+  /* Import: a plan written by an AI (or by hand) on our form, one day per line:
+       2026-08-24, درس, الصف:1, الصف:7
+       2026-09-23, إجازة
+       2026-11-05, ضبط
+       2026-11-10, اختبار
+     Surahs by name (any spelling, with or without "سورة") or number; "هـ"/"end" for the last verse.
+     Returns {plan, lessons, days, errors}: the lessons as given (kept as edited), the start, the study weekdays,
+     and every study weekday missing from the list as a holiday, so the dates come out as in the school's plan. */
+  function norm(t) {
+    return String(t).replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+      .replace(/^سوره\s*/, '').replace(/^ال/, '').replace(/[\s'’\-]/g, '').toLowerCase();
+  }
+  var nameIdx = null;
+  function surahNo(t) {
+    t = String(t).trim(); if (!t) return 0;
+    var d = t.replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); });
+    if (/^\d{1,3}$/.test(d)) { var k = +d; return k >= 1 && k <= 114 ? k : 0; }
+    if (!nameIdx) {
+      nameIdx = {};
+      Object.keys(D.names).forEach(function (lg) { D.names[lg].forEach(function (nm, i) { nameIdx[norm(nm)] = i + 1; }); });
+      // common spellings
+      [['ممتحنه', 60], ['ممتحنة', 60], ['منافقين', 63], ['انشراح', 94], ['شرح', 94], ['اسراء', 17], ['بني اسرائيل', 17], ['غافر', 40], ['مومن', 40], ['فصلت', 41], ['حم السجده', 41], ['محمد', 47], ['القتال', 47], ['الدهر', 76], ['انسان', 76], ['تبارك', 67], ['عم', 78], ['اخلاص', 112]]
+        .forEach(function (x) { nameIdx[norm(x[0])] = x[1]; });
+    }
+    return nameIdx[norm(t)] || 0;
+  }
+  function refParse(t, isEnd) {
+    var m = String(t).trim().replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }).split(/[:：]/);
+    var s = surahNo(m[0]); if (!s) return null;
+    var a = (m[1] || '').trim();
+    if (!a || /^(هـ|ه|end|نهايه|اخر|آخر)$/i.test(a)) a = isEnd ? D.cnt[s - 1] : 1;
+    a = +a; if (!(a >= 1)) return null;
+    return s + ':' + Math.min(a, D.cnt[s - 1]);
+  }
+  function importText(text) {
+    var rows = [], errors = [], days = {};
+    String(text).split(/\r?\n/).forEach(function (line, i) {
+      line = line.replace(/^[\s|`*-]+|[\s|`*]+$/g, '');
+      if (!line || /^(التاريخ|date)/i.test(line)) return;
+      var f = line.split(/\s*[,،;|\t]\s*/);
+      var dm = (f[0] || '').replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (!dm) { errors.push(i + 1); return; }
+      var d = dm[1] + '-' + ('0' + dm[2]).slice(-2) + '-' + ('0' + dm[3]).slice(-2);
+      var k = norm(f[1] || 'درس');
+      var kind = /اجاز|عطل|off|holiday/.test(k) ? 'off' : /ضبط|تثبيت|fix|consol/.test(k) ? 'fix' : /اختبار|امتحان|exam|test/.test(k) ? 'exam' : 'lesson';
+      if (kind !== 'lesson') { days[d] = kind; return; }
+      var a = refParse(f[2] || '', false), b = refParse(f[3] || f[2] || '', true);
+      if (!a || !b) { errors.push(i + 1); return; }
+      rows.push({ d: d, a_from: a, a_to: b });
+    });
+    rows.sort(function (x, y) { return x.d < y.d ? -1 : 1; });
+    if (!rows.length) return { errors: errors.length ? errors : [0] };
+    // study weekdays: those that appear; a study weekday with no row is a holiday
+    var mask = 0, all = Object.keys(days).concat(rows.map(function (r) { return r.d; })).sort();
+    all.forEach(function (d) { mask |= 1 << parse(d).getDay(); });
+    var have = {}; all.forEach(function (d) { have[d] = 1; });
+    var end = all[all.length - 1];
+    for (var t = parse(all[0]); ymd(t) <= end; t.setDate(t.getDate() + 1)) { var key = ymd(t); if ((mask & (1 << t.getDay())) && !have[key]) days[key] = 'off'; }
+    var s0 = +rows[0].a_from.split(':')[0], s1 = +rows[rows.length - 1].a_to.split(':')[0];
+    var lines = rows.reduce(function (t2, r) { return t2 + linesOf(walk(r.a_from, r.a_to, s0 > s1 ? 'reverse' : 'mushaf')); }, 0);
+    return {
+      plan: { new_from: rows[0].a_from, new_to: rows[rows.length - 1].a_to, ord: s0 > s1 ? 'reverse' : 'mushaf', unit: 'line',
+              amount: Math.max(1, Math.round(lines / rows.length * 2) / 2), days: mask, start_date: all[0] },
+      lessons: rows.map(function (r, i) { return { idx: i, a_from: r.a_from, a_to: r.a_to, edited: true, done_at: null, done_how: null, mistakes: null }; }),
+      days: days, errors: errors
+    };
+  }
+  // the instructions an AI follows to write a school's plan on our form
+  function importPrompt(lang) {
+    return 'حوِّل خطة الحفظ المرفقة إلى جدول نصي بالتنسيق التالي بالضبط، سطر لكل يوم دراسي، بلا أي شرح قبله أو بعده:\n\n' +
+      'التاريخ الميلادي (YYYY-MM-DD), نوع اليوم, بداية الحفظ الجديد (السورة:الآية), نهاية الحفظ الجديد (السورة:الآية)\n\n' +
+      'أمثلة:\n2026-08-24, درس, الصف:1, الصف:7\n2026-08-25, درس, الصف:8, الصف:هـ\n2026-09-23, إجازة\n2026-11-05, ضبط\n2026-11-10, اختبار\n\n' +
+      'القواعد:\n- نوع اليوم واحد من: درس، ضبط (يوم ضبط وتثبيت بلا حفظ جديد)، اختبار، إجازة.\n' +
+      '- في أيام الدرس اكتب الحفظ الجديد فقط (لا المراجعة القريبة ولا البعيدة).\n' +
+      '- اكتب اسم السورة كما في المصحف، و«هـ» لآخر آية في السورة.\n' +
+      '- إن كان في الخطة تاريخ هجري فقط فحوّله إلى الميلادي.\n' +
+      '- إن كان الدرس يمتد من سورة إلى أخرى فاكتب بدايته في الأولى ونهايته في الثانية.\n' +
+      '- رتّب الأسطر بالتاريخ من الأقدم إلى الأحدث.';
   }
 
   // database
@@ -284,7 +364,7 @@
     label: label, lessonLabel: lessonLabel, lessonVerses: lessonVerses, pageOf: function (g) { return pageOf(g); },
     gOf: function (r) { return gOf(r); }, refOf: function (g) { return refOf(g); }, saOf: function (g) { return saOf(g); },
     count: function (s) { return D.cnt[s - 1]; }, lastRef: lastRef, names: names, linesOf: linesOf,
-    today: today, ymd: ymd, parse: parse,
+    today: today, ymd: ymd, parse: parse, importText: function (t) { return importText(t); }, importPrompt: importPrompt,
     fetch: fetchPlan, save: savePlan, end: endPlan, mark: mark, upload: uploadFile, fileUrl: fileUrl
   };
 })();

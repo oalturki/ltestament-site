@@ -1698,13 +1698,13 @@
           var w = window.Plan.wird(fp.plan, fp.lessons, fp.slots);
           if (w.finished) return '<p class="fs-l">' + esc(PL[8]) + '</p>';
           if (!w.slot) return '';
-          var s = w.slot, part = function (vs, cls, t) {
+          var s = w.slot, part = function (vs, cls, t, text) {
             if (!vs || !vs.length) return '';
-            return '<button type="button" class="fs-part ' + cls + '" data-p="' + window.Plan.pageOf(Math.min.apply(null, vs)) + '"><span>' + esc(t) + '</span><b>' + esc(planLabel(vs)) + '</b></button>';
+            return '<button type="button" class="fs-part ' + cls + '" data-p="' + window.Plan.pageOf(Math.min.apply(null, vs)) + '"><span>' + esc(t) + '</span><b>' + esc(text || planLabel(vs)) + '</b></button>';
           };
           var st = w.status;
           return '<span class="fs-l">' + esc(PL[0]) + (s.kind === 'fix' ? ' — ' + esc(PL[9]) : s.kind === 'exam' ? ' — ' + esc(PL[10]) : '') + '</span>' +
-            '<div class="fs-wird">' + part(s.recent, 'r', PL[1]) + part(s.fresh, 'n', PL[2]) + part(s.distant, 'd', PL[3]) + '</div>' +
+            '<div class="fs-wird">' + part(s.recent, 'r', PL[1]) + part(s.fresh, 'n', PL[2], w.lesson ? window.Plan.lessonLabel(w.lesson, C.lang === 'ur' ? 'ar' : C.lang, nm) : '') + part(s.distant, 'd', PL[3]) + '</div>' +
             '<span class="fs-l small">' + esc(PL[11]) + ' ' + nm(st.done) + '/' + nm(st.total) + (st.behind > 0 ? ' · ' + esc(PL[4]) + ' ' + nm(st.behind) + ' ' + esc(PL[5]) : '') + '</span>';
         };
         // after a recitation: if it covered the next lesson of the plan, mark it done (within the profile's mistake limit)
