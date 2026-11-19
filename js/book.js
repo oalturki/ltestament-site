@@ -777,7 +777,9 @@
     function buildControls() {
       var sel = q('surahSel');
       if (sel) {
-        sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + uiNum(i + 1) + '. ' + esc(n) + '</option>'; }).join('');
+        // phones: the name alone, so the whole name fits the narrow bar (the number is shown on larger screens)
+        var narrow = window.matchMedia && window.matchMedia('(max-width:600px)').matches;
+        sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + (narrow ? '' : uiNum(i + 1) + '. ') + esc(n) + '</option>'; }).join('');
         sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; };
       }
       var ts = q('trSel');
