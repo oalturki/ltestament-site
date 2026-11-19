@@ -1229,6 +1229,7 @@
     function playSrc(url, muted) {
       audio.muted = !!muted;
       if (audio.getAttribute('src') !== url) audio.src = url;
+      audio.defaultPlaybackRate = audio.playbackRate = (rep && rep.speed) || 1;     // the speed chosen in the settings
       var pr = audio.play();
       if (pr && pr.catch) pr.catch(function () { stopAudio(); });
       startTick();
@@ -1473,6 +1474,10 @@
     }
     // rep: mode 'cont' (read on) | 'page' (the page(s) shown when play starts) | 'custom' (from / to);
     // ayah = times each ayah is recited, range = times the passage is recited (0 = without stopping)
+    var TXC = {};                                  // ayah texts by surah, for the settings' previews
+    var RSEC = { ar: ['ما يُتلى', 'التكرار والترديد', 'سرعة التشغيل'], ur: ['کیا پڑھا جائے', 'تکرار اور دہرانا', 'رفتار'],
+                 en: ['What to recite', 'Repeat', 'Speed'], fr: ['Ce qui est récité', 'Répétition', 'Vitesse'],
+                 es: ['Qué recitar', 'Repetición', 'Velocidad'], ru: ['Что читать', 'Повтор', 'Скорость'] };
     var rep = { mode: 'cont', ayah: 1, range: 1, from: [1, 1], to: [1, 7] }, repRun = null;
     function setupRepeat(sel) {
       var R = REPL[C.lang] || REPL.en;
@@ -1486,22 +1491,31 @@
       var pt = function (k) { return '<span class="bk-rpt"><select class="bk-ctl" data-r="' + k + 's" aria-label="' + esc(R[k]) + '">' + sOpts + '</select>' +
         '<input class="bk-ctl" data-r="' + k + 'a" type="number" inputmode="numeric" min="1" aria-label="' + esc(R.ayah) + '"></span>'; };
       var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
+      var RS = RSEC[C.lang] || RSEC.en, speeds = [0.75, 1, 1.25, 1.5, 2];
+      // in groups, as in recitation apps: what is recited, repetition, speed
       panel.innerHTML = '<h3>' + esc(R.title) + '</h3>' +
+        '<section class="bk-rsec"><h4>' + esc(RS[0]) + '</h4>' +
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
         '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="hifz">' + esc(R.hifz) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
-        '<label class="bk-rrow"><span>' + esc(R.talq) + '</span><select class="bk-ctl" data-r="talq"><option value="off">' + esc(R.tOff) + '</option><option value="ayah">' + esc(R.tAyah) + '</option><option value="seg">' + esc(R.tSeg) + '</option></select></label>' +
-        '<p class="bk-rnote bk-rtalq">' + esc(R.tNote) + '</p>' +
         '<label class="bk-rrow bk-rsurah"><span>' + esc(R.surah) + '</span><select class="bk-ctl" data-r="surah">' + sOpts + '</select></label>' +
-        '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label>' +
-        '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label>' +
+        '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label><p class="bk-rprev" data-pv="ha1" lang="ar" dir="rtl"></p>' +
+        '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label><p class="bk-rprev" data-pv="ha2" lang="ar" dir="rtl"></p>' +
         '<div class="bk-rhx"><span class="bk-rhxh">' + esc(R.hx) + '</span><p class="bk-rnote">' + esc(R.hxNote) + '</p><div class="bk-rhxl"></div></div>' +
         '<label class="bk-rrow"><span>' + esc(R.linkHow) + '</span><select class="bk-ctl" data-r="hl"><option value="2">' + esc(R.lPrev) + '</option><option value="3">' + esc(R.l2) + '</option><option value="4">' + esc(R.l3) + '</option><option value="0">' + esc(R.lAll) + '</option></select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hy) + '</span><select class="bk-ctl" data-r="hy">' + hOpts([0, 1, 2, 3, 5, 7, 10]) + '</select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hz) + '</span><select class="bk-ctl" data-r="hz">' + hOpts([0, 1, 2, 3, 5, 7, 10, -1]) + '</select></label>' +
         '<p class="bk-rnote">' + esc(R.hnote) + '</p></div>' +
-        '<div class="bk-rcustom"><div class="bk-rrow"><span>' + esc(R.from) + '</span>' + pt('from') + '</div><div class="bk-rrow"><span>' + esc(R.to) + '</span>' + pt('to') + '</div></div>' +
+        '<div class="bk-rcustom"><div class="bk-rrow"><span>' + esc(R.from) + '</span>' + pt('from') + '</div><p class="bk-rprev" data-pv="from" lang="ar" dir="rtl"></p>' +
+        '<div class="bk-rrow"><span>' + esc(R.to) + '</span>' + pt('to') + '</div><p class="bk-rprev" data-pv="to" lang="ar" dir="rtl"></p></div>' +
+        '</section>' +
+        '<section class="bk-rsec bk-rsrep"><h4>' + esc(RS[1]) + '</h4>' +
         '<label class="bk-rrow"><span>' + esc(R.repAyah) + '</span><select class="bk-ctl" data-r="ayah">' + cOpts + '</select></label>' +
-        '<label class="bk-rrow bk-rrange"><span>' + esc(R.repRange) + '</span><select class="bk-ctl" data-r="range">' + cOpts + '</select></label>';
+        '<label class="bk-rrow bk-rrange"><span>' + esc(R.repRange) + '</span><select class="bk-ctl" data-r="range">' + cOpts + '</select></label>' +
+        '<label class="bk-rrow"><span>' + esc(R.talq) + '</span><select class="bk-ctl" data-r="talq"><option value="off">' + esc(R.tOff) + '</option><option value="ayah">' + esc(R.tAyah) + '</option><option value="seg">' + esc(R.tSeg) + '</option></select></label>' +
+        '<p class="bk-rnote bk-rtalq">' + esc(R.tNote) + '</p>' +
+        '</section>' +
+        '<section class="bk-rsec"><h4>' + esc(RS[2]) + '</h4><div class="bk-rspeed" role="group" aria-label="' + esc(RS[2]) + '">' +
+        speeds.map(function (v) { return '<button type="button" data-sp="' + v + '">' + (C.lang === 'ar' ? arNum(String(v)).replace('.', '٫') : String(v)) + '×</button>'; }).join('') + '</div></section>';
       var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
       function fill() {
         f('talq').value = rep.talq || 'off'; panel.classList.toggle('talq', !!rep.talq && rep.talq !== 'off');
@@ -1523,6 +1537,14 @@
         f('hl').value = String(linkN(hz.link));
         f('hy').value = String(hz.y == null ? 2 : hz.y); f('hz').value = String(hz.z == null ? 3 : hz.z);
         panel.classList.toggle('cont', rep.mode === 'cont');
+        panel.querySelectorAll('[data-sp]').forEach(function (b3) { b3.classList.toggle('on', +b3.getAttribute('data-sp') === (rep.speed || 1)); });
+        // the ayah itself under each «from / to», so the choice is seen, not guessed
+        var pv = function (k, sN, aN) {
+          var el = panel.querySelector('[data-pv="' + k + '"]'); if (!el) return;
+          (TXC[sN] || (TXC[sN] = getJSON('/data/text-simple/' + sN + '.json'))).then(function (t) { el.textContent = (t && t[aN - 1] ? t[aN - 1] : '') + ' (' + arNum(String(aN)) + ')'; }).catch(function () {});
+        };
+        if (rep.mode === 'custom') { pv('from', rep.from[0], rep.from[1]); pv('to', rep.to[0], rep.to[1]); }
+        if (rep.mode === 'hifz' && rep.hz) { pv('ha1', rep.surah || 1, rep.hz.a1 || 1); pv('ha2', rep.surah || 1, rep.hz.a2 || 1); }
       }
       function read(e) {
         var hx = e && e.target && e.target.getAttribute && e.target.getAttribute('data-hx');
@@ -1569,6 +1591,13 @@
         var r = e.target && e.target.getAttribute && e.target.getAttribute('data-r');
         if (r === 'surah' || r === 'ha1' || r === 'ha2' || r === 'froms' || r === 'froma' || r === 'tos' || r === 'toa' || (e.target && e.target.hasAttribute && e.target.hasAttribute('data-hx'))) repPicked = true;
         read(e);
+      });
+      panel.addEventListener('click', function (e) {
+        var b4 = e.target.closest && e.target.closest('[data-sp]'); if (!b4) return;
+        rep.speed = +b4.getAttribute('data-sp');
+        if (!embed) store('lt_rec_rep', JSON.stringify(rep));
+        if (audio) { audio.defaultPlaybackRate = audio.playbackRate = rep.speed; }
+        fill();
       });
       root.__repFill = fill;
       fill();
