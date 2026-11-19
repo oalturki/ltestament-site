@@ -272,4 +272,14 @@
       (left > 0 ? ' · لم تُقرأ: ' + num(left) : '') + '</p>';
   }
   btn.onclick = function () { if (R) stop(false); else start(); };
+  // close: stop listening, release the microphone, and go back to the Mushaf page the reader came from
+  ['tsClose', 'tsBack'].forEach(function (id) {
+    var c = $(id); if (!c) return;
+    c.onclick = function (e) {
+      if (R) stop(true);
+      if (MIC) { MIC.getTracks().forEach(function (t) { t.stop(); }); MIC = null; }
+      var ref = document.referrer || '';
+      if (ref.indexOf(location.origin + '/book') === 0 && history.length > 1) { e.preventDefault(); history.back(); }
+    };
+  });
 })();
