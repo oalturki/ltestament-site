@@ -2510,7 +2510,7 @@
               (aMin === aMax ? esc(SM[14]) + ' ' + N(aMin) : esc(SM[2]) + ' ' + N(aMin) + '–' + N(aMax)) + '</small></div><span class="sm-t">⏱ ' + N(Math.floor(secs / 60)) + ':' + N(('0' + secs % 60).slice(-2)) + '</span></div>' +
             '<div class="sm-g ' + grade[1] + '"><svg viewBox="0 0 36 36" width="76" height="76" aria-hidden="true"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>' +
               '<circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="' + pct + ' 100" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>' +
-              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + N(n.err) + ' ' + esc(SM[13]) + '</small>' : '') + '</div></div>' +
+              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[13]) + ': ' + N(n.err) + '</small>' : '') + '</div></div>' +
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
             '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(errL.length) + '</small></button>' : '') +
