@@ -103,6 +103,20 @@
       (C.__playWord && !isEnd && parts[2] ? '<button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' : '') +
       '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
+    // colour Mushaf, the ayah's number: the ayah's words that carry tajweed rules, each with its rules
+    if (C.__tjAyah && isEnd && document.body.classList.contains('bk-tajweed')) {
+      var TJH = { ar: 'أحكام التجويد في الآية', ur: 'آیت میں تجوید کے احکام', en: 'Tajweed in this verse', fr: 'Tajwid dans ce verset', es: 'Tajwid en esta aleya', ru: 'Таджвид в этом аяте' };
+      var tj0 = document.createElement('div'); tj0.className = 'bk-wstjl';
+      var wr0 = body.querySelector('.bk-wsr'); if (wr0) wr0.parentNode.insertBefore(tj0, wr0.nextSibling);
+      C.__tjAyah(s, a).then(function (list) {
+        if (!list.length) { tj0.remove(); return; }
+        var K = TJKEY[C.lang] || TJKEY.en;
+        tj0.innerHTML = '<h4>' + esc(TJH[C.lang] || TJH.en) + '</h4>' + list.map(function (x) {
+          return '<div class="tj-row"><span class="tj-w" lang="ar" translate="no">' + esc(WTXT[x[0]] || '') + '</span><span class="tj-rs">' +
+            x[1].map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('') + '</span></div>';
+        }).join('');
+      });
+    }
     if (C.__tjRules && !isEnd && parts[2] && document.body.classList.contains('bk-tajweed')) {
       C.__tjRules(loc).then(function (rs) {
         if (!rs.length) return;
@@ -1206,6 +1220,9 @@
         if (lpDone) { lpDone = false; return; }
         if (e.target.closest('.bk-bar, .bk-bottom, .bk-mnav, .bk-msov, .bk-wsov, a, button, select, input, label')) return;
         if (!e.target.closest('.bk-stage')) return;
+        // colour Mushaf: a tap on an ayah's number lists the ayah's tajweed rules
+        var ae = document.body.classList.contains('bk-tajweed') && e.target.closest('.bk-mpage .ae[data-l]');
+        if (ae) { wordSheet(C, ae.getAttribute('data-l')); return; }
         chrome(document.body.classList.contains('bk-chrome-off'));
       });
       book.addEventListener('touchend', function () { if (mq.matches && !ov.classList.contains('on')) hideT = setTimeout(function () { chrome(false); }, 300); }, { passive: true });
@@ -1398,6 +1415,14 @@
       if (!tjCache[p]) tjCache[p] = getJSON(BASE + '/data/tajweed/p' + p + '.json').catch(function () { delete tjCache[p]; return {}; });
       return tjCache[p];
     }
+    // an ayah's words that carry rules, in order: [[loc, [rules]], ...]
+    C.__tjAyah = function (sN, aN) {
+      return tjPage(pageOf(sN, aN)).then(function (m) {
+        var pre = sN + ':' + aN + ':';
+        return Object.keys(m).filter(function (k) { return k.indexOf(pre) === 0; })
+          .sort(function (x, y) { return +x.split(':')[2] - +y.split(':')[2]; }).map(function (k) { return [k, m[k]]; });
+      });
+    };
     C.__tjRules = function (loc) {
       var x = loc.split(':'); return tjPage(pageOf(+x[0], +x[1])).then(function (m) { return m[loc] || []; });
     };
