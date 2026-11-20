@@ -869,13 +869,13 @@ body:not(.bk-mob) .bk-msside .bk-msheet{ width:min(92vw, 400px); }
 body:not(.bk-mob) .bk-msitem[data-s=rec]{ display:none; }   /* the record button is in the toolbar there */
 
 /* tajweed while listening (colour Mushaf): the word being read and its rules */
-.bk-tjcard{ position:fixed; z-index:45; left:50%; top:calc(8px + env(safe-area-inset-top)); transform:translate(-50%, -12px); opacity:0; pointer-events:none;
-  display:flex; align-items:center; gap:10px; max-width:calc(100vw - 20px); padding:6px 8px 6px 12px; border-radius:16px;
-  background:rgba(255,253,247,.97); border:1px solid #e2d3a4; box-shadow:0 6px 18px rgba(0,0,0,.18); color:#1b2a3a; transition:opacity .2s, transform .2s; }
-.bk-tjcard.on{ opacity:1; transform:translate(-50%, 0); pointer-events:auto; }
+.bk-tjcard{ position:fixed; z-index:45; left:8px; top:10px; opacity:0; pointer-events:none;
+  display:flex; align-items:center; gap:10px; width:max-content; max-width:min(calc(100vw - 16px), 440px); padding:6px 8px 6px 12px; border-radius:16px;
+  background:rgba(255,253,247,.97); border:1px solid #e2d3a4; box-shadow:0 6px 18px rgba(0,0,0,.18); color:#1b2a3a; transition:opacity .2s; }
+.bk-tjcard.on{ opacity:1; pointer-events:auto; }
 .tj-w{ font-family:'KFGQPC Hafs', 'Amiri Quran', serif; font-size:1.5rem; line-height:1.4; flex:none; }
-.tj-rs{ display:flex; flex-wrap:wrap; gap:4px; }
-.tj-chip{ display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:999px; background:#f3ecd8; font-size:.78rem; line-height:1.5; }
+.tj-rs{ display:flex; flex-wrap:wrap; gap:4px; min-width:0; flex:1; }
+.tj-chip{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:10px; background:#f3ecd8; font-size:.78rem; line-height:1.45; }
 .tj-chip i{ width:10px; height:10px; border-radius:50%; flex:none; }
 .tj-x{ border:0; background:none; color:#8f8775; font-size:1.2rem; cursor:pointer; padding:0 4px; flex:none; }
 .bk-wstj{ display:flex; flex-wrap:wrap; justify-content:center; gap:5px; margin:6px 0 4px; }

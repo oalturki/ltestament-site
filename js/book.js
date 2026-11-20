@@ -1447,7 +1447,19 @@
         }
         tjCard.innerHTML = '<span class="tj-w" lang="ar" translate="no">' + esc(WTXT[loc] || '') + '</span><span class="tj-rs">' + tjChips(rs) + '</span>' +
           '<button type="button" class="tj-x" aria-label="×">×</button>';
-        tjCard.classList.add('on');
+        // beside the word: under it in the page's upper half, over it in the lower half; never over the word itself
+        var we = null;
+        root.querySelectorAll('.bk-mpage [data-l="' + loc + '"]').forEach(function (e) { var r0 = e.getBoundingClientRect(); if (r0.width && r0.left > -5 && r0.right < window.innerWidth + 5) we = e; });
+        tjCard.style.visibility = 'hidden'; tjCard.classList.add('on');
+        var cw = tjCard.offsetWidth, ch = tjCard.offsetHeight, W = window.innerWidth, H = window.innerHeight;
+        if (we) {
+          var r = we.getBoundingClientRect(), mid = r.top + r.height / 2;
+          var top = mid < H / 2 ? r.bottom + 6 : r.top - ch - 6;
+          tjCard.style.top = Math.round(Math.max(6, Math.min(H - ch - 6, top))) + 'px';
+          tjCard.style.left = Math.round(Math.max(8, Math.min(W - cw - 8, r.left + r.width / 2 - cw / 2))) + 'px';
+          tjCard.classList.toggle('up', mid >= H / 2);
+        } else { tjCard.style.top = '10px'; tjCard.style.left = Math.round((W - cw) / 2) + 'px'; }
+        tjCard.style.visibility = '';
         clearTimeout(tjT); tjT = setTimeout(function () { if (tjCard) tjCard.classList.remove('on'); }, 4000);
       });
     }
