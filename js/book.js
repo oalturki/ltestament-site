@@ -103,6 +103,14 @@
       (C.__playWord && !isEnd && parts[2] ? '<button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' : '') +
       '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
+    if (C.__tjRules && !isEnd && parts[2] && document.body.classList.contains('bk-tajweed')) {
+      C.__tjRules(loc).then(function (rs) {
+        if (!rs.length) return;
+        var K = TJKEY[C.lang] || TJKEY.en, d = document.createElement('div'); d.className = 'bk-wstj';
+        d.innerHTML = rs.map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('');
+        var wr = body.querySelector('.bk-wsr'); if (wr) wr.parentNode.insertBefore(d, wr.nextSibling);
+      });
+    }
     var pb = body.querySelector('.bk-wsplay');
     if (pb) pb.onclick = function () { C.__playWord(loc, pb); };
     if (pb && C.__prepWord) C.__prepWord(loc);
@@ -1380,6 +1388,40 @@
     function setHl(h) {
       if (hl && h && hl.s === h.s && hl.a === h.a && hl.w === h.w && hl.basmala === h.basmala) return;
       hl = h; applyHl();
+      if (h && h.w && document.body.classList.contains('bk-tajweed') && mushaf) tjShow(h);
+    }
+    // Learning tajweed with the colour Mushaf: the rules of each word (data/tajweed/p<N>.json, read from the colours
+    // of the Complex's font by tools/build_tajweed_rules.py). While the reciter reads, a card shows the word he is on
+    // and its rules, each with its colour and its name from the colour key; a long press on a word shows them too.
+    var tjCache = {};
+    function tjPage(p) {
+      if (!tjCache[p]) tjCache[p] = getJSON(BASE + '/data/tajweed/p' + p + '.json').catch(function () { delete tjCache[p]; return {}; });
+      return tjCache[p];
+    }
+    C.__tjRules = function (loc) {
+      var x = loc.split(':'); return tjPage(pageOf(+x[0], +x[1])).then(function (m) { return m[loc] || []; });
+    };
+    var tjCard = null, tjOff = false, tjT = null;
+    function tjChips(rs) {
+      var K = TJKEY[C.lang] || TJKEY.en;
+      return rs.map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('');
+    }
+    function tjShow(h) {
+      if (tjOff || embed) return;
+      var loc = h.s + ':' + h.a + ':' + h.w;
+      C.__tjRules(loc).then(function (rs) {
+        if (!playing || !hl || hl.w !== h.w || hl.a !== h.a) return;
+        if (!rs.length) return;                          // a word with no rule: the card keeps the last one a moment
+        if (!tjCard) {
+          tjCard = document.createElement('div'); tjCard.className = 'bk-tjcard'; tjCard.setAttribute('aria-live', 'polite');
+          document.body.appendChild(tjCard);
+          tjCard.addEventListener('click', function (e) { if (e.target.closest('.tj-x')) { tjOff = true; tjCard.classList.remove('on'); } });
+        }
+        tjCard.innerHTML = '<span class="tj-w" lang="ar" translate="no">' + esc(WTXT[loc] || '') + '</span><span class="tj-rs">' + tjChips(rs) + '</span>' +
+          '<button type="button" class="tj-x" aria-label="×">×</button>';
+        tjCard.classList.add('on');
+        clearTimeout(tjT); tjT = setTimeout(function () { if (tjCard) tjCard.classList.remove('on'); }, 4000);
+      });
     }
     function applyHl() {
       root.querySelectorAll('.ha, .hl').forEach(function (e) { e.classList.remove('ha', 'hl'); });
@@ -1396,6 +1438,7 @@
       b.title = playing ? U.pause : U.listen;
       var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
       if (root.__focus) root.__focus('play', playing);
+      if (!playing && tjCard) tjCard.classList.remove('on');
     }
     // Talqeen: the reciter reads a part, then is silent for about as long, so the learner repeats after him.
     // 'ayah': a pause after each ayah; 'seg': also within the ayah, at the Mushaf's pause marks (ۖ ۗ ۚ ۘ),
