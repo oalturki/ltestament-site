@@ -725,3 +725,8 @@ body.bk-mob.bk-is-mushaf:not(.bk-chrome-off) > .bk-sess{ visibility:hidden; }   
 .bk-mssec .bk-msgroup:empty{ display:none; }
 .bk-mssec[data-s="marks"], .bk-mssec[data-s="recent"]{ max-height:none; }
 .bk-msheet .bk-mshead{ gap:10px; } .bk-msheet .bk-mshead h2{ flex:1; }
+
+.bk-mscardh{ margin:14px 6px 6px; font-size:.78rem; font-weight:700; color:var(--gold-soft); opacity:.85; }
+.bk-mslist > .bk-mscardh:first-child{ margin-top:4px; }
+.bk-msitem[hidden]{ display:none; }
+.bk-msitem:not([hidden]) ~ .bk-msitem{ border-top:1px solid rgba(246,238,218,.08); }

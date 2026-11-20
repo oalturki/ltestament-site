@@ -832,7 +832,10 @@
       head2.insertBefore(backB, head2.firstChild);
       var menu = document.createElement('div'); menu.className = 'bk-mslist'; sbody.appendChild(menu);
       var secs = {}, subs = {}, card = null;
-      var newCard = function () { card = document.createElement('div'); card.className = 'bk-mscard'; menu.appendChild(card); return card; };
+      var newCard = function (title) {
+        if (title != null) { var h = document.createElement('div'); h.className = 'bk-mscardh'; h.textContent = title; menu.appendChild(h); card = null; }
+        card = document.createElement('div'); card.className = 'bk-mscard'; menu.appendChild(card); return card;
+      };
       var goSec = function (k) {
         Object.keys(secs).forEach(function (x) { secs[x].hidden = x !== k; });
         menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
@@ -853,17 +856,24 @@
       };
       var body = null;                                   // the page rows are added to (row() below)
       var paneR, paneM;
-      newCard();
+      // three parts: what is the user's own (reading, record, places); the Mushaf in general (its look);
+      // the mode in use (reading: listening; memorization: listening, repetition and recitation)
+      var MS = { ar: ['أنا', 'المصحف', 'الوضع الحالي: القراءة', 'الوضع الحالي: الحفظ'], ur: ['میرا', 'مصحف', 'موجودہ انداز: تلاوت', 'موجودہ انداز: حفظ'],
+                 en: ['Me', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'], fr: ['Moi', 'Le Mushaf', 'Mode : lecture', 'Mode : mémorisation'],
+                 es: ['Yo', 'El Mushaf', 'Modo: lectura', 'Modo: memorización'], ru: ['Я', 'Мусхаф', 'Режим: чтение', 'Режим: заучивание'] }[C.lang] || null;
+      var M3 = MS || ['Me', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
+      newCard(M3[0]);
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var fb0 = document.querySelector('.bk-fambtn');
       var recSec = fb0 ? section('rec', S2.rec) : null;
-      newCard();
-      var viewSec = section('view', S2.view);
-      var listenSec = section('listen', S2.listen);
-      var reciteSec = section('recite', S2.recite);
-      newCard();
       paneM = section('marks', S2.marks);
       paneR = section('recent', S2.recent);
+      newCard(M3[1]);
+      var viewSec = section('view', S2.view);
+      var modeH = null;
+      newCard(M3[2]); modeH = card.previousSibling;
+      var listenSec = section('listen', S2.listen);
+      var reciteSec = section('recite', S2.recite);
       var pageLabel = function (p) {
         var pg2 = MAP.pages[p - 1];
         return '<b>' + esc(C.uiNames[pg2[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
@@ -882,6 +892,9 @@
       // each row's current value, under its title
       var selText = function (el) { return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].text : ''; };
       var fillMenu = function () {
+        var memo = root.classList.contains('bk-memo');
+        if (modeH) modeH.textContent = M3[memo ? 3 : 2];
+        var rr = menu.querySelector('.bk-msitem[data-s=recite]'); if (rr) rr.hidden = !memo;     // recitation: in memorization mode
         var n = function (x) { return uiNum(x); };
         if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
