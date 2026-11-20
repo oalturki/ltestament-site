@@ -137,13 +137,13 @@
       days: 'المدة (الأيام)', rdays: 'أيام القراءة', every: 'كل يوم', wird: 'الورد', perDay: 'في كل يوم قراءة', start: 'تبدأ', remind: 'وقت التذكير',
       create: 'إنشاء', saveB: 'حفظ', cancel: 'إلغاء', del: 'حذف', edit: 'تعديل', delAsk: 'حذف هذه الختمة؟', read: 'اقرأ', today: 'ورد اليوم', pages: 'صفحات', p1: 'ص',
       onTime: 'على الموعد', behind: 'متأخر', ahead: 'أتممت ورد اليوم', ends: 'تنتهي', done: 'تمّت الختمة، تقبّل الله.', rest: 'لا ورد اليوم',
-      wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], cont: 'أكمل', of: 'من', jz: 'جزء', note: 'يُحتسب التقدم من الصفحات التي تقرؤها في المصحف.' },
+      wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], cont: 'أكمل', of: 'من', jz: 'جزء', note: 'يُحتسب التقدم من الصفحات التي تقرؤها في المصحف.', finished: 'ختمة أتممتها', started: 'ختمة بدأتها' },
     en: { title: 'My khatmas', add: 'New khatma', none: 'No khatmas yet. Create one to read the Quran, or part of it, over a set number of days; your progress is followed from your reading.',
       name: 'Name', mine: 'My khatma', range: 'Range', by: ['By juz', 'By pages', 'By surahs'], from: 'From', to: 'To', juz: 'Juz', page: 'Page', surah: 'Surah',
       days: 'Duration (days)', rdays: 'Reading days', every: 'Every day', wird: 'Daily portion', perDay: 'each reading day', start: 'Starts', remind: 'Reminder time',
       create: 'Create', saveB: 'Save', cancel: 'Cancel', del: 'Delete', edit: 'Edit', delAsk: 'Delete this khatma?', read: 'Read', today: 'Today', pages: 'pages', p1: 'p.',
       onTime: 'On time', behind: 'Behind', ahead: 'Today’s portion done', ends: 'Ends', done: 'Khatma completed.', rest: 'No reading today',
-      wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], cont: 'Continue', of: 'of', jz: 'juz', note: 'Progress comes from the pages you read in the Mushaf.' }
+      wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], cont: 'Continue', of: 'of', jz: 'juz', note: 'Progress comes from the pages you read in the Mushaf.', finished: 'completed', started: 'started' }
   };
   function L(lang) { return T[lang] || T.en; }
   function num(n, lang) { var s = String(n); return lang === 'ar' ? s.replace(/[0-9]/g, function (d) { return AR[d]; }) : s; }
@@ -161,6 +161,13 @@
     if (j >= 1 && Math.abs(p - j * 20) <= (j >= 2 ? 4 : 1)) return lang === 'ar' ? arCount(j, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(j, lang) + ' ' + L(lang).jz;
     return pagesText(p, lang);
   }
+  // the khatma's number, in words where Arabic has them: «الختمة الثالثة»
+  var ORD = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة'];
+  function nth(n, lang) {
+    if (lang === 'ar') return 'الختمة ' + (n <= 10 ? ORD[n - 1] : 'رقم ' + num(n, lang));
+    return 'Khatma #' + n;
+  }
+  function nextNo() { return list().reduce(function (m, k) { return Math.max(m, k.no || 0); }, 0) + 1; }
   // the line on the Mushaf page: today's wird of the first khatma that has one
   function stripText(lang) {
     var l = L(lang), a = active();
@@ -176,14 +183,18 @@
     var lang = o.lang, l = L(lang);
     var draw = function () {
       var ls = list();
-      var h = ls.length ? '' : '<p class="kh-none">' + esc(l.none) + '</p>';
+      // number the khatmas made before numbering existed
+      var mx = ls.reduce(function (m, x) { return Math.max(m, x.no || 0); }, 0);
+      ls.forEach(function (k) { if (!k.no) { k.no = ++mx; save(k); } });
+      var fins = ls.filter(function (k) { return stat(k).fin; }).length;
+      var h = ls.length ? '<div class="kh-sum"><b>' + num(fins, lang) + '</b><span>' + esc(l.finished) + '</span><b>' + num(ls.length, lang) + '</b><span>' + esc(l.started) + '</span></div>' : '<p class="kh-none">' + esc(l.none) + '</p>';
       ls.forEach(function (k) {
         var s = stat(k);
-        var state = s.fin ? '<span class="kh-ok">' + esc(l.done) + '</span>'
+        var state = s.fin ? '<span class="kh-ok">' + esc(lang === 'ar' ? 'تمّت ' + nth(k.no || 1, lang) + '، تقبّل الله.' : l.done) + '</span>'
           : s.behind > 0 ? '<span class="kh-late">' + esc(l.behind) + ' ' + esc(pagesText(s.behind, lang)) + '</span>'
           : !s.isDay ? '<span>' + esc(l.rest) + '</span>'
           : s.left === 0 ? '<span class="kh-ok">' + esc(l.ahead) + '</span>' : '<span>' + esc(l.onTime) + '</span>';
-        h += '<div class="kh-card" style="--kc:' + esc(k.color || COLORS[0]) + '"><div class="kh-top"><i class="kh-dot"></i><b>' + esc(k.name) + '</b>' +
+        h += '<div class="kh-card' + (s.fin ? ' fin' : '') + '" style="--kc:' + esc(k.color || COLORS[0]) + '"><div class="kh-top"><i class="kh-no">' + num(k.no || 1, lang) + '</i><b>' + esc(k.name) + '</b>' +
           '<button type="button" class="kh-edit" data-e="' + k.id + '">' + esc(l.edit) + '</button></div>' +
           '<div class="kh-bar"><i style="width:' + s.pct + '%"></i></div>' +
           '<div class="kh-meta"><span>' + num(s.done, lang) + ' / ' + num(s.total, lang) + ' · ' + num(s.pct, lang) + '٪</span>' + state + '</div>' +
@@ -199,7 +210,8 @@
     };
     var form = function (k0) {
       map().then(function (mm) {
-        var k = k0 ? JSON.parse(JSON.stringify(k0)) : { id: uid(), name: l.mine + ' — ' + hijri(ymd(new Date()), lang), color: COLORS[0], unit: 'juz', from: 1, to: 604,
+        var no0 = k0 && k0.no || nextNo();
+        var k = k0 ? JSON.parse(JSON.stringify(k0)) : { id: uid(), no: no0, name: nth(no0, lang), color: COLORS[(no0 - 1) % COLORS.length], unit: 'juz', from: 1, to: 604,
           days: 30, rdays: 127, start: ymd(new Date()), remind: { on: false, time: '20:00' }, done: [] };
         var names = o.names || [];
         var opt = function (unit, side) {
