@@ -139,7 +139,7 @@
   }
 
   var T = {
-    ar: { title: 'قراءتي', tabs: ['اليوم', 'الأسبوع', 'الشهر', 'السنة'], u: ['صفحة', 'كلمة', 'حرفًا'],
+    ar: { title: 'قراءتي', tabs: ['اليوم', 'الأسبوع', 'الشهر', 'السنة'], u: ['صفحات', 'كلمات', 'أحرف'],
       h: '«من قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي.', note: 'تُحتسب الصفحة كلما بقيت مفتوحة مدةً تكفي لقراءتها. والعدد تقريبي.' },
     en: { title: 'My reading', tabs: ['Today', 'Week', 'Month', 'Year'], u: ['pages', 'words', 'letters'],
       h: '“Whoever reads a letter of the Book of Allah has a good deed for it, and a good deed is multiplied tenfold.” — at-Tirmidhi.', note: 'A page counts each time it stays open long enough to be read. The numbers are approximate.' },
@@ -185,11 +185,14 @@
   // the session, shown on the page: pages and letters
   function sessLine(o, lang) {
     var L = T[lang] || T.en;
+    // Arabic: the word before the number (no agreement of number and noun to get wrong)
+    if (lang === 'ar') return 'هذه الجلسة — الصفحات: ' + fmt(o.pages, lang) + ' · الأحرف: ' + fmt(o.letters, lang);
     return (SESS[lang] || SESS.en) + ': ' + fmt(o.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(o.letters, lang) + ' ' + L.u[2];
   }
   // a short line for a profile card: this week's pages and letters
   function line(s, lang) {
     var L = T[lang] || T.en, w = s.week;
+    if (lang === 'ar') return 'الأسبوع — الصفحات: ' + fmt(w.pages, lang) + ' · الأحرف: ' + fmt(w.letters, lang);
     return L.tabs[1] + ': ' + fmt(w.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(w.letters, lang) + ' ' + L.u[2];
   }
   window.ReadStats = { mark: mark, session: session, fmt: fmt, sum: sum, sumMany: sumMany, html: html, wire: wire, line: line, sessLine: sessLine, pageStats: pageStats };
