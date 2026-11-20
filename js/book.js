@@ -856,7 +856,7 @@
       var homes = moves.map(function (m) { var c = document.createComment(''); m[0].parentNode.insertBefore(c, m[0]); return c; });
       function apply() {
         var on = mq.matches;
-        document.body.classList.toggle('bk-mob', on);
+        document.body.classList.toggle('bk-mob', on); document.documentElement.classList.remove('bk-pre');
         moves.forEach(function (m, i) { (on ? m[1] : homes[i].parentNode).insertBefore(m[0], on ? null : homes[i]); });
         if (!on) shut();
         requestAnimationFrame(fitAll);

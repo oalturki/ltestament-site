@@ -675,3 +675,7 @@ body.bk-mob .bk-bar select.bk-mpg{ width:auto; min-width:78px; }
 .bk-rspeed{ display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin:6px 0 4px; }
 .bk-rspeed button{ height:38px; border-radius:10px; border:1px solid rgba(200,155,60,.4); background:none; color:var(--parch); font:inherit; font-size:.9rem; cursor:pointer; }
 .bk-rspeed button.on{ background:#c9a227; border-color:#c9a227; color:#1b2a3a; font-weight:700; }
+
+/* phones, while the page opens: nothing but the night background until the phone layout is ready (html.bk-pre, set in the page head) */
+html.bk-pre body.bk:not(.bk-mob){ background:var(--night,#0A1425); }
+html.bk-pre body.bk:not(.bk-mob) > *{ visibility:hidden; }
