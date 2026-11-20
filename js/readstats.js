@@ -1,26 +1,51 @@
-/* Reading statistics (إحصاءات القراءة): the Mushaf pages read, and their words and letters, by day, week, month, year.
+/* Reading statistics (إحصاءات القراءة): pages, words and letters, by day, week, month and year, from three sources:
+     read    — a Mushaf page (plain or tajweed) that stayed open 20 seconds (ReadStats.mark(page)); while the audio plays
+               or the microphone listens the page is not timed, those count themselves:
+     listen  — each ayah heard to its end, every repetition too (memorization, repeat) (ReadStats.ayah(s, a, 'listen'))
+     recite  — each word recited right to the microphone (ReadStats.word(text, page)), and each ayah repeated after
+               the reciter in talqeen (ReadStats.ayah(s, a, 'recite'))
+   Pages: a page read counts 1; heard or recited text counts the share of its page's letters.
+   The session (this visit; after 30 minutes away a new one) is counted on its own and shown on the page.
 
-   A page counts each time it stays open long enough to be read (the Mushaf calls ReadStats.mark(page)); a page read
-   again later counts again. The session (this visit, until 30 minutes away) is counted on its own and shown on the
-   page while reading; it starts from zero each time.
-   Kept on this device for everyone (localStorage), and in the family account for the profile in use (table
-   reading_log: one row per profile per day, the pages). Words and letters come from data/page-stats.json
-   (built by tools/build_page_stats.py from the simple text: written letters, without harakat).
+   Kept on this device for everyone (localStorage), and in the family account for the profile in use
+   (table reading_stats: one row per profile, day and source; added to by the function add_reading).
+   Words and letters per page: data/page-stats.json; per ayah: data/text-simple/<surah>.json (written letters,
+   without harakat — tools/build_page_stats.py counts the same way).
 
-   ReadStats.mark(page)                 count a page read (for the profile in use, or for this device)
-   ReadStats.session()                  {pages, words, letters} read in this session
-   ReadStats.sum(profileId?)            -> Promise<{day, week, month, year}> each {pages, words, letters}
-   ReadStats.sumMany([ids])             -> Promise<{id: {day, week, month, year}}> (one query, for the account page)
-   ReadStats.html(sum, lang)            the card: four periods to switch between, three numbers, and the hadith
-   ReadStats.wire(el)                   make the period tabs of a card work */
+   ReadStats.mark(page) / .ayah(s, a, kind) / .word(text, page, kind)    count
+   ReadStats.session()                  {pages, words, letters} of this session
+   ReadStats.sum(profileId?)            -> Promise<{day, week, month, year}> each {pages, words, letters, by:{read, listen, recite}}
+   ReadStats.sumMany([ids])             -> Promise<{id: {...}}> (one query, for the account page)
+   ReadStats.html(sum, lang) / .wire(el) / .line(sum, lang) / .sessLine(session, lang) */
 (function () {
   var load = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
   var store = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
-  var PS = null;
+  var KINDS = ['read', 'listen', 'recite'];
+  var LET = /[ء-غف-يٱ]/g;
+  function letters(t) { return ((t || '').match(LET) || []).length; }
+
+  var PS = null, MP = null, TX = {};
   function pageStats() {
     if (!PS) PS = fetch('/data/page-stats.json').then(function (r) { return r.json(); }).catch(function () { PS = null; return []; });
     return PS;
   }
+  function pageMap() {
+    if (!MP) MP = fetch('/data/quran-pages.json').then(function (r) { return r.json(); }).catch(function () { MP = null; return null; });
+    return MP;
+  }
+  function text(s) {
+    if (!TX[s]) TX[s] = fetch('/data/text-simple/' + s + '.json').then(function (r) { return r.json(); }).catch(function () { delete TX[s]; return []; });
+    return TX[s];
+  }
+  function pageOf(m, s, a) {
+    var P = m.pages;
+    for (var i = 0; i < P.length; i++) {
+      var r = P[i];
+      if ((s > r[0] || (s === r[0] && a >= r[1])) && (s < r[2] || (s === r[2] && a <= r[3]))) return i + 1;
+    }
+    return 0;
+  }
+
   function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
   function today() { return ymd(new Date()); }
   function daysAgo(n) { var d = new Date(); d.setDate(d.getDate() - n); return ymd(d); }
@@ -29,16 +54,16 @@
     if (F && F.current) return F.current();
     try { return JSON.parse(load('lt_profile') || 'null'); } catch (e) { return null; }   // before family.js has loaded
   }
-  function key(id) { return 'lt_read_' + (id || 'me'); }
+  // this device: {day: {kind: [pages, words, letters]}}
+  function key(id) { return 'lt_rs_' + (id || 'me'); }
   function local(id) { try { return JSON.parse(load(key(id)) || '{}') || {}; } catch (e) { return {}; } }
-  function saveLocal(id, log) {
-    var cut = daysAgo(400);
-    Object.keys(log).forEach(function (d) { if (d < cut) delete log[d]; });
-    store(key(id), JSON.stringify(log));
-  }
 
-  // the family account: the pages read since the last save are added to today's row (another device may add too)
+  // the family account: additions waiting to be saved, added to the day's row by add_reading
   var pend = {}, timer = null;
+  function addTo(map, k, id, d, kind, v) {
+    var q = map[k] || (map[k] = { id: id, d: d, kind: kind, v: [0, 0, 0] });
+    q.v[0] += v[0]; q.v[1] += v[1]; q.v[2] += v[2];
+  }
   function push() {
     timer = null;
     var F = window.Fam;
@@ -48,17 +73,14 @@
       if (!c) return;
       Object.keys(jobs).forEach(function (k) {
         var j = jobs[k];
-        c.from('reading_log').select('pages').eq('profile_id', j.id).eq('d', j.d).maybeSingle().then(function (r) {
-          var all = ((r.data && r.data.pages) || []).concat(j.pages).slice(-3000);
-          return c.from('reading_log').upsert({ profile_id: j.id, d: j.d, pages: all, updated_at: new Date().toISOString() }, { onConflict: 'profile_id,d' });
-        }).then(function (r) { if (r && r.error) throw r.error; }).catch(function () {
-          var q = pend[k] || (pend[k] = { id: j.id, d: j.d, pages: [] }); q.pages = j.pages.concat(q.pages);   // keep for the next try
-        });
+        c.rpc('add_reading', { p_profile: j.id, p_d: j.d, p_kind: j.kind, p_pages: Math.round(j.v[0] * 100) / 100, p_words: Math.round(j.v[1]), p_letters: Math.round(j.v[2]) })
+          .then(function (r) { if (r.error) throw r.error; })
+          .catch(function () { addTo(pend, k, j.id, j.d, j.kind, j.v); if (!timer) timer = setTimeout(push, 30000); });   // keep it for the next try
       });
     }).catch(function () {});
   }
 
-  // the session: this visit; after 30 minutes away the next page read starts a new one
+  // the session: this visit; after 30 minutes away the next count starts a new one
   var SK = 'lt_read_sess', GAP = 30 * 60 * 1000;
   function sessGet() {
     var o = null; try { o = JSON.parse(sessionStorage.getItem(SK) || 'null'); } catch (e) {}
@@ -67,37 +89,61 @@
   }
   function session() { var o = sessGet(); return { pages: o.pages, words: o.words, letters: o.letters }; }
 
-  function mark(page) {
-    page = +page; if (!(page >= 1 && page <= 604)) return false;
+  // add [pages, words, letters] of one source: to this device's day, the account, and the session
+  var flashT = null;
+  function add(kind, v) {
+    if (!(v[2] > 0 || v[0] > 0)) return;
     var p = prof(), id = p && p.id, d = today(), log = local(id);
-    (log[d] || (log[d] = [])).push(page); saveLocal(id, log);
-    if (id) {
-      var q = pend[id + d] || (pend[id + d] = { id: id, d: d, pages: [] }); q.pages.push(page);
-      if (!timer) timer = setTimeout(push, 3000);
-    }
-    return pageStats().then(function (ps) {
-      var st = ps[page - 1] || [0, 0], o = sessGet();
-      o.pages++; o.words += st[0]; o.letters += st[1]; o.t = Date.now();
-      try { sessionStorage.setItem(SK, JSON.stringify(o)); } catch (e) {}
-      try { window.dispatchEvent(new CustomEvent('lt-read', { detail: { page: page, words: st[0], letters: st[1], session: session() } })); } catch (e) {}
-      return true;
-    });
+    var day = log[d] || (log[d] = {}), x = day[kind] || (day[kind] = [0, 0, 0]);
+    x[0] = Math.round((x[0] + v[0]) * 100) / 100; x[1] += v[1]; x[2] += v[2];
+    var cut = daysAgo(400);
+    Object.keys(log).forEach(function (k) { if (k < cut) delete log[k]; });
+    store(key(id), JSON.stringify(log));
+    if (id) { addTo(pend, id + d + kind, id, d, kind, v); if (!timer) timer = setTimeout(push, 5000); }
+    var o = sessGet();
+    o.pages = Math.round((o.pages + v[0]) * 100) / 100; o.words += v[1]; o.letters += v[2]; o.t = Date.now();
+    try { sessionStorage.setItem(SK, JSON.stringify(o)); } catch (e) {}
+    // one event for a burst of words (recitation), so the counter on the page updates once
+    clearTimeout(flashT);
+    flashT = setTimeout(function () {
+      try { window.dispatchEvent(new CustomEvent('lt-read', { detail: { kind: kind, session: session() } })); } catch (e) {}
+    }, kind === 'read' ? 0 : 400);
   }
 
-  // days -> {pages: [..]} -> the four periods
-  function periods(days, ps) {
+  function mark(page) {
+    page = +page; if (!(page >= 1 && page <= 604)) return Promise.resolve(false);
+    return pageStats().then(function (ps) { var s = ps[page - 1] || [0, 0]; add('read', [1, s[0], s[1]]); return true; });
+  }
+  // an ayah heard or repeated: its words and letters, and its share of its page
+  function ayah(s, a, kind) {
+    return Promise.all([text(s), pageMap(), pageStats()]).then(function (r) {
+      var t = r[0][a - 1]; if (!t) return;
+      var l = letters(t), pg = r[1] ? pageOf(r[1], s, a) : 0, pl = pg && r[2][pg - 1] ? r[2][pg - 1][1] : 548;
+      add(kind || 'listen', [l / pl, t.split(/\s+/).length, l]);
+    }).catch(function () {});
+  }
+  // a word recited right
+  function word(t, page, kind) {
+    return pageStats().then(function (ps) {
+      var l = letters(t), pl = page && ps[page - 1] ? ps[page - 1][1] : 548;
+      add(kind || 'recite', [l / pl, 1, l]);
+    }).catch(function () {});
+  }
+
+  // days -> the four periods, each with its sources
+  function periods(days) {
     var t = today(), w = daysAgo(6), m = daysAgo(29), y = daysAgo(364);
-    var z = function () { return { pages: 0, words: 0, letters: 0 }; };
+    var z = function () { return { pages: 0, words: 0, letters: 0, by: { read: 0, listen: 0, recite: 0 } }; };
     var out = { day: z(), week: z(), month: z(), year: z() };
     Object.keys(days).forEach(function (d) {
-      if (d < y) return;
-      days[d].forEach(function (pg) {
-        var s = ps[pg - 1] || [0, 0];
-        var add = function (o) { o.pages++; o.words += s[0]; o.letters += s[1]; };
-        add(out.year);
-        if (d >= m) add(out.month);
-        if (d >= w) add(out.week);
-        if (d === t) add(out.day);
+      if (d < y || !days[d] || Array.isArray(days[d])) return;
+      KINDS.forEach(function (k) {
+        var v = days[d][k]; if (!v) return;
+        var addv = function (o) { o.pages += v[0]; o.words += v[1]; o.letters += v[2]; o.by[k] += v[2]; };
+        addv(out.year);
+        if (d >= m) addv(out.month);
+        if (d >= w) addv(out.week);
+        if (d === t) addv(out.day);
       });
     });
     return out;
@@ -105,69 +151,78 @@
   // a profile: what the account holds, with what this device has not saved yet; if the account can't be reached, this device's log
   function days(id, rem) {
     if (!id || !rem) return local(id);
-    var o = {};
-    Object.keys(rem).forEach(function (d) { o[d] = rem[d].slice(); });
-    Object.keys(pend).forEach(function (k) { var j = pend[k]; if (j.id === id) o[j.d] = (o[j.d] || []).concat(j.pages); });
+    var o = JSON.parse(JSON.stringify(rem));
+    Object.keys(pend).forEach(function (k) {
+      var j = pend[k]; if (j.id !== id) return;
+      var day = o[j.d] || (o[j.d] = {}), x = day[j.kind] || (day[j.kind] = [0, 0, 0]);
+      x[0] += j.v[0]; x[1] += j.v[1]; x[2] += j.v[2];
+    });
     return o;
   }
   function remote(ids) {
     var F = window.Fam;
-    if (!ids.length || !F || !F.ready) return Promise.resolve({});
+    if (!ids.length || !F || !F.ready) return Promise.resolve(null);
     return F.ready().then(function (c) {
       if (!c) return null;
-      return c.from('reading_log').select('profile_id,d,pages').in('profile_id', ids).gte('d', daysAgo(364)).then(function (r) {
+      return c.from('reading_stats').select('profile_id,d,kind,pages,words,letters').in('profile_id', ids).gte('d', daysAgo(364)).then(function (r) {
         if (r.error) return null;
         var by = {};
         ids.forEach(function (i) { by[i] = {}; });
-        (r.data || []).forEach(function (x) { (by[x.profile_id] || (by[x.profile_id] = {}))[x.d] = x.pages || []; });
+        (r.data || []).forEach(function (x) {
+          var p = by[x.profile_id] || (by[x.profile_id] = {}), day = p[x.d] || (p[x.d] = {});
+          day[x.kind] = [+x.pages || 0, x.words || 0, x.letters || 0];
+        });
         return by;
       });
     }).catch(function () { return null; });
   }
   function sum(id) {
     if (id === undefined) { var p = prof(); id = p && p.id; }
-    return Promise.all([pageStats(), id ? remote([id]) : Promise.resolve(null)]).then(function (r) {
-      return periods(days(id, r[1] && r[1][id]), r[0]);
-    });
+    return (id ? remote([id]) : Promise.resolve(null)).then(function (r) { return periods(days(id, r && r[id])); });
   }
   function sumMany(ids) {
-    return Promise.all([pageStats(), remote(ids)]).then(function (r) {
+    return remote(ids).then(function (r) {
       var o = {};
-      ids.forEach(function (id) { o[id] = periods(days(id, r[1] && r[1][id]), r[0]); });
+      ids.forEach(function (id) { o[id] = periods(days(id, r && r[id])); });
       return o;
     });
   }
 
   var T = {
-    ar: { title: 'قراءتي', tabs: ['اليوم', 'الأسبوع', 'الشهر', 'السنة'], u: ['صفحات', 'كلمات', 'أحرف'],
-      h: '«من قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي.', note: 'تُحتسب الصفحة كلما بقيت مفتوحة مدةً تكفي لقراءتها. والعدد تقريبي.' },
-    en: { title: 'My reading', tabs: ['Today', 'Week', 'Month', 'Year'], u: ['pages', 'words', 'letters'],
-      h: '“Whoever reads a letter of the Book of Allah has a good deed for it, and a good deed is multiplied tenfold.” — at-Tirmidhi.', note: 'A page counts each time it stays open long enough to be read. The numbers are approximate.' },
-    ur: { title: 'میری تلاوت', tabs: ['آج', 'ہفتہ', 'مہینہ', 'سال'], u: ['صفحات', 'الفاظ', 'حروف'],
-      h: '«جس نے کتاب اللہ کا ایک حرف پڑھا اس کے لیے ایک نیکی ہے، اور نیکی دس گنا ہے» — ترمذی۔', note: 'صفحہ ہر بار شمار ہوتا ہے جب پڑھنے کے لیے کافی دیر کھلا رہے۔ تعداد تقریبی ہے۔' },
-    fr: { title: 'Ma lecture', tabs: ['Aujourd’hui', 'Semaine', 'Mois', 'Année'], u: ['pages', 'mots', 'lettres'],
-      h: '« Quiconque lit une lettre du Livre d’Allah obtient une bonne action, et la bonne action est décuplée. » — at-Tirmidhi.', note: 'Une page compte chaque fois qu’elle reste ouverte assez longtemps pour être lue. Chiffres approximatifs.' },
-    es: { title: 'Mi lectura', tabs: ['Hoy', 'Semana', 'Mes', 'Año'], u: ['páginas', 'palabras', 'letras'],
-      h: '«Quien lee una letra del Libro de Allah obtiene por ella una buena obra, y la buena obra se multiplica por diez.» — at-Tirmidhi.', note: 'Una página cuenta cada vez que queda abierta el tiempo suficiente para leerla. Cifras aproximadas.' },
-    ru: { title: 'Моё чтение', tabs: ['Сегодня', 'Неделя', 'Месяц', 'Год'], u: ['стр.', 'слов', 'букв'],
-      h: '«Кто прочтёт букву из Книги Аллаха, тому за неё доброе дело, а доброе дело — десятикратно». — ат-Тирмизи.', note: 'Страница засчитывается каждый раз, когда открыта достаточно долго для чтения. Числа приблизительны.' }
+    ar: { title: 'قراءتي', tabs: ['اليوم', 'الأسبوع', 'الشهر', 'السنة'], u: ['صفحات', 'كلمات', 'أحرف'], by: ['قراءة', 'استماع', 'تسميع'],
+      h: '«من قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي.', note: 'تُحتسب الصفحة إذا بقيت مفتوحة ٢٠ ثانية، والاستماع بكل آية تُسمع، والتسميع بكل كلمة صحيحة. والعدد تقريبي.' },
+    en: { title: 'My reading', tabs: ['Today', 'Week', 'Month', 'Year'], u: ['pages', 'words', 'letters'], by: ['reading', 'listening', 'reciting'],
+      h: '“Whoever reads a letter of the Book of Allah has a good deed for it, and a good deed is multiplied tenfold.” — at-Tirmidhi.', note: 'A page counts after 20 seconds open; listening, each ayah heard; reciting, each word said right. Approximate.' },
+    ur: { title: 'میری تلاوت', tabs: ['آج', 'ہفتہ', 'مہینہ', 'سال'], u: ['صفحات', 'الفاظ', 'حروف'], by: ['پڑھنا', 'سننا', 'سنانا'],
+      h: '«جس نے کتاب اللہ کا ایک حرف پڑھا اس کے لیے ایک نیکی ہے، اور نیکی دس گنا ہے» — ترمذی۔', note: 'صفحہ ۲۰ سیکنڈ کھلا رہے تو شمار ہوتا ہے؛ سننے میں ہر سنی ہوئی آیت، سنانے میں ہر صحیح لفظ۔ تعداد تقریبی ہے۔' },
+    fr: { title: 'Ma lecture', tabs: ['Aujourd’hui', 'Semaine', 'Mois', 'Année'], u: ['pages', 'mots', 'lettres'], by: ['lecture', 'écoute', 'récitation'],
+      h: '« Quiconque lit une lettre du Livre d’Allah obtient une bonne action, et la bonne action est décuplée. » — at-Tirmidhi.', note: 'Une page compte après 20 secondes ouverte ; l’écoute, chaque verset entendu ; la récitation, chaque mot juste. Approximatif.' },
+    es: { title: 'Mi lectura', tabs: ['Hoy', 'Semana', 'Mes', 'Año'], u: ['páginas', 'palabras', 'letras'], by: ['lectura', 'escucha', 'recitación'],
+      h: '«Quien lee una letra del Libro de Allah obtiene por ella una buena obra, y la buena obra se multiplica por diez.» — at-Tirmidhi.', note: 'Una página cuenta tras 20 segundos abierta; la escucha, cada aleya oída; la recitación, cada palabra correcta. Aproximado.' },
+    ru: { title: 'Моё чтение', tabs: ['Сегодня', 'Неделя', 'Месяц', 'Год'], u: ['стр.', 'слов', 'букв'], by: ['чтение', 'слушание', 'чтение вслух'],
+      h: '«Кто прочтёт букву из Книги Аллаха, тому за неё доброе дело, а доброе дело — десятикратно». — ат-Тирмизи.', note: 'Страница засчитывается через 20 секунд; слушание — каждый услышанный аят; чтение вслух — каждое верное слово. Приблизительно.' }
   };
   var SESS = { ar: 'هذه الجلسة', en: 'This session', ur: 'یہ نشست', fr: 'Cette séance', es: 'Esta sesión', ru: 'Этот сеанс' };
   var AR = '٠١٢٣٤٥٦٧٨٩';
-  function fmt(n, lang) {
-    var s = Math.round(n).toLocaleString('en-US');
-    if (lang === 'ar') s = s.replace(/[0-9]/g, function (d) { return AR[d]; }).replace(/,/g, '٬');
+  function fmt(n, lang, dec) {
+    var v = dec ? Math.round(n * 10) / 10 : Math.round(n);
+    var s = v.toLocaleString('en-US', { maximumFractionDigits: dec ? 1 : 0 });
+    if (lang === 'ar') s = s.replace(/[0-9]/g, function (d) { return AR[d]; }).replace(/,/g, '٬').replace(/\./g, '٫');
     return s;
   }
+  function pgFmt(n, lang) { return fmt(n, lang, Math.abs(n - Math.round(n)) > 0.05); }
   function html(s, lang) {
     var L = T[lang] || T.en, ks = ['day', 'week', 'month', 'year'];
-    return '<div class="rs-card" data-rs="week"><div class="rs-head"><b>' + L.title + '</b><div class="rs-tabs">' +
+    return '<div class="rs-card"><div class="rs-head"><b>' + L.title + '</b><div class="rs-tabs">' +
       ks.map(function (k, i) { return '<button type="button" data-k="' + k + '"' + (k === 'week' ? ' class="on"' : '') + '>' + L.tabs[i] + '</button>'; }).join('') +
       '</div></div>' +
       ks.map(function (k) {
         var o = s[k];
-        return '<div class="rs-nums" data-k="' + k + '"' + (k === 'week' ? '' : ' hidden') + '>' +
-          [o.pages, o.words, o.letters].map(function (v, i) { return '<span><b>' + fmt(v, lang) + '</b><small>' + L.u[i] + '</small></span>'; }).join('') + '</div>';
+        return '<div class="rs-per" data-k="' + k + '"' + (k === 'week' ? '' : ' hidden') + '><div class="rs-nums">' +
+          [pgFmt(o.pages, lang), fmt(o.words, lang), fmt(o.letters, lang)].map(function (v, i) { return '<span><b>' + v + '</b><small>' + L.u[i] + '</small></span>'; }).join('') +
+          '</div>' + (o.letters ? '<div class="rs-by">' + KINDS.map(function (kk, i) {
+            return o.by[kk] ? '<span>' + L.by[i] + ': ' + fmt(o.by[kk], lang) + ' ' + L.u[2] + '</span>' : '';
+          }).join('') + '</div>' : '') + '</div>';
       }).join('') +
       '<p class="rs-h">' + L.h + '</p><p class="rs-note">' + L.note + '</p></div>';
   }
@@ -178,22 +233,23 @@
         e.stopPropagation();
         var k = b.getAttribute('data-k');
         el.querySelectorAll('.rs-tabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
-        el.querySelectorAll('.rs-nums').forEach(function (x) { x.hidden = x.getAttribute('data-k') !== k; });
+        el.querySelectorAll('.rs-per').forEach(function (x) { x.hidden = x.getAttribute('data-k') !== k; });
       };
     });
   }
   // the session, shown on the page: pages and letters
   function sessLine(o, lang) {
-    var L = T[lang] || T.en;
+    var L = T[lang] || T.en, pg = pgFmt(o.pages, lang);
     // Arabic: the word before the number (no agreement of number and noun to get wrong)
-    if (lang === 'ar') return 'هذه الجلسة — الصفحات: ' + fmt(o.pages, lang) + ' · الأحرف: ' + fmt(o.letters, lang);
-    return (SESS[lang] || SESS.en) + ': ' + fmt(o.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(o.letters, lang) + ' ' + L.u[2];
+    if (lang === 'ar') return 'هذه الجلسة — الصفحات: ' + pg + ' · الأحرف: ' + fmt(o.letters, lang);
+    return (SESS[lang] || SESS.en) + ': ' + pg + ' ' + L.u[0] + ' · ' + fmt(o.letters, lang) + ' ' + L.u[2];
   }
   // a short line for a profile card: this week's pages and letters
   function line(s, lang) {
-    var L = T[lang] || T.en, w = s.week;
-    if (lang === 'ar') return 'الأسبوع — الصفحات: ' + fmt(w.pages, lang) + ' · الأحرف: ' + fmt(w.letters, lang);
-    return L.tabs[1] + ': ' + fmt(w.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(w.letters, lang) + ' ' + L.u[2];
+    var L = T[lang] || T.en, w = s.week, pg = pgFmt(w.pages, lang);
+    if (lang === 'ar') return 'الأسبوع — الصفحات: ' + pg + ' · الأحرف: ' + fmt(w.letters, lang);
+    return L.tabs[1] + ': ' + pg + ' ' + L.u[0] + ' · ' + fmt(w.letters, lang) + ' ' + L.u[2];
   }
-  window.ReadStats = { mark: mark, session: session, fmt: fmt, sum: sum, sumMany: sumMany, html: html, wire: wire, line: line, sessLine: sessLine, pageStats: pageStats };
+  window.ReadStats = { mark: mark, ayah: ayah, word: word, session: session, sum: sum, sumMany: sumMany,
+    html: html, wire: wire, line: line, sessLine: sessLine, fmt: fmt, pageStats: pageStats };
 })();

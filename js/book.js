@@ -504,36 +504,33 @@
         pgL.querySelector('.bk-msg').appendChild(b);
       }
     }
-    // reading statistics: a Mushaf page counts as read (once a day) after it stayed open, with the tab in view,
-    // about as long as reading it takes (0.3 s a word, between 8 and 45 s a page) — js/readstats.js
-    var readT = null;
+    // reading statistics (js/readstats.js): a Mushaf page (plain or tajweed) counts as read after 20 seconds open,
+    // with the tab in view — each time it is read. While the audio plays or the microphone listens the page is not
+    // timed: the ayahs heard and the words recited count themselves (C.__rsAyah, C.__rsWord)
+    var readT = null, READ_SECS = 20;
+    function rsLoad(fn) {
+      if (window.ReadStats) return fn();
+      if (!rsLoad.ld) {
+        rsLoad.ld = document.createElement('script'); rsLoad.ld.src = '/js/readstats.js'; document.head.appendChild(rsLoad.ld);
+        rsLoad.ld.addEventListener('load', function () { sessShow(false); });
+      }
+      rsLoad.ld.addEventListener('load', fn);
+    }
+    function rsAyah(s, a, k) { rsLoad(function () { window.ReadStats.ayah(s, a, k); }); }
+    function rsWord(t, pg) { rsLoad(function () { window.ReadStats.word(t, pg); }); }
     function readWatch() {
       clearInterval(readT); readT = null;
       if (!mushaf) return;
       var pgs = step() === 2 ? [cur, Math.min(TOTAL, cur + 1)] : [cur], at = cur, secs = 0;
-      var need = function (ps) {
-        return pgs.reduce(function (t, p) { var w = (ps[p - 1] || [100])[0]; return t + Math.max(8, Math.min(45, w * 0.3)); }, 0);
-      };
-      var go = function () {
-        var RS = window.ReadStats; if (!RS) return;
-        RS.pageStats().then(function (ps) {
-          if (at !== cur || readT) return;
-          var n = need(ps);
-          readT = setInterval(function () {
-            if (at !== cur || !mushaf) { clearInterval(readT); readT = null; return; }
-            if (!document.hidden) secs++;
-            if (secs >= n) { clearInterval(readT); readT = null; pgs.forEach(function (p) { RS.mark(p); }); }
-          }, 1000);
-        });
-      };
-      if (window.ReadStats) go();
-      else {
-        if (!readWatch.ld) {
-          readWatch.ld = document.createElement('script'); readWatch.ld.src = '/js/readstats.js'; document.head.appendChild(readWatch.ld);
-          readWatch.ld.addEventListener('load', function () { sessShow(false); });
-        }
-        readWatch.ld.addEventListener('load', go);
-      }
+      rsLoad(function () {
+        if (at !== cur || readT) return;
+        readT = setInterval(function () {
+          if (at !== cur || !mushaf) { clearInterval(readT); readT = null; return; }
+          var live = window.__bkLive && window.__bkLive.running;
+          if (!document.hidden && !playing && !live) secs++;
+          if (secs >= READ_SECS * pgs.length) { clearInterval(readT); readT = null; pgs.forEach(function (p) { window.ReadStats.mark(p); }); }
+        }, 1000);
+      });
     }
     // this session's reading, on the page (under the frame on phones, in the bottom bar on larger screens);
     // it starts from zero each visit, and what it counts is added to the day
@@ -1280,6 +1277,7 @@
         var cur2 = null;
         for (var j = 0; j < st.times.length; j++) if (st.times[j][1] <= t) cur2 = st.times[j]; else break;
         if (cur2 && cur2[0] !== st.a) {
+          if (cur2[0] === st.a + 1) rsAyah(st.s, st.a, 'listen');                 // the ayah before was heard to its end
           st.a = cur2[0];
           ensureVisible(st.s, st.a);
         }
@@ -1398,13 +1396,17 @@
     function onEnded() {
       if (!playing || !recState) return;
       var st = recState;
+      if (st.kind === 'ayah' && st.phase === 'ayah' && !st.heard && !audio.muted) { st.heard = true; rsAyah(st.s, st.a, 'listen'); }   // heard to its end
       if (st.kind === 'ayah' && !st.waited && (st.phase === 'ayah' || st.phase === 'basmala') && talqMode() !== 'off') {
         st.waited = true;                                // the learner's turn: the last part (or the whole ayah)
         var dur = (audio.duration || 0) * 1000, sg2 = st.phase === 'ayah' && st.segs && st.segs[st.si];
         var from = sg2 ? sg2.t0 : 0, w0 = st.phase === 'ayah' ? (sg2 ? sg2.w0 : 1) : 0;
         var w1 = st.phase === 'ayah' ? (st.words && st.words.length ? st.words[st.words.length - 1][0] : 40) : 0;
         if (st.phase === 'basmala') root.querySelectorAll('.ml-b').forEach(function (e) { e.classList.add('ht'); });
-        talqWait(st, Math.max(1500, dur - from), w0, w1).then(function (go) { if (go) onEnded(); });
+        talqWait(st, Math.max(1500, dur - from), w0, w1).then(function (go) {
+          if (go && st.phase === 'ayah') rsAyah(st.s, st.a, 'recite');            // the learner repeated it after the reciter
+          if (go) onEnded();
+        });
         return;
       }
       if (st.kind === 'ayah') {
@@ -1426,6 +1428,7 @@
         var n = nextAyah(st.s, st.a);
         if (n) playAyah(n[0], n[1]); else stopAudio();
       } else {
+        if (st.times) rsAyah(st.s, st.a, 'listen');                                // the surah's last ayah
         if (st.s < 114) playSurah(st.s + 1, 1); else stopAudio();
       }
     }
@@ -1952,6 +1955,7 @@
             parts: parts,
             onWord: function (p, w, cls) {
               if (cls !== 'ti') famWord(live.__parts[p].s, w, cls);
+              if (cls === 'ok' || cls === 'fixed') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
                 e.classList.add('rv');
