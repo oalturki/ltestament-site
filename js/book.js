@@ -2396,12 +2396,12 @@
             parts: parts,
             onWord: function (p, w, cls) {
               if (cls !== 'ti') famWord(live.__parts[p].s, w, cls);
-              if (cls === 'ok' || cls === 'fixed') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
+              if (cls === 'ok' || cls === 'fixed' || cls === 'unclear') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
                 e.classList.add('rv');
                 if (cls === 'ti') e.classList.add('tw-ti');
-                else { e.classList.add('tw-done'); if (cls === 'wrong' || cls === 'missing') e.classList.add('tw-err'); if (cls === 'fixed') e.classList.add('tw-fix'); }
+                else { e.classList.add('tw-done'); if (cls === 'wrong' || cls === 'missing') e.classList.add('tw-err'); if (cls === 'fixed') e.classList.add('tw-fix'); if (cls === 'unclear') e.classList.add('tw-unc'); }
               });
             },
             onClear: function () {
@@ -2502,12 +2502,22 @@
         };
         // phones: the choice of what happens on a mistake lives in the «More» sheet
         var eoHome = document.createComment(''); lwrap.insertBefore(eoHome, eo);
-        var eoRow = null, mqL = window.matchMedia('(max-width:600px)');
+        var eoRow = null, lvRow = null, mqL = window.matchMedia('(max-width:600px)');
         var eoPlace = function () {
           var sb = root.__sheetBody;
           if (mqL.matches && sb) {
             if (!eoRow) { eoRow = document.createElement('label'); eoRow.className = 'bk-msrow'; eoRow.innerHTML = '<span>' + esc(EOL[0]) + '</span>'; var rg = root.__reciteGroup; sb.insertBefore(eoRow, rg ? rg.nextSibling : null); }
             eoRow.appendChild(eo);
+            if (!lvRow) {
+              // how strict the check is, as in recitation apps: easy (the model's doubts are let pass), normal, strict
+              var LVL = { ar: ['دقة التصحيح', 'سهل', 'عادي', 'صارم'], ur: ['جانچ کی سختی', 'آسان', 'عام', 'سخت'], en: ['Checking', 'Easy', 'Normal', 'Strict'],
+                          fr: ['Correction', 'Souple', 'Normale', 'Stricte'], es: ['Corrección', 'Fácil', 'Normal', 'Estricta'], ru: ['Проверка', 'Мягкая', 'Обычная', 'Строгая'] }[C.lang] || ['Checking', 'Easy', 'Normal', 'Strict'];
+              lvRow = document.createElement('label'); lvRow.className = 'bk-msrow';
+              lvRow.innerHTML = '<span>' + esc(LVL[0]) + '</span><select class="bk-ctl">' + ['easy', 'normal', 'strict'].map(function (v, i) { return '<option value="' + v + '">' + esc(LVL[i + 1]) + '</option>'; }).join('') + '</select>';
+              var lvs = lvRow.querySelector('select'); lvs.value = load('lt_live_level') || 'normal';
+              lvs.onchange = function () { store('lt_live_level', lvs.value); };
+              sb.insertBefore(lvRow, eoRow.nextSibling);
+            }
           } else if (eo.parentNode !== lwrap) lwrap.insertBefore(eo, eoHome);
         };
         setTimeout(eoPlace, 0);

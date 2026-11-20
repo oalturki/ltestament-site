@@ -488,7 +488,7 @@ def seek_start(exp, hyp):
 @app.post("/live")
 def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = Form(1), end: int = Form(None),
                pos: int = Form(0), final: bool = Form(False), sid: str = Form(""), append: bool = Form(False),
-               seek: bool = Form(False)):
+               seek: bool = Form(False), level: str = Form("normal")):
     import time
     t0 = time.time()
     if not 1 <= surah <= 114: raise HTTPException(400, "surah")
@@ -535,6 +535,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             if o: pos, sought = o, o
             elif len(hyp) < 8: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
                                          "ms": int((time.time() - t0) * 1000), "seeking": True}
+    # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
+    # (shown, not counted as a mistake: the model may have misheard); further still, wrong
+    ok_thr, lo_thr = {"strict": (0.8, 0.8), "easy": (0.55, 0.3)}.get(level, (0.67, 0.4))
     win = exp[pos:pos + len(hyp) + 6]
     words, nxt = [], pos
     if hyp and win:
@@ -553,10 +556,13 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             if i is None or i > last: continue
             a, k = where[pos + i]
             w = {"k": pos + i, "ayah": a, "i": k, "text": win[i]}
-            if j is None: w["status"] = "missing"
+            if j is None:
+                # a short word the model often drops (و، في، من…) is not called missing unless the check is strict
+                w["status"] = "missing" if level == "strict" or len(skeleton(win[i])) > 2 else "unclear"
             else:
                 w["heard"] = hyp[j]
-                w["status"] = "ok" if sim[i][j] >= 0.8 else "wrong"
+                s_ = sim[i][j]
+                w["status"] = "ok" if s_ >= ok_thr else ("unclear" if s_ >= lo_thr else "wrong")
             words.append(w)
         if stop_at is not None:
             a, k = where[pos + stop_at]

@@ -926,3 +926,6 @@ body.bk-mob.bk-pcon .bk-mpause, body.bk-mob.bk-pcon .bk-mtrack, body.bk-mob.bk-p
 .bk-mswk:checked::after{ left:21px; }
 body:not(.bk-mob) .bk-mscard:has(.bk-msitem[data-s=view]){ display:block; }
 body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
+
+/* recitation: a word not clearly heard (not counted as a mistake) */
+.bk-mpage .tw-unc{ text-decoration:underline dotted rgba(140,130,110,.8); text-underline-offset:6px; }

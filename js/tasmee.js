@@ -160,7 +160,7 @@
     var errs = [];
     res.words.forEach(function (w) {
       var e = wEl(w.k), was = e && (e.classList.contains('wrong') || e.classList.contains('missing'));
-      if (w.status === 'ok') mark(w.k, was ? 'fixed' : 'ok');
+      if (w.status === 'ok' || w.status === 'unclear') mark(w.k, was ? 'fixed' : 'ok');   // not clearly heard: not a mistake
       else { mark(w.k, w.status); if (e && w.heard) e.title = 'سُمع: ' + w.heard; errs.push(w); }
     });
     R.pos = Math.max(R.pos, res.next);

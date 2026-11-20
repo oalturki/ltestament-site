@@ -94,6 +94,8 @@
       fd.append('surah', pt.s); fd.append('start', pt.a); fd.append('end', pt.b);
       fd.append('pos', pt.pos); fd.append('final', final ? 'true' : 'false');
       if (!pt.started && pt.pos === 0) fd.append('seek', 'true');   // nothing recited yet: he may begin anywhere
+      var lv = 'normal'; try { lv = localStorage.getItem('lt_live_level') || 'normal'; } catch (e) {}
+      fd.append('level', lv);                                      // how strict the check is (easy / normal / strict)
       R.busy = true;
       var myP = P;
       return fetch(API + '/live', { method: 'POST', body: fd }).then(function (x) {
@@ -134,6 +136,7 @@
         var w = pt.words[x.k]; if (!w) return;
         var was = w.done === 'wrong' || w.done === 'missing';
         if (x.status === 'ok') { w.done = was ? 'fixed' : 'ok'; o.onWord(P, w, w.done); }
+        else if (x.status === 'unclear') { w.done = was ? 'fixed' : 'unclear'; o.onWord(P, w, w.done); }   // not clearly heard: shown, not a mistake
         else { w.done = x.status; w.heard = x.heard; o.onWord(P, w, x.status); errs.push(w); }
       });
       pt.pos = Math.max(pt.pos, res.next);
