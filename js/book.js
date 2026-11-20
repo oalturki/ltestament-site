@@ -627,7 +627,7 @@
       // the page, in the middle of the top bar: a list to go to any page
       var pg = document.createElement('select'); pg.className = 'bk-mpg'; pg.setAttribute('aria-label', U.page);
       var po = [];
-      for (var pi = 1; pi <= MAP.pages.length; pi++) po.push('<option value="' + pi + '">' + esc(U.page) + ' ' + uiNum(pi) + '</option>');
+      for (var pi = 1; pi <= ((MAP && MAP.pages.length) || TOTAL || 604); pi++) po.push('<option value="' + pi + '">' + esc(U.page) + ' ' + uiNum(pi) + '</option>');
       pg.innerHTML = po.join(''); pg.value = String(cur);
       pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
