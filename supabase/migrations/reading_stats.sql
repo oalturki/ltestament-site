@@ -28,3 +28,7 @@ returns void language sql security invoker set search_path = '' as $$
 $$;
 revoke all on function public.add_reading(uuid, date, text, numeric, int, int) from public, anon;
 grant execute on function public.add_reading(uuid, date, text, numeric, int, int) to authenticated;
+
+-- migration "drop_reading_log": the first version (pages only, table reading_log) removed after its one day of
+-- rows (2026-11-20, 3 pages) was carried into reading_stats as 'read'.
+-- drop table public.reading_log;
