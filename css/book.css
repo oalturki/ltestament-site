@@ -905,7 +905,7 @@ body.bk-mob.bk-pcon .bk-pcard{ display:block; position:fixed; z-index:40; left:1
 .pc-r{ font-size:1.1rem; font-weight:800; }
 .pc-w{ font-size:.85rem; color:#8a6a1e; font-weight:700; }
 .pc-bar{ display:flex; align-items:center; gap:10px; margin:10px 2px 6px; font-size:.78rem; color:#8a6a1e; font-variant-numeric:tabular-nums; direction:ltr; }
-.pc-bar i{ flex:1; height:6px; border-radius:3px; background:#e9dfc2; overflow:hidden; display:block; direction:rtl; }
+.pc-bar i{ flex:1; height:6px; border-radius:3px; background:#e9dfc2; overflow:hidden; display:block; }
 .pc-bar i b{ display:block; height:100%; width:0; background:#1b2a3a; border-radius:3px; }
 .pc-ctl{ display:flex; align-items:center; justify-content:space-between; padding:0 4px; direction:ltr; }
 .pc-ctl button{ border:0; background:none; color:#1b2a3a; cursor:pointer; display:flex; align-items:center; justify-content:center; min-width:44px; height:48px; font:inherit; }
