@@ -895,7 +895,7 @@ body:not(.bk-mob) .bk-msitem[data-s=rec]{ display:none; }   /* the record button
 
 /* ---------- phones: the player card while listening (as in Mushaf apps) ---------- */
 .bk-pcard{ display:none; }
-body.bk-mob.bk-pcard .bk-pcard{ display:block; position:fixed; z-index:40; left:12px; right:12px; bottom:max(12px, env(safe-area-inset-bottom));
+body.bk-mob.bk-pcon .bk-pcard{ display:block; position:fixed; z-index:40; left:12px; right:12px; bottom:max(12px, env(safe-area-inset-bottom));
   background:rgba(251,248,239,.98); color:#1b2a3a; border:1px solid #e2d3a4; border-radius:26px; padding:10px 14px 12px; box-shadow:0 10px 30px rgba(0,0,0,.22); }
 .pc-top{ display:flex; align-items:center; gap:8px; }
 .pc-x{ width:38px; height:38px; border-radius:50%; border:0; background:#efe6cc; color:#1b2a3a; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; }
@@ -913,4 +913,4 @@ body.bk-mob.bk-pcard .bk-pcard{ display:block; position:fixed; z-index:40; left:
 .pc-rep.on{ color:#b8892e; }
 .pc-spd{ font-weight:800; font-size:1.05rem; }
 /* the card shows: the thin line and its pause button make way */
-body.bk-mob.bk-pcard .bk-mpause, body.bk-mob.bk-pcard .bk-mtrack, body.bk-mob.bk-pcard .bk-mshow, body.bk-mob.bk-pcard .bk-sess{ display:none !important; }
+body.bk-mob.bk-pcon .bk-mpause, body.bk-mob.bk-pcon .bk-mtrack, body.bk-mob.bk-pcon .bk-mshow, body.bk-mob.bk-pcon .bk-sess{ display:none !important; }

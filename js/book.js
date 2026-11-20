@@ -1243,7 +1243,7 @@
         $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
       };
       var cardShow = function (on) {
-        document.body.classList.toggle('bk-pcard', on && pOn);
+        document.body.classList.toggle('bk-pcon', on && pOn);
         clearInterval(pT); pT = null;
         if (on && pOn) { pFill(); pT = setInterval(pFill, 300); }
         if (root.__placeShow) setTimeout(root.__placeShow, 50);
@@ -1288,7 +1288,7 @@
       };
       $p('.pc-rep').onclick = function (e) { e.stopPropagation(); if (root.__openListen) root.__openListen(); };
       pc.addEventListener('click', function (e) { e.stopPropagation(); });
-      root.__playerTap = function () { if (!pOn) return false; cardShow(!document.body.classList.contains('bk-pcard')); return true; };
+      root.__playerTap = function () { if (!pOn) return false; cardShow(!document.body.classList.contains('bk-pcon')); return true; };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
       book.addEventListener('touchstart', function (e) {
