@@ -110,9 +110,17 @@
     }, kind === 'read' ? 0 : 400);
   }
 
+  // a page is done (for khatmas: window event 'lt-page') when read, or when nine tenths of its letters were heard or recited
+  var acc = {};
+  function pageDone(page) { try { window.dispatchEvent(new CustomEvent('lt-page', { detail: { page: page } })); } catch (e) {} }
+  function accrue(page, l, pl) {
+    if (!page || acc[page] === -1) return;
+    acc[page] = (acc[page] || 0) + l;
+    if (acc[page] >= 0.9 * pl) { acc[page] = -1; pageDone(page); setTimeout(function () { delete acc[page]; }, 60000); }
+  }
   function mark(page) {
     page = +page; if (!(page >= 1 && page <= 604)) return Promise.resolve(false);
-    return pageStats().then(function (ps) { var s = ps[page - 1] || [0, 0]; add('read', [1, s[0], s[1]]); return true; });
+    return pageStats().then(function (ps) { var s = ps[page - 1] || [0, 0]; add('read', [1, s[0], s[1]]); pageDone(page); return true; });
   }
   // an ayah heard or repeated: its words and letters, and its share of its page
   function ayah(s, a, kind) {
@@ -120,6 +128,7 @@
       var t = r[0][a - 1]; if (!t) return;
       var l = letters(t), pg = r[1] ? pageOf(r[1], s, a) : 0, pl = pg && r[2][pg - 1] ? r[2][pg - 1][1] : 548;
       add(kind || 'listen', [l / pl, t.split(/\s+/).length, l]);
+      if (kind !== 'recite') accrue(pg, l, pl);
     }).catch(function () {});
   }
   // a word recited right
@@ -127,6 +136,7 @@
     return pageStats().then(function (ps) {
       var l = letters(t), pl = page && ps[page - 1] ? ps[page - 1][1] : 548;
       add(kind || 'recite', [l / pl, 1, l]);
+      accrue(page, l, pl);
     }).catch(function () {});
   }
 

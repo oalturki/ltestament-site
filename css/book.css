@@ -805,3 +805,48 @@ body.bk-mob .bk-msside.on .bk-msheet{ transform:none; }
 .bk-msside .bk-msfoot .bk-fontcredit{ color:#8f8775; }
 .bk-msside .bk-msgroup{ color:#8a6a1e; }
 .bk-msside .bk-msok{ display:none; }
+
+/* ---------- khatmas (js/khatma.js), in the settings drawer ---------- */
+.kh-none, .kh-note{ color:#6b6250; font-size:.85rem; line-height:1.8; margin:4px 2px 10px; }
+.kh-card{ background:#FFFDF7; border:1px solid #e2d3a4; border-inline-start:5px solid var(--kc); border-radius:16px; padding:10px 12px; margin:0 0 10px; color:#1b2a3a; }
+.kh-top{ display:flex; align-items:center; gap:8px; }
+.kh-top b{ flex:1; font-size:1rem; }
+.kh-dot{ width:10px; height:10px; border-radius:50%; background:var(--kc); }
+.kh-edit{ border:1px solid #d9c88f; background:none; color:#1b2a3a; border-radius:999px; padding:3px 10px; font:inherit; font-size:.78rem; cursor:pointer; }
+.kh-bar{ height:7px; border-radius:4px; background:#efe6cc; margin:10px 0 6px; overflow:hidden; }
+.kh-bar i{ display:block; height:100%; background:var(--kc); border-radius:4px; }
+.kh-meta{ display:flex; justify-content:space-between; gap:8px; font-size:.78rem; color:#6b6250; flex-wrap:wrap; }
+.kh-late{ color:#b3412f; font-weight:700; } .kh-ok{ color:#2f6b45; font-weight:700; }
+.kh-today{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:.9rem; }
+.kh-read{ border:0; background:#2f6b45; color:#fff; border-radius:12px; padding:7px 16px; font:inherit; font-weight:700; cursor:pointer; }
+.kh-end{ margin-top:6px; font-size:.74rem; color:#8f8775; }
+.kh-add{ width:100%; min-height:46px; border-radius:14px; border:1.5px dashed #b8a160; background:none; color:#2f6b45; font:inherit; font-weight:700; cursor:pointer; }
+.kh-form{ display:flex; flex-direction:column; gap:10px; color:#1b2a3a; }
+.kh-colors{ display:flex; justify-content:center; gap:12px; padding:6px 0; }
+.kh-colors button{ width:34px; height:34px; border-radius:10px; border:3px solid var(--kc); background:#fff; cursor:pointer; }
+.kh-colors button.on{ background:var(--kc); box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--kc); }
+.kh-name{ min-height:46px; border-radius:14px; border:1px solid #d9c88f; background:#fff; padding:0 12px; font:inherit; font-size:16px; color:#1b2a3a; }
+.kh-l{ font-size:.85rem; font-weight:700; color:#8a6a1e; margin-top:4px; }
+.kh-seg{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:#FFFDF7; border:1px solid #e2d3a4; border-radius:14px; }
+.kh-seg button{ min-height:38px; border:0; border-radius:10px; background:none; color:#1b2a3a; font:inherit; font-weight:700; cursor:pointer; }
+.kh-seg button.on{ background:#2f6b45; color:#fff; }
+.kh-ft{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.kh-ft label{ display:flex; flex-direction:column; gap:4px; font-size:.8rem; color:#6b6250; }
+.kh-ft select, .kh-start, .kh-time{ min-height:42px; border-radius:12px; border:1px solid #d9c88f; background:#fff; color:#1b2a3a; font:inherit; font-size:16px; padding:0 8px; }
+.kh-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:48px; border-bottom:1px solid rgba(27,42,58,.08); font-size:.92rem; }
+.kh-step{ display:flex; align-items:center; gap:6px; }
+.kh-step button{ width:36px; height:36px; border-radius:10px; border:1px solid #d9c88f; background:#fff; color:#2f6b45; font-size:1.2rem; cursor:pointer; }
+.kh-step input{ width:64px; min-height:36px; text-align:center; border-radius:10px; border:1px solid #d9c88f; font:inherit; font-size:16px; }
+.kh-step b{ min-width:110px; text-align:center; font-size:.85rem; }
+.kh-rdays{ flex-direction:column; align-items:stretch; padding:8px 0; }
+.kh-wd{ display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:6px; }
+.kh-wd button{ min-height:34px; border-radius:8px; border:1px solid #d9c88f; background:#fff; color:#1b2a3a; font:inherit; font-size:.7rem; cursor:pointer; padding:0; }
+.kh-wd button.on{ background:#2f6b45; border-color:#2f6b45; color:#fff; }
+.kh-rem{ display:flex; align-items:center; gap:10px; }
+.kh-on{ width:22px; height:22px; accent-color:#2f6b45; }
+.kh-push{ margin:0; font-size:.8rem; color:#8a6a1e; line-height:1.7; }
+.kh-push:empty{ display:none; }
+.kh-btns{ display:flex; gap:8px; margin-top:6px; }
+.kh-save{ flex:1; min-height:46px; border-radius:14px; border:0; background:#2f6b45; color:#fff; font:inherit; font-weight:700; font-size:1rem; cursor:pointer; }
+.kh-cancel, .kh-del{ min-height:46px; border-radius:14px; border:1px solid #d9c88f; background:#fff; color:#1b2a3a; font:inherit; padding:0 14px; cursor:pointer; }
+.kh-del{ color:#b3412f; border-color:#e8b4a9; }

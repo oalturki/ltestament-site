@@ -508,6 +508,17 @@
     // with the tab in view — each time it is read. While the audio plays or the microphone listens the page is not
     // timed: the ayahs heard and the words recited count themselves (C.__rsAyah, C.__rsWord)
     var readT = null, READ_SECS = 20;
+    // scripts loaded once, when first needed
+    var ltLoaded = {};
+    function ltLoad(urls, fn) {
+      var n = urls.length, done = function () { if (--n === 0) fn(); };
+      urls.forEach(function (u) {
+        if (!ltLoaded[u]) {
+          ltLoaded[u] = new Promise(function (ok) { var sc = document.createElement('script'); sc.src = u; sc.onload = ok; sc.onerror = ok; document.head.appendChild(sc); });
+        }
+        ltLoaded[u].then(done);
+      });
+    }
     function rsLoad(fn) {
       if (window.ReadStats) return fn();
       if (!rsLoad.ld) {
@@ -841,6 +852,7 @@
       // my places (bookmarks, recent places).
       var IC = {
         stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+        khatma: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M9 12l2 2 4-4"/>',
         rec: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
         view: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h8M8 12h6"/>',
         listen: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/>',
@@ -865,6 +877,7 @@
         menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
+        if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
       };
       backB.onclick = function () { goSec(null); fillMenu(); };
@@ -888,6 +901,8 @@
       var M3 = MS || ['My record', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
       newCard(M3[0]);
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
+      var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
+      var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
       var fb0 = document.querySelector('.bk-fambtn');
       var recSec = fb0 ? section('rec', S2.rec) : null;
       paneM = section('marks', S2.marks);
@@ -955,6 +970,10 @@
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
         if (subs.view) subs.view.textContent = selText(q('frameSel'));
         if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
+        if (subs.khatma) {
+          var kt = window.Khatma && window.Khatma.stripText(C.lang);
+          subs.khatma.textContent = kt ? kt.h + ': ' + kt.v : '';
+        }
         if (subs.stats && window.ReadStats) {
           var RS = window.ReadStats; subs.stats.textContent = RS.sessLine(RS.session(), C.lang);
           RS.sum().then(function (sm) { subs.stats.textContent = RS.line(sm, C.lang); });
@@ -983,7 +1002,10 @@
       root.__strip = function () {
         var md = curMode(), h = '', v = '';
         var fv = function (k) { var e = document.querySelector('.bk-rset [data-r="' + k + '"]'); return e ? (e.tagName === 'SELECT' ? selText(e) : e.value) : ''; };
-        if (md === 'read') {
+        var kt2 = md === 'read' && window.Khatma ? window.Khatma.stripText(C.lang) : null;
+        strip.dataset.k = kt2 ? '1' : '';
+        if (kt2) { h = kt2.h; v = kt2.v.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'); }
+        else if (md === 'read') {
           h = ST[0]; v = selText(q('reciter'));
           var sp = rep && rep.speed && rep.speed !== 1 ? (C.lang === 'ar' ? arNum(String(rep.speed)).replace('.', '٫') : rep.speed) + '×' : '';
           if (sp) v += ' · ' + sp;
@@ -998,7 +1020,14 @@
         var bt = root.querySelector('.bk-bottom'), r0 = bt ? bt.getBoundingClientRect() : null;
         strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 150) + 'px';
       };
-      strip.onclick = function (e) { e.stopPropagation(); open(); openMode(curMode()); };
+      strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
+      // khatmas and reminders: loaded with the Mushaf, so today's wird shows on the page; a reminder opens the khatmas
+      ltLoad(['/js/push.js', '/js/khatma.js'], function () {
+        root.__strip();
+        window.Khatma.pull().then(function () { root.__strip(); });
+        if (/[?&]k=/.test(location.search)) { open(); goSec('khatma'); }
+      });
+      window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
       setTimeout(function () { var rs = repSel(); if (rs && rs.value === 'hifz') { rs.value = 'cont'; rs.dispatchEvent(new Event('change', { bubbles: true })); } modeSync(); }, 0);
       document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.bk-rset, .bk-msrow')) setTimeout(root.__strip, 0); }, true);
