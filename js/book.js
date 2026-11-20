@@ -809,7 +809,7 @@
       var moreBtn = item(I.more, L.more); moreBtn.classList.add('bk-mmore');
       document.body.appendChild(nav);
 
-      var ov = document.createElement('div'); ov.className = 'bk-msov';
+      var ov = document.createElement('div'); ov.className = 'bk-msov bk-msside';   // the settings: a drawer on the side of the page
       ov.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true" aria-label="' + esc(L.settings) + '"><div class="bk-msgrip"></div>' +
         '<div class="bk-mshead"><h2>' + esc(L.settings) + '</h2><button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div>' +
         '<div class="bk-msbody"></div></section>';
@@ -856,8 +856,9 @@
       var menu = document.createElement('div'); menu.className = 'bk-mslist'; sbody.appendChild(menu);
       var secs = {}, subs = {}, card = null;
       var newCard = function (title) {
-        if (title != null) { var h = document.createElement('div'); h.className = 'bk-mscardh'; h.textContent = title; menu.appendChild(h); card = null; }
-        card = document.createElement('div'); card.className = 'bk-mscard'; menu.appendChild(card); return card;
+        card = document.createElement('div'); card.className = 'bk-mscard'; menu.appendChild(card);
+        if (title != null) { var h = document.createElement('div'); h.className = 'bk-mscardh'; h.textContent = title; card.appendChild(h); }   // the title inside its card
+        return card;
       };
       var goSec = function (k) {
         Object.keys(secs).forEach(function (x) { secs[x].hidden = x !== k; });

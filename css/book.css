@@ -755,3 +755,53 @@ body.bk-mob.bk-is-mushaf:not(.bk-chrome-off) > .bk-sess{ visibility:hidden; }   
 .bk-msitem.now .ic{ background:var(--gold); color:#1b2a3a; }
 .bk-msuse{ width:100%; min-height:44px; margin:2px 0 10px; border-radius:12px; border:1px solid var(--gold); background:rgba(200,155,60,.15); color:var(--parch); font:inherit; font-weight:700; cursor:pointer; }
 .bk-msuse[hidden]{ display:none; }
+
+/* ---------- the settings drawer (phones): on the side of the page, light, its groups as golden cards of white rows ---------- */
+body.bk-mob .bk-msov.bk-msside{ align-items:stretch; justify-content:flex-start; direction:ltr; }
+.bk-msside .bk-msheet{ direction:inherit; width:min(86vw, 390px); height:100%; max-height:none; border-radius:0 26px 26px 0; border:0;
+  background:#F5EFDF; color:#1b2a3a; padding:max(14px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+  transform:translateX(-100%); transition:transform .25s ease; box-shadow:6px 0 24px rgba(0,0,0,.25); overflow-y:auto; }
+html[dir=rtl] .bk-msside .bk-msheet, [dir=rtl] .bk-msside .bk-msheet{ direction:rtl; }
+.bk-msside.on .bk-msheet{ transform:none; }
+.bk-msside .bk-msgrip{ display:none; }
+.bk-msside .bk-mshead h2{ color:#1b2a3a; text-align:center; }
+.bk-msside .bk-msx, .bk-msside .bk-msback{ color:#1b2a3a; border-color:rgba(27,42,58,.18); }
+/* the cards */
+.bk-msside .bk-mscard{ background:linear-gradient(180deg, #DCC684, #C9B273); border:0; border-radius:24px; padding:6px 10px 12px; margin:0 0 14px; overflow:visible; }
+.bk-msside .bk-mscardh{ margin:6px 0 8px; text-align:center; font-size:.92rem; font-weight:700; color:#4a3d22; opacity:1; }
+.bk-msside .bk-msitem{ background:#FFFDF7; color:#1b2a3a; border-radius:16px; min-height:54px; margin-top:8px; padding:8px 12px; border:0 !important; }
+.bk-msside .bk-msitem:first-of-type{ margin-top:0; }
+.bk-msside .bk-msitem .ic{ background:none; color:#2f6b45; width:30px; }
+.bk-msside .bk-msitem .ic svg{ width:24px; height:24px; stroke-width:2; }
+.bk-msside .bk-msitem .tx b{ color:#1b2a3a; }
+.bk-msside .bk-msitem .tx small{ color:#6b6250; }
+.bk-msside .bk-msitem .ch{ color:#a0947a; }
+.bk-msside .bk-msitem.now .ic{ background:none; color:#b8892e; }
+.bk-msside .bk-msnow{ background:#2f6b45; color:#fff; }
+/* the quick buttons */
+.bk-msside .bk-msq{ background:#FFFDF7; color:#1b2a3a; border-color:#d9c88f; }
+.bk-msside .bk-msq svg{ color:#2f6b45; }
+.bk-msside .bk-msq.on{ background:#efe2b8; border-color:#b8892e; }
+/* a subject's page: the controls in light */
+.bk-msside .bk-mssec{ color:#1b2a3a; }
+.bk-msside .bk-msrow{ border-bottom-color:rgba(27,42,58,.08); }
+.bk-msside .bk-ctl{ background:#fff; color:#1b2a3a; border-color:#d9c88f; }
+.bk-msside .bk-ctl option{ background:#fff; color:#1b2a3a; }
+.bk-msside .bk-rset{ color:#1b2a3a; }
+.bk-msside .bk-rset h3{ display:none; }
+.bk-msside .bk-rsec{ background:#FFFDF7; border-color:#e2d3a4; }
+.bk-msside .bk-rsec h4{ color:#8a6a1e; }
+.bk-msside .bk-rprev{ background:#F3EBD6; color:#1b2a3a; }
+.bk-msside .bk-rnote, .bk-msside .bk-rhxh{ color:#6b6250; }
+.bk-msside .bk-rspeed button{ color:#1b2a3a; border-color:#d9c88f; }
+.bk-msside .bk-rspeed button.on{ background:#2f6b45; border-color:#2f6b45; color:#fff; }
+.bk-msside .bk-msplace, .bk-msside button.bk-msplace, .bk-msside .bk-msplace > button:first-child{ color:#1b2a3a; border-bottom-color:rgba(27,42,58,.08); }
+.bk-msside .bk-msplace small, .bk-msside .bk-msnone{ color:#6b6250; }
+.bk-msside .bk-msuse{ background:#2f6b45; border-color:#2f6b45; color:#fff; }
+.bk-msside .rs-card{ background:#FFFDF7; border-color:#e2d3a4; }
+.bk-msside .rs-head > b, .bk-msside .rs-nums b{ color:#8a6a1e; }
+.bk-msside .rs-tabs button{ border-color:#d9c88f; }
+.bk-msside .rs-tabs button.on{ background:#2f6b45; border-color:#2f6b45; color:#fff; }
+.bk-msside .bk-msfoot .bk-fontcredit{ color:#8f8775; }
+.bk-msside .bk-msgroup{ color:#8a6a1e; }
+.bk-msside .bk-msok{ display:none; }
