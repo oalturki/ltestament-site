@@ -152,12 +152,15 @@
   function hijri(s, lang) {
     try { return parse(s).toLocaleDateString(lang === 'ar' ? 'ar-SA-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura', { day: 'numeric', month: 'long' }); } catch (e) { return s; }
   }
+  // Arabic counted nouns: 1 صفحة, 2 صفحتان, 3–10 صفحات, 11+ صفحة (and the same for the juz)
+  function arCount(n, one, two, few, many) { return n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? num(n, 'ar') + ' ' + few : num(n, 'ar') + ' ' + many; }
+  function pagesText(n, lang) { return lang === 'ar' ? arCount(n, 'صفحة واحدة', 'صفحتان', 'صفحات', 'صفحة') : num(n, lang) + ' ' + L(lang).pages; }
+  // the daily portion: in juz when it is about a whole number of juz (a juz is 20 pages), else in pages
   function amountText(p, lang) {
-    var l = L(lang);
-    if (p >= 20 && p % 20 === 0) return num(p / 20, lang) + ' ' + l.jz;
-    return num(p, lang) + ' ' + l.pages;
+    var j = Math.round(p / 20);
+    if (j >= 1 && Math.abs(p - j * 20) <= 1) return lang === 'ar' ? arCount(j, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(j, lang) + ' ' + L(lang).jz;
+    return pagesText(p, lang);
   }
-
   // the line on the Mushaf page: today's wird of the first khatma that has one
   function stripText(lang) {
     var l = L(lang), a = active();
@@ -177,13 +180,13 @@
       ls.forEach(function (k) {
         var s = stat(k);
         var state = s.fin ? '<span class="kh-ok">' + esc(l.done) + '</span>'
-          : s.behind > 0 ? '<span class="kh-late">' + esc(l.behind) + ' ' + num(s.behind, lang) + ' ' + esc(l.pages) + '</span>'
+          : s.behind > 0 ? '<span class="kh-late">' + esc(l.behind) + ' ' + esc(pagesText(s.behind, lang)) + '</span>'
           : !s.isDay ? '<span>' + esc(l.rest) + '</span>'
           : s.left === 0 ? '<span class="kh-ok">' + esc(l.ahead) + '</span>' : '<span>' + esc(l.onTime) + '</span>';
         h += '<div class="kh-card" style="--kc:' + esc(k.color || COLORS[0]) + '"><div class="kh-top"><i class="kh-dot"></i><b>' + esc(k.name) + '</b>' +
           '<button type="button" class="kh-edit" data-e="' + k.id + '">' + esc(l.edit) + '</button></div>' +
           '<div class="kh-bar"><i style="width:' + s.pct + '%"></i></div>' +
-          '<div class="kh-meta"><span>' + num(s.done, lang) + ' / ' + num(s.total, lang) + ' ' + esc(l.pages) + ' · ' + num(s.pct, lang) + '٪</span>' + state + '</div>' +
+          '<div class="kh-meta"><span>' + num(s.done, lang) + ' / ' + num(s.total, lang) + ' · ' + num(s.pct, lang) + '٪</span>' + state + '</div>' +
           (s.fin ? '' : '<div class="kh-today"><span><b>' + esc(l.today) + ':</b> ' + (s.to ? esc(l.p1) + ' ' + num(s.from, lang) + (s.to > s.from ? '–' + num(s.to, lang) : '') : '—') + '</span>' +
             '<button type="button" class="kh-read" data-p="' + (s.first || k.from) + '">' + esc(s.done ? l.cont : l.read) + '</button></div>') +
           '<div class="kh-end">' + esc(l.wird) + ': ' + esc(amountText(s.per, lang)) + ' · ' + esc(l.ends) + ' ' + esc(hijri(s.end, lang)) + '</div></div>';
@@ -264,11 +267,10 @@
         // the daily portion up or down: the duration follows (one page; a juz when the portion is a juz or more)
         el.querySelectorAll('[data-a]').forEach(function (b) {
           b.onclick = function () {
-            var per = Math.ceil(total() / nSlots()), step = per >= 20 ? 20 : 1;
-            var np = Math.max(1, per + step * +b.dataset.a);
-            if (step === 20 && +b.dataset.a > 0) np = (Math.floor(per / 20) + 1) * 20;
-            if (step === 20 && +b.dataset.a < 0) np = Math.max(1, (Math.ceil(per / 20) - 1) * 20) || 19;
-            var want = Math.ceil(total() / np), perWeek = 0;
+            var per = Math.ceil(total() / nSlots()), up = +b.dataset.a > 0, np;
+            if (per >= 19) { var j = Math.round(per / 20) + (up ? 1 : -1); np = j >= 1 ? j * 20 : 19; }
+            else np = Math.max(1, per + (up ? 1 : -1));
+            var want = Math.max(1, Math.round(total() / np)), perWeek = 0;     // reading days needed
             for (var i = 0; i < 7; i++) if ((k.rdays >> i) & 1) perWeek++;
             k.days = Math.max(1, Math.ceil(want * 7 / perWeek));
             while (k.days > 1 && slots(Object.assign({}, k, { days: k.days - 1 })).length >= want) k.days--;
