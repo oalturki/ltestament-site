@@ -1203,21 +1203,25 @@
       // phones, as in Mushaf apps: once listening starts, a player card (reciter, where he is, the ayah's progress,
       // repeat, previous / play-pause / next ayah, speed, close). A tap on the page shows or hides the card instead of
       // the bars; pausing keeps it; its × stops the recitation and brings the ordinary page back (a tap: the bars).
-      var PL = { ar: ['إغلاق', 'الآية السابقة', 'الآية التالية', 'التكرار', 'السرعة'], ur: ['بند کریں', 'پچھلی آیت', 'اگلی آیت', 'تکرار', 'رفتار'],
-                 en: ['Close', 'Previous verse', 'Next verse', 'Repeat', 'Speed'], fr: ['Fermer', 'Verset précédent', 'Verset suivant', 'Répétition', 'Vitesse'],
-                 es: ['Cerrar', 'Aleya anterior', 'Aleya siguiente', 'Repetición', 'Velocidad'], ru: ['Закрыть', 'Предыдущий аят', 'Следующий аят', 'Повтор', 'Скорость'] }[C.lang] ||
-               ['Close', 'Previous verse', 'Next verse', 'Repeat', 'Speed'];
+      var PL = { ar: ['إغلاق', 'الآية السابقة', 'الآية التالية', 'إعدادات الصوت', 'السرعة', 'المقطع', 'الآية', 'أعد المقطع', 'أعد الآية'],
+                 ur: ['بند کریں', 'پچھلی آیت', 'اگلی آیت', 'آواز کی ترتیبات', 'رفتار', 'حصہ', 'آیت', 'حصہ دوبارہ', 'آیت دوبارہ'],
+                 en: ['Close', 'Previous verse', 'Next verse', 'Audio settings', 'Speed', 'Phrase', 'Verse', 'Replay the phrase', 'Replay the verse'],
+                 fr: ['Fermer', 'Verset précédent', 'Verset suivant', 'Réglages audio', 'Vitesse', 'Passage', 'Verset', 'Rejouer le passage', 'Rejouer le verset'],
+                 es: ['Cerrar', 'Aleya anterior', 'Aleya siguiente', 'Ajustes de audio', 'Velocidad', 'Pasaje', 'Aleya', 'Repetir el pasaje', 'Repetir la aleya'],
+                 ru: ['Закрыть', 'Предыдущий аят', 'Следующий аят', 'Настройки звука', 'Скорость', 'Отрывок', 'Аят', 'Повторить отрывок', 'Повторить аят'] }[C.lang] ||
+               ['Close', 'Previous verse', 'Next verse', 'Audio settings', 'Speed', 'Phrase', 'Verse', 'Replay the phrase', 'Replay the verse'];
       var pOn = false, pT = null;
       var pc = document.createElement('div'); pc.className = 'bk-pcard'; pc.setAttribute('role', 'region');
       var ic = function (d, f) { return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + (f ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       pc.innerHTML = '<div class="pc-top"><button type="button" class="pc-x" aria-label="' + esc(PL[0]) + '">' + ic('<path d="M6 6l12 12M18 6L6 18"/>') + '</button>' +
-        '<div class="pc-t"><b class="pc-r"></b><small class="pc-w"></small></div><span class="pc-sp0"></span></div>' +
+        '<div class="pc-t"><b class="pc-r"></b><small class="pc-w"></small></div><button type="button" class="pc-set" aria-label="' + esc(PL[3]) + '">' + ic(I.more) + '</button></div>' +
         '<div class="pc-bar"><span class="pc-a">0:00</span><i><b></b></i><span class="pc-b">-0:00</span></div>' +
-        '<div class="pc-ctl"><button type="button" class="pc-rep" aria-label="' + esc(PL[3]) + '">' + ic('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>') + '</button>' +
+        '<div class="pc-ctl"><button type="button" class="pc-spd" aria-label="' + esc(PL[4]) + '">1×</button>' +
+        '<button type="button" class="pc-rs pc-ra" aria-label="' + esc(PL[8]) + '">' + ic('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>') + '<small>' + esc(PL[6]) + '</small></button>' +
         '<button type="button" class="pc-prev" aria-label="' + esc(PL[1]) + '">' + ic('<path d="M11 19l-9-7 9-7zM22 19l-9-7 9-7z"/>', true) + '</button>' +
         '<button type="button" class="pc-pp">' + ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) + '</button>' +
         '<button type="button" class="pc-next" aria-label="' + esc(PL[2]) + '">' + ic('<path d="M13 5l9 7-9 7zM2 5l9 7-9 7z"/>', true) + '</button>' +
-        '<button type="button" class="pc-spd" aria-label="' + esc(PL[4]) + '">1×</button></div>';
+        '<button type="button" class="pc-rs pc-rp" aria-label="' + esc(PL[7]) + '">' + ic('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>') + '<small>' + esc(PL[5]) + '</small></button></div>';
       document.body.appendChild(pc);
       var $p = function (c) { return pc.querySelector(c); };
       var mmss = function (t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); };
@@ -1228,7 +1232,7 @@
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
         var sp = (rep && rep.speed) || 1; $p('.pc-spd').textContent = (C.lang === 'ar' ? arNum(String(sp)).replace('.', '٫') : sp) + '×';
-        $p('.pc-rep').classList.toggle('on', !!rep && (rep.ayah !== 1 || rep.range !== 1 || rep.mode !== 'cont'));
+        var st0 = recState; $p('.pc-rp').disabled = !(st0 && st0.kind === 'ayah' && st0.words && st0.words.length > 1);
         // the ayah's progress: its own file, or its stretch of the surah's file
         var a0 = 0, a1 = 0, t = audio ? audio.currentTime : 0;
         if (st && audio) {
@@ -1286,7 +1290,30 @@
         if (root.__repFill) root.__repFill();
         pFill();
       };
-      $p('.pc-rep').onclick = function (e) { e.stopPropagation(); if (root.__openListen) root.__openListen(); };
+      $p('.pc-set').onclick = function (e) { e.stopPropagation(); if (root.__openListen) root.__openListen(); };
+      // replay the verse from its start, or the phrase being read (from the reciter's stop before it), then go on as before
+      var replay = function (phrase) {
+        var st = recState; if (!st) return;
+        if (!playing) { var b = q('play'); if (b) b.click(); }
+        if (st.kind === 'ayah') {
+          if (!phrase || !st.words || !st.words.length) { playAyah(st.s, st.a, true); return; }
+          var w = hl && hl.s === st.s && hl.a === st.a ? hl.w : 0, i = 0;
+          st.words.forEach(function (x, k) { if (x[0] <= w) i = k; });
+          pauseMarks(st.s, st.a).then(function (marks) {
+            var sg = segOf(st.words, i, marks), t0 = Math.max(0, st.words[sg[0]][1] - 60) / 1000;
+            if (recState !== st) return;
+            st.waited = false; st.si = 0; st.segs = null;
+            try { audio.currentTime = t0; } catch (e3) {}
+            if (audio.paused) { var pr = audio.play(); if (pr && pr.catch) pr.catch(function () {}); startTick(); }
+          });
+        } else if (st.times) {
+          var x = st.times.filter(function (y) { return y[0] === st.a; })[0];
+          if (x) try { audio.currentTime = x[1] / 1000; } catch (e4) {}
+        }
+        setTimeout(pFill, 100);
+      };
+      $p('.pc-ra').onclick = function (e) { e.stopPropagation(); replay(false); };
+      $p('.pc-rp').onclick = function (e) { e.stopPropagation(); replay(true); };
       pc.addEventListener('click', function (e) { e.stopPropagation(); });
       root.__playerTap = function () { if (!pOn) return false; cardShow(!document.body.classList.contains('bk-pcon')); return true; };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning

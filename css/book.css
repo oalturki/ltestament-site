@@ -900,7 +900,8 @@ body.bk-mob.bk-pcon .bk-pcard{ display:block; position:fixed; z-index:40; left:1
 .pc-top{ display:flex; align-items:center; gap:8px; }
 .pc-x{ width:38px; height:38px; border-radius:50%; border:0; background:#efe6cc; color:#1b2a3a; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; }
 .pc-x svg{ width:18px; height:18px; }
-.pc-sp0{ width:38px; flex:none; }
+.pc-set{ width:38px; height:38px; border-radius:50%; border:0; background:#efe6cc; color:#1b2a3a; display:flex; align-items:center; justify-content:center; cursor:pointer; flex:none; }
+.pc-set svg{ width:20px; height:20px; }
 .pc-t{ flex:1; text-align:center; display:flex; flex-direction:column; }
 .pc-r{ font-size:1.1rem; font-weight:800; }
 .pc-w{ font-size:.85rem; color:#8a6a1e; font-weight:700; }
@@ -910,7 +911,10 @@ body.bk-mob.bk-pcon .bk-pcard{ display:block; position:fixed; z-index:40; left:1
 .pc-ctl{ display:flex; align-items:center; justify-content:space-between; padding:0 4px; direction:ltr; }
 .pc-ctl button{ border:0; background:none; color:#1b2a3a; cursor:pointer; display:flex; align-items:center; justify-content:center; min-width:44px; height:48px; font:inherit; }
 .pc-pp svg{ width:38px; height:38px; }
-.pc-rep.on{ color:#b8892e; }
+.pc-rs{ flex-direction:column; gap:0; }
+.pc-rs svg{ width:22px; height:22px; }
+.pc-rs small{ font-size:.66rem; font-weight:700; color:#8a6a1e; line-height:1; margin-top:2px; }
+.pc-ctl button:disabled{ opacity:.3; }
 .pc-spd{ font-weight:800; font-size:1.05rem; }
 /* the card shows: the thin line and its pause button make way */
 body.bk-mob.bk-pcon .bk-mpause, body.bk-mob.bk-pcon .bk-mtrack, body.bk-mob.bk-pcon .bk-mshow, body.bk-mob.bk-pcon .bk-sess{ display:none !important; }
