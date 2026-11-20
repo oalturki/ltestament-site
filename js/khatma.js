@@ -137,7 +137,7 @@
       days: 'المدة (الأيام)', rdays: 'أيام القراءة', every: 'كل يوم', wird: 'الورد', perDay: 'في كل يوم قراءة', start: 'تبدأ', remind: 'وقت التذكير',
       create: 'إنشاء', saveB: 'حفظ', cancel: 'إلغاء', del: 'حذف', edit: 'تعديل', delAsk: 'حذف هذه الختمة؟', read: 'اقرأ', today: 'ورد اليوم', pages: 'صفحات', p1: 'ص',
       onTime: 'على الموعد', behind: 'متأخر', ahead: 'أتممت ورد اليوم', ends: 'تنتهي', done: 'تمّت الختمة، تقبّل الله.', rest: 'لا ورد اليوم',
-      wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], cont: 'أكمل', of: 'من', jz: 'جزء', note: 'يُحتسب التقدم من الصفحات التي تقرؤها في المصحف.', finished: 'ختمة أتممتها', started: 'ختمة بدأتها' },
+      wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], cont: 'أكمل', of: 'من', jz: 'جزء', note: 'يُحتسب التقدم من الصفحات التي تقرؤها في المصحف.', finished: 'المكتملة', started: 'كل ختماتي' },
     en: { title: 'My khatmas', add: 'New khatma', none: 'No khatmas yet. Create one to read the Quran, or part of it, over a set number of days; your progress is followed from your reading.',
       name: 'Name', mine: 'My khatma', range: 'Range', by: ['By juz', 'By pages', 'By surahs'], from: 'From', to: 'To', juz: 'Juz', page: 'Page', surah: 'Surah',
       days: 'Duration (days)', rdays: 'Reading days', every: 'Every day', wird: 'Daily portion', perDay: 'each reading day', start: 'Starts', remind: 'Reminder time',
