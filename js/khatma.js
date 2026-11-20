@@ -158,7 +158,7 @@
   // the daily portion: in juz when it is about a whole number of juz (a juz is 20 pages), else in pages
   function amountText(p, lang) {
     var j = Math.round(p / 20);
-    if (j >= 1 && Math.abs(p - j * 20) <= 1) return lang === 'ar' ? arCount(j, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(j, lang) + ' ' + L(lang).jz;
+    if (j >= 1 && Math.abs(p - j * 20) <= (j >= 2 ? 4 : 1)) return lang === 'ar' ? arCount(j, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(j, lang) + ' ' + L(lang).jz;
     return pagesText(p, lang);
   }
   // the line on the Mushaf page: today's wird of the first khatma that has one
@@ -268,7 +268,7 @@
         el.querySelectorAll('[data-a]').forEach(function (b) {
           b.onclick = function () {
             var per = Math.ceil(total() / nSlots()), up = +b.dataset.a > 0, np;
-            if (per >= 19) { var j = Math.round(per / 20) + (up ? 1 : -1); np = j >= 1 ? j * 20 : 19; }
+            if (per >= 19) { var j = Math.round(per / 20) + (up ? 1 : -1); np = j >= 1 ? j * 20 : 15; }
             else np = Math.max(1, per + (up ? 1 : -1));
             var want = Math.max(1, Math.round(total() / np)), perWeek = 0;     // reading days needed
             for (var i = 0; i < 7; i++) if ((k.rdays >> i) & 1) perWeek++;
