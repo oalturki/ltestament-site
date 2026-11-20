@@ -721,19 +721,42 @@
                  exit: '<path d="M6 6l12 12M18 6L6 18"/>',
                  eye: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>' };
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
-      var memoBtn = item(I2.memo, ML[0]); memoBtn.classList.add('bk-mmemo');
-      var exitBtn = item(I2.exit, ML[1]); exitBtn.classList.add('bk-mexit');
+      // three modes, chosen from the mode button (a list) or the settings: reading (listening), memorization
+      // (repetition, hiding), recitation (the microphone). Each shows its own buttons and its own line of choices.
+      var MDL = { ar: ['تلاوة', 'تحفيظ', 'تسميع', 'الوضع'], ur: ['تلاوت', 'حفظ', 'تسمیع', 'انداز'], en: ['Reading', 'Memorizing', 'Reciting', 'Mode'],
+                  fr: ['Lecture', 'Mémorisation', 'Récitation', 'Mode'], es: ['Lectura', 'Memorizar', 'Recitar', 'Modo'], ru: ['Чтение', 'Заучивание', 'Чтение наизусть', 'Режим'] };
+      var MD = MDL[C.lang] || MDL.en, MODES = ['read', 'hifz', 'tasmee'];
+      var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
+      modeSel.innerHTML = MODES.map(function (m, i) { return '<option value="' + m + '">' + esc(MD[i]) + '</option>'; }).join('');
+      var modeBtn = item(I2.memo, MD[0]); modeBtn.classList.add('bk-mmode'); modeBtn.appendChild(modeSel);
+      var exitBtn = { onclick: null };                    // (the mode list replaces the exit button)
       var eyeBtn = item(I2.eye, ML[2]); eyeBtn.classList.add('bk-meye');
       var hideNow = function () { return root.classList.contains('bk-hide'); };
       var syncEye = function () { var on = hideNow(); eyeBtn.classList.toggle('on', on); eyeBtn.querySelector('span').textContent = on ? ML[3] : ML[2]; };
       var hideBtn = function () { return document.querySelector('.bk-hidebtn:not(.bk-tsbtn):not(.bk-fambtn)'); };
-      memoBtn.onclick = function (e) { e.stopPropagation(); root.classList.add('bk-memo'); syncEye(); };
-      exitBtn.onclick = function (e) {
-        e.stopPropagation();
+      var curMode = function () { return root.classList.contains('bk-mt') ? 'tasmee' : root.classList.contains('bk-memo') ? 'hifz' : 'read'; };
+      var repSel = function () { return document.querySelector('.bk-rset [data-r="mode"]'); };
+      var setMode = function (m) {
+        var was = curMode(); if (m === was) return;
         if (window.__bkLive && window.__bkLive.running) window.__bkLive.stop();
-        if (hideNow() && hideBtn()) hideBtn().click();
-        root.classList.remove('bk-memo');
+        if (m === 'read' && hideNow() && hideBtn()) hideBtn().click();
+        root.classList.toggle('bk-memo', m !== 'read'); root.classList.toggle('bk-mt', m === 'tasmee');
+        // memorization plays by the memorization method; back to reading, plain listening again
+        var rs = repSel();
+        if (rs && m === 'hifz' && rs.value !== 'hifz') { rs.value = 'hifz'; rs.dispatchEvent(new Event('change', { bubbles: true })); }
+        if (rs && m === 'read' && rs.value === 'hifz') { rs.value = 'cont'; rs.dispatchEvent(new Event('change', { bubbles: true })); }
+        if (playing && m === 'tasmee') stopAudio();
+        modeSync(); syncEye();
+        if (root.__modeMenu) root.__modeMenu();
       };
+      var modeSync = function () {
+        var m = curMode(), i = MODES.indexOf(m);
+        modeSel.value = m; modeBtn.querySelector('span').textContent = MD[i];
+        if (root.__strip) root.__strip();
+      };
+      root.__setMode = setMode;
+      modeSel.onchange = function () { setMode(modeSel.value); };
+      modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       var RCL = { ar: 'سمِّع', ur: 'سنائیں', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Читать' };
       var mmic = document.createElement('button'); mmic.type = 'button'; mmic.className = 'bk-mmic';
@@ -872,6 +895,12 @@
       var viewSec = section('view', S2.view);
       var modeH = null;
       newCard(M3[2]); modeH = card.previousSibling;
+      // the mode itself, chosen here too
+      var modeRow = document.createElement('div'); modeRow.className = 'bk-msitem bk-msmode';
+      modeRow.innerHTML = '<span class="ic">' + svg(I2.memo) + '</span><span class="tx"><b>' + esc(MD[3]) + '</b><small></small></span><span class="ch">' + svg('<path d="M6 9l6 6 6-6"/>') + '</span>';
+      var modeSel2 = modeSel.cloneNode(true); modeRow.appendChild(modeSel2);
+      modeSel2.onchange = function () { setMode(modeSel2.value); };
+      card.appendChild(modeRow);
       var listenSec = section('listen', S2.listen);
       var reciteSec = section('recite', S2.recite);
       var pageLabel = function (p) {
@@ -892,9 +921,12 @@
       // each row's current value, under its title
       var selText = function (el) { return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].text : ''; };
       var fillMenu = function () {
-        var memo = root.classList.contains('bk-memo');
-        if (modeH) modeH.textContent = M3[memo ? 3 : 2];
-        var rr = menu.querySelector('.bk-msitem[data-s=recite]'); if (rr) rr.hidden = !memo;     // recitation: in memorization mode
+        var md = curMode(), mi = MODES.indexOf(md);
+        if (modeH) modeH.textContent = M3[2].split(':')[0] + ': ' + MD[mi];
+        modeSel2.value = md; modeRow.querySelector('small').textContent = MD[mi];
+        // the mode's own settings: listening (reading, memorizing), recitation (reciting)
+        var rr = menu.querySelector('.bk-msitem[data-s=recite]'); if (rr) rr.hidden = md !== 'tasmee';
+        var lr = menu.querySelector('.bk-msitem[data-s=listen]'); if (lr) lr.hidden = md === 'tasmee';
         var n = function (x) { return uiNum(x); };
         if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
@@ -921,6 +953,34 @@
       };
       var open = function () { goSec(null); fillPanes(); fillMenu(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
       moreBtn.onclick = open;
+      root.__modeMenu = function () { if (ov.classList.contains('on')) fillMenu(); };
+      // the mode's line of choices on the page, above the bars: a tap opens them in the settings
+      var strip = document.createElement('button'); strip.type = 'button'; strip.className = 'bk-mstrip'; document.body.appendChild(strip);
+      var STL = { ar: ['القارئ', 'الحفظ', 'عند الخطأ', 'اختر المقطع'], ur: ['قاری', 'حفظ', 'غلطی پر', 'حصہ چنیں'], en: ['Reciter', 'Memorizing', 'On a mistake', 'Choose the passage'],
+                  fr: ['Récitateur', 'Mémorisation', 'En cas d’erreur', 'Choisir le passage'], es: ['Recitador', 'Memorizar', 'Ante un error', 'Elegir el pasaje'], ru: ['Чтец', 'Заучивание', 'При ошибке', 'Выбрать отрывок'] };
+      var ST = STL[C.lang] || STL.en;
+      root.__strip = function () {
+        var md = curMode(), h = '', v = '';
+        var fv = function (k) { var e = document.querySelector('.bk-rset [data-r="' + k + '"]'); return e ? (e.tagName === 'SELECT' ? selText(e) : e.value) : ''; };
+        if (md === 'read') {
+          h = ST[0]; v = selText(q('reciter'));
+          var sp = rep && rep.speed && rep.speed !== 1 ? (C.lang === 'ar' ? arNum(String(rep.speed)).replace('.', '٫') : rep.speed) + '×' : '';
+          if (sp) v += ' · ' + sp;
+          if (rep && rep.mode !== 'cont') v += ' · ' + fv('mode');
+        } else if (md === 'hifz') {
+          h = ST[1];
+          v = rep && rep.mode === 'hifz' ? fv('surah') + ' ' + uiNum(fv('ha1') || 1) + '–' + uiNum(fv('ha2') || 1) : ST[3];
+        } else {
+          h = ST[2]; var eo1 = reciteSec.querySelector('.bk-msrow select'); v = eo1 ? selText(eo1) : '';
+        }
+        strip.innerHTML = v ? '<b>' + esc(h) + ':</b><span>' + esc(v) + '</span>' : '';
+        var bt = root.querySelector('.bk-bottom'), r0 = bt ? bt.getBoundingClientRect() : null;
+        strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 150) + 'px';
+      };
+      strip.onclick = function (e) { e.stopPropagation(); open(); goSec(curMode() === 'tasmee' ? 'recite' : 'listen'); };
+      setTimeout(modeSync, 0);
+      document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.bk-rset, .bk-msrow')) setTimeout(root.__strip, 0); }, true);
+      window.addEventListener('resize', function () { setTimeout(root.__strip, 300); });
       ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
       ov.querySelector('.bk-msx').onclick = shut;
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') shut(); });
@@ -985,7 +1045,7 @@
       function chrome(show) {
         clearTimeout(hideT);
         document.body.classList.toggle('bk-chrome-off', !show);
-        if (!show) placeShow();
+        if (!show) placeShow(); else if (root.__strip) setTimeout(root.__strip, 300);
       }
       // while the bars are hidden: a small handle in the middle of the frame's bottom band says they are there
       var shw = document.createElement('button');
