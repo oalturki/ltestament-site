@@ -1231,7 +1231,7 @@
         $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : '';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
-        var sp = (rep && rep.speed) || 1; $p('.pc-spd').textContent = (C.lang === 'ar' ? arNum(String(sp)).replace('.', '٫') : sp) + '×';
+        var sp = (rep && rep.speed) || 1; $p('.pc-spd').textContent = sp + '×';     // Latin digits: «١×» reads like «ا×»
         var st0 = recState; $p('.pc-rp').disabled = !(st0 && st0.kind === 'ayah' && st0.words && st0.words.length > 1);
         // the ayah's progress: its own file, or its stretch of the surah's file
         var a0 = 0, a1 = 0, t = audio ? audio.currentTime : 0;
