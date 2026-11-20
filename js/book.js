@@ -528,10 +528,36 @@
       };
       if (window.ReadStats) go();
       else {
-        if (!readWatch.ld) { readWatch.ld = document.createElement('script'); readWatch.ld.src = '/js/readstats.js'; document.head.appendChild(readWatch.ld); }
+        if (!readWatch.ld) {
+          readWatch.ld = document.createElement('script'); readWatch.ld.src = '/js/readstats.js'; document.head.appendChild(readWatch.ld);
+          readWatch.ld.addEventListener('load', function () { sessShow(false); });
+        }
         readWatch.ld.addEventListener('load', go);
       }
     }
+    // this session's reading, on the page (under the frame on phones, in the bottom bar on larger screens);
+    // it starts from zero each visit, and what it counts is added to the day
+    var sessEl = document.createElement('div');
+    sessEl.className = 'bk-sess'; sessEl.hidden = true; sessEl.setAttribute('aria-live', 'polite');
+    function sessShow(flash) {
+      var RS = window.ReadStats; if (!RS || embed) return;
+      var o = RS.session();
+      if (!o.pages) { sessEl.hidden = true; return; }
+      if (!sessEl.parentNode) {
+        var bt = root.querySelector('.bk-bottom');
+        if (document.body.classList.contains('bk-mob') || !bt) document.body.appendChild(sessEl); else bt.appendChild(sessEl);
+      }
+      sessEl.textContent = RS.sessLine(o, C.lang); sessEl.hidden = false;
+      if (flash) { sessEl.classList.remove('fl'); void sessEl.offsetWidth; sessEl.classList.add('fl'); }
+      if (root.__placeShow) root.__placeShow();
+    }
+    window.addEventListener('lt-read', function () { sessShow(true); });
+    // phones: just under the frame's bottom line, on the left
+    root.__sessPlace = function (r) {
+      if (sessEl.parentNode !== document.body) return;
+      sessEl.style.top = Math.round(Math.min(r.bottom + 6, window.innerHeight - 22)) + 'px';
+      sessEl.style.left = Math.round(r.left + 2) + 'px';
+    };
     function updateControls() {
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
@@ -921,6 +947,7 @@
         // its top on the frame's bottom line, hanging below it, so it never touches the text
         shw.style.top = Math.round(Math.min(r.bottom - 1, window.innerHeight - h)) + 'px';
         shw.style.left = Math.round(r.left + r.width / 2 - w / 2) + 'px';
+        if (root.__sessPlace) root.__sessPlace(r);
         // while listening: the audio's path as a thin line on the frame's bottom line, the pause button riding on it
         // the line is the frame's bottom border, below the text; the button hangs under it, its point on the line
         var y = Math.min(r.bottom - 1.5, window.innerHeight - 30);

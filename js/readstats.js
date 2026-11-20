@@ -1,11 +1,14 @@
 /* Reading statistics (إحصاءات القراءة): the Mushaf pages read, and their words and letters, by day, week, month, year.
 
-   A page counts once a day, after it stayed open long enough to be read (the Mushaf calls ReadStats.mark(page)).
+   A page counts each time it stays open long enough to be read (the Mushaf calls ReadStats.mark(page)); a page read
+   again later counts again. The session (this visit, until 30 minutes away) is counted on its own and shown on the
+   page while reading; it starts from zero each time.
    Kept on this device for everyone (localStorage), and in the family account for the profile in use (table
    reading_log: one row per profile per day, the pages). Words and letters come from data/page-stats.json
    (built by tools/build_page_stats.py from the simple text: written letters, without harakat).
 
-   ReadStats.mark(page)                 count a page read today (for the profile in use, or for this device)
+   ReadStats.mark(page)                 count a page read (for the profile in use, or for this device)
+   ReadStats.session()                  {pages, words, letters} read in this session
    ReadStats.sum(profileId?)            -> Promise<{day, week, month, year}> each {pages, words, letters}
    ReadStats.sumMany([ids])             -> Promise<{id: {day, week, month, year}}> (one query, for the account page)
    ReadStats.html(sum, lang)            the card: four periods to switch between, three numbers, and the hadith
@@ -34,7 +37,7 @@
     store(key(id), JSON.stringify(log));
   }
 
-  // the family account: today's pages for the profile, merged with what another device recorded today
+  // the family account: the pages read since the last save are added to today's row (another device may add too)
   var pend = {}, timer = null;
   function push() {
     timer = null;
@@ -46,25 +49,39 @@
       Object.keys(jobs).forEach(function (k) {
         var j = jobs[k];
         c.from('reading_log').select('pages').eq('profile_id', j.id).eq('d', j.d).maybeSingle().then(function (r) {
-          var have = (r.data && r.data.pages) || [];
-          var all = have.concat(j.pages.filter(function (p) { return have.indexOf(p) < 0; }));
+          var all = ((r.data && r.data.pages) || []).concat(j.pages).slice(-3000);
           return c.from('reading_log').upsert({ profile_id: j.id, d: j.d, pages: all, updated_at: new Date().toISOString() }, { onConflict: 'profile_id,d' });
-        }).then(function () {}, function () {});
+        }).then(function (r) { if (r && r.error) throw r.error; }).catch(function () {
+          var q = pend[k] || (pend[k] = { id: j.id, d: j.d, pages: [] }); q.pages = j.pages.concat(q.pages);   // keep for the next try
+        });
       });
     }).catch(function () {});
   }
 
+  // the session: this visit; after 30 minutes away the next page read starts a new one
+  var SK = 'lt_read_sess', GAP = 30 * 60 * 1000;
+  function sessGet() {
+    var o = null; try { o = JSON.parse(sessionStorage.getItem(SK) || 'null'); } catch (e) {}
+    if (!o || Date.now() - (o.t || 0) > GAP) o = { pages: 0, words: 0, letters: 0, t: Date.now() };
+    return o;
+  }
+  function session() { var o = sessGet(); return { pages: o.pages, words: o.words, letters: o.letters }; }
+
   function mark(page) {
     page = +page; if (!(page >= 1 && page <= 604)) return false;
-    var p = prof(), id = p && p.id, d = today(), log = local(id), list = log[d] || (log[d] = []);
-    if (list.indexOf(page) >= 0) return false;
-    list.push(page); saveLocal(id, log);
+    var p = prof(), id = p && p.id, d = today(), log = local(id);
+    (log[d] || (log[d] = [])).push(page); saveLocal(id, log);
     if (id) {
-      pend[id + d] = { id: id, d: d, pages: list.slice() };
+      var q = pend[id + d] || (pend[id + d] = { id: id, d: d, pages: [] }); q.pages.push(page);
       if (!timer) timer = setTimeout(push, 3000);
     }
-    try { window.dispatchEvent(new CustomEvent('lt-read', { detail: { page: page } })); } catch (e) {}
-    return true;
+    return pageStats().then(function (ps) {
+      var st = ps[page - 1] || [0, 0], o = sessGet();
+      o.pages++; o.words += st[0]; o.letters += st[1]; o.t = Date.now();
+      try { sessionStorage.setItem(SK, JSON.stringify(o)); } catch (e) {}
+      try { window.dispatchEvent(new CustomEvent('lt-read', { detail: { page: page, words: st[0], letters: st[1], session: session() } })); } catch (e) {}
+      return true;
+    });
   }
 
   // days -> {pages: [..]} -> the four periods
@@ -85,56 +102,57 @@
     });
     return out;
   }
-  function merge(a, b) {
+  // a profile: what the account holds, with what this device has not saved yet; if the account can't be reached, this device's log
+  function days(id, rem) {
+    if (!id || !rem) return local(id);
     var o = {};
-    [a, b].forEach(function (x) {
-      Object.keys(x || {}).forEach(function (d) {
-        var l = o[d] || (o[d] = []);
-        x[d].forEach(function (p) { if (l.indexOf(p) < 0) l.push(p); });
-      });
-    });
+    Object.keys(rem).forEach(function (d) { o[d] = rem[d].slice(); });
+    Object.keys(pend).forEach(function (k) { var j = pend[k]; if (j.id === id) o[j.d] = (o[j.d] || []).concat(j.pages); });
     return o;
   }
   function remote(ids) {
     var F = window.Fam;
     if (!ids.length || !F || !F.ready) return Promise.resolve({});
     return F.ready().then(function (c) {
-      if (!c) return {};
+      if (!c) return null;
       return c.from('reading_log').select('profile_id,d,pages').in('profile_id', ids).gte('d', daysAgo(364)).then(function (r) {
+        if (r.error) return null;
         var by = {};
+        ids.forEach(function (i) { by[i] = {}; });
         (r.data || []).forEach(function (x) { (by[x.profile_id] || (by[x.profile_id] = {}))[x.d] = x.pages || []; });
         return by;
       });
-    }).catch(function () { return {}; });
+    }).catch(function () { return null; });
   }
   function sum(id) {
     if (id === undefined) { var p = prof(); id = p && p.id; }
-    return Promise.all([pageStats(), id ? remote([id]) : Promise.resolve({})]).then(function (r) {
-      return periods(merge(local(id), (r[1] || {})[id]), r[0]);
+    return Promise.all([pageStats(), id ? remote([id]) : Promise.resolve(null)]).then(function (r) {
+      return periods(days(id, r[1] && r[1][id]), r[0]);
     });
   }
   function sumMany(ids) {
     return Promise.all([pageStats(), remote(ids)]).then(function (r) {
       var o = {};
-      ids.forEach(function (id) { o[id] = periods(merge(local(id), r[1][id]), r[0]); });
+      ids.forEach(function (id) { o[id] = periods(days(id, r[1] && r[1][id]), r[0]); });
       return o;
     });
   }
 
   var T = {
     ar: { title: 'قراءتي', tabs: ['اليوم', 'الأسبوع', 'الشهر', 'السنة'], u: ['صفحة', 'كلمة', 'حرفًا'],
-      h: '«من قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي.', note: 'تُحتسب الصفحة إذا بقيت مفتوحة مدةً تكفي لقراءتها، مرةً في اليوم. والعدد تقريبي.' },
+      h: '«من قرأ حرفًا من كتاب الله فله به حسنة، والحسنة بعشر أمثالها» — رواه الترمذي.', note: 'تُحتسب الصفحة كلما بقيت مفتوحة مدةً تكفي لقراءتها. والعدد تقريبي.' },
     en: { title: 'My reading', tabs: ['Today', 'Week', 'Month', 'Year'], u: ['pages', 'words', 'letters'],
-      h: '“Whoever reads a letter of the Book of Allah has a good deed for it, and a good deed is multiplied tenfold.” — at-Tirmidhi.', note: 'A page counts when it stays open long enough to be read, once a day. The numbers are approximate.' },
+      h: '“Whoever reads a letter of the Book of Allah has a good deed for it, and a good deed is multiplied tenfold.” — at-Tirmidhi.', note: 'A page counts each time it stays open long enough to be read. The numbers are approximate.' },
     ur: { title: 'میری تلاوت', tabs: ['آج', 'ہفتہ', 'مہینہ', 'سال'], u: ['صفحات', 'الفاظ', 'حروف'],
-      h: '«جس نے کتاب اللہ کا ایک حرف پڑھا اس کے لیے ایک نیکی ہے، اور نیکی دس گنا ہے» — ترمذی۔', note: 'صفحہ اس وقت شمار ہوتا ہے جب پڑھنے کے لیے کافی دیر کھلا رہے، دن میں ایک بار۔ تعداد تقریبی ہے۔' },
+      h: '«جس نے کتاب اللہ کا ایک حرف پڑھا اس کے لیے ایک نیکی ہے، اور نیکی دس گنا ہے» — ترمذی۔', note: 'صفحہ ہر بار شمار ہوتا ہے جب پڑھنے کے لیے کافی دیر کھلا رہے۔ تعداد تقریبی ہے۔' },
     fr: { title: 'Ma lecture', tabs: ['Aujourd’hui', 'Semaine', 'Mois', 'Année'], u: ['pages', 'mots', 'lettres'],
-      h: '« Quiconque lit une lettre du Livre d’Allah obtient une bonne action, et la bonne action est décuplée. » — at-Tirmidhi.', note: 'Une page compte quand elle reste ouverte assez longtemps pour être lue, une fois par jour. Chiffres approximatifs.' },
+      h: '« Quiconque lit une lettre du Livre d’Allah obtient une bonne action, et la bonne action est décuplée. » — at-Tirmidhi.', note: 'Une page compte chaque fois qu’elle reste ouverte assez longtemps pour être lue. Chiffres approximatifs.' },
     es: { title: 'Mi lectura', tabs: ['Hoy', 'Semana', 'Mes', 'Año'], u: ['páginas', 'palabras', 'letras'],
-      h: '«Quien lee una letra del Libro de Allah obtiene por ella una buena obra, y la buena obra se multiplica por diez.» — at-Tirmidhi.', note: 'Una página cuenta cuando queda abierta el tiempo suficiente para leerla, una vez al día. Cifras aproximadas.' },
+      h: '«Quien lee una letra del Libro de Allah obtiene por ella una buena obra, y la buena obra se multiplica por diez.» — at-Tirmidhi.', note: 'Una página cuenta cada vez que queda abierta el tiempo suficiente para leerla. Cifras aproximadas.' },
     ru: { title: 'Моё чтение', tabs: ['Сегодня', 'Неделя', 'Месяц', 'Год'], u: ['стр.', 'слов', 'букв'],
-      h: '«Кто прочтёт букву из Книги Аллаха, тому за неё доброе дело, а доброе дело — десятикратно». — ат-Тирмизи.', note: 'Страница засчитывается, если открыта достаточно долго для чтения, раз в день. Числа приблизительны.' }
+      h: '«Кто прочтёт букву из Книги Аллаха, тому за неё доброе дело, а доброе дело — десятикратно». — ат-Тирмизи.', note: 'Страница засчитывается каждый раз, когда открыта достаточно долго для чтения. Числа приблизительны.' }
   };
+  var SESS = { ar: 'هذه الجلسة', en: 'This session', ur: 'یہ نشست', fr: 'Cette séance', es: 'Esta sesión', ru: 'Этот сеанс' };
   var AR = '٠١٢٣٤٥٦٧٨٩';
   function fmt(n, lang) {
     var s = Math.round(n).toLocaleString('en-US');
@@ -164,10 +182,15 @@
       };
     });
   }
+  // the session, shown on the page: pages and letters
+  function sessLine(o, lang) {
+    var L = T[lang] || T.en;
+    return (SESS[lang] || SESS.en) + ': ' + fmt(o.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(o.letters, lang) + ' ' + L.u[2];
+  }
   // a short line for a profile card: this week's pages and letters
   function line(s, lang) {
     var L = T[lang] || T.en, w = s.week;
     return L.tabs[1] + ': ' + fmt(w.pages, lang) + ' ' + L.u[0] + ' · ' + fmt(w.letters, lang) + ' ' + L.u[2];
   }
-  window.ReadStats = { mark: mark, sum: sum, sumMany: sumMany, html: html, wire: wire, line: line, pageStats: pageStats };
+  window.ReadStats = { mark: mark, session: session, fmt: fmt, sum: sum, sumMany: sumMany, html: html, wire: wire, line: line, sessLine: sessLine, pageStats: pageStats };
 })();
