@@ -2364,12 +2364,12 @@
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
-        var famPg = {}, famT0 = 0, sumW = {}, sumT0 = 0;    // sumW: this session's words, «s:a:w» -> how each went (the summary)
+        var famPg = {}, famT0 = 0, sumW = {}, sumT0 = 0, famHeard = {};   // famHeard: what the model heard in a mistaken word's place    // sumW: this session's words, «s:a:w» -> how each went (the summary)
         var famAll = { done: {}, errs: {} };               // the whole listening session, for the plan's lesson check
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
           r.done[loc] = 1; famAll.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; }
+          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = cls === 'missing' ? '' : (w.heard || ''); }
         };
         var famFlush = function (complete) {
           var F = window.Fam, prof = F && F.current();
@@ -2526,7 +2526,10 @@
           var bx = document.createElement('div'); bx.className = 'bk-tjbox'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
           bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + locs.map(function (l) {
             var x = l.split(':');
-            return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small></button>';
+            // what was heard in its place: the reader (or the parent) sees the mistake, or that the model misheard
+            var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمع:', 'لم تُسمع'] : ['Heard:', 'Not heard'];
+            return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small>' +
+              (hd === undefined ? '' : '<em class="lv-hd">' + (hd ? esc(HL[0]) + ' <span lang="ar">' + esc(hd) + '</span>' : esc(HL[1])) + '</em>') + '</button>';
           }).join('') + '</div>' : '<p>' + esc(LB[4]) + '</p>') + '<button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
           ov3.appendChild(bx); document.body.appendChild(ov3);
           ov3.onclick = function (e) { if (e.target === ov3) ov3.remove(); };
