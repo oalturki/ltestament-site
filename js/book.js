@@ -805,6 +805,7 @@
         ru: { main: 'Основное', recent: 'Недавние места', marks: 'Мои закладки', view: 'Вид', listen: 'Слушание', recite: 'Чтение наизусть', rec: 'Журнал ученика', go: 'Перейти',
               mark: 'Закладка на страницу', unmark: 'Убрать закладку', noRecent: 'Пока ничего.', noMarks: 'Закладок пока нет.', page: 'Стр.', juz: 'Джуз', del: 'Удалить' } };
       var S2 = SH[C.lang] || SH.en;
+      var RSL = { ar: 'قراءتي', ur: 'میری تلاوت', en: 'My reading', fr: 'Ma lecture', es: 'Mi lectura', ru: 'Моё чтение' };
       var sbody = ov.querySelector('.bk-msbody');
       // quick actions: search and the bookmark of this page
       var quick = document.createElement('div'); quick.className = 'bk-msquick';
@@ -812,17 +813,60 @@
       srch.innerHTML = svg(I.search) + '<span>' + esc(L.search) + '</span>';
       var bmk = document.createElement('button'); bmk.type = 'button'; bmk.className = 'bk-msq';
       quick.appendChild(bmk); quick.appendChild(srch); sbody.appendChild(quick);
-      // three tabs: the settings, the last places read, the bookmarks
-      var tabsEl = document.createElement('div'); tabsEl.className = 'bk-mstabs';
-      tabsEl.innerHTML = ['main', 'recent', 'marks'].map(function (k, i) { return '<button type="button" data-t="' + k + '"' + (i ? '' : ' class="on"') + '>' + esc(S2[k]) + '</button>'; }).join('');
-      sbody.appendChild(tabsEl);
-      var body = document.createElement('div'); body.className = 'bk-mspane on'; body.dataset.t = 'main';
-      var paneR = document.createElement('div'); paneR.className = 'bk-mspane'; paneR.dataset.t = 'recent';
-      var paneM = document.createElement('div'); paneM.className = 'bk-mspane'; paneM.dataset.t = 'marks';
-      sbody.appendChild(body); sbody.appendChild(paneR); sbody.appendChild(paneM);
+      // the settings as a list, as in Mushaf apps: one row per subject (icon, title, its current value), each opening
+      // its own page with a way back. The rows come in cards: my reading; the Mushaf (view, listening, recitation);
+      // my places (bookmarks, recent places).
+      var IC = {
+        stats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+        rec: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+        view: '<path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h8M8 12h6"/>',
+        listen: '<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="5" height="7" rx="2"/><rect x="16" y="14" width="5" height="7" rx="2"/>',
+        recite: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+        marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
+        recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        back: '<path d="M9 6l6 6-6 6"/>'
+      };
+      var head2 = ov.querySelector('.bk-mshead'), headT = head2.querySelector('h2');
+      var backB = document.createElement('button'); backB.type = 'button'; backB.className = 'bk-msback'; backB.hidden = true;
+      backB.setAttribute('aria-label', '‹'); backB.innerHTML = svg(C.lang === 'ar' || C.lang === 'ur' ? IC.back : '<path d="M15 6l-6 6 6 6"/>');
+      head2.insertBefore(backB, head2.firstChild);
+      var menu = document.createElement('div'); menu.className = 'bk-mslist'; sbody.appendChild(menu);
+      var secs = {}, subs = {}, card = null;
+      var newCard = function () { card = document.createElement('div'); card.className = 'bk-mscard'; menu.appendChild(card); return card; };
+      var goSec = function (k) {
+        Object.keys(secs).forEach(function (x) { secs[x].hidden = x !== k; });
+        menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
+        headT.textContent = k ? secs[k].dataset.title : L.settings;
+        if (k === 'stats') rsFill();
+        sbody.scrollTop = 0;
+      };
+      backB.onclick = function () { goSec(null); fillMenu(); };
+      // a row in the current card, and its page
+      var section = function (k, title, icon) {
+        var r = document.createElement('button'); r.type = 'button'; r.className = 'bk-msitem'; r.dataset.s = k;
+        r.innerHTML = '<span class="ic">' + svg(IC[icon || k]) + '</span><span class="tx"><b>' + esc(title) + '</b><small></small></span><span class="ch">' + svg(C.lang === 'ar' || C.lang === 'ur' ? '<path d="M15 6l-6 6 6 6"/>' : IC.back) + '</span>';
+        r.onclick = function () { goSec(k); };
+        (card || newCard()).appendChild(r);
+        var d = document.createElement('div'); d.className = 'bk-mssec'; d.dataset.s = k; d.dataset.title = title; d.hidden = true;
+        sbody.appendChild(d); secs[k] = d; subs[k] = r.querySelector('small');
+        return d;
+      };
+      var body = null;                                   // the page rows are added to (row() below)
+      var paneR, paneM;
+      newCard();
+      var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
+      var fb0 = document.querySelector('.bk-fambtn');
+      var recSec = fb0 ? section('rec', S2.rec) : null;
+      newCard();
+      var viewSec = section('view', S2.view);
+      var listenSec = section('listen', S2.listen);
+      var reciteSec = section('recite', S2.recite);
+      newCard();
+      paneM = section('marks', S2.marks);
+      paneR = section('recent', S2.recent);
       var pageLabel = function (p) {
-        var pg = MAP.pages[p - 1];
-        return '<b>' + esc(C.uiNames[pg[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
+        var pg2 = MAP.pages[p - 1];
+        return '<b>' + esc(C.uiNames[pg2[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
       };
       var listJ = function (k) { try { return JSON.parse(load(k) || '[]'); } catch (e) { return []; } };
       var fillPanes = function () {
@@ -830,31 +874,39 @@
         paneR.innerHTML = rec.length ? rec.map(function (p) { return '<button type="button" class="bk-msplace" data-p="' + p + '">' + pageLabel(p) + '</button>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noRecent) + '</p>';
         paneM.innerHTML = marks.length ? marks.map(function (p) { return '<div class="bk-msplace"><button type="button" data-p="' + p + '">' + pageLabel(p) + '</button><button type="button" class="bk-msdel" data-d="' + p + '" aria-label="' + esc(S2.del) + '">×</button></div>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noMarks) + '</p>';
         [paneR, paneM].forEach(function (pn) { pn.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { shut(); show(+b.dataset.p, 0); }; }); });
-        paneM.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { store('lt_book_marks', JSON.stringify(listJ('lt_book_marks').filter(function (x) { return x !== +b.dataset.d; }))); fillPanes(); }; });
+        paneM.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { store('lt_book_marks', JSON.stringify(listJ('lt_book_marks').filter(function (x) { return x !== +b.dataset.d; }))); fillPanes(); fillMenu(); }; });
         var on = marks.indexOf(cur) >= 0;
         bmk.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="' + (on ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>' + esc(on ? S2.unmark : S2.mark) + '</span>';
         bmk.classList.toggle('on', on);
       };
+      // each row's current value, under its title
+      var selText = function (el) { return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].text : ''; };
+      var fillMenu = function () {
+        var n = function (x) { return uiNum(x); };
+        if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
+        if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
+        if (subs.listen) subs.listen.textContent = selText(q('reciter'));
+        if (subs.view) subs.view.textContent = selText(q('frameSel'));
+        if (subs.recite) { var eo0 = reciteSec.querySelector('.bk-msrow select'); subs.recite.textContent = eo0 ? selText(eo0) : ''; }
+        if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
+        if (subs.stats && window.ReadStats) {
+          var RS = window.ReadStats; subs.stats.textContent = RS.sessLine(RS.session(), C.lang);
+          RS.sum().then(function (sm) { subs.stats.textContent = RS.line(sm, C.lang); });
+        }
+      };
       bmk.onclick = function () {
         var m = listJ('lt_book_marks'), i = m.indexOf(cur);
         if (i >= 0) m.splice(i, 1); else m.unshift(cur);
-        store('lt_book_marks', JSON.stringify(m.slice(0, 50))); fillPanes();
+        store('lt_book_marks', JSON.stringify(m.slice(0, 50))); fillPanes(); fillMenu();
       };
       srch.onclick = function () { shut(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
-      tabsEl.querySelectorAll('button').forEach(function (b) {
-        b.onclick = function () {
-          tabsEl.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
-          sbody.querySelectorAll('.bk-mspane').forEach(function (x) { x.classList.toggle('on', x.dataset.t === b.dataset.t); });
-        };
-      });
-      var group = function (t) { var h = document.createElement('div'); h.className = 'bk-msgroup'; h.textContent = t; body.appendChild(h); return h; };
-      // «my reading» at the top of the settings: pages, words and letters read, by day, week, month and year
-      var rsBox = document.createElement('div'); rsBox.className = 'bk-msrs'; body.appendChild(rsBox);
+      var group = function (sec) { body = sec; var h = document.createElement('div'); h.className = 'bk-msgroup'; sec.appendChild(h); return h; };
+      // «my reading»: pages, words and letters read, by day, week, month and year
       var rsFill = function () {
         var RS = window.ReadStats; if (!RS) return;
         RS.sum().then(function (sm) { rsBox.innerHTML = RS.html(sm, C.lang); RS.wire(rsBox); });
       };
-      var open = function () { fillPanes(); rsFill(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
+      var open = function () { goSec(null); fillPanes(); fillMenu(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
       moreBtn.onclick = open;
       ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
       ov.querySelector('.bk-msx').onclick = shut;
@@ -864,23 +916,19 @@
         var r = document.createElement('label'); r.className = 'bk-msrow';
         r.innerHTML = '<span>' + esc(label) + '</span>'; body.appendChild(r); return r;
       }
-      root.__sheetBody = body;
       // what moves where on a phone: [element, new parent]
       var moves = [];
-      var pageNo = root.querySelector('.bk-pageno');
-      group(S2.view);
+      group(viewSec);
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
-      group(S2.listen);
+      group(listenSec);
       if (q('reciter')) moves.push([q('reciter'), row(L.reciter, q('reciter'))]);
       var repSlot = document.createElement('div'); repSlot.className = 'bk-msrep'; body.appendChild(repSlot);
-      group(S2.recite);
-      var reciteGroup = body.lastChild;
-      var fb0 = document.querySelector('.bk-fambtn');
-      if (fb0) { group(S2.rec); moves.push([fb0, row('', fb0)]); }
-      group(S2.go);
-      if (pageNo && q('pageInput')) moves.push([q('pageInput'), row(L.page, q('pageInput'))]);
+      var reciteGroup = group(reciteSec);
+      root.__sheetBody = reciteSec;
+      if (fb0) { group(recSec); moves.push([fb0, row('', fb0)]); }
+      body = reciteSec;
       var qz = document.querySelector('.bk-quizlink');
       // the quiz: a small button in the top bar (not among the settings)
       if (qz && bar) {
@@ -894,7 +942,7 @@
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);
         moves.push([hbn, hslot]);
       }
-      if (tsn) { var tsRow = row('', tsn); body.insertBefore(tsRow, reciteGroup.nextSibling); moves.push([tsn, tsRow]); }
+      if (tsn) { var tsRow = row('', tsn); reciteSec.insertBefore(tsRow, reciteGroup.nextSibling); moves.push([tsn, tsRow]); }
       root.__reciteGroup = reciteGroup;
       var fc = root.querySelector('.bk-fontcredit');
       if (fc) { var fr = document.createElement('div'); fr.className = 'bk-msfoot'; sbody.appendChild(fr); moves.push([fc, fr]); }
