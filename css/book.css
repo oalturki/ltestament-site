@@ -918,3 +918,11 @@ body.bk-mob.bk-pcon .bk-pcard{ display:block; position:fixed; z-index:40; left:1
 .pc-spd{ font-weight:800; font-size:1.05rem; }
 /* the card shows: the thin line and its pause button make way */
 body.bk-mob.bk-pcon .bk-mpause, body.bk-mob.bk-pcon .bk-mtrack, body.bk-mob.bk-pcon .bk-mshow, body.bk-mob.bk-pcon .bk-sess{ display:none !important; }
+
+.bk-mswake{ cursor:pointer; }
+.bk-mswk{ width:44px; height:26px; flex:none; appearance:none; -webkit-appearance:none; border-radius:13px; background:#d9cfb3; position:relative; cursor:pointer; transition:background .2s; }
+.bk-mswk::after{ content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .2s; }
+.bk-mswk:checked{ background:#2f6b45; }
+.bk-mswk:checked::after{ left:21px; }
+body:not(.bk-mob) .bk-mscard:has(.bk-msitem[data-s=view]){ display:block; }
+body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }

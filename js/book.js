@@ -934,6 +934,28 @@
       paneR = section('recent', S2.recent);
       newCard(M3[1]);
       var viewSec = section('view', S2.view);
+      // keep the screen on while the Mushaf is open (Screen Wake Lock), as Mushaf apps do; a switch to turn it off
+      var WKL = { ar: ['إبقاء الشاشة مضاءة', 'لا تنطفئ الشاشة ما دام المصحف مفتوحًا'], ur: ['اسکرین روشن رکھیں', 'مصحف کھلا رہے تو اسکرین بند نہیں ہوگی'],
+                  en: ['Keep the screen on', 'The screen stays on while the Mushaf is open'], fr: ['Garder l’écran allumé', 'L’écran reste allumé tant que le Mushaf est ouvert'],
+                  es: ['Mantener la pantalla encendida', 'La pantalla no se apaga mientras el Mushaf está abierto'], ru: ['Не выключать экран', 'Экран не гаснет, пока открыт Мусхаф'] }[C.lang] ||
+                ['Keep the screen on', 'The screen stays on while the Mushaf is open'];
+      var wkOn = load('lt_wake') !== '0', wkLock = null;
+      var wake = function () {
+        if (!('wakeLock' in navigator)) return;
+        if (wkOn && document.visibilityState === 'visible' && !wkLock) {
+          navigator.wakeLock.request('screen').then(function (l) { wkLock = l; l.addEventListener('release', function () { wkLock = null; }); }).catch(function () {});
+        } else if (!wkOn && wkLock) { try { wkLock.release(); } catch (e) {} wkLock = null; }
+      };
+      document.addEventListener('visibilitychange', wake);
+      document.addEventListener('click', function once() { wake(); }, { once: true });    // some browsers want a tap first
+      wake();
+      if ('wakeLock' in navigator) {
+        var wr = document.createElement('label'); wr.className = 'bk-msitem bk-mswake';
+        wr.innerHTML = '<span class="ic">' + svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>') + '</span>' +
+          '<span class="tx"><b>' + esc(WKL[0]) + '</b><small>' + esc(WKL[1]) + '</small></span><input type="checkbox" class="bk-mswk"' + (wkOn ? ' checked' : '') + '>';
+        card.appendChild(wr);
+        wr.querySelector('input').onchange = function (e) { wkOn = e.target.checked; store('lt_wake', wkOn ? '1' : '0'); wake(); };
+      }
       // the modes: one row each — reading and listening, memorizing, reciting — with what is chosen in it and a mark
       // on the one in use. A row opens its settings (listening for the first two, recitation for the third);
       // there, a button makes it the mode in use.
