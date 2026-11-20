@@ -409,11 +409,12 @@ def ct2():
     return _ct2["m"]
 
 
-def transcribe(wav):
+def transcribe(wav, prompt=None, beam=1):
     m2 = ct2()
     if m2 is not None:
-        segs, _ = m2.transcribe(wav.astype(np.float32), language="ar", task="transcribe", beam_size=1,
-                                without_timestamps=True, condition_on_previous_text=False, vad_filter=False)
+        segs, _ = m2.transcribe(wav.astype(np.float32), language="ar", task="transcribe", beam_size=beam,
+                                without_timestamps=True, condition_on_previous_text=False, vad_filter=False,
+                                initial_prompt=prompt)
         return " ".join(sg.text.strip() for sg in segs).strip()
     return transcribe_hf(wav)
 
@@ -519,12 +520,15 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         raise
     except Exception as e:
         raise HTTPException(500, f"transcribe: {type(e).__name__}: {e}"[:400])
-    hyp = heard.split()
     # set aside the isti'adha and the basmala said before the passage (not part of it, except Al-Fatiha 1)
-    sk = [skeleton(w) for w in hyp]
-    if sk[:5] == ISTI: hyp, sk = hyp[5:], sk[5:]
     bas = [skeleton(w) for w in QURAN["1"][0].split()]
-    if pos == 0 and sk[:4] == bas and not (surah == 1 and start == 1): hyp = hyp[4:]
+    def words_of(text, pos):
+        hyp = text.split()
+        sk = [skeleton(w) for w in hyp]
+        if sk[:5] == ISTI: hyp, sk = hyp[5:], sk[5:]
+        if pos == 0 and sk[:4] == bas and not (surah == 1 and start == 1): hyp = hyp[4:]
+        return hyp
+    hyp = words_of(heard, pos)
     # "recite from anywhere": nothing recited yet in this passage, and the reader did not begin at its first word —
     # find where he began, and go on from there
     sought = None
@@ -538,9 +542,11 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
     # (shown, not counted as a mistake: the model may have misheard); further still, wrong
     ok_thr, lo_thr = {"strict": (0.8, 0.8), "easy": (0.55, 0.3)}.get(level, (0.67, 0.4))
-    win = exp[pos:pos + len(hyp) + 6]
-    words, nxt = [], pos
-    if hyp and win:
+
+    def judge(hyp):
+        win = exp[pos:pos + len(hyp) + 6]
+        words, nxt = [], pos
+        if not (hyp and win): return words, nxt
         pairs, sim = align_words(win, hyp)
         # the last expected word that was matched: what lies after it has simply not been recited yet
         last = -1
@@ -567,6 +573,35 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         if stop_at is not None:
             a, k = where[pos + stop_at]
             words.append({"k": pos + stop_at, "ayah": a, "i": k, "text": win[stop_at], "heard": " ".join(tail[:3]), "status": "wrong"})
-        nxt = pos + last + 1
+        return words, pos + last + 1
+
+    words, nxt = judge(hyp)
+    # a second hearing: three or more mistakes in a row are more often a stretch the model misheard than a reader who
+    # got a whole phrase wrong. So that stretch is heard again, more carefully (a wider search, and — unless the check
+    # is strict — told which words to expect); a word heard right the second time is right. A phrase really
+    # forgotten or changed stays wrong: the audio does not hold it, whichever way it is heard.
+    relistened = 0
+    if final and words:
+        bad = {w["k"] for w in words if w["status"] in ("wrong", "missing")}
+        run = best = 0
+        for k in range(min(bad or {0}), max(bad or {0}) + 1):
+            run = run + 1 if k in bad else 0; best = max(best, run)
+        if best >= 3:
+            try:
+                prompt = None if level == "strict" else " ".join(exp[max(0, pos - 8):pos + len(hyp) + 6])
+                heard2 = transcribe(wav, prompt=prompt, beam=5)
+                words2, nxt2 = judge(words_of(heard2, pos))
+                by2 = {w["k"]: w for w in words2}
+                for n_, w in enumerate(words):
+                    w2 = by2.get(w["k"])
+                    if w["status"] in ("wrong", "missing") and w2 and w2["status"] in ("ok", "unclear"):
+                        words[n_] = dict(w2, again=True); relistened += 1
+                known = {w["k"] for w in words}
+                words += [dict(w2, again=True) for w2 in words2 if w2["k"] not in known and w2["status"] in ("ok", "unclear")]
+                words.sort(key=lambda w: w["k"])
+                nxt = max(nxt, nxt2)
+                heard = heard + " ‖ " + heard2
+            except Exception:
+                pass
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000), "sought": sought}
+            "ms": int((time.time() - t0) * 1000), "sought": sought, "relistened": relistened}
