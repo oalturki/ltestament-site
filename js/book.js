@@ -1026,6 +1026,7 @@
         bar.appendChild(gear);
       }
       root.__modeMenu = function () { if (ov.classList.contains('on')) fillMenu(); };
+      root.__openListen = function () { open(); openMode(curMode() === 'tasmee' ? 'read' : curMode()); };
       // the mode's line of choices on the page, above the bars: a tap opens them in the settings
       var strip = document.createElement('button'); strip.type = 'button'; strip.className = 'bk-mstrip'; document.body.appendChild(strip);
       var STL = { ar: ['القارئ', 'الحفظ', 'عند الخطأ', 'اختر المقطع'], ur: ['قاری', 'حفظ', 'غلطی پر', 'حصہ چنیں'], en: ['Reciter', 'Memorizing', 'On a mistake', 'Choose the passage'],
@@ -1199,6 +1200,95 @@
         if (now && !was && mq.matches) chrome(false);
         else if (was && !now && mq.matches) chrome(true);
       };
+      // phones, as in Mushaf apps: once listening starts, a player card (reciter, where he is, the ayah's progress,
+      // repeat, previous / play-pause / next ayah, speed, close). A tap on the page shows or hides the card instead of
+      // the bars; pausing keeps it; its × stops the recitation and brings the ordinary page back (a tap: the bars).
+      var PL = { ar: ['إغلاق', 'الآية السابقة', 'الآية التالية', 'التكرار', 'السرعة'], ur: ['بند کریں', 'پچھلی آیت', 'اگلی آیت', 'تکرار', 'رفتار'],
+                 en: ['Close', 'Previous verse', 'Next verse', 'Repeat', 'Speed'], fr: ['Fermer', 'Verset précédent', 'Verset suivant', 'Répétition', 'Vitesse'],
+                 es: ['Cerrar', 'Aleya anterior', 'Aleya siguiente', 'Repetición', 'Velocidad'], ru: ['Закрыть', 'Предыдущий аят', 'Следующий аят', 'Повтор', 'Скорость'] }[C.lang] ||
+               ['Close', 'Previous verse', 'Next verse', 'Repeat', 'Speed'];
+      var pOn = false, pT = null;
+      var pc = document.createElement('div'); pc.className = 'bk-pcard'; pc.setAttribute('role', 'region');
+      var ic = function (d, f) { return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + (f ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
+      pc.innerHTML = '<div class="pc-top"><button type="button" class="pc-x" aria-label="' + esc(PL[0]) + '">' + ic('<path d="M6 6l12 12M18 6L6 18"/>') + '</button>' +
+        '<div class="pc-t"><b class="pc-r"></b><small class="pc-w"></small></div><span class="pc-sp0"></span></div>' +
+        '<div class="pc-bar"><span class="pc-a">0:00</span><i><b></b></i><span class="pc-b">-0:00</span></div>' +
+        '<div class="pc-ctl"><button type="button" class="pc-rep" aria-label="' + esc(PL[3]) + '">' + ic('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/>') + '</button>' +
+        '<button type="button" class="pc-prev" aria-label="' + esc(PL[1]) + '">' + ic('<path d="M11 19l-9-7 9-7zM22 19l-9-7 9-7z"/>', true) + '</button>' +
+        '<button type="button" class="pc-pp">' + ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) + '</button>' +
+        '<button type="button" class="pc-next" aria-label="' + esc(PL[2]) + '">' + ic('<path d="M13 5l9 7-9 7zM2 5l9 7-9 7z"/>', true) + '</button>' +
+        '<button type="button" class="pc-spd" aria-label="' + esc(PL[4]) + '">1×</button></div>';
+      document.body.appendChild(pc);
+      var $p = function (c) { return pc.querySelector(c); };
+      var mmss = function (t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); };
+      var pFill = function () {
+        var r = rec(), st = recState;
+        $p('.pc-r').textContent = r ? r.label : '';
+        $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : '';
+        $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
+        $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
+        var sp = (rep && rep.speed) || 1; $p('.pc-spd').textContent = (C.lang === 'ar' ? arNum(String(sp)).replace('.', '٫') : sp) + '×';
+        $p('.pc-rep').classList.toggle('on', !!rep && (rep.ayah !== 1 || rep.range !== 1 || rep.mode !== 'cont'));
+        // the ayah's progress: its own file, or its stretch of the surah's file
+        var a0 = 0, a1 = 0, t = audio ? audio.currentTime : 0;
+        if (st && audio) {
+          if (st.kind === 'ayah') { a1 = audio.duration || 0; }
+          else if (st.times) {
+            var i = -1; st.times.forEach(function (x, k) { if (x[0] === st.a) i = k; });
+            if (i >= 0) { a0 = st.times[i][1] / 1000; a1 = st.times[i + 1] ? st.times[i + 1][1] / 1000 : (audio.duration || a0); }
+          }
+        }
+        var el = Math.max(0, t - a0), len = Math.max(0.01, a1 - a0);
+        $p('.pc-a').textContent = mmss(el); $p('.pc-b').textContent = '-' + mmss(len - el);
+        $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
+      };
+      var cardShow = function (on) {
+        document.body.classList.toggle('bk-pcard', on && pOn);
+        clearInterval(pT); pT = null;
+        if (on && pOn) { pFill(); pT = setInterval(pFill, 300); }
+        if (root.__placeShow) setTimeout(root.__placeShow, 50);
+      };
+      root.__player = function (pl) {
+        if (!mq.matches) { if (root.__focus) root.__focus('play', pl); return; }
+        if (pl && !pOn) { pOn = true; if (root.__focus) root.__focus('play', true); cardShow(true); }
+        if (pOn) pFill();
+      };
+      var pClose = function () {
+        if (playing) stopAudio();
+        pOn = false; cardShow(false);
+        if (root.__focus) root.__focus('play', false);
+      };
+      $p('.pc-x').onclick = function (e) { e.stopPropagation(); pClose(); };
+      $p('.pc-pp').onclick = function (e) { e.stopPropagation(); var b = q('play'); if (b) b.click(); setTimeout(pFill, 60); };
+      var jump = function (d) {
+        var st = recState; if (!st || !playing) { var b = q('play'); if (b && !playing) b.click(); return; }
+        if (st.kind === 'ayah' && repRun && repRun.list) {           // memorization: a step in its list
+          repRun.i = Math.max(0, Math.min(repRun.list.length - 1, repRun.i + d));
+          var e3 = repRun.list[repRun.i]; playAyah(e3[0], e3[1], !e3[2]);
+        } else if (st.kind === 'ayah') {
+          var t = d > 0 ? nextAyah(st.s, st.a) : (st.a > 1 ? [st.s, st.a - 1] : (st.s > 1 ? [st.s - 1, MAP.verses[st.s - 2]] : null));
+          if (t) { if (repRun) { repRun.ay = 1; } playAyah(t[0], t[1]); }
+        } else if (st.times) {
+          var i = -1; st.times.forEach(function (x, k) { if (x[0] === st.a) i = k; });
+          var nx = st.times[i + d]; if (nx) try { audio.currentTime = nx[1] / 1000; } catch (e2) {}
+        }
+        setTimeout(pFill, 100);
+      };
+      $p('.pc-prev').onclick = function (e) { e.stopPropagation(); jump(-1); };
+      $p('.pc-next').onclick = function (e) { e.stopPropagation(); jump(1); };
+      var SPEEDS = [1, 1.25, 1.5, 2, 0.75];
+      $p('.pc-spd').onclick = function (e) {
+        e.stopPropagation();
+        var sp = (rep && rep.speed) || 1, i = SPEEDS.indexOf(sp);
+        rep.speed = SPEEDS[(i + 1) % SPEEDS.length];
+        if (!embed) store('lt_rec_rep', JSON.stringify(rep));
+        if (audio) audio.defaultPlaybackRate = audio.playbackRate = rep.speed;
+        if (root.__repFill) root.__repFill();
+        pFill();
+      };
+      $p('.pc-rep').onclick = function (e) { e.stopPropagation(); if (root.__openListen) root.__openListen(); };
+      pc.addEventListener('click', function (e) { e.stopPropagation(); });
+      root.__playerTap = function () { if (!pOn) return false; cardShow(!document.body.classList.contains('bk-pcard')); return true; };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
       book.addEventListener('touchstart', function (e) {
@@ -1226,6 +1316,7 @@
         // colour Mushaf: a tap on an ayah's number lists the ayah's tajweed rules
         var ae = document.body.classList.contains('bk-tajweed') && e.target.closest('.bk-mpage .ae[data-l]');
         if (ae) { wordSheet(C, ae.getAttribute('data-l')); return; }
+        if (root.__playerTap && root.__playerTap()) return;
         chrome(document.body.classList.contains('bk-chrome-off'));
       });
       book.addEventListener('touchend', function () { if (mq.matches && !ov.classList.contains('on')) hideT = setTimeout(function () { chrome(false); }, 300); }, { passive: true });
@@ -1477,7 +1568,7 @@
       b.setAttribute('aria-label', playing ? U.pause : U.listen);
       b.title = playing ? U.pause : U.listen;
       var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
-      if (root.__focus) root.__focus('play', playing);
+      if (root.__player) root.__player(playing); else if (root.__focus) root.__focus('play', playing);
       if (!playing && tjCard) tjCard.classList.remove('on');
     }
     // Talqeen: the reciter reads a part, then is silent for about as long, so the learner repeats after him.
