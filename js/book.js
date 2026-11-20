@@ -993,6 +993,13 @@
       };
       var open = function () { goSec(null); fillPanes(); fillMenu(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
       moreBtn.onclick = open;
+      // larger screens: a gear in the top bar opens the same drawer
+      if (bar) {
+        var gear = document.createElement('button'); gear.type = 'button'; gear.className = 'bk-gear';
+        gear.setAttribute('aria-label', L.settings); gear.title = L.settings; gear.innerHTML = svg(I.more);
+        gear.onclick = function (e) { e.stopPropagation(); open(); };
+        bar.appendChild(gear);
+      }
       root.__modeMenu = function () { if (ov.classList.contains('on')) fillMenu(); };
       // the mode's line of choices on the page, above the bars: a tap opens them in the settings
       var strip = document.createElement('button'); strip.type = 'button'; strip.className = 'bk-mstrip'; document.body.appendChild(strip);
