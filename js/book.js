@@ -978,7 +978,8 @@
         strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 150) + 'px';
       };
       strip.onclick = function (e) { e.stopPropagation(); open(); goSec(curMode() === 'tasmee' ? 'recite' : 'listen'); };
-      setTimeout(modeSync, 0);
+      // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
+      setTimeout(function () { var rs = repSel(); if (rs && rs.value === 'hifz') { rs.value = 'cont'; rs.dispatchEvent(new Event('change', { bubbles: true })); } modeSync(); }, 0);
       document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.bk-rset, .bk-msrow')) setTimeout(root.__strip, 0); }, true);
       window.addEventListener('resize', function () { setTimeout(root.__strip, 300); });
       ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
