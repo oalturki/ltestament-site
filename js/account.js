@@ -257,6 +257,7 @@
         (k.due ? '<span class="st-d">' + esc(L.today) + ': ' + num(k.due) + '</span>' : '') + '</div>' +
         (p.last_page ? '<div class="ac-last">' + esc(L.lastPage) + ' ' + num(p.last_page) + '</div>' : '') +
         '<div class="ac-plan" data-plan="' + p.id + '"></div>' +
+        '<div class="ac-read" data-read="' + p.id + '"></div>' +
         '<div class="ac-btns"><button type="button" data-a="open" class="ac-btn pri">' + esc(L.open) + '</button>' +
         '<button type="button" data-a="plan" class="ac-btn">' + esc(PlanUI.T[lang].planLine) + '</button>' +
         '<button type="button" data-a="map" class="ac-btn">' + esc(L.mapBtn) + '</button>' +
@@ -268,7 +269,7 @@
       '<span class="fb-label">' + esc(L.avatar) + '</span><div class="ac-avs">' +
       Object.keys(Fam.avatars).map(function (k, i) { return '<button type="button" data-av="' + k + '"' + (i === 1 ? ' class="on"' : '') + '>' + Fam.avatars[k] + '</button>'; }).join('') +
       '</div><button class="fb-submit" type="submit">' + esc(L.add) + '</button><p class="fb-msg" id="acAM"></p></form>';
-    html += '<div id="acPanel"></div>' +
+    html += '<div id="acRead"></div><div id="acPanel"></div>' +
       '<details class="ac-set"><summary>' + esc(L.settings) + '</summary><div class="fb-card">' +
       '<label class="fb-label" for="acPin">' + esc(L.pin) + '</label><input id="acPin" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off">' +
       '<div class="ac-btns"><button type="button" class="ac-btn pri" id="acPinS">' + esc(L.pinSave) + '</button>' +
@@ -303,6 +304,22 @@
     var cp = list.filter(function (x) { return cur && x.id === cur.id; })[0];
     if (cp) mapView(c, cp, states, true);
     planLines(list);
+    readLines(list, cur);
+  }
+  // reading statistics (js/readstats.js): this week's pages and letters on each card; the whole card for the profile in use
+  function readLines(list, cur) {
+    if (!window.ReadStats) return;
+    ReadStats.sumMany(list.map(function (p) { return p.id; })).then(function (m) {
+      Object.keys(m).forEach(function (pid) {
+        var el = app.querySelector('.ac-read[data-read="' + pid + '"]'); if (!el) return;
+        el.textContent = m[pid].year.pages ? ReadStats.line(m[pid], lang) : '';
+      });
+      var box = $('acRead'), p = list.filter(function (x) { return cur && x.id === cur.id; })[0];
+      if (box && p && m[p.id]) {
+        box.innerHTML = '<p class="ac-rname">' + esc(p.name) + '</p>' + ReadStats.html(m[p.id], lang);
+        ReadStats.wire(box);
+      }
+    });
   }
   // each card's plan line: lessons done and how far behind
   function planLines(list) {

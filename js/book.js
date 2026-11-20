@@ -504,10 +504,39 @@
         pgL.querySelector('.bk-msg').appendChild(b);
       }
     }
+    // reading statistics: a Mushaf page counts as read (once a day) after it stayed open, with the tab in view,
+    // about as long as reading it takes (0.3 s a word, between 8 and 45 s a page) — js/readstats.js
+    var readT = null;
+    function readWatch() {
+      clearInterval(readT); readT = null;
+      if (!mushaf) return;
+      var pgs = step() === 2 ? [cur, Math.min(TOTAL, cur + 1)] : [cur], at = cur, secs = 0;
+      var need = function (ps) {
+        return pgs.reduce(function (t, p) { var w = (ps[p - 1] || [100])[0]; return t + Math.max(8, Math.min(45, w * 0.3)); }, 0);
+      };
+      var go = function () {
+        var RS = window.ReadStats; if (!RS) return;
+        RS.pageStats().then(function (ps) {
+          if (at !== cur || readT) return;
+          var n = need(ps);
+          readT = setInterval(function () {
+            if (at !== cur || !mushaf) { clearInterval(readT); readT = null; return; }
+            if (!document.hidden) secs++;
+            if (secs >= n) { clearInterval(readT); readT = null; pgs.forEach(function (p) { RS.mark(p); }); }
+          }, 1000);
+        });
+      };
+      if (window.ReadStats) go();
+      else {
+        if (!readWatch.ld) { readWatch.ld = document.createElement('script'); readWatch.ld.src = '/js/readstats.js'; document.head.appendChild(readWatch.ld); }
+        readWatch.ld.addEventListener('load', go);
+      }
+    }
     function updateControls() {
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
       if (window.Fam && window.Fam.current()) window.Fam.lastPage(cur);
+      readWatch();
       clearTimeout(updateControls.rt);
       updateControls.rt = setTimeout(function () {
         if (embed) return;
@@ -796,7 +825,13 @@
         };
       });
       var group = function (t) { var h = document.createElement('div'); h.className = 'bk-msgroup'; h.textContent = t; body.appendChild(h); return h; };
-      var open = function () { fillPanes(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
+      // «my reading» at the top of the settings: pages, words and letters read, by day, week, month and year
+      var rsBox = document.createElement('div'); rsBox.className = 'bk-msrs'; body.appendChild(rsBox);
+      var rsFill = function () {
+        var RS = window.ReadStats; if (!RS) return;
+        RS.sum().then(function (sm) { rsBox.innerHTML = RS.html(sm, C.lang); RS.wire(rsBox); });
+      };
+      var open = function () { fillPanes(); rsFill(); ov.classList.add('on'); }, shut = function () { ov.classList.remove('on'); };
       moreBtn.onclick = open;
       ov.addEventListener('click', function (e) { if (e.target === ov) shut(); });
       ov.querySelector('.bk-msx').onclick = shut;
@@ -2120,7 +2155,8 @@
               if (!cur0 || !list.some(function (x) { return x.id === cur0.id; })) { F.use(list[0]); cur0 = F.current(); famShow(); }
               body.innerHTML = '<span class="fs-l">' + esc(FL[1]) + '</span><div class="fs-profs">' + list.map(function (x) {
                 return '<button type="button" data-id="' + x.id + '" class="' + (x.id === cur0.id ? 'on' : '') + '"><span>' + F.avatar(x.avatar) + '</span>' + esc(x.name) + '</button>';
-              }).join('') + '</div><div class="fs-rev">…</div><a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>';
+              }).join('') + '</div><div class="fs-rev">…</div><div class="fs-rs"></div><a class="fs-go" href="' + ACC + '">' + esc(FL[5]) + '</a>';
+              if (window.ReadStats) window.ReadStats.sum(cur0.id).then(function (sm) { var e3 = body.querySelector('.fs-rs'); if (e3) { e3.innerHTML = window.ReadStats.html(sm, C.lang); window.ReadStats.wire(e3); } });
               body.querySelectorAll('.fs-profs button').forEach(function (b) {
                 b.onclick = function () {
                   var x = list.filter(function (y) { return y.id === b.dataset.id; })[0], cu = F.current();

@@ -679,3 +679,18 @@ body.bk-mob .bk-bar select.bk-mpg{ width:auto; min-width:78px; }
 /* phones, while the page opens: nothing but the night background until the phone layout is ready (html.bk-pre, set in the page head) */
 html.bk-pre body.bk:not(.bk-mob){ background:var(--night,#0A1425); }
 html.bk-pre body.bk:not(.bk-mob) > *{ visibility:hidden; }
+
+/* reading statistics (js/readstats.js): pages, words, letters by day, week, month, year */
+.rs-card{ border:1px solid rgba(200,155,60,.4); border-radius:14px; padding:10px 12px; margin:6px 0 10px; }
+.rs-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.rs-head > b{ font-size:.95rem; color:#c9a227; }
+.rs-tabs{ display:flex; gap:4px; }
+.rs-tabs button{ border:1px solid rgba(200,155,60,.4); background:none; color:inherit; font:inherit; font-size:.78rem; padding:3px 9px; border-radius:999px; cursor:pointer; }
+.rs-tabs button.on{ background:#c9a227; border-color:#c9a227; color:#1b2a3a; font-weight:700; }
+.rs-nums{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin:10px 0 4px; text-align:center; }
+.rs-nums[hidden]{ display:none; }
+.rs-nums span{ display:flex; flex-direction:column; gap:2px; }
+.rs-nums b{ font-size:1.25rem; font-weight:800; color:#c9a227; }
+.rs-nums small{ font-size:.75rem; opacity:.75; }
+.rs-h{ margin:8px 0 2px; font-size:.82rem; line-height:1.7; opacity:.9; }
+.rs-note{ margin:0; font-size:.72rem; line-height:1.6; opacity:.6; }
