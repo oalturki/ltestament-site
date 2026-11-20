@@ -29,6 +29,7 @@
      Urdu has no Mukhtasar yet, so it shows the verse's meaning (Junagarhi). No word-for-word glosses by
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
+  var WSEG = { ar: 'استمع إلى المقطع', ur: 'حصہ سنیں', en: 'Hear the phrase', fr: 'Écouter le passage', es: 'Escuchar el pasaje', ru: 'Послушать отрывок' };
   var WLISTEN = {"ar": "استمع إلى الكلمة", "ur": "لفظ سنیں", "en": "Hear the word", "fr": "Écouter le mot", "es": "Escuchar la palabra", "ru": "Послушать слово"};
   var HIDEL = {"ar": {"hide": "إخفاء الآيات", "show": "إظهار الآيات", "hint": "سمّع لنفسك: المس الكلمة لتظهر، والمس رقم الآية لتظهر الآية كلها."}, "ur": {"hide": "آیات چھپائیں", "show": "آیات دکھائیں", "hint": "خود کو سنائیں: لفظ دکھانے کے لیے اسے چھوئیں، پوری آیت کے لیے آیت نمبر کو چھوئیں۔"}, "en": {"hide": "Hide verses", "show": "Show verses", "hint": "Recite from memory: tap a word to show it, or the verse number to show the whole verse."}, "fr": {"hide": "Masquer les versets", "show": "Afficher les versets", "hint": "Récitez de mémoire : touchez un mot pour l’afficher, ou le numéro du verset pour tout le verset."}, "es": {"hide": "Ocultar versículos", "show": "Mostrar versículos", "hint": "Recita de memoria: toca una palabra para verla, o el número del versículo para verlo entero."}, "ru": {"hide": "Скрыть аяты", "show": "Показать аяты", "hint": "Читайте по памяти: коснитесь слова, чтобы открыть его, или номера аята — чтобы открыть весь аят."}};
   var EXPL = {
@@ -100,7 +101,8 @@
     var name = ar || C.lang === 'ur' ? 'سورة ' + C.arabicNames[s - 1] : ((C.names && C.names[C.lang === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s - 1];
     var ref = esc(name) + ' · ' + (rtl ? arNum(s) + ':' + arNum(a) : s + ':' + a);
     body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div>' +
-      (C.__playWord && !isEnd && parts[2] ? '<button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' : '') +
+      (C.__playWord && !isEnd && parts[2] ? '<div class="bk-wsbtns"><button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' +
+        '<button type="button" class="bk-wsplay bk-wsseg"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 12h3"/></svg> ' + esc(WSEG[C.lang] || WSEG.en) + '</button></div>' : '') +
       '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
     // colour Mushaf, the ayah's number: the ayah's words that carry tajweed rules, each with its rules
@@ -125,8 +127,9 @@
         var wr = body.querySelector('.bk-wsr'); if (wr) wr.parentNode.insertBefore(d, wr.nextSibling);
       });
     }
-    var pb = body.querySelector('.bk-wsplay');
+    var pb = body.querySelector('.bk-wsplay:not(.bk-wsseg)'), sb2 = body.querySelector('.bk-wsseg');
     if (pb) pb.onclick = function () { C.__playWord(loc, pb); };
+    if (sb2) sb2.onclick = function () { C.__playWord(loc, sb2, null, true); };
     if (pb && C.__prepWord) C.__prepWord(loc);
     var out = body.querySelector('.bk-wsc');
     Promise.all(L.keys.map(function (k) { return getAya(k, s, a); })).then(function (rs) {
@@ -1715,7 +1718,38 @@
       if (!window.fetch || !wCtxGet()) return;
       var P = wParts(loc); wDecode(P.url); wordTimes(P.r, P.s, P.a);
     };
-    C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn, done) {
+    // the reciter's phrase around a word: from his stop before it to his stop after it, so the phrase is heard as he
+    // reads it, never cut in the middle. A stop: a silence between two words of 0.9 s or more where the Mushaf has a
+    // pause mark (ۚ ۖ ۗ ۛ …), or of 1.7 s or more anywhere (a breath in a long stretch). Where the timings leave no
+    // silences (one word runs into the next), the pause marks alone. marks: the word numbers followed by a mark.
+    // -> [first index, last index] in the word times
+    function segOf(ws, i, marks) {
+      var n = ws.length, brk = [], silent = false;
+      for (var k = 0; k + 1 < n; k++) if (ws[k + 1][1] - ws[k][2] > 120) silent = true;
+      for (k = 0; k + 1 < n; k++) {
+        var g = ws[k + 1][1] - ws[k][2], mk = marks.indexOf(ws[k][0]) >= 0;
+        brk.push(silent ? (g >= 900 && mk) || g >= 1700 : mk);
+      }
+      var up = function (j) { while (j > 0 && !brk[j - 1]) j--; return j; }, dn = function (j) { while (j < n - 1 && !brk[j]) j++; return j; };
+      var a = up(i), b = dn(i);
+      // a lone word at the ayah's start or end (a long madd taken for a stop) joins the phrase beside it
+      if (b === n - 2) b = n - 1;
+      if (a === 1) a = 0;
+      if (a === b && a === n - 1 && n > 1) a = up(n - 2);
+      if (a === b && a === 0 && n > 1) b = dn(1);
+      return [a, b];
+    }
+    // the word numbers of an ayah followed by a pause mark (from the simple text, where a mark is its own token)
+    var markCache = {};
+    function pauseMarks(sN, aN) {
+      if (!markCache[sN]) markCache[sN] = getJSON(BASE + '/data/text-simple/' + sN + '.json').catch(function () { delete markCache[sN]; return []; });
+      return markCache[sN].then(function (t) {
+        var out = [], w = 0;
+        String(t[aN - 1] || '').split(' ').forEach(function (x) { if (/^[\u06D6-\u06ED]+$/.test(x)) out.push(w); else w++; });
+        return out;
+      });
+    }
+    C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn, done, seg) {
       var P = wParts(loc), ctx = wCtxGet();
       if (playing) stopAudio();
       if (!ctx || !window.fetch) return;
@@ -1724,13 +1758,21 @@
       document.querySelectorAll('.bk-wsplay.on').forEach(function (x) { x.classList.remove('on'); });
       if (btn) btn.classList.add('on');
       var off = function () { if (btn) btn.classList.remove('on'); if (done) { var d = done; done = null; d(); } };
-      Promise.all([wDecode(P.url), wordTimes(P.r, P.s, P.a)]).then(function (res) {
+      Promise.all([wDecode(P.url), wordTimes(P.r, P.s, P.a), seg ? pauseMarks(P.s, P.a) : []]).then(function (res) {
         var buf = res[0], ws = res[1], i = -1;
         ws.forEach(function (x, k) { if (x[0] === P.w) i = k; });
         if (i < 0) return off();
-        var t0 = Math.max(0, ws[i][1] - 60) / 1000, t1 = ws[i + 1] ? ws[i + 1][1] / 1000 : buf.duration;
+        var t0 = Math.max(0, ws[i][1] - 60) / 1000, t1 = ws[i + 1] ? ws[i + 1][1] / 1000 : buf.duration, segEls = [];
+        if (seg) {
+          // the phrase: its words marked while it plays
+          var sg = segOf(ws, i, res[2]);
+          t0 = Math.max(0, ws[sg[0]][1] - 60) / 1000;
+          t1 = Math.min(buf.duration, (ws[sg[1]][2] + 350) / 1000);
+          if (!ws[sg[1] + 1]) t1 = buf.duration;
+          for (var k2 = sg[0]; k2 <= sg[1]; k2++) root.querySelectorAll('[data-l="' + P.s + ':' + P.a + ':' + ws[k2][0] + '"]').forEach(function (e) { e.classList.add('bk-segw'); segEls.push(e); });
+        }
         var src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination);
-        src.onended = function () { if (wSrc === src) wSrc = null; off(); };
+        src.onended = function () { segEls.forEach(function (e) { e.classList.remove('bk-segw'); }); if (wSrc === src) wSrc = null; off(); };
         wSrc = src;
         src.start(0, t0, Math.max(0.2, t1 - t0));
       }).catch(off);
