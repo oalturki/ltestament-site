@@ -893,16 +893,37 @@
       paneR = section('recent', S2.recent);
       newCard(M3[1]);
       var viewSec = section('view', S2.view);
-      var modeH = null;
-      newCard(M3[2]); modeH = card.previousSibling;
-      // the mode itself, chosen here too
-      var modeRow = document.createElement('div'); modeRow.className = 'bk-msitem bk-msmode';
-      modeRow.innerHTML = '<span class="ic">' + svg(I2.memo) + '</span><span class="tx"><b>' + esc(MD[3]) + '</b><small></small></span><span class="ch">' + svg('<path d="M6 9l6 6 6-6"/>') + '</span>';
-      var modeSel2 = modeSel.cloneNode(true); modeRow.appendChild(modeSel2);
-      modeSel2.onchange = function () { setMode(modeSel2.value); };
-      card.appendChild(modeRow);
-      var listenSec = section('listen', S2.listen);
-      var reciteSec = section('recite', S2.recite);
+      // the modes: one row each — reading and listening, memorizing, reciting — with what is chosen in it and a mark
+      // on the one in use. A row opens its settings (listening for the first two, recitation for the third);
+      // there, a button makes it the mode in use.
+      var MH = { ar: ['الأوضاع', 'تلاوة واستماع', 'الحالي', 'استعمل هذا الوضع'], ur: ['انداز', 'تلاوت اور سننا', 'موجودہ', 'یہ انداز اپنائیں'],
+                 en: ['Modes', 'Reading & listening', 'In use', 'Use this mode'], fr: ['Modes', 'Lecture et écoute', 'Actif', 'Utiliser ce mode'],
+                 es: ['Modos', 'Lectura y escucha', 'Activo', 'Usar este modo'], ru: ['Режимы', 'Чтение и слушание', 'Сейчас', 'Включить этот режим'] }[C.lang] ||
+               ['Modes', 'Reading & listening', 'In use', 'Use this mode'];
+      newCard(MH[0]);
+      var listenSec = section('listen', S2.listen); card.removeChild(card.lastChild);
+      var reciteSec = section('recite', S2.recite); card.removeChild(card.lastChild);
+      var mTitles = [MH[1], MD[1], MD[2]], mIcons = [IC.listen, I2.memo, IC.recite], mRows = {};
+      var useBars = {};
+      [listenSec, reciteSec].forEach(function (sec) {
+        var u = document.createElement('button'); u.type = 'button'; u.className = 'bk-msuse'; sec.insertBefore(u, sec.firstChild);
+        useBars[sec.dataset.s] = u;
+      });
+      var openMode = function (m) {
+        var sec = m === 'tasmee' ? reciteSec : listenSec, i = MODES.indexOf(m), u = useBars[sec.dataset.s];
+        sec.dataset.title = mTitles[i];
+        u.hidden = curMode() === m; u.textContent = MH[3] + ': ' + mTitles[i];
+        u.onclick = function () { setMode(m); u.hidden = true; };
+        // memorizing: the method of memorization in the list of what is recited
+        var rs = repSel(); if (rs && m === 'hifz' && curMode() === 'hifz' && rs.value !== 'hifz') { rs.value = 'hifz'; rs.dispatchEvent(new Event('change', { bubbles: true })); }
+        goSec(sec.dataset.s);
+      };
+      MODES.forEach(function (m, i) {
+        var r = document.createElement('button'); r.type = 'button'; r.className = 'bk-msitem'; r.dataset.m = m;
+        r.innerHTML = '<span class="ic">' + svg(mIcons[i]) + '</span><span class="tx"><b>' + esc(mTitles[i]) + ' <em class="bk-msnow">' + esc(MH[2]) + '</em></b><small></small></span><span class="ch">' + svg(C.lang === 'ar' || C.lang === 'ur' ? '<path d="M15 6l-6 6 6 6"/>' : IC.back) + '</span>';
+        r.onclick = function () { openMode(m); };
+        card.appendChild(r); mRows[m] = r;
+      });
       var pageLabel = function (p) {
         var pg2 = MAP.pages[p - 1];
         return '<b>' + esc(C.uiNames[pg2[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
@@ -921,18 +942,17 @@
       // each row's current value, under its title
       var selText = function (el) { return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].text : ''; };
       var fillMenu = function () {
-        var md = curMode(), mi = MODES.indexOf(md);
-        if (modeH) modeH.textContent = M3[2].split(':')[0] + ': ' + MD[mi];
-        modeSel2.value = md; modeRow.querySelector('small').textContent = MD[mi];
-        // the mode's own settings: listening (reading, memorizing), recitation (reciting)
-        var rr = menu.querySelector('.bk-msitem[data-s=recite]'); if (rr) rr.hidden = md !== 'tasmee';
-        var lr = menu.querySelector('.bk-msitem[data-s=listen]'); if (lr) lr.hidden = md === 'tasmee';
+        var md = curMode();
+        // each mode: the one in use marked, and what is chosen in it
+        MODES.forEach(function (m) { mRows[m].classList.toggle('now', m === md); });
+        var fv2 = function (k) { var e = document.querySelector('.bk-rset [data-r="' + k + '"]'); return e ? (e.tagName === 'SELECT' ? selText(e) : e.value) : ''; };
+        mRows.read.querySelector('small').textContent = selText(q('reciter'));
+        mRows.hifz.querySelector('small').textContent = rep && rep.mode === 'hifz' ? fv2('surah') + ' ' + uiNum(fv2('ha1') || 1) + '–' + uiNum(fv2('ha2') || 1) : '';
+        var eo2 = reciteSec.querySelector('.bk-msrow select'); mRows.tasmee.querySelector('small').textContent = eo2 ? selText(eo2) : '';
         var n = function (x) { return uiNum(x); };
         if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
-        if (subs.listen) subs.listen.textContent = selText(q('reciter'));
         if (subs.view) subs.view.textContent = selText(q('frameSel'));
-        if (subs.recite) { var eo0 = reciteSec.querySelector('.bk-msrow select'); subs.recite.textContent = eo0 ? selText(eo0) : ''; }
         if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
         if (subs.stats && window.ReadStats) {
           var RS = window.ReadStats; subs.stats.textContent = RS.sessLine(RS.session(), C.lang);
@@ -977,7 +997,7 @@
         var bt = root.querySelector('.bk-bottom'), r0 = bt ? bt.getBoundingClientRect() : null;
         strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 150) + 'px';
       };
-      strip.onclick = function (e) { e.stopPropagation(); open(); goSec(curMode() === 'tasmee' ? 'recite' : 'listen'); };
+      strip.onclick = function (e) { e.stopPropagation(); open(); openMode(curMode()); };
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
       setTimeout(function () { var rs = repSel(); if (rs && rs.value === 'hifz') { rs.value = 'cont'; rs.dispatchEvent(new Event('change', { bubbles: true })); } modeSync(); }, 0);
       document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.bk-rset, .bk-msrow')) setTimeout(root.__strip, 0); }, true);
