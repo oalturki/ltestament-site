@@ -882,10 +882,10 @@
       var paneR, paneM;
       // three parts: what is the user's own (reading, record, places); the Mushaf in general (its look);
       // the mode in use (reading: listening; memorization: listening, repetition and recitation)
-      var MS = { ar: ['أنا', 'المصحف', 'الوضع الحالي: القراءة', 'الوضع الحالي: الحفظ'], ur: ['میرا', 'مصحف', 'موجودہ انداز: تلاوت', 'موجودہ انداز: حفظ'],
-                 en: ['Me', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'], fr: ['Moi', 'Le Mushaf', 'Mode : lecture', 'Mode : mémorisation'],
-                 es: ['Yo', 'El Mushaf', 'Modo: lectura', 'Modo: memorización'], ru: ['Я', 'Мусхаф', 'Режим: чтение', 'Режим: заучивание'] }[C.lang] || null;
-      var M3 = MS || ['Me', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
+      var MS = { ar: ['سجلي', 'المصحف', 'الوضع الحالي: القراءة', 'الوضع الحالي: الحفظ'], ur: ['میرا ریکارڈ', 'مصحف', 'موجودہ انداز: تلاوت', 'موجودہ انداز: حفظ'],
+                 en: ['My record', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'], fr: ['Mon suivi', 'Le Mushaf', 'Mode : lecture', 'Mode : mémorisation'],
+                 es: ['Mi registro', 'El Mushaf', 'Modo: lectura', 'Modo: memorización'], ru: ['Мой журнал', 'Мусхаф', 'Режим: чтение', 'Режим: заучивание'] }[C.lang] || null;
+      var M3 = MS || ['My record', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
       newCard(M3[0]);
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var fb0 = document.querySelector('.bk-fambtn');
