@@ -2359,10 +2359,12 @@
           root.classList.toggle('bk-living', on);
           if (root.__liveBar) root.__liveBar(on);
           if (root.__focus) root.__focus('live', on);
+          if (on) { sumW = {}; sumT0 = Date.now(); }
+          else if (root.__liveSummary) root.__liveSummary(sumW, sumT0);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
-        var famPg = {}, famT0 = 0;
+        var famPg = {}, famT0 = 0, sumW = {}, sumT0 = 0;    // sumW: this session's words, «s:a:w» -> how each went (the summary)
         var famAll = { done: {}, errs: {} };               // the whole listening session, for the plan's lesson check
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
@@ -2395,7 +2397,7 @@
           live = LiveRecite({
             parts: parts,
             onWord: function (p, w, cls) {
-              if (cls !== 'ti') famWord(live.__parts[p].s, w, cls);
+              if (cls !== 'ti') { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
               if (cls === 'ok' || cls === 'fixed' || cls === 'unclear') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
@@ -2485,8 +2487,41 @@
           b.classList.toggle('on', on); b.setAttribute('aria-label', on ? LB[1] : LB[0]); b.title = on ? LB[1] : LB[0];
         };
         // the session's mistakes: each word as in the Mushaf; a tap plays it
-        lbar.querySelector('.lv-err').onclick = function () {
-          var locs = Object.keys(famAll.errs);
+        lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
+        // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
+        // not clearly heard and still wrong, the time, and the mistakes a tap away
+        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية'],
+                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse'] };
+        var SM = SUM[C.lang] || SUM.en;
+        root.__liveSummary = function (W, t0) {
+          var locs = Object.keys(W); if (locs.length < 3) return;
+          var n = { ok: 0, fixed: 0, unclear: 0, err: 0 }, errL = [], sMin = 0, aMin = 1e9, aMax = 0;
+          locs.forEach(function (l) {
+            var c = W[l], x = l.split(':');
+            if (c === 'ok') n.ok++; else if (c === 'fixed') n.fixed++; else if (c === 'unclear') n.unclear++; else { n.err++; errL.push(l); }
+            sMin = +x[0]; aMin = Math.min(aMin, +x[1]); aMax = Math.max(aMax, +x[1]);
+          });
+          var all = locs.length, pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
+          var grade = pct >= 95 ? [SM[8], 'g'] : pct >= 80 ? [SM[9], 'm'] : [SM[10], 'o'];
+          var N = function (v) { return C.lang === 'ar' ? arNum(String(v)) : String(v); };
+          var ov5 = document.createElement('div'); ov5.className = 'bk-tjkey bk-famsheet bk-sumov';
+          var bx = document.createElement('div'); bx.className = 'bk-tjbox bk-sum'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
+          bx.innerHTML = '<div class="sm-h"><div><b>' + esc(SM[0]) + '</b><small>' + esc(SM[1]) + ' ' + esc(C.uiNames[sMin - 1] || '') + ' · ' +
+              (aMin === aMax ? esc(SM[14]) + ' ' + N(aMin) : esc(SM[2]) + ' ' + N(aMin) + '–' + N(aMax)) + '</small></div><span class="sm-t">⏱ ' + N(Math.floor(secs / 60)) + ':' + N(('0' + secs % 60).slice(-2)) + '</span></div>' +
+            '<div class="sm-g ' + grade[1] + '"><svg viewBox="0 0 36 36" width="76" height="76" aria-hidden="true"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>' +
+              '<circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="' + pct + ' 100" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>' +
+              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + N(n.err) + ' ' + esc(SM[13]) + '</small>' : '') + '</div></div>' +
+            '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
+              '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
+            '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(errL.length) + '</small></button>' : '') +
+              '<button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
+          ov5.appendChild(bx); document.body.appendChild(ov5);
+          var shut = function () { ov5.remove(); };
+          ov5.onclick = function (e) { if (e.target === ov5) shut(); };
+          bx.querySelector('.sm-ok').onclick = shut;
+          var eb = bx.querySelector('.sm-e'); if (eb) eb.onclick = function () { errSheet(errL); };
+        };
+        var errSheet = function (locs) {
           var ov3 = document.createElement('div'); ov3.className = 'bk-tjkey bk-famsheet';
           var bx = document.createElement('div'); bx.className = 'bk-tjbox'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
           bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + locs.map(function (l) {

@@ -929,3 +929,26 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 
 /* recitation: a word not clearly heard (not counted as a mistake) */
 .bk-mpage .tw-unc{ text-decoration:underline dotted rgba(140,130,110,.8); text-underline-offset:6px; }
+
+/* the summary after a recitation */
+.bk-sum{ max-width:440px; }
+.bk-sum .sm-h{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+.bk-sum .sm-h b{ display:block; font-size:1.3rem; color:#8a5a14; }
+.bk-sum .sm-h small{ color:#6b6250; font-size:.85rem; }
+.bk-sum .sm-t{ border:1px solid #e2d3a4; border-radius:999px; padding:3px 10px; font-size:.85rem; color:#6b6250; white-space:nowrap; }
+.bk-sum .sm-g{ position:relative; display:flex; align-items:center; gap:14px; margin:14px 0 10px; padding:12px; border-radius:18px; border:1px solid; }
+.bk-sum .sm-g.g{ color:#2f7d32; background:#e8f3e6; border-color:#bcdcb6; }
+.bk-sum .sm-g.m{ color:#a07a1a; background:#f8f0dc; border-color:#e6d4a3; }
+.bk-sum .sm-g.o{ color:#d0702a; background:#fbeee2; border-color:#f0cfae; }
+.bk-sum .sm-g svg{ flex:none; }
+.bk-sum .sm-p{ position:absolute; inset-inline-start:12px; width:76px; text-align:center; font-weight:800; font-size:1.05rem; }
+.bk-sum .sm-g b{ display:block; font-size:1.05rem; }
+.bk-sum .sm-g small{ color:#6b6250; font-size:.82rem; }
+.bk-sum .sm-n{ display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.bk-sum .sm-n span{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 4px; border-radius:14px; border:1px solid #e2d3a4; font-size:.74rem; color:#6b6250; text-align:center; }
+.bk-sum .sm-n b{ font-size:1.35rem; color:#1b2a3a; }
+.bk-sum .sm-n .g{ background:#e8f3e6; border-color:#bcdcb6; } .bk-sum .sm-n .m{ background:#fbeee2; border-color:#f0cfae; } .bk-sum .sm-n .u{ background:#f1efe9; }
+.bk-sum .sm-b{ display:flex; gap:8px; margin-top:14px; }
+.bk-sum .sm-b button{ flex:1; min-height:48px; border-radius:14px; font:inherit; font-weight:700; font-size:1rem; cursor:pointer; }
+.bk-sum .sm-e{ background:#fbe3e1; border:1px solid #efb4ae; color:#c0392b; }
+.bk-sum .sm-ok{ background:#8a5a14; border:0; color:#fff; }
