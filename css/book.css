@@ -980,3 +980,4 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .lv-words.lv-tjw button{ border-color:#f0cfae; background:#fff8ef; }
 .lv-words .lv-tjm{ color:#a0601a !important; }
 .bk-sum .sm-g small.sm-tj{ color:#a0601a; }
+.bk-sum .sm-b .sm-tjb{ background:#fff3e2; border-color:#f0cfae; color:#a0601a; }

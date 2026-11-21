@@ -2596,7 +2596,8 @@
               '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skipA ? '<small>' + esc(SM[19]) + ': ' + N(n.skipA) + '</small>' : '') + (n.skipP ? '<small>' + esc(SM[20]) + ': ' + N(n.skipP) + '</small>' : '') + (nTj ? '<small class="sm-tj">' + esc(TJN[0]) + ': ' + N(nTj) + '</small>' : '') + '</div></div>' +
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
-            '<div class="sm-b">' + (errL.length || nTj ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>' : '') +
+            '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>'
+              : nTj ? '<button type="button" class="sm-e sm-tjb">' + esc(TJN[0]) + ' <small>' + N(nTj) + '</small></button>' : '') +
               '<button type="button" class="sm-re">' + esc(SM[15]) + '</button><button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
           ov5.appendChild(bx); document.body.appendChild(ov5);
           var shut = function () { ov5.remove(); };
