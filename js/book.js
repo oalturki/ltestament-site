@@ -794,6 +794,14 @@
           });
         };
         hb.onclick = function (e) { e.stopPropagation(); idxOpen(); };
+        // the surah's name at the head of the page opens the index too (as in Mushaf apps): the name is already on every
+        // page, so the bar needs none — the reader taps the name where it is
+        root.addEventListener('click', function (e) {
+          if (!document.body.classList.contains('bk-mob')) return;
+          var h = e.target.closest && e.target.closest('.bk-head .hs, .bk-head > b');
+          if (!h) return;
+          e.stopPropagation(); e.preventDefault(); idxOpen();
+        }, true);
       }
 
       // a select laid invisibly over a bar button: a tap opens the phone's own list (works on iPhone too)

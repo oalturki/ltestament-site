@@ -1026,3 +1026,4 @@ html[dir=rtl] .bk-ixx svg{ transform:scaleX(-1); }
   border:1px solid rgba(200,155,60,.25); color:var(--gold-soft); }
 .bk-ixfind input{ flex:1; min-width:0; height:100%; border:0; background:none; color:var(--parch); font:inherit; font-size:16px; outline:none; }
 .bk-ixrow[hidden]{ display:none; }
+body.bk-mob .bk-head .hs, body.bk-mob .bk-head > b{ cursor:pointer; }
