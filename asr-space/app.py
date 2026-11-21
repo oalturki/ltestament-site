@@ -556,6 +556,14 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         # went wrong (the rest is not judged); the next stretch starts at it again, so it can be said again
         lastj = max([j for i, j in pairs if i is not None and j is not None and i <= last and sim[i][j] >= 0.5] or [-1])
         tail = hyp[lastj + 1:]
+        # the words said in place of the missing ones: in a stretch with nothing matched, the words heard there
+        gap_heard, run, said = {}, [], []
+        for i, j in pairs + [(-1, -1)]:
+            if i is not None and j is not None:
+                for i2 in run: gap_heard[i2] = " ".join(said[:4])
+                run, said = [], []
+            elif j is None: run.append(i)
+            else: said.append(hyp[j])
         stop_at = None
         if final and tail and last + 1 < len(win): stop_at = last + 1
         for i, j in pairs:
@@ -565,6 +573,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             if j is None:
                 # a short word the model often drops (و، في، من…) is not called missing unless the check is strict
                 w["status"] = "missing" if level == "strict" or len(skeleton(win[i])) > 2 else "unclear"
+                if gap_heard.get(i): w["heard"] = gap_heard[i]
             else:
                 w["heard"] = hyp[j]
                 s_ = sim[i][j]

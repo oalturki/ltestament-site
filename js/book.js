@@ -2369,7 +2369,7 @@
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
           r.done[loc] = 1; famAll.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = cls === 'missing' ? '' : (w.heard || ''); }
+          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = [cls, w.heard || '']; }
         };
         var famFlush = function (complete) {
           var F = window.Fam, prof = F && F.current();
@@ -2527,9 +2527,12 @@
           bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + locs.map(function (l) {
             var x = l.split(':');
             // what was heard in its place: the reader (or the parent) sees the mistake, or that the model misheard
-            var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمع:', 'لم تُسمع'] : ['Heard:', 'Not heard'];
+            // («wrong»: heard as something else; «missing»: not said — or other words said in its place)
+            var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمعت:', 'قُرئ مكانها:', 'لم تُقرأ'] : ['Heard as:', 'Said instead:', 'Not recited'];
+            var hx = !hd ? '' : hd[0] === 'wrong' && hd[1] ? esc(HL[0]) + ' <span lang="ar">' + esc(hd[1]) + '</span>'
+                   : hd[1] ? esc(HL[1]) + ' <span lang="ar">' + esc(hd[1]) + '</span>' : esc(HL[2]);
             return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small>' +
-              (hd === undefined ? '' : '<em class="lv-hd">' + (hd ? esc(HL[0]) + ' <span lang="ar">' + esc(hd) + '</span>' : esc(HL[1])) + '</em>') + '</button>';
+              (hx ? '<em class="lv-hd">' + hx + '</em>' : '') + '</button>';
           }).join('') + '</div>' : '<p>' + esc(LB[4]) + '</p>') + '<button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
           ov3.appendChild(bx); document.body.appendChild(ov3);
           ov3.onclick = function (e) { if (e.target === ov3) ov3.remove(); };
