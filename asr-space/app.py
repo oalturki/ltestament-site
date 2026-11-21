@@ -441,7 +441,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         run = best = 0
         for k in range(min(bad or {0}), max(bad or {0}) + 1):
             run = run + 1 if k in bad else 0; best = max(best, run)
-        if best >= 3:
+        # and a single word heard as something else entirely (اهدنا heard «إذ جنص»): heard again the same way. A word
+        # really said wrong is still heard wrong (the measure on the test set checks that this does not hide mistakes)
+        if best >= 3 or any(w["status"] == "wrong" for w in words):
             try:
                 prompt = None if level == "strict" else " ".join(exp[max(0, pos - 8):pos + len(hyp) + 6])
                 heard2 = transcribe(wav, prompt=prompt, beam=5)

@@ -249,7 +249,9 @@
         }
         R.seg.push(x); R.segLen += blk;
         R.quiet = rms > thr ? 0 : R.quiet + blk;
-        if (R.quiet >= 0.75 || R.segLen >= 22) {
+        // a stretch ends at a pause; a long one (read on without pausing) at the first short dip after 20 s — not cut
+        // mid-word at a fixed length (that made a word into two wrong halves) — and at 28 s at most (the service takes 30)
+        if (R.quiet >= 0.75 || (R.segLen >= 20 && R.quiet >= 0.2) || R.segLen >= 28) {
           R.queue.push(R.seg); R.seg = []; R.speaking = false; R.quiet = 0; R.segLen = 0; R.fresh = false;
           pump(); return;
         }
