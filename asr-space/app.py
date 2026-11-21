@@ -349,8 +349,26 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         if not first_ok:
             o = seek_start(exp, hyp)
             if o: pos, sought = o, o
-            elif len(hyp) < 8: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
-                                         "ms": int((time.time() - t0) * 1000), "seeking": True, "level": speech_level(wav)}
+            elif len(hyp) < 8:
+                # the transcription could not place it (a voice not clear, «ما يسقصي الله يفرح»): the sounds of the
+                # passage's first words are looked for in the audio itself. Found: those words are judged by them.
+                # Not found, in a whole stretch of speech: «not clear» — the page asks to say it again, more clearly
+                lead_n, lead = 0, {}
+                if final and os.environ.get("CTC_CHECK", "1") == "1" and ctc_model() is not None:
+                    try:
+                        wl = ctc_phonemes(surah, where, list(range(0, min(len(exp), 16))), waqf_last=False)
+                        if wl: lead_n, lead = ctc_prefix(ctc_lp(wav), wl)
+                    except Exception:
+                        lead_n, lead = 0, {}
+                if lead_n >= 2:
+                    ws_ = [{"k": k, "ayah": where[k][0], "i": where[k][1], "text": exp[k], "fit": lead.get(k),
+                            "status": "ok" if lead.get(k, -20) >= CTC_OK else "unclear", "led": True} for k in range(lead_n)]
+                    return {"pos": 0, "next": lead_n, "final": final, "heard": heard, "words": ws_, "seconds": round(dur, 2),
+                            "ms": int((time.time() - t0) * 1000), "sought": None, "back": None, "skipped": 0, "relistened": 0,
+                            "verified": 0, "fit": lead, "led": lead_n, "level": speech_level(wav), "other": None}
+                return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
+                        "ms": int((time.time() - t0) * 1000), "seeking": True, "level": speech_level(wav),
+                        "unclear": bool(final and dur >= 1.5), "lead": lead_n}
     # the reader went back and said again something he had already recited (to fix it, or to take a run at what comes
     # next): the stretch is checked against the earlier text it matches, not against the words still to come
     back = None
@@ -612,6 +630,76 @@ def ctc_words(lp, words):
     last = owner[-1]
     if len(out[last]) > 2: out[last] = out[last][:-1]
     return {k_: round(float(np.mean(v)), 2) for k_, v in out.items()}
+
+
+CTC_BONUS = 2.5   # what a sound laid on the audio earns: a word whose sounds are there gains, one whose sounds are not loses
+
+
+def ctc_prefix(lp, words):
+    """How many of the words (in order, from the first) the audio holds: the words laid along it, each sound scored
+    against the best sound of its frame (0 when it is the best) plus CTC_BONUS, so a word heard earns and a word not
+    said costs — the alignment stops after the last word worth taking. Returns (n, {key: score})."""
+    ids, owner, wend = [], [], []
+    for n_, (key, ph) in enumerate(words):
+        prev = None
+        for ch in ph:
+            i = _cx["id"].get(ch)
+            if i is None or i == prev: continue
+            ids.append(i); owner.append(n_); prev = i
+        wend.append(len(ids))
+    U = len(ids)
+    if not U: return 0, {}
+    lpn = lp - lp.max(1, keepdims=True)
+    T = lpn.shape[0]
+    ext = np.zeros(2 * U + 1, np.int64); ext[1::2] = ids
+    S = len(ext); NEG = -1e9
+    skip_ok = np.zeros(S, bool)
+    for s_ in range(2, S): skip_ok[s_] = ext[s_] != 0 and ext[s_] != ext[s_ - 2]
+    is_lab = ext != 0
+    end_ok = np.zeros(S, bool)                         # a word's last sound, or the blank after it
+    for e_ in wend:
+        if e_ > 0: end_ok[2 * e_ - 1] = True; end_ok[2 * e_] = True
+    dp = np.full(S, NEG); bp = np.zeros((T, S), np.int8)
+    best_end, best_t, best_s = NEG, -1, -1
+    for t in range(T):
+        e = lpn[t, ext]
+        stay = dp
+        one = np.concatenate([[NEG], dp[:-1]]) + np.where(is_lab, CTC_BONUS, 0)
+        two = np.concatenate([[NEG, NEG], dp[:-2]]) + CTC_BONUS; two[~skip_ok] = NEG
+        enter = np.full(S, NEG); enter[0] = 0.0; enter[1] = CTC_BONUS
+        cand = np.stack([stay, one, two, enter])
+        k = cand.argmax(0); dp = cand[k, np.arange(S)] + e; bp[t] = k
+        m = np.where(end_ok, dp, NEG); s_ = int(m.argmax())
+        if m[s_] > best_end: best_end, best_t, best_s = m[s_], t, s_
+    if best_t < 0 or best_end <= 0: return 0, {}
+    n_words = owner[(best_s - 1) // 2] + 1 if best_s % 2 else owner[best_s // 2 - 1] + 1
+    best = {}
+    s_, t = best_s, best_t
+    while t >= 0:
+        if ext[s_] != 0:
+            u = (s_ - 1) // 2
+            best[u] = max(best.get(u, NEG), float(lp[t, ext[s_]]))
+        k = bp[t, s_]
+        if k == 3: break
+        s_ -= int(k); t -= 1
+    out = {}
+    for u in range(U):
+        if owner[u] < n_words: out.setdefault(words[owner[u]][0], []).append(best.get(u, -20.0))
+    return n_words, {k_: round(float(np.mean(v)), 2) for k_, v in out.items()}
+
+
+def ctc_phonemes(surah, where, ks, waqf_last=True):
+    ph_s = PHON.get(str(surah)) or []
+    words = []
+    for n_, k in enumerate(ks):
+        a, i = where[k]
+        ay = ph_s[a - 1] if a - 1 < len(ph_s) else []
+        if len(ay) != len(QURAN[str(surah)][a - 1].split()): return []
+        ph = (ay[i] or "").replace(" ", "")
+        if waqf_last and n_ == len(ks) - 1:
+            while ph and ph[-1] in HARAKA: ph = ph[:-1]
+        words.append((k, ph))
+    return words
 
 
 def ctc_check(wav, surah, where, ks):

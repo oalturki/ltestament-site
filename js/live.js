@@ -12,6 +12,7 @@
      onPartDone(p), onDone()                      // a part / the whole passage recited
      onLevel(x)                                   // 0..1, the voice level (to show that it hears)
      onOther(p, w, text)                          // optional: words not from the Quran were heard; say it again from w
+     onUnclear(p)                                 // optional: a stretch was said but nothing of the passage could be made out
      onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'error' | 'waking'
      say(p, w) -> Promise                         // optional: the reciter says the word (the engine stops listening meanwhile)
    });
@@ -140,6 +141,7 @@
     function commit(res) {
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
       if (o.onResult) o.onResult(res);                    // optional: each stretch as the service judged it (the measure keeps it)
+      if (res.unclear && o.onUnclear) o.onUnclear(res.part);  // a whole stretch said, nothing of the passage made out: «say it again, clearer»
       sought(pt, res);
       if (res.words.length) pt.started = true;
       pt.words.forEach(function (w) { w.ti = false; });

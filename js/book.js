@@ -2444,6 +2444,13 @@
             },
             onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
             onOther: function (p, w, text) { otherPop(w, text); },
+            onUnclear: function () {
+              toast(({ ar: 'لم يتضح الصوت، أعد بصوت أوضح وأقرب إلى الجهاز.', ur: 'آواز واضح نہیں تھی، ذرا صاف اور قریب سے دوبارہ پڑھیں۔',
+                       en: 'That was not clear — say it again, a little clearer and closer to the device.',
+                       fr: 'Ce n’était pas clair : répétez un peu plus distinctement, plus près de l’appareil.',
+                       es: 'No se oyó con claridad: repítelo más claro y más cerca del dispositivo.',
+                       ru: 'Неразборчиво — повторите чётче и ближе к устройству.' })[C.lang] || 'That was not clear — say it again, a little clearer and closer to the device.');
+            },
             // the tajweed Mushaf: notes on how the verses were said (the ordinary Mushaf: the memorising alone)
             lang: C.lang === 'fr' ? 'fr' : C.lang === 'ar' ? 'ar' : (C.lang === 'ur' ? 'ar' : 'en'),
             tajweed: function () { return document.body.classList.contains('bk-tajweed'); },
