@@ -962,3 +962,4 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .bk-othpop span{ grid-column:1; font-size:.95rem; color:#1b2a3a; }
 .bk-othpop em{ font-style:normal; font-weight:700; font-family:inherit; }
 .bk-othpop button{ grid-column:2; grid-row:1 / span 3; min-height:44px; padding:0 16px; border-radius:12px; border:0; background:#8a5a14; color:#fff; font:inherit; font-weight:700; }
+.bk-othpop small span{ grid-column:auto; font-size:inherit; color:inherit; }

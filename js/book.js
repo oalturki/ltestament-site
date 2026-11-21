@@ -2491,12 +2491,13 @@
         };
         // words not from the Quran were heard (someone talking nearby, or the reader saying something else): not counted —
         // a card asks to say it again from that word; it goes once he does, or by itself
-        var OTH = { ar: ['سُمع كلام ليس من القرآن', 'أعد القراءة من', 'حسنًا'], en: ['Heard words that are not the Quran', 'Recite again from', 'OK'] };
+        // worded without judging (the model may be wrong): it was not clear the words were the verse — say it again
+        var OTH = { ar: ['أعد التلاوة', 'لم يتضح أن الكلام من الآية', 'ابدأ من', 'حسنًا'], en: ['Recite again', 'It was not clear the words were from the verse', 'Start from', 'OK'] };
         var otherPop = function (w, text) {
           var T = OTH[C.lang] || OTH.en, old = document.querySelector('.bk-othpop'); if (old) old.remove();
           var d = document.createElement('div'); d.className = 'bk-othpop'; d.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
-          d.innerHTML = '<b>' + esc(T[0]) + '</b>' + (text ? '<small lang="ar">«' + esc(text) + '»</small>' : '') +
-            (w ? '<span>' + esc(T[1]) + ' <em lang="ar">' + esc(w.text) + '</em></span>' : '') + '<button type="button">' + esc(T[2]) + '</button>';
+          d.innerHTML = '<b>' + esc(T[0]) + '</b><small>' + esc(T[1]) + (text ? ' <span lang="ar">«' + esc(text) + '»</span>' : '') + '</small>' +
+            (w ? '<span>' + esc(T[2]) + ': <em lang="ar">' + esc(w.text) + '</em></span>' : '') + '<button type="button">' + esc(T[3]) + '</button>';
           document.body.appendChild(d);
           var shut = function () { d.remove(); clearTimeout(t); };
           var t = setTimeout(shut, 9000);
