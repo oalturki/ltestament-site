@@ -139,6 +139,7 @@
     }
     function commit(res) {
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
+      if (o.onResult) o.onResult(res);                    // optional: each stretch as the service judged it (the measure keeps it)
       sought(pt, res);
       if (res.words.length) pt.started = true;
       pt.words.forEach(function (w) { w.ti = false; });

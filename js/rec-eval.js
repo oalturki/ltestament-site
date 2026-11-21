@@ -132,7 +132,7 @@
       if (r[0].error) throw r[0].error;
       var L0 = r[1];
       return r[0].data.arrayBuffer().then(function (buf) {
-        var a = pcm(buf), final = {}, allW = {}, other = null, tj = [];
+        var a = pcm(buf), final = {}, allW = {}, other = null, tj = [], stretches = [];
         return new Promise(function (ok) {
           var L = LiveRecite({
             parts: [{ s: c.surah, a: c.ayah, b: c.ayah_to }], input: { rate: a.rate },
@@ -141,6 +141,11 @@
               var loc = c.surah + ':' + w.ayah + ':' + w.n;
               allW[loc] = w.text;
               if (cls !== 'ti') final[loc] = { cls: cls, skip: !!w.skip, heard: w.heard || '', text: w.text };
+            },
+            onResult: function (res) {
+              stretches.push({ pos: res.pos, next: res.next, heard: res.heard, sec: res.seconds, back: res.back || null, skipped: res.skipped || 0,
+                sought: res.sought || null, other: res.other ? res.other.text : null,
+                bad: (res.words || []).filter(function (x) { return x.status !== 'ok'; }).map(function (x) { return x.k + ':' + x.status + (x.heard ? '«' + x.heard + '»' : ''); }) });
             },
             onOther: function (p, w) { other = w ? c.surah + ':' + w.ayah + ':' + w.n : '?'; },
             onTajweed: function (p, s, d) {
@@ -193,7 +198,7 @@
           return {
             clip_id: c.id, engine: ENGINE, level: (function () { try { return localStorage.getItem('lt_live_level') || 'normal'; } catch (e) { return 'normal'; } })(),
             detected: det, false_alarms: fa, unreached: unreached,
-            result: { errors: errors, other: other, tj: tj, tj_false: tj.filter(function (x) { return !x.target; }).length,
+            result: { errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
                       words: words.length, ms: Date.now() - t0, speed: S.speed, title: P.title }
           };
         });
