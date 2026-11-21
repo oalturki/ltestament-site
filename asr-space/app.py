@@ -486,6 +486,11 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                     w["fit"] = f_
                     if w["status"] in ("wrong", "missing", "unclear") and not w.get("skip") and f_ >= CTC_OK:
                         words[n_] = dict(w, status="ok", verified=True); verified += 1
+                    # heard as something that is no Quran word at all (the hearing failed, «جنص»), and its sounds neither
+                    # clearly there nor clearly absent: not understood — shown, not counted (the Quran's words decide)
+                    elif w["status"] == "wrong" and w.get("heard") and CTC_BAD < f_ < CTC_OK \
+                            and not any(quranic_word(x) for x in w["heard"].split()):
+                        words[n_] = dict(w, status="unclear", garbled=True)
                     # a short word let pass as «not clear» (و، له، في…) whose sounds are nowhere: left out
                     elif w["status"] == "unclear" and "heard" not in w and f_ <= CTC_BAD:
                         words[n_] = dict(w, status="missing", absent=True)
@@ -507,7 +512,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             fit = {"err": f"{type(e).__name__}: {e}"[:200]}
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened,
-            "verified": verified, "fit": fit, "other": other if final else None}
+            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None}
 
 
 # ---- constrained check (المطابقة المقيّدة), step 2 of «منهجية نظام التسميع الذكي». The text is known: instead of asking
@@ -522,6 +527,15 @@ CTC_OK = float(os.environ.get("CTC_OK", "-1.5"))     # a word whose score is at 
 CTC_BAD = float(os.environ.get("CTC_BAD", "-6"))     # at most this: its sounds are not in the audio (test set: said -3.7 at worst, left out -7.9 and below)
 HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}
+
+
+def speech_level(wav):
+    """how loud the reader is: the level (RMS) of the loudest tenth of the stretch's 20 ms frames — to tell, once
+    measured on the test set, a voice too low to judge («ارفع صوتك») from one heard well"""
+    n = SR // 50
+    if len(wav) < n: return 0.0
+    fr = wav[: len(wav) // n * n].reshape(-1, n)
+    return round(float(np.percentile(np.sqrt((fr ** 2).mean(1)), 90)), 4)
 
 
 def ctc_model():
