@@ -350,7 +350,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             o = seek_start(exp, hyp)
             if o: pos, sought = o, o
             elif len(hyp) < 8: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
-                                         "ms": int((time.time() - t0) * 1000), "seeking": True}
+                                         "ms": int((time.time() - t0) * 1000), "seeking": True, "level": speech_level(wav)}
     # the reader went back and said again something he had already recited (to fix it, or to take a run at what comes
     # next): the stretch is checked against the earlier text it matches, not against the words still to come
     back = None
