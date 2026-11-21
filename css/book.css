@@ -1022,3 +1022,7 @@ html[dir=rtl] .bk-ixx svg{ transform:scaleX(-1); }
 .bk-ixpg{ flex:none; color:#a89f83; font-size:.95rem; }
 .bk-ixrow.bk-ixq{ padding-block:7px; margin-inline-start:22px; width:calc(100% - 22px); }
 .bk-ixrow.bk-ixq .bk-ixno{ visibility:hidden; width:0; margin:0; }
+.bk-ixfind{ display:flex; align-items:center; gap:8px; margin:10px 12px 2px; padding:0 12px; height:42px; border-radius:12px; background:rgba(255,255,255,.07);
+  border:1px solid rgba(200,155,60,.25); color:var(--gold-soft); }
+.bk-ixfind input{ flex:1; min-width:0; height:100%; border:0; background:none; color:var(--parch); font:inherit; font-size:16px; outline:none; }
+.bk-ixrow[hidden]{ display:none; }

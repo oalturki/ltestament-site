@@ -724,13 +724,13 @@
       // the page on the other side
       var sSel = q('surahSel');
       if (bar && sSel) {
-        var HB = { ar: ['الفهرس', 'الصفحة الرئيسية', 'السورة', 'الجزء', 'الحزب', 'آية', 'آيات', 'مكية', 'مدنية', 'الحزب', 'ربع', 'نصف', 'ثلاثة أرباع'],
-                   ur: ['فہرست', 'سرورق', 'سورت', 'پارہ', 'حزب', 'آیت', 'آیات', 'مکی', 'مدنی', 'حزب', 'ربع', 'نصف', 'تین ربع'],
-                   en: ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾'],
-                   fr: ['Sommaire', 'Accueil', 'Sourate', 'Juz', 'Hizb', 'verset', 'versets', 'mecquoise', 'médinoise', 'Hizb', '¼', '½', '¾'],
-                   es: ['Índice', 'Inicio', 'Sura', 'Yuz', 'Hizb', 'aleya', 'aleyas', 'mequí', 'mediní', 'Hizb', '¼', '½', '¾'],
-                   ru: ['Оглавление', 'Главная', 'Сура', 'Джуз', 'Хизб', 'аят', 'аятов', 'мекканская', 'мединская', 'Хизб', '¼', '½', '¾'] }[C.lang] || null;
-        HB = HB || ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾'];
+        var HB = { ar: ['الفهرس', 'الصفحة الرئيسية', 'السورة', 'الجزء', 'الحزب', 'آية', 'آيات', 'مكية', 'مدنية', 'الحزب', 'ربع', 'نصف', 'ثلاثة أرباع', 'ابحث عن سورة'],
+                   ur: ['فہرست', 'سرورق', 'سورت', 'پارہ', 'حزب', 'آیت', 'آیات', 'مکی', 'مدنی', 'حزب', 'ربع', 'نصف', 'تین ربع', 'سورت تلاش کریں'],
+                   en: ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾', 'Find a surah'],
+                   fr: ['Sommaire', 'Accueil', 'Sourate', 'Juz', 'Hizb', 'verset', 'versets', 'mecquoise', 'médinoise', 'Hizb', '¼', '½', '¾', 'Chercher une sourate'],
+                   es: ['Índice', 'Inicio', 'Sura', 'Yuz', 'Hizb', 'aleya', 'aleyas', 'mequí', 'mediní', 'Hizb', '¼', '½', '¾', 'Buscar una sura'],
+                   ru: ['Оглавление', 'Главная', 'Сура', 'Джуз', 'Хизб', 'аят', 'аятов', 'мекканская', 'мединская', 'Хизб', '¼', '½', '¾', 'Найти суру'] }[C.lang] || null;
+        HB = HB || ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾', 'Find a surah'];
         var hb = document.createElement('button'); hb.type = 'button'; hb.className = 'bk-hamb'; hb.title = HB[0]; hb.setAttribute('aria-label', HB[0]);
         hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
         bar.insertBefore(hb, bar.firstChild);
@@ -742,12 +742,12 @@
             var here = MAP.pages[cur - 1][0], hereJ = MAP.juz[cur - 1];
             var jFirst = []; MAP.juz.forEach(function (j, i) { if (!jFirst[j - 1]) jFirst[j - 1] = i + 1; });
             var row = function (go, no, on, title, sub, page) {
-              return '<button type="button" class="bk-ixrow' + (on ? ' on' : '') + '" data-go="' + go + '"><span class="bk-ixno">' + uiNum(no) + '</span>' +
+              return '<button type="button" class="bk-ixrow' + (on ? ' on' : '') + '" data-go="' + go + '" data-no="' + no + '"><span class="bk-ixno">' + uiNum(no) + '</span>' +
                 '<span class="bk-ixt"><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></span><span class="bk-ixpg">' + uiNum(page) + '</span></button>';
             };
             var lists = {
               surah: d.surahs.map(function (x, i) {
-                return row(x[2], i + 1, i + 1 === here, nm[i] || '', uiNum(x[0]) + ' ' + (x[0] > 10 || C.lang !== 'ar' ? HB[5] : HB[6]) + ' · ' + (x[1] ? HB[7] : HB[8]), x[2]);
+                return row(x[2], i + 1, i + 1 === here, nm[i] || '', uiNum(x[0]) + ' ' + (C.lang === 'ar' ? (x[0] > 10 ? HB[5] : HB[6]) : HB[6]) + ' · ' + (x[1] ? HB[7] : HB[8]), x[2]);
               }).join(''),
               juz: jFirst.map(function (p, i) {
                 var r = MAP.pages[p - 1]; return row(p, i + 1, i + 1 === hereJ, HB[3] + ' ' + uiNum(i + 1), (nm[r[0] - 1] || '') + ' ' + uiNum(r[1]), p);
@@ -763,11 +763,23 @@
               '<div class="bk-ixtabs" role="tablist">' + [['surah', HB[2]], ['juz', HB[3]], ['hizb', HB[4]]].map(function (t) {
                 return '<button type="button" role="tab" data-t="' + t[0] + '"' + (t[0] === idxTab ? ' class="on"' : '') + '>' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
               '<a class="bk-ixhome" href="' + esc((document.querySelector('.bk-back') || { getAttribute: function () { return '/'; } }).getAttribute('href')) + '" title="' + esc(HB[1]) + '" aria-label="' + esc(HB[1]) + '">' +
-              svg('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>') + '</a></div><div class="bk-ixlist"></div>';
+              svg('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>') + '</a></div>' +
+              '<div class="bk-ixfind">' + svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>') + '<input type="search" placeholder="' + esc(HB[13]) + '" aria-label="' + esc(HB[13]) + '"></div>' +
+              '<div class="bk-ixlist"></div>';
             document.body.appendChild(ov);
             var listEl = ov.querySelector('.bk-ixlist');
+            var findEl = ov.querySelector('.bk-ixfind input');
+            // the search: a surah by its name (letters only: the hamza seats and alef forms as one) or its number
+            var skl = function (t) { return String(t).replace(/[ً-ْٰـ]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').toLowerCase(); };
+            var filt = function () {
+              var v = skl(findEl.value.trim()), n = +findEl.value.replace(/[٠-٩]/g, function (c) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); });
+              listEl.querySelectorAll('.bk-ixrow').forEach(function (r) {
+                r.hidden = !!v && !(n && +r.dataset.no === n) && skl(r.querySelector('b').textContent).indexOf(v) < 0;
+              });
+            };
+            findEl.oninput = function () { if (idxTab !== 'surah') { idxTab = 'surah'; fill(); } filt(); };
             var fill = function () {
-              listEl.innerHTML = lists[idxTab];
+              listEl.innerHTML = lists[idxTab]; if (findEl.value) filt();
               ov.querySelectorAll('.bk-ixtabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === idxTab); });
               var on = listEl.querySelector('.on'); if (on) listEl.scrollTop = Math.max(0, on.offsetTop - listEl.clientHeight / 3);
             };
