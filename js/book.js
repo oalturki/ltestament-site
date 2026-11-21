@@ -2389,7 +2389,10 @@
           var has = {}; run.forEach(function (l) { has[l] = 1; });
           return run.some(function (l) {
             var x = l.split(':'); if (x[2] !== '1') return false;
-            for (var k = 1; WTXT[x[0] + ':' + x[1] + ':' + k]; k++) if (!has[x[0] + ':' + x[1] + ':' + k]) return false;
+            for (var k = 1; WTXT[x[0] + ':' + x[1] + ':' + k]; k++) {
+              var lk = x[0] + ':' + x[1] + ':' + k;
+              if (!has[lk] && !/^[\u0660-\u0669\u06F0-\u06F9\d\s]+$/.test(WTXT[lk])) return false;   // the verse's number is not a word
+            }
             return true;
           });
         };
