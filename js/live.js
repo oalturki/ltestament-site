@@ -56,7 +56,10 @@
   }
   function dropMic() { clearTimeout(micT); if (MIC) { MIC.getTracks().forEach(function (t) { t.stop(); }); MIC = null; } }
   function releaseMic() { clearTimeout(micT); micT = setTimeout(dropMic, 120000); }
-  document.addEventListener('visibilitychange', function () { if (document.hidden && !LiveRecite.active) dropMic(); });
+  // the microphone serves only the page while it is in front: hidden (another app or tab, the screen locked), it is
+  // let go at once — the recitation waits and goes on when the page is back; the page closed, it is let go for good
+  document.addEventListener('visibilitychange', function () { if (document.hidden) dropMic(); });
+  window.addEventListener('pagehide', dropMic);
 
   var warmT = 0;
   function warm(api) { if (Date.now() - warmT < 20000) return; warmT = Date.now(); fetch(api + '/live', { cache: 'no-store' }).catch(function () {}); }
@@ -229,8 +232,9 @@
     // back on the page after another app or tab: the phone may have cut the microphone off meanwhile (the session goes
     // on, nothing heard) — open it again and join it to the same listening
     function rehook(force) {
-      if (!R || document.hidden) return;
+      if (!R) return;
       var r0 = R;
+      if (document.hidden) { try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {} r0.seg = []; r0.speaking = false; return; }
       if (actx && actx.state !== 'running') actx.resume();
       var live_ = MIC && MIC.getAudioTracks().some(function (t) { return t.readyState === 'live' && !t.muted; });
       if (live_ && force !== true) return;
