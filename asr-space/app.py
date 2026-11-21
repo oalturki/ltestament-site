@@ -36,6 +36,16 @@ QURAN = {k: [" ".join(w for w in ay.split() if not _MARK.match(w)) for ay in v] 
 _BIGRAMS = None
 
 
+_VOCAB = None
+
+
+def quranic_word(w):
+    """a word found as such somewhere in the Quran (letters only)"""
+    global _VOCAB
+    if _VOCAB is None: _VOCAB = {skeleton(x) for v in QURAN.values() for ay in v for x in ay.split()}
+    return skeleton(w) in _VOCAB
+
+
 def quranic(words):
     global _BIGRAMS
     if _BIGRAMS is None:
@@ -476,6 +486,17 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                     w["fit"] = f_
                     if w["status"] in ("wrong", "missing", "unclear") and not w.get("skip") and f_ >= CTC_OK:
                         words[n_] = dict(w, status="ok", verified=True); verified += 1
+                    # a short word let pass as «not clear» (و، له، في…) whose sounds are nowhere: left out
+                    elif w["status"] == "unclear" and "heard" not in w and f_ <= CTC_BAD:
+                        words[n_] = dict(w, status="missing", absent=True)
+                # other words said in its place, none of them Quran, and the word's sounds nowhere in the audio: not a
+                # mistake in the verse but something else said (whatever its length) — the page asks to say it again
+                if other is None:
+                    for w in words:
+                        hw = (w.get("heard") or "").split()
+                        if w["status"] == "wrong" and hw and w.get("fit", 0) <= CTC_BAD and not any(quranic_word(x) for x in hw) \
+                                and not (len(hw) >= 2 and quranic(hw)):
+                            other = {"k": w["k"], "text": " ".join(hw[:6]), "by": "fit"}; break
         except Exception as e:
             fit = {"err": f"{type(e).__name__}: {e}"[:200]}
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
@@ -492,6 +513,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
 # sounds are there is right; a word left out or changed has no good place for its sounds.
 PHON = json.load(open(os.path.join(os.path.dirname(__file__), "phon-simple.json"), encoding="utf-8"))
 CTC_OK = float(os.environ.get("CTC_OK", "-1.5"))     # a word whose score is at least this was said
+CTC_BAD = float(os.environ.get("CTC_BAD", "-6"))     # at most this: its sounds are not in the audio (test set: said -3.7 at worst, left out -7.9 and below)
 HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}
 
