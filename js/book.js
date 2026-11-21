@@ -2561,6 +2561,7 @@
           });
           return Promise.all(jobs);
         };
+        root.__tjTake = tjTake;
         // the session's mistakes: each word as in the Mushaf; a tap plays it
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
         // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
