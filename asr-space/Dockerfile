@@ -13,6 +13,9 @@ RUN python -c "from huggingface_hub import snapshot_download as d; d('tarteel-ai
 RUN python -c "from ctranslate2.converters import TransformersConverter as T; T('tarteel-ai/whisper-base-ar-quran').convert('/home/user/ct2-whisper', quantization='int8', force=True)" \
  && python -c "from huggingface_hub import hf_hub_download as h; import shutil; [shutil.copy(h('openai/whisper-base', f), '/home/user/ct2-whisper/' + f) for f in ('tokenizer.json', 'preprocessor_config.json')]" \
  || (echo "CTranslate2 conversion failed: the service will use transformers" && rm -rf /home/user/ct2-whisper)
+# the tajweed model (HisnLabs/tajweed-v2, Apache-2.0: 20 M parameters, CPU, distilled from obadx/muaalem-model-v3_2):
+# for the tajweed Mushaf's recitation check — its notes on madd, ghunna, qalqala, letters and vowels
+RUN python -c "from huggingface_hub import snapshot_download as d; d('HisnLabs/tajweed-v2', allow_patterns=['*.py','config.json','onnx/model-int8.onnx'])" || echo "tajweed model not fetched"
 COPY --chown=user . .
 EXPOSE 7860
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

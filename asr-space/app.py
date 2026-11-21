@@ -687,3 +687,73 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 pass
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened, "other": other if final else None}
+
+
+# ---- tajweed notes (the tajweed Mushaf only: the ordinary Mushaf's check is about the memorising, this one about
+# how it is said). HisnLabs/tajweed-v2 hears the phonetic script of a passage it is told; its rule engine (imam.py)
+# sets it beside the passage as it should be said and gives, word by word, what was off: madd length, ghunna,
+# ikhfa / iqlab / idgham, qalqala, a letter or vowel. It can be wrong: notes, not mistakes in the memorising.
+TJ_REPO = "HisnLabs/tajweed-v2"
+_tj = {"tried": False, "inf": None, "imam": None, "err": None, "dir": None}
+
+
+def tajweed_engine():
+    if not _tj["tried"]:
+        _tj["tried"] = True
+        try:
+            import sys, importlib
+            from huggingface_hub import snapshot_download
+            d = snapshot_download(TJ_REPO, allow_patterns=["*.py", "config.json", "onnx/model-int8.onnx"])
+            _tj["dir"] = d
+            if d not in sys.path: sys.path.insert(0, d)
+            cwd = os.getcwd(); os.chdir(d)                 # the engine may look for its files beside itself
+            try:
+                _tj["inf"] = importlib.import_module("inference")
+                _tj["imam"] = importlib.import_module("imam")
+            finally:
+                os.chdir(cwd)
+        except Exception as e:
+            _tj["err"] = f"{type(e).__name__}: {e}"[:400]
+    return _tj["inf"], _tj["imam"]
+
+
+def _plain(x):
+    """the engine's results as plain JSON"""
+    import dataclasses
+    if dataclasses.is_dataclass(x): x = dataclasses.asdict(x)
+    if hasattr(x, "model_dump"): x = x.model_dump()
+    if isinstance(x, dict): return {str(k): _plain(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple)): return [_plain(v) for v in x]
+    if isinstance(x, (np.floating, np.integer)): return x.item()
+    if isinstance(x, (str, int, float, bool)) or x is None: return x
+    return str(x)
+
+
+@app.get("/tajweed")
+def tajweed_status():
+    import inspect
+    inf, im = tajweed_engine()
+    sig = lambda m, n: str(inspect.signature(getattr(m, n))) if m is not None and hasattr(m, n) else None
+    return {"loaded": inf is not None and im is not None, "error": _tj["err"],
+            "hear": sig(inf, "hear"), "recited": sig(im, "recited"), "listen": sig(im, "listen")}
+
+
+@app.post("/tajweed")
+def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = Form(...), lang: str = Form("ar")):
+    """one verse (or the passage of it said), at most 30 s: word by word, what in the saying was off"""
+    import time
+    t0 = time.time()
+    inf, im = tajweed_engine()
+    if inf is None or im is None: raise HTTPException(503, "tajweed engine: " + str(_tj["err"]))
+    raw = audio.file.read()
+    if len(raw) > 4_000_000: raise HTTPException(413, "audio too long")
+    wav = pcm_wav(raw)
+    if wav is None: wav = decode_audio(raw)
+    if len(wav) / SR > 30: raise HTTPException(413, "audio too long (30 s at most)")
+    from quran_transcript import Aya
+    words = Aya(surah, ayah).get().uthmani.split()
+    heard, prob, times = inf.hear(wav.astype(np.float32), riwaya="hafs")
+    ref = im.recited(words, heard, riwaya="hafs")
+    lg = lang if lang in ("ar", "en", "fr") else "en"
+    res = [_plain(r) for r in im.listen(ref, heard, prob, times, min_prob=0.3, min_prob_jali=0.7, langs=(lg,))]
+    return {"surah": surah, "ayah": ayah, "words": res, "heard": _plain(heard), "ms": int((time.time() - t0) * 1000)}
