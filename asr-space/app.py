@@ -570,6 +570,13 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
 
     def judge(hyp):
         win = exp[pos:pos + len(hyp) + 6]
+
+        # the verse misheard, not other words: a third or more of the words said are close to the words due there
+        def near(said, at):
+            due = [skeleton(w) for w in win[max(0, at - 2):at + len(said) + 4]]
+            close = sum(1 for w in said if any(edit_ratio(skeleton(w), d) >= 0.6 for d in due))
+            return close * 3 >= len(said)
+
         words, nxt = [], pos
         if not (hyp and win): return words, nxt, None
         pairs, sim = align_words(win, hyp)
@@ -588,7 +595,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         for i, j in pairs + [(-1, -1)]:
             if i == -1 or (i is not None and j is not None and sim[i][j] >= 0.5):      # a word heard right: the gap ends
                 for i2 in run: gap_heard[i2] = " ".join(said[:4])
-                if other is None and g0 is not None and len(said) >= 2 and i != -1 and not quranic(said):
+                if other is None and g0 is not None and len(said) >= 2 and i != -1 and not quranic(said) and not near(said, g0):
                     other = {"k": pos + g0, "text": " ".join(said[:6])}
                 run, said, g0 = [], [], None
             else:
@@ -597,7 +604,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 else: said.append(hyp[j])
         stop_at = None
         if final and tail and last + 1 < len(win): stop_at = last + 1
-        if other is None and stop_at is not None and len(tail) >= 2 and not quranic(tail[:6]): other = {"k": pos + stop_at, "text": " ".join(tail[:6])}
+        if other is None and stop_at is not None and len(tail) >= 2 and not quranic(tail[:6]) and not near(tail[:6], stop_at): other = {"k": pos + stop_at, "text": " ".join(tail[:6])}
         for i, j in pairs:
             if i is None or i > last: continue
             a, k = where[pos + i]
