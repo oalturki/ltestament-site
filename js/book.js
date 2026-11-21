@@ -30,7 +30,7 @@
      individuals: less, but sound. */
   var QA = 'https://quranenc.com/api/v1/translation/aya/';
   var WSEG = { ar: 'استمع إلى المقطع', ur: 'حصہ سنیں', en: 'Hear the phrase', fr: 'Écouter le passage', es: 'Escuchar el pasaje', ru: 'Послушать отрывок' };
-  var WLISTEN = {"ar": "استمع إلى الكلمة", "ur": "لفظ سنیں", "en": "Hear the word", "fr": "Écouter le mot", "es": "Escuchar la palabra", "ru": "Послушать слово"};
+  var WLISTEN = {"ar": "استمع للكلمة ضمن المقطع", "ur": "لفظ حصے میں سنیں", "en": "Hear the word in its phrase", "fr": "Écouter le mot dans son passage", "es": "Escuchar la palabra en su pasaje", "ru": "Слово в его отрывке"};
   var HIDEL = {"ar": {"hide": "إخفاء الآيات", "show": "إظهار الآيات", "hint": "سمّع لنفسك: المس الكلمة لتظهر، والمس رقم الآية لتظهر الآية كلها."}, "ur": {"hide": "آیات چھپائیں", "show": "آیات دکھائیں", "hint": "خود کو سنائیں: لفظ دکھانے کے لیے اسے چھوئیں، پوری آیت کے لیے آیت نمبر کو چھوئیں۔"}, "en": {"hide": "Hide verses", "show": "Show verses", "hint": "Recite from memory: tap a word to show it, or the verse number to show the whole verse."}, "fr": {"hide": "Masquer les versets", "show": "Afficher les versets", "hint": "Récitez de mémoire : touchez un mot pour l’afficher, ou le numéro du verset pour tout le verset."}, "es": {"hide": "Ocultar versículos", "show": "Mostrar versículos", "hint": "Recita de memoria: toca una palabra para verla, o el número del versículo para verlo entero."}, "ru": {"hide": "Скрыть аяты", "show": "Показать аяты", "hint": "Читайте по памяти: коснитесь слова, чтобы открыть его, или номера аята — чтобы открыть весь аят."}};
   var EXPL = {
     ar: { keys: ['arabic_seraj', 'arabic_moyassar'], head: ['معنى الكلمة', 'تفسير الآية'],
@@ -101,7 +101,7 @@
     var name = ar || C.lang === 'ur' ? 'سورة ' + C.arabicNames[s - 1] : ((C.names && C.names[C.lang === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s - 1];
     var ref = esc(name) + ' · ' + (rtl ? arNum(s) + ':' + arNum(a) : s + ':' + a);
     body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div>' +
-      (C.__playWord && !isEnd && parts[2] ? '<div class="bk-wsbtns">' +
+      (C.__playWord && !isEnd && parts[2] ? '<div class="bk-wsbtns"><button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' +
         '<button type="button" class="bk-wsplay bk-wsseg"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 12h3"/></svg> ' + esc(WSEG[C.lang] || WSEG.en) + '</button></div>' : '') +
       '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
@@ -127,7 +127,10 @@
         var wr = body.querySelector('.bk-wsr'); if (wr) wr.parentNode.insertBefore(d, wr.nextSibling);
       });
     }
-    var sb2 = body.querySelector('.bk-wsseg');
+    // two ways to hear it, both from the recitation as it runs: the word — the phrase up to it, the word coloured;
+    // the phrase — the whole of it between the reciter's stops
+    var pb = body.querySelector('.bk-wsplay:not(.bk-wsseg)'), sb2 = body.querySelector('.bk-wsseg');
+    if (pb) pb.onclick = function () { C.__playWord(loc, pb, null, 'upto'); };
     if (sb2) sb2.onclick = function () { C.__playWord(loc, sb2, null, true); };
     if (sb2 && C.__prepWord) C.__prepWord(loc);
     var out = body.querySelector('.bk-wsc');
@@ -2485,7 +2488,7 @@
           mic.onclick({ stopPropagation: function () {} });
         };
         // phones: while listening, the bottom bar becomes the recitation bar — time, show/hide the verses, stop, mistakes
-        var LBL = { ar: ['إظهار النص', 'إخفاء النص', 'أوقف', 'الأخطاء', 'لا أخطاء، بارك الله فيك.', 'المس الكلمة لتسمعها'],
+        var LBL = { ar: ['إظهار النص', 'إخفاء النص', 'أوقف', 'الأخطاء', 'لا أخطاء، بارك الله فيك.', 'المس الكلمة لتسمعها ضمن مقطعها'],
                     ur: ['متن دکھائیں', 'متن چھپائیں', 'روکیں', 'غلطیاں', 'کوئی غلطی نہیں۔', 'سننے کے لیے لفظ چھوئیں'],
                     en: ['Show the text', 'Hide the text', 'Stop', 'Mistakes', 'No mistakes — well done.', 'Tap a word to hear it'],
                     fr: ['Afficher le texte', 'Masquer le texte', 'Arrêter', 'Erreurs', 'Aucune erreur, bravo.', 'Touchez un mot pour l’écouter'],
