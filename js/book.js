@@ -581,6 +581,9 @@
         if (document.body.classList.contains('bk-mob') || !bt) document.body.appendChild(sessEl); else bt.appendChild(sessEl);
       }
       sessEl.textContent = RS.sessLine(o, C.lang); sessEl.hidden = false;
+      // phones: the letters read this session, a number in the bottom bar (reading's own figure)
+      var ml = document.querySelector('.bk-mletters');
+      if (ml) { ml.innerHTML = '<b>' + RS.fmt(o.letters, C.lang) + '</b><small>' + ({ ar: 'حرفًا', ur: 'حروف', en: 'letters', fr: 'lettres', es: 'letras', ru: 'букв' }[C.lang] || 'letters') + '</small>'; ml.hidden = false; }
       if (flash) { sessEl.classList.remove('fl'); void sessEl.offsetWidth; sessEl.classList.add('fl'); }
       if (root.__placeShow) root.__placeShow();
     }
@@ -715,7 +718,7 @@
       // the page, in the middle of the top bar: a list to go to any page
       var pg = document.createElement('select'); pg.className = 'bk-mpg'; pg.setAttribute('aria-label', U.page);
       var po = [];
-      for (var pi = 1; pi <= ((MAP && MAP.pages.length) || TOTAL || 604); pi++) po.push('<option value="' + pi + '">' + esc(U.page) + ' ' + uiNum(pi) + '</option>');
+      for (var pi = 1; pi <= ((MAP && MAP.pages.length) || TOTAL || 604); pi++) po.push('<option value="' + pi + '">' + uiNum(pi) + '</option>');   // the number only: the list shows it is the pages
       pg.innerHTML = po.join(''); pg.value = String(cur);
       pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
@@ -841,6 +844,7 @@
                  exit: '<path d="M6 6l12 12M18 6L6 18"/>',
                  eye: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>' };
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
+      var lettersEl = document.createElement('div'); lettersEl.className = 'bk-mletters'; lettersEl.hidden = true; nav.appendChild(lettersEl);
       // three modes, chosen from the mode button (a list) or the settings: reading (listening), memorization
       // (repetition, hiding), recitation (the microphone). Each shows its own buttons and its own line of choices.
       var MDL = { ar: ['تلاوة', 'تحفيظ', 'تسميع', 'الوضع'], ur: ['تلاوت', 'حفظ', 'تسمیع', 'انداز'], en: ['Reading', 'Memorizing', 'Reciting', 'Mode'],
@@ -849,6 +853,9 @@
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
       modeSel.innerHTML = MODES.map(function (m, i) { return '<option value="' + m + '">' + esc(MD[i]) + '</option>'; }).join('');
       var modeBtn = item(I2.memo, MD[0]); modeBtn.classList.add('bk-mmode'); modeBtn.appendChild(modeSel);
+      // the mode (reading, memorizing, reciting) is chosen at the top, beside what is shown; the bottom bar holds that
+      // mode's own tools only, so nothing there moves from one side to the other when the mode changes
+      if (bar) { modeBtn.classList.add('bk-tmode'); bar.insertBefore(modeBtn, pg); }
       var exitBtn = { onclick: null };                    // (the mode list replaces the exit button)
       var eyeBtn = item(I2.eye, ML[2]); eyeBtn.classList.add('bk-meye');
       var hideNow = function () { return root.classList.contains('bk-hide'); };
@@ -1154,10 +1161,9 @@
         strip.dataset.k = kt2 ? '1' : '';
         if (kt2) { h = kt2.h; v = kt2.v.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'); }
         else if (md === 'read') {
-          h = ST[0]; v = selText(q('reciter'));
-          var sp = rep && rep.speed && rep.speed !== 1 ? (C.lang === 'ar' ? arNum(String(rep.speed)).replace('.', '٫') : rep.speed) + '×' : '';
-          if (sp) v += ' · ' + sp;
-          if (rep && rep.mode !== 'cont') v += ' · ' + fv('mode');
+          // reading: the reciter and his settings are in the listening settings (not on the page); shown only when
+          // something other than plain reading was set (a passage, repetition)
+          h = ST[0]; v = rep && rep.mode !== 'cont' ? selText(q('reciter')) + ' · ' + fv('mode') : '';
         } else if (md === 'hifz') {
           h = ST[1];
           v = rep && rep.mode === 'hifz' ? fv('surah') + ' ' + uiNum(fv('ha1') || 1) + '–' + uiNum(fv('ha2') || 1) : ST[3];
@@ -1165,8 +1171,8 @@
           h = ST[2]; var eo1 = reciteSec.querySelector('.bk-msrow select'); v = eo1 ? selText(eo1) : '';
         }
         strip.innerHTML = v ? '<b>' + esc(h) + ':</b><span>' + esc(v) + '</span>' : '';
-        var bt = root.querySelector('.bk-bottom'), r0 = bt ? bt.getBoundingClientRect() : null;
-        strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 150) + 'px';
+        var bt = document.querySelector('.bk-mnav'), r0 = bt ? bt.getBoundingClientRect() : null;
+        strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 110) + 'px';
       };
       strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
       // khatmas and reminders: loaded with the Mushaf, so today's wird shows on the page; a reminder opens the khatmas
@@ -1228,7 +1234,7 @@
       var bottom = root.querySelector('.bk-bottom');
       if (bottom) {
         var sp = document.createElement('span'), sn = document.createElement('span');
-        sp.className = sn.className = 'bk-marrow'; bottom.insertBefore(sp, bottom.firstChild); bottom.appendChild(sn);
+        sp.className = sn.className = 'bk-marrow'; nav.insertBefore(sp, nav.firstChild); nav.appendChild(sn);   // at the bottom bar's two ends
         moves.push([q('prev'), sp], [q('next'), sn]);
       }
       var homes = moves.map(function (m) { var c = document.createComment(''); m[0].parentNode.insertBefore(c, m[0]); return c; });
