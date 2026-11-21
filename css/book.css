@@ -1045,3 +1045,9 @@ body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mletters:not([hidden]){ display:flex; 
 .bk-mletters b{ font-size:1rem; } .bk-mletters small{ font-size:.68rem; color:#a89f83; }
 body.bk-mob .bk-bar .bk-mbtn.bk-tmode{ flex:0 1 auto; height:34px; min-height:0; width:auto; padding:0 12px; margin:0; flex-direction:row; border-radius:10px; }
 body.bk-mob .bk-bar .bk-viewbtn{ flex:1 1 auto; min-width:84px; }
+body.bk-mob .bk-bar{ gap:4px; padding-inline:6px; }
+body.bk-mob .bk-hamb{ width:34px; }
+body.bk-mob .bk-tbtn{ width:32px; }
+body.bk-mob .bk-bar .bk-viewbtn{ padding-inline:8px; gap:3px; min-width:0; }
+body.bk-mob .bk-bar .bk-mbtn.bk-tmode{ min-width:62px; padding:0 8px; }
+body.bk-mob .bk-bar select.bk-mpg{ width:46px; }
