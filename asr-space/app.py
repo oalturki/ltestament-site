@@ -750,6 +750,17 @@ def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = F
     wav = pcm_wav(raw)
     if wav is None: wav = decode_audio(raw)
     if len(wav) / SR > 30: raise HTTPException(413, "audio too long (30 s at most)")
+    try:
+        return _tajweed_run(inf, im, wav, surah, ayah, lang, t0)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        raise HTTPException(500, f"tajweed: {type(e).__name__}: {e} | " + traceback.format_exc()[-700:])
+
+
+def _tajweed_run(inf, im, wav, surah, ayah, lang, t0):
+    import time
     from quran_transcript import Aya
     words = Aya(surah, ayah).get().uthmani.split()
     out = inf.hear(wav.astype(np.float32), riwaya="hafs")
