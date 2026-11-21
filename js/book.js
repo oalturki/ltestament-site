@@ -101,8 +101,7 @@
     var name = ar || C.lang === 'ur' ? 'سورة ' + C.arabicNames[s - 1] : ((C.names && C.names[C.lang === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s - 1];
     var ref = esc(name) + ' · ' + (rtl ? arNum(s) + ':' + arNum(a) : s + ':' + a);
     body.innerHTML = '<div class="bk-wsw" translate="no" lang="ar">' + (isEnd ? '' : esc(word)) + '</div><div class="bk-wsr">' + ref + '</div>' +
-      (C.__playWord && !isEnd && parts[2] ? '<div class="bk-wsbtns"><button type="button" class="bk-wsplay"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button>' +
-        '<button type="button" class="bk-wsplay bk-wsseg"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 12h3"/></svg> ' + esc(WSEG[C.lang] || WSEG.en) + '</button></div>' : '') +
+      (C.__playWord && !isEnd && parts[2] ? '<div class="bk-wsbtns"><button type="button" class="bk-wsplay bk-wsseg"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg> ' + esc(WLISTEN[C.lang] || WLISTEN.en) + '</button></div>' : '') +
       '<div class="bk-wsc">…</div>';
     sheet.classList.add('on');
     // colour Mushaf, the ayah's number: the ayah's words that carry tajweed rules, each with its rules
@@ -127,10 +126,9 @@
         var wr = body.querySelector('.bk-wsr'); if (wr) wr.parentNode.insertBefore(d, wr.nextSibling);
       });
     }
-    // two ways to hear it, both from the recitation as it runs: the word — the phrase up to it, the word coloured;
-    // the phrase — the whole of it between the reciter's stops
-    var pb = body.querySelector('.bk-wsplay:not(.bk-wsseg)'), sb2 = body.querySelector('.bk-wsseg');
-    if (pb) pb.onclick = function () { C.__playWord(loc, pb, null, 'upto'); };
+    // the word heard within its phrase, the whole of it between the reciter's stops (never cut off before or after:
+    // the words run into each other, and a tajweed rule may join them), the word itself coloured
+    var sb2 = body.querySelector('.bk-wsseg');
     if (sb2) sb2.onclick = function () { C.__playWord(loc, sb2, null, true); };
     if (sb2 && C.__prepWord) C.__prepWord(loc);
     var out = body.querySelector('.bk-wsc');
@@ -1914,17 +1912,17 @@
       var off = function () { if (btn) btn.classList.remove('on'); if (done) { var d = done; done = null; d(); } };
       // never the word cut out of the recitation alone (its sound runs into the words beside it — unclear, above all to
       // one whose language is not Arabic): the phrase between the reciter's stops, the word itself coloured as it plays.
-      // seg 'upto': from the phrase's start to the end of the word (while reciting from memory: nothing after it given away)
+      // seg 'plain': the phrase heard for itself — its words coloured alike, no word set apart
       Promise.all([wDecode(P.url), wordTimes(P.r, P.s, P.a), pauseMarks(P.s, P.a)]).then(function (res) {
         var buf = res[0], ws = res[1], i = -1;
         ws.forEach(function (x, k) { if (x[0] === P.w) i = k; });
         if (i < 0) return off();
-        var segEls = [], sg = segOf(ws, i, res[2]), last = seg === 'upto' ? i : sg[1];
+        var segEls = [], sg = segOf(ws, i, res[2]), last = sg[1];
         var t0 = Math.max(0, ws[sg[0]][1] - 60) / 1000;
-        var t1 = Math.min(buf.duration, (ws[last][2] + (seg === 'upto' ? 250 : 350)) / 1000);
+        var t1 = Math.min(buf.duration, (ws[last][2] + 350) / 1000);
         if (!ws[last + 1]) t1 = buf.duration;
         for (var k2 = sg[0]; k2 <= last; k2++) root.querySelectorAll('[data-l="' + P.s + ':' + P.a + ':' + ws[k2][0] + '"]').forEach(function (e) {
-          e.classList.add(k2 === i ? 'bk-segt' : 'bk-segw'); segEls.push(e);
+          e.classList.add(k2 === i && seg !== 'plain' ? 'bk-segt' : 'bk-segw'); segEls.push(e);
         });
         var src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination);
         src.onended = function () { segEls.forEach(function (e) { e.classList.remove('bk-segw', 'bk-segt'); }); if (wSrc === src) wSrc = null; off(); };
@@ -2466,7 +2464,7 @@
             say: function (p, w) {                          // on a mistake, as the reader chose
               var pt = live.__parts[p], how = eo.value;
               if (how === 'none') return Promise.resolve();
-              if (how === 'say' && C.__playWord) return new Promise(function (res) { C.__playWord(pt.s + ':' + w.ayah + ':' + w.n, null, res, 'upto'); setTimeout(res, 8000); });
+              if (how === 'say' && C.__playWord) return new Promise(function (res) { C.__playWord(pt.s + ':' + w.ayah + ':' + w.n, null, res); setTimeout(res, 8000); });
               if (how === 'ayah') root.querySelectorAll('.bk-mpage [data-l^="' + pt.s + ':' + w.ayah + ':"]').forEach(function (e) { if (!e.classList.contains('rv')) e.classList.add('rv', 'tw-hint'); });
               return tone();
             }
@@ -2626,7 +2624,7 @@
           bx.querySelectorAll('.lv-words button').forEach(function (b) {
             b.onclick = function () {
               if (b.dataset.a) { var sa = b.dataset.a.split(':'); if (!live || !live.running) playAyah(+sa[0], +sa[1]); return; }
-              if (live && live.hold) live.hold(); if (C.__playWord) C.__playWord(b.dataset.l, b, null, live && live.running ? 'upto' : true);
+              if (live && live.hold) live.hold(); if (C.__playWord) C.__playWord(b.dataset.l, b);
             };
           });
         };
@@ -2833,7 +2831,7 @@
             root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) { x.classList.add('rv'); });
           } else if (w.classList.contains('tw-err') && C.__playWord) {   // a mistake: hear the word, when the reader wants it
             var lw = window.__bkLive;
-            var pr = new Promise(function (res) { C.__playWord(l, null, res, lw && lw.running ? 'upto' : true); setTimeout(res, 8000); });
+            var pr = new Promise(function (res) { C.__playWord(l, null, res); setTimeout(res, 8000); });
             if (lw && lw.running) lw.hold(pr);
           } else if (w.classList.contains('rv')) return;   // shown already: a tap does what it always does
           else root.querySelectorAll('[data-l="' + l + '"]').forEach(function (x) { x.classList.add('rv'); });
