@@ -129,9 +129,12 @@
   }
 
   /* ---------- tasks ---------- */
+  // a child reads each passage as he knows it (and may say a verse twice): the planned mistakes are too hard to do on
+  // purpose at that age — his own natural slips are the test (written in the note)
+  var CHILD = { clean: 1, repeat: 1 };
   function myTasks() {
-    var adult = S.consent.age_band !== 'child';
-    return S.data.tasks.filter(function (t) { return adult || !t.adult; });
+    var child = S.consent.age_band === 'child';
+    return S.data.tasks.filter(function (t) { return child ? CHILD[t.kind] : true; });
   }
   // the next task not yet recorded: after the one just done (the same passage first, then on), else from the start
   function nextTask(after) {
@@ -282,7 +285,7 @@
       (err ? '<label class="fb-label">هل نفّذت المطلوب كما في التعليمات؟</label><div class="rc-opts">' +
         '<label class="rc-opt"><input type="radio" name="asked" value="1" checked> نعم</label>' +
         '<label class="rc-opt"><input type="radio" name="asked" value="0"> لا، حصل غيره</label></div>' : '') +
-      '<label class="fb-label">ملاحظة (اختياري)</label><input id="rcNote" maxlength="300" placeholder="مثلًا: أخطأت أيضًا في الآية ٣">' +
+      '<label class="fb-label">ملاحظة (اختياري)</label><input id="rcNote" maxlength="300" placeholder="' + (S.consent.age_band === 'child' ? 'ما أخطأ فيه إن أخطأ، مثل: قال «الرحمان»' : 'مثلًا: أخطأت أيضًا في الآية ٣') + '">' +
       '<div class="rc-actions"><button class="fb-submit" id="rcSave">احفظ وانتقل للتالي</button>' +
       '<button class="rc-link" id="rcAgain">أعد التسجيل</button></div>';
     $('#rcAgain').onclick = function () { URL.revokeObjectURL(url); recIdle(); };
