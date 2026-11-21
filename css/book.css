@@ -981,3 +981,14 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .lv-words .lv-tjm{ color:#a0601a !important; }
 .bk-sum .sm-g small.sm-tj{ color:#a0601a; }
 .bk-sum .sm-b .sm-tjb{ background:#fff3e2; border-color:#f0cfae; color:#a0601a; }
+
+/* phones, the top bar (lower): ☰ the surahs on the reading side · what is shown in the middle · the page on the other side */
+.bk-hamb{ display:none; }
+body.bk-mob .bk-bar{ min-height:44px; padding-top:max(3px, env(safe-area-inset-top)); padding-bottom:3px; gap:6px; }
+body.bk-mob .bk-bar [data-bk=surahSel], body.bk-mob .bk-bar .bk-back{ display:none; }
+body.bk-mob .bk-hamb{ display:flex; order:0; position:relative; flex:none; width:38px; height:34px; align-items:center; justify-content:center;
+  border-radius:10px; border:1px solid rgba(200,155,60,.5); background:var(--night); color:var(--gold-soft); cursor:pointer; }
+body.bk-mob .bk-hamb .bk-mover{ position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:16px; }
+body.bk-mob .bk-bar .bk-viewbtn{ order:1; flex:1 1 auto; width:auto; max-width:none; height:34px; font-size:.95rem; border-radius:10px; }
+body.bk-mob .bk-bar .bk-tabs{ order:1; }
+body.bk-mob .bk-bar select.bk-mpg{ order:2; height:34px; border-radius:10px; font-size:.85rem; min-width:84px; margin-inline-start:auto; }

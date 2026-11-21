@@ -719,6 +719,28 @@
       pg.innerHTML = po.join(''); pg.value = String(cur);
       pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
+      // phones: the surah list behind a menu button (☰) on the reading side, as in Mushaf apps — the bar stays low and
+      // keeps the middle for what is shown (Mushaf, tajweed, tafsir…) and the other side for the page. The list's first
+      // line goes back to the site's home page (the back link has no room of its own)
+      var sSel = q('surahSel');
+      if (bar && sSel) {
+        var HB = { ar: ['السور', 'الصفحة الرئيسية'], ur: ['سورتیں', 'سرورق'], en: ['Surahs', 'Home page'], fr: ['Sourates', 'Accueil'],
+                   es: ['Suras', 'Inicio'], ru: ['Суры', 'Главная'] }[C.lang] || ['Surahs', 'Home page'];
+        var hb = document.createElement('label'); hb.className = 'bk-hamb'; hb.title = HB[0];
+        hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
+        var hs = document.createElement('select'); hs.className = 'bk-mover'; hs.setAttribute('aria-label', HB[0]);
+        var hfill = function () {
+          hs.innerHTML = '<option value="home">⌂ ' + esc(HB[1]) + '</option>' + sSel.innerHTML;
+          hs.value = sSel.value;
+        };
+        hs.addEventListener('pointerdown', hfill); hs.addEventListener('focus', hfill);
+        hs.onchange = function () {
+          if (hs.value === 'home') { var bk = document.querySelector('.bk-back'); location.href = bk ? bk.getAttribute('href') : '/'; return; }
+          sSel.value = hs.value; sSel.dispatchEvent(new Event('change'));
+        };
+        hfill(); hb.appendChild(hs);
+        bar.insertBefore(hb, bar.firstChild);
+      }
 
       // a select laid invisibly over a bar button: a tap opens the phone's own list (works on iPhone too)
       function overSel(src) {
