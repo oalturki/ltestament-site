@@ -2545,8 +2545,14 @@
             });
             var f0 = locs.map(function (l) { return l.split(':').map(Number); }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; })[0];
             var pg = pageOf(f0[0], f0[1]);
-            if (pg && pg !== cur) show(pg, 1);
-            setTimeout(function () { if (root.__liveToggle) root.__liveToggle(); }, pg && pg !== cur ? 600 : 50);
+            if (pg && pg !== cur) show(pg, pg < cur ? -1 : 1);
+            // listening starts only once that page is really in front (the page turn takes a moment): the check
+            // follows the page shown, so starting earlier would listen for the page left behind
+            var tries = 0, go = function () {
+              if ((pg && cur !== pg && visible().indexOf(pg) < 0) || busy) { if (++tries < 40) return setTimeout(go, 100); }
+              setTimeout(function () { if (root.__liveToggle) root.__liveToggle(); }, 150);
+            };
+            setTimeout(go, 50);
           };
           var eb = bx.querySelector('.sm-e'); if (eb) eb.onclick = function () { errSheet(errL); };
         };
