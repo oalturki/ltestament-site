@@ -15,7 +15,8 @@
      onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'error' | 'waking'
      say(p, w) -> Promise                         // optional: the reciter says the word (the engine stops listening meanwhile)
    });
-   L.start(); L.stop(); L.setParts(parts) (a new passage, keeps the microphone) */
+   L.start(); L.stop(); L.setParts(parts) (a new passage, keeps the microphone)
+   With o.input = {rate} it hears a recording instead: L.feed(float32 block) (the test-set measure, /record/eval/) */
 (function () {
   var MARK = /^[ۖ-ۭ]+$/;
   var texts = {};
@@ -211,6 +212,7 @@
 
     function start() {
       if (R) return;
+      if (o.input) { begin(o.input.rate); return; }        // a recording fed by the page (L.feed), not the microphone
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { o.onState('error', 'no microphone'); return; }
       warm(API);
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -220,44 +222,46 @@
       o.onState('mic');
       getMic().then(function (stream) {
         var src = actx.createMediaStreamSource(stream), node = actx.createScriptProcessor(4096, 1, 1);
-        R = { node: node, src: src, rate: actx.sampleRate, seg: [], pre: [], speaking: false, quiet: 0, segLen: 0,
-              noise: 0.004, lvl: 0, busy: false, queue: [], fresh: false, mute: false, tick: 0 };
-        LiveRecite.active = true;
-        var blk = 4096 / actx.sampleRate;
-        node.onaudioprocess = R.proc = function (ev) {
-          if (!R) return;
-          R.lastT = Date.now();
-          var x = new Float32Array(ev.inputBuffer.getChannelData(0));
-          if (R.mute) x.fill(0);
-          var e = 0; for (var i = 0; i < x.length; i++) e += x[i] * x[i];
-          var rms = Math.sqrt(e / x.length), thr = Math.max(0.01, R.noise * 3.2);
-          R.lvl = R.lvl * 0.6 + Math.min(1, rms / 0.12) * 0.4; o.onLevel(R.lvl);
-          if (!R.speaking) {
-            R.noise = R.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
-            R.pre.push(x); if (R.pre.length > 4) R.pre.shift();
-            if (rms > thr && !R.mute) {
-              R.speaking = true; R.seg = R.pre.slice(); R.pre = []; R.quiet = 0; R.segLen = R.seg.length * blk;
-              R.seg.sid = Math.random().toString(36).slice(2) + Date.now().toString(36); R.seg.sent = 0;
-            }
-            return;
-          }
-          R.seg.push(x); R.segLen += blk;
-          R.quiet = rms > thr ? 0 : R.quiet + blk;
-          if (R.quiet >= 0.75 || R.segLen >= 22) {
-            R.queue.push(R.seg); R.seg = []; R.speaking = false; R.quiet = 0; R.segLen = 0; R.fresh = false;
-            pump(); return;
-          }
-          R.tick += blk;
-          if (R.tick >= 0.9) { R.tick = 0; R.fresh = true; pump(); }
-        };
-        src.connect(node); node.connect(actx.destination);
-        o.onState('listening'); cursor();
+        begin(actx.sampleRate, src, node);
       }).catch(function () { o.onState('denied'); });
+    }
+    function begin(rate, src, node) {
+      R = { node: node, src: src, rate: rate, seg: [], pre: [], speaking: false, quiet: 0, segLen: 0, input: !src,
+            noise: 0.004, lvl: 0, busy: false, queue: [], fresh: false, mute: false, tick: 0 };
+      LiveRecite.active = true;
+      R.proc = function (ev) {
+        if (!R) return;
+        R.lastT = Date.now();
+        var x = new Float32Array(ev.inputBuffer.getChannelData(0)), blk = x.length / R.rate;
+        if (R.mute) x.fill(0);
+        var e = 0; for (var i = 0; i < x.length; i++) e += x[i] * x[i];
+        var rms = Math.sqrt(e / x.length), thr = Math.max(0.01, R.noise * 3.2);
+        R.lvl = R.lvl * 0.6 + Math.min(1, rms / 0.12) * 0.4; o.onLevel(R.lvl);
+        if (!R.speaking) {
+          R.noise = R.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
+          R.pre.push(x); if (R.pre.length > 4) R.pre.shift();
+          if (rms > thr && !R.mute) {
+            R.speaking = true; R.seg = R.pre.slice(); R.pre = []; R.quiet = 0; R.segLen = R.seg.length * blk;
+            R.seg.sid = Math.random().toString(36).slice(2) + Date.now().toString(36); R.seg.sent = 0;
+          }
+          return;
+        }
+        R.seg.push(x); R.segLen += blk;
+        R.quiet = rms > thr ? 0 : R.quiet + blk;
+        if (R.quiet >= 0.75 || R.segLen >= 22) {
+          R.queue.push(R.seg); R.seg = []; R.speaking = false; R.quiet = 0; R.segLen = 0; R.fresh = false;
+          pump(); return;
+        }
+        R.tick += blk;
+        if (R.tick >= 0.9) { R.tick = 0; R.fresh = true; pump(); }
+      };
+      if (node) { node.onaudioprocess = R.proc; src.connect(node); node.connect(actx.destination); }
+      o.onState('listening'); cursor();
     }
     // back on the page after another app or tab: the phone may have cut the microphone off meanwhile (the session goes
     // on, nothing heard) — open it again and join it to the same listening
     function rehook(force) {
-      if (!R) return;
+      if (!R || R.input) return;
       var r0 = R;
       if (document.hidden) { try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {} r0.seg = []; r0.speaking = false; return; }
       if (actx && actx.state !== 'running') actx.resume();
@@ -276,7 +280,7 @@
     window.addEventListener('pageshow', function () { rehook(); });
     // and if no sound at all reaches the page for three seconds while it is shown, the same
     setInterval(function () {
-      if (R && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
+      if (R && !R.input && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
     }, 1500);
     function stop(release) {
       if (!R) { if (release) dropMic(); return; }
@@ -296,6 +300,8 @@
     }
     return {
       start: start, stop: stop, warm: function () { warm(API); },
+      // a recording instead of the microphone (o.input = {rate}): the page gives it block by block, at its own pace
+      feed: function (x) { if (R && R.input) R.proc({ inputBuffer: { getChannelData: function () { return x; } } }); },
       setParts: function (list) {
         loadParts(list); if (R) cursor();
         // a passage gone back to: its words recited so far are shown again as they were (the page drew them anew)

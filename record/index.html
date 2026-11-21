@@ -12,52 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri+Quran&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/feedback.css">
-<style>
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{ font-family:'Tajawal',sans-serif; line-height:1.7; background:#0A1425; }
-  .fb-page{ padding-top:56px; }
-  .rc-card{ background:rgba(255,255,255,.04); border:1px solid rgba(200,155,60,.25); border-top:3px solid #C89B3C; padding:22px 20px; border-radius:2px; }
-  .rc-h{ color:#F3E8D0; font-size:1.3rem; margin-bottom:12px; } .rc-h small{ color:#C9C2AE; font-size:.85rem; font-weight:400; }
-  .rc-muted{ color:#a89f83; font-size:.9rem; margin:8px 0; } .rc-ok{ color:#9fe3c0; font-weight:700; margin:10px 0; }
-  .rc-btn{ display:inline-block; text-decoration:none; }
-  .rc-link{ background:none; border:0; color:#DCC078; font:inherit; cursor:pointer; padding:6px 0; text-decoration:underline; text-underline-offset:3px; }
-  .rc-danger{ color:#F2B8B0; }
-  .rc-profs{ display:flex; flex-wrap:wrap; gap:10px; margin:6px 0 10px; }
-  .rc-prof{ font:inherit; font-size:1.05rem; padding:10px 18px; border-radius:22px; border:1px solid rgba(200,155,60,.5); background:#0F1B33; color:#EFE6D8; cursor:pointer; }
-  .rc-prof.on{ border-color:#DCC078; box-shadow:0 0 0 2px rgba(220,192,120,.35); }
-  .rc-opts{ display:flex; flex-wrap:wrap; gap:8px 18px; color:#EFE6D8; }
-  .rc-opt{ display:flex; gap:6px; align-items:center; cursor:pointer; } .rc-opt input{ accent-color:#C89B3C; width:17px; height:17px; }
-  .rc-card input:not([type=checkbox]):not([type=radio]){ width:100%; background:rgba(255,255,255,.06); border:1px solid rgba(200,155,60,.3); border-radius:4px; color:#F3E8D0; padding:11px 13px; font:inherit; font-size:16px; }
-  .rc-consent{ margin-top:20px; padding:14px 16px; background:rgba(0,0,0,.2); border-inline-start:3px solid #C89B3C; color:#D9D1BC; font-size:.95rem; }
-  .rc-consent p{ margin:6px 0; }
-  .rc-prog{ height:8px; background:rgba(255,255,255,.08); border-radius:4px; overflow:hidden; margin:4px 0; }
-  .rc-prog div{ height:100%; background:#C89B3C; }
-  .rc-groups{ margin-top:18px; display:grid; gap:12px; }
-  .rc-g b{ color:#DCC078; display:block; margin-bottom:4px; }
-  .rc-g div{ display:flex; flex-wrap:wrap; gap:6px; }
-  .rc-t{ font:inherit; font-size:.85rem; padding:4px 10px; border-radius:14px; border:1px solid rgba(200,155,60,.35); background:transparent; color:#C9C2AE; cursor:pointer; }
-  .rc-t.done{ color:#9fe3c0; border-color:rgba(159,227,192,.45); }
-  .rc-foot{ margin-top:22px; color:#a89f83; font-size:.9rem; }
-  .rc-kind{ font-size:.8rem; color:#101b33; background:#DCC078; border-radius:10px; padding:1px 10px; vertical-align:middle; font-weight:700; }
-  .rc-kind.k-clean{ background:#9fe3c0; }
-  .rc-ins{ color:#F3E8D0; font-size:1.1rem; font-weight:700; background:rgba(200,155,60,.12); padding:10px 14px; border-radius:4px; margin:6px 0 4px; }
-  .rc-text{ font-family:'Amiri Quran','Amiri',serif; font-size:1.6rem; line-height:2.6; color:#EFE6D8; text-align:justify; margin:14px 0 18px; }
-  .rc-n{ color:#DCC078; font-size:.75em; }
-  .rc-w.tgt{ background:rgba(242,184,176,.22); outline:1px solid #F2B8B0; border-radius:6px; padding:0 3px; color:#FFE3DD; }
-  .rc-a.tgt-ayah{ text-decoration:line-through; text-decoration-color:#F2B8B0; opacity:.6; }
-  .rc-a.tgt-repeat, .rc-a.tgt-restart, .rc-a.tgt-other{ background:rgba(220,192,120,.12); border-radius:6px; }
-  .rc-rec{ text-align:center; margin-top:8px; }
-  .rc-mic{ font:inherit; font-size:1.15rem; font-weight:700; padding:14px 34px; border-radius:30px; border:0; background:#C89B3C; color:#0A1425; cursor:pointer; }
-  .rc-mic.stop{ background:#F2B8B0; }
-  .rc-live{ display:flex; align-items:center; justify-content:center; gap:10px; color:#F3E8D0; margin-bottom:12px; font-size:1.1rem; }
-  .rc-dot{ width:12px; height:12px; border-radius:50%; background:#e5534b; animation:rcB 1s infinite alternate; }
-  @keyframes rcB{ from{ opacity:.3; } to{ opacity:1; } }
-  .rc-lvl{ width:120px; height:8px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden; }
-  .rc-lvl div{ height:100%; width:0; background:#9fe3c0; transition:width .1s; }
-  .rc-audio{ width:100%; margin:6px 0; }
-  .rc-rec .fb-label{ text-align:start; } .rc-rec .rc-opts{ justify-content:flex-start; }
-  .rc-actions{ display:flex; gap:16px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
-</style>
+<link rel="stylesheet" href="/css/record.css?v=1">
 </head>
 <body>
 <main class="fb-page">
