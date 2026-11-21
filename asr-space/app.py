@@ -739,8 +739,8 @@ def tajweed_status():
 
 
 @app.post("/tajweed")
-def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = Form(...), lang: str = Form("ar")):
-    """one verse (or the passage of it said), at most 30 s: word by word, what in the saying was off"""
+def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = Form(...), to: int = Form(None), lang: str = Form("ar")):
+    """a verse or a few following ones (ayah..to), said whole, at most 30 s: word by word, what in the saying was off"""
     import time
     t0 = time.time()
     inf, im = tajweed_engine()
@@ -751,7 +751,7 @@ def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = F
     if wav is None: wav = decode_audio(raw)
     if len(wav) / SR > 30: raise HTTPException(413, "audio too long (30 s at most)")
     try:
-        return _tajweed_run(inf, im, wav, surah, ayah, lang, t0)
+        return _tajweed_run(inf, im, wav, surah, ayah, to or ayah, lang, t0)
     except HTTPException:
         raise
     except Exception as e:
@@ -759,14 +759,17 @@ def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = F
         raise HTTPException(500, f"tajweed: {type(e).__name__}: {e} | " + traceback.format_exc()[-700:])
 
 
-def _tajweed_run(inf, im, wav, surah, ayah, lang, t0):
+def _tajweed_run(inf, im, wav, surah, ayah, to, lang, t0):
     import time
     from quran_transcript import Aya
-    words = Aya(surah, ayah).get().uthmani.split()
+    if not (1 <= surah <= 114 and 1 <= ayah <= to <= len(QURAN[str(surah)]) and to - ayah < 10): raise HTTPException(400, "ayah range")
+    words, counts = [], []
+    for a in range(ayah, to + 1):
+        ws = Aya(surah, a).get().uthmani.split(); words += ws; counts.append(len(ws))
     out = inf.hear(wav.astype(np.float32), riwaya="hafs")
     heard, prob, times = (list(out) + [None, None])[:3] if isinstance(out, (tuple, list)) else (out, None, None)
     ref = im.recited(words, heard, riwaya="hafs")
     lg = lang if lang in ("ar", "en", "fr") else "en"
     res = [_plain(r) for r in im.listen(ref, heard, heard_probs=prob, heard_times=times, min_prob=0.3, min_prob_jali=0.7, langs=(lg,))]
-    return {"surah": surah, "ayah": ayah, "n_words": len(words), "words": res, "heard": _plain(heard) if isinstance(heard, str) else str(type(heard)),
+    return {"surah": surah, "ayah": ayah, "to": to, "counts": counts, "words": res, "heard": _plain(heard) if isinstance(heard, str) else str(type(heard)),
             "hear_out": len(out) if isinstance(out, (tuple, list)) else 1, "ms": int((time.time() - t0) * 1000)}
