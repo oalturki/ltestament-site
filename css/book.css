@@ -1068,3 +1068,14 @@ body.bk-mob .bk-mnav .bk-nav{ background:rgba(138,106,30,.08) !important; border
 body.bk-mob .bk-mletters small{ color:#97835a; }
 body.bk-mob .bk-mstrip{ background:rgba(251,246,236,.97) !important; color:#5a4513 !important; border:0 !important; box-shadow:0 2px 10px rgba(60,45,15,.15); }
 body.bk-mob .bk-mstrip b{ color:#8a6a1e !important; }
+
+/* phones, reading: the bottom bar — ‹ · time · ▶ (smaller, in the middle) · letters · › */
+body.bk-mob .bk-mnav{ display:flex !important; justify-content:space-between; align-items:center; }
+body.bk-mob:not(.bk-memo) .bk-mnav .bk-mplay .bk-play{ width:46px !important; height:46px !important; margin-top:0 !important; box-shadow:0 2px 8px rgba(120,90,20,.25) !important; border:0 !important; }
+body.bk-mob:not(.bk-memo) .bk-mnav .bk-mplay .bk-play svg{ width:18px; height:18px; }
+.bk-mtime{ display:none; }
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mtime:not(:empty){ display:flex; flex-direction:column; align-items:center; justify-content:center; color:#6d5216; line-height:1.1; min-width:56px; }
+.bk-mtime b{ font-size:1rem; font-variant-numeric:tabular-nums; } .bk-mtime small{ font-size:.68rem; color:#97835a; }
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mtime{ order:1; }
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mplay{ order:2; }
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters{ order:3; min-width:56px; }

@@ -588,6 +588,28 @@
       if (root.__placeShow) root.__placeShow();
     }
     window.addEventListener('lt-read', function () { sessShow(true); });
+    // time with the Mushaf open: counted each second while the page is shown and the reader is with it (a touch, a
+    // turn, a scroll, the audio or the microphone in the last 10 minutes); added to the day's reading every 15 s
+    // (ReadStats.time), and shown in the bottom bar beside the letters
+    var tUnsaved = 0, tLast = Date.now(), TIDLE = 10 * 60 * 1000;
+    ['pointerdown', 'keydown', 'wheel', 'touchmove'].forEach(function (ev) { window.addEventListener(ev, function () { tLast = Date.now(); }, { passive: true }); });
+    window.addEventListener('lt-read', function () { tLast = Date.now(); });
+    var tFmt = function (sec) {
+      var h = Math.floor(sec / 3600), m = Math.floor(sec / 60) % 60, s2 = sec % 60, p2 = function (n) { return ('0' + n).slice(-2); };
+      var t = (h ? h + ':' + p2(m) : m) + ':' + p2(s2);
+      return C.lang === 'ar' ? t.replace(/[0-9]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; }) : t;
+    };
+    var tFlush = function () { var RS = window.ReadStats; if (RS && RS.time && tUnsaved > 0 && !embed) { RS.time(tUnsaved); tUnsaved = 0; } };
+    setInterval(function () {
+      var busy = (window.__bkLive && window.__bkLive.running) || (q('play') && q('play').classList.contains('on'));
+      if (document.hidden || embed || (!busy && Date.now() - tLast > TIDLE)) return;
+      tUnsaved++;
+      if (tUnsaved >= 15) tFlush();
+      var el = document.querySelector('.bk-mtime'), RS = window.ReadStats;
+      if (el) el.innerHTML = '<b>' + tFmt(((RS && RS.session().secs) || 0) + tUnsaved) + '</b><small>' + ({ ar: 'الوقت', ur: 'وقت', en: 'time', fr: 'temps', es: 'tiempo', ru: 'время' }[C.lang] || 'time') + '</small>';
+    }, 1000);
+    document.addEventListener('visibilitychange', function () { if (document.hidden) tFlush(); });
+    window.addEventListener('pagehide', tFlush);
     // phones: just under the frame's bottom line, on the left
     root.__sessPlace = function (r) {
       if (sessEl.parentNode !== document.body) return;
@@ -845,6 +867,7 @@
                  eye: '<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7a13 13 0 0 1-3.2 4.3M6.6 6.6C4.4 8 2.8 10.2 2 12c1 2.5 5 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/>' };
       var playSlot = document.createElement('div'); playSlot.className = 'bk-mplay'; nav.appendChild(playSlot);
       var lettersEl = document.createElement('div'); lettersEl.className = 'bk-mletters'; lettersEl.hidden = true; nav.appendChild(lettersEl);
+      var timeEl = document.createElement('div'); timeEl.className = 'bk-mtime'; nav.appendChild(timeEl);
       // three modes, chosen from the mode button (a list) or the settings: reading (listening), memorization
       // (repetition, hiding), recitation (the microphone). Each shows its own buttons and its own line of choices.
       var MDL = { ar: ['تلاوة', 'تحفيظ', 'تسميع', 'الوضع'], ur: ['تلاوت', 'حفظ', 'تسمیع', 'انداز'], en: ['Reading', 'Memorizing', 'Reciting', 'Mode'],

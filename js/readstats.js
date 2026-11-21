@@ -12,7 +12,10 @@
    Words and letters per page: data/page-stats.json; per ayah: data/text-simple/<surah>.json (written letters,
    without harakat — tools/build_page_stats.py counts the same way).
 
-   ReadStats.mark(page) / .ayah(s, a, kind) / .word(text, page, kind)    count
+   Time: the minutes the Mushaf was open in front of the reader (ReadStats.time(seconds), the page counting while shown),
+   kept with the day's reading (fourth figure; the account's column reading_stats.seconds).
+
+   ReadStats.mark(page) / .ayah(s, a, kind) / .word(text, page, kind) / .time(seconds)    count
    ReadStats.session()                  {pages, words, letters} of this session
    ReadStats.sum(profileId?)            -> Promise<{day, week, month, year}> each {pages, words, letters, by:{read, listen, recite}}
    ReadStats.sumMany([ids])             -> Promise<{id: {...}}> (one query, for the account page)
@@ -61,8 +64,8 @@
   // the family account: additions waiting to be saved, added to the day's row by add_reading
   var pend = {}, timer = null;
   function addTo(map, k, id, d, kind, v) {
-    var q = map[k] || (map[k] = { id: id, d: d, kind: kind, v: [0, 0, 0] });
-    q.v[0] += v[0]; q.v[1] += v[1]; q.v[2] += v[2];
+    var q = map[k] || (map[k] = { id: id, d: d, kind: kind, v: [0, 0, 0, 0] });
+    q.v[0] += v[0]; q.v[1] += v[1]; q.v[2] += v[2]; q.v[3] = (q.v[3] || 0) + (v[3] || 0);
   }
   function push() {
     timer = null;
@@ -73,7 +76,7 @@
       if (!c) return;
       Object.keys(jobs).forEach(function (k) {
         var j = jobs[k];
-        c.rpc('add_reading', { p_profile: j.id, p_d: j.d, p_kind: j.kind, p_pages: Math.round(j.v[0] * 100) / 100, p_words: Math.round(j.v[1]), p_letters: Math.round(j.v[2]) })
+        c.rpc('add_reading', { p_profile: j.id, p_d: j.d, p_kind: j.kind, p_pages: Math.round(j.v[0] * 100) / 100, p_words: Math.round(j.v[1]), p_letters: Math.round(j.v[2]), p_seconds: Math.round(j.v[3] || 0) })
           .then(function (r) { if (r.error) throw r.error; })
           .catch(function () { addTo(pend, k, j.id, j.d, j.kind, j.v); if (!timer) timer = setTimeout(push, 30000); });   // keep it for the next try
       });
@@ -84,25 +87,26 @@
   var SK = 'lt_read_sess', GAP = 30 * 60 * 1000;
   function sessGet() {
     var o = null; try { o = JSON.parse(sessionStorage.getItem(SK) || 'null'); } catch (e) {}
-    if (!o || Date.now() - (o.t || 0) > GAP) o = { pages: 0, words: 0, letters: 0, t: Date.now() };
+    if (!o || Date.now() - (o.t || 0) > GAP) o = { pages: 0, words: 0, letters: 0, secs: 0, t: Date.now() };
     return o;
   }
-  function session() { var o = sessGet(); return { pages: o.pages, words: o.words, letters: o.letters }; }
+  function session() { var o = sessGet(); return { pages: o.pages, words: o.words, letters: o.letters, secs: o.secs || 0 }; }
 
   // add [pages, words, letters] of one source: to this device's day, the account, and the session
   var flashT = null;
   function add(kind, v) {
-    if (!(v[2] > 0 || v[0] > 0)) return;
+    if (!(v[2] > 0 || v[0] > 0 || v[3] > 0)) return;
     var p = prof(), id = p && p.id, d = today(), log = local(id);
-    var day = log[d] || (log[d] = {}), x = day[kind] || (day[kind] = [0, 0, 0]);
-    x[0] = Math.round((x[0] + v[0]) * 100) / 100; x[1] += v[1]; x[2] += v[2];
+    var day = log[d] || (log[d] = {}), x = day[kind] || (day[kind] = [0, 0, 0, 0]);
+    x[0] = Math.round((x[0] + v[0]) * 100) / 100; x[1] += v[1]; x[2] += v[2]; x[3] = (x[3] || 0) + (v[3] || 0);
     var cut = daysAgo(400);
     Object.keys(log).forEach(function (k) { if (k < cut) delete log[k]; });
     store(key(id), JSON.stringify(log));
     if (id) { addTo(pend, id + d + kind, id, d, kind, v); if (!timer) timer = setTimeout(push, 5000); }
     var o = sessGet();
-    o.pages = Math.round((o.pages + v[0]) * 100) / 100; o.words += v[1]; o.letters += v[2]; o.t = Date.now();
+    o.pages = Math.round((o.pages + v[0]) * 100) / 100; o.words += v[1]; o.letters += v[2]; o.secs = (o.secs || 0) + (v[3] || 0); o.t = Date.now();
     try { sessionStorage.setItem(SK, JSON.stringify(o)); } catch (e) {}
+    if (!(v[2] > 0 || v[0] > 0)) return;                 // time alone: no event (the page shows its own clock)
     // one event for a burst of words (recitation), so the counter on the page updates once
     clearTimeout(flashT);
     flashT = setTimeout(function () {
@@ -122,6 +126,8 @@
     page = +page; if (!(page >= 1 && page <= 604)) return Promise.resolve(false);
     return pageStats().then(function (ps) { var s = ps[page - 1] || [0, 0]; add('read', [1, s[0], s[1]]); pageDone(page); return true; });
   }
+  // time with the Mushaf open (seconds), added to the day's reading
+  function time(sec) { sec = Math.round(sec); if (sec > 0 && sec <= 3600) add('read', [0, 0, 0, sec]); }
   // an ayah heard or repeated: its words and letters, and its share of its page
   function ayah(s, a, kind) {
     return Promise.all([text(s), pageMap(), pageStats()]).then(function (r) {
@@ -143,13 +149,13 @@
   // days -> the four periods, each with its sources
   function periods(days) {
     var t = today(), w = daysAgo(6), m = daysAgo(29), y = daysAgo(364);
-    var z = function () { return { pages: 0, words: 0, letters: 0, by: { read: 0, listen: 0, recite: 0 } }; };
+    var z = function () { return { pages: 0, words: 0, letters: 0, secs: 0, by: { read: 0, listen: 0, recite: 0 } }; };
     var out = { day: z(), week: z(), month: z(), year: z() };
     Object.keys(days).forEach(function (d) {
       if (d < y || !days[d] || Array.isArray(days[d])) return;
       KINDS.forEach(function (k) {
         var v = days[d][k]; if (!v) return;
-        var addv = function (o) { o.pages += v[0]; o.words += v[1]; o.letters += v[2]; o.by[k] += v[2]; };
+        var addv = function (o) { o.pages += v[0]; o.words += v[1]; o.letters += v[2]; o.secs += v[3] || 0; o.by[k] += v[2]; };
         addv(out.year);
         if (d >= m) addv(out.month);
         if (d >= w) addv(out.week);
@@ -164,8 +170,8 @@
     var o = JSON.parse(JSON.stringify(rem));
     Object.keys(pend).forEach(function (k) {
       var j = pend[k]; if (j.id !== id) return;
-      var day = o[j.d] || (o[j.d] = {}), x = day[j.kind] || (day[j.kind] = [0, 0, 0]);
-      x[0] += j.v[0]; x[1] += j.v[1]; x[2] += j.v[2];
+      var day = o[j.d] || (o[j.d] = {}), x = day[j.kind] || (day[j.kind] = [0, 0, 0, 0]);
+      x[0] += j.v[0]; x[1] += j.v[1]; x[2] += j.v[2]; x[3] = (x[3] || 0) + (j.v[3] || 0);
     });
     return o;
   }
@@ -174,13 +180,13 @@
     if (!ids.length || !F || !F.ready) return Promise.resolve(null);
     return F.ready().then(function (c) {
       if (!c) return null;
-      return c.from('reading_stats').select('profile_id,d,kind,pages,words,letters').in('profile_id', ids).gte('d', daysAgo(364)).then(function (r) {
+      return c.from('reading_stats').select('profile_id,d,kind,pages,words,letters,seconds').in('profile_id', ids).gte('d', daysAgo(364)).then(function (r) {
         if (r.error) return null;
         var by = {};
         ids.forEach(function (i) { by[i] = {}; });
         (r.data || []).forEach(function (x) {
           var p = by[x.profile_id] || (by[x.profile_id] = {}), day = p[x.d] || (p[x.d] = {});
-          day[x.kind] = [+x.pages || 0, x.words || 0, x.letters || 0];
+          day[x.kind] = [+x.pages || 0, x.words || 0, x.letters || 0, x.seconds || 0];
         });
         return by;
       });
@@ -220,6 +226,14 @@
     if (lang === 'ar') s = s.replace(/[0-9]/g, function (d) { return AR[d]; }).replace(/,/g, '٬').replace(/\./g, '٫');
     return s;
   }
+  // a length of time: «٤٥ د» under an hour, «٢:١٥ س» from an hour (hours:minutes)
+  var TM = { ar: 'الوقت', en: 'time', ur: 'وقت', fr: 'temps', es: 'tiempo', ru: 'время' };
+  function dur(sec, lang) {
+    var m = Math.round(sec / 60), h = Math.floor(m / 60);
+    var t = h ? h + ':' + ('0' + (m % 60)).slice(-2) : String(m);
+    if (lang === 'ar') t = t.replace(/[0-9]/g, function (d) { return AR[d]; });
+    return t + ' ' + ({ ar: h ? 'س' : 'د', en: h ? 'h' : 'min', ur: h ? 'گھنٹے' : 'منٹ', fr: h ? 'h' : 'min', es: h ? 'h' : 'min', ru: h ? 'ч' : 'мин' }[lang] || (h ? 'h' : 'min'));
+  }
   function pgFmt(n, lang) { return fmt(n, lang, Math.abs(n - Math.round(n)) > 0.05); }
   function html(s, lang) {
     var L = T[lang] || T.en, ks = ['day', 'week', 'month', 'year'];
@@ -230,6 +244,7 @@
         var o = s[k];
         return '<div class="rs-per" data-k="' + k + '"' + (k === 'week' ? '' : ' hidden') + '><div class="rs-nums">' +
           [pgFmt(o.pages, lang), fmt(o.words, lang), fmt(o.letters, lang)].map(function (v, i) { return '<span><b>' + v + '</b><small>' + L.u[i] + '</small></span>'; }).join('') +
+          (o.secs ? '<span><b>' + dur(o.secs, lang) + '</b><small>' + (TM[lang] || TM.en) + '</small></span>' : '') +
           '</div>' + (o.letters ? '<div class="rs-by">' + KINDS.map(function (kk, i) {
             return o.by[kk] ? '<span>' + L.by[i] + ': ' + fmt(o.by[kk], lang) + ' ' + L.u[2] + '</span>' : '';
           }).join('') + '</div>' : '') + '</div>';
@@ -260,6 +275,6 @@
     if (lang === 'ar') return 'الأسبوع — الصفحات: ' + pg + ' · الأحرف: ' + fmt(w.letters, lang);
     return L.tabs[1] + ': ' + pg + ' ' + L.u[0] + ' · ' + fmt(w.letters, lang) + ' ' + L.u[2];
   }
-  window.ReadStats = { mark: mark, ayah: ayah, word: word, session: session, sum: sum, sumMany: sumMany,
-    html: html, wire: wire, line: line, sessLine: sessLine, fmt: fmt, pageStats: pageStats };
+  window.ReadStats = { mark: mark, ayah: ayah, word: word, time: time, session: session, sum: sum, sumMany: sumMany,
+    html: html, wire: wire, line: line, sessLine: sessLine, fmt: fmt, dur: dur, pageStats: pageStats };
 })();

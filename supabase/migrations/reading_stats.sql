@@ -32,3 +32,7 @@ grant execute on function public.add_reading(uuid, date, text, numeric, int, int
 -- migration "drop_reading_log": the first version (pages only, table reading_log) removed after its one day of
 -- rows (2026-11-20, 3 pages) was carried into reading_stats as 'read'.
 -- drop table public.reading_log;
+
+-- migration "reading_stats_seconds": the time with the Mushaf open, by day and source (ReadStats.time)
+-- alter table public.reading_stats add column seconds int not null default 0 check (seconds >= 0);
+-- add_reading(p_profile, p_d, p_kind, p_pages, p_words, p_letters, p_seconds int default 0): seconds capped at 3600 a call
