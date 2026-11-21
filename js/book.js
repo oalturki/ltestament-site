@@ -719,32 +719,69 @@
       pg.innerHTML = po.join(''); pg.value = String(cur);
       pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
-      // phones: the surah list behind a menu button (☰) on the reading side, as in Mushaf apps — the bar stays low and
-      // keeps the middle for what is shown (Mushaf, tajweed, tafsir…) and the other side for the page. The list's first
-      // line goes back to the site's home page (the back link has no room of its own)
+      // phones: ☰ on the reading side opens the index (as in Mushaf apps): the surahs, the juz and the hizb quarters,
+      // each with the page it begins on, the one being read marked. The bar stays low: what is shown in the middle,
+      // the page on the other side
       var sSel = q('surahSel');
       if (bar && sSel) {
-        var HB = { ar: ['السور', 'الصفحة الرئيسية'], ur: ['سورتیں', 'سرورق'], en: ['Surahs', 'Home page'], fr: ['Sourates', 'Accueil'],
-                   es: ['Suras', 'Inicio'], ru: ['Суры', 'Главная'] }[C.lang] || ['Surahs', 'Home page'];
-        var hb = document.createElement('label'); hb.className = 'bk-hamb'; hb.title = HB[0];
+        var HB = { ar: ['الفهرس', 'الصفحة الرئيسية', 'السورة', 'الجزء', 'الحزب', 'آية', 'آيات', 'مكية', 'مدنية', 'الحزب', 'ربع', 'نصف', 'ثلاثة أرباع'],
+                   ur: ['فہرست', 'سرورق', 'سورت', 'پارہ', 'حزب', 'آیت', 'آیات', 'مکی', 'مدنی', 'حزب', 'ربع', 'نصف', 'تین ربع'],
+                   en: ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾'],
+                   fr: ['Sommaire', 'Accueil', 'Sourate', 'Juz', 'Hizb', 'verset', 'versets', 'mecquoise', 'médinoise', 'Hizb', '¼', '½', '¾'],
+                   es: ['Índice', 'Inicio', 'Sura', 'Yuz', 'Hizb', 'aleya', 'aleyas', 'mequí', 'mediní', 'Hizb', '¼', '½', '¾'],
+                   ru: ['Оглавление', 'Главная', 'Сура', 'Джуз', 'Хизб', 'аят', 'аятов', 'мекканская', 'мединская', 'Хизб', '¼', '½', '¾'] }[C.lang] || null;
+        HB = HB || ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾'];
+        var hb = document.createElement('button'); hb.type = 'button'; hb.className = 'bk-hamb'; hb.title = HB[0]; hb.setAttribute('aria-label', HB[0]);
         hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
-        var hs = document.createElement('select'); hs.className = 'bk-mover'; hs.setAttribute('aria-label', HB[0]);
-        var JZ = { ar: 'الأجزاء', ur: 'پارے', en: 'Juz', fr: 'Juz', es: 'Yuz', ru: 'Джузы' }[C.lang] || 'Juz';
-        var jFirst = [];
-        if (MAP && MAP.juz) MAP.juz.forEach(function (j, i) { if (!jFirst[j - 1]) jFirst[j - 1] = i + 1; });
-        var hfill = function () {
-          hs.innerHTML = '<option value="home">⌂ ' + esc(HB[1]) + '</option><optgroup label="' + esc(HB[0]) + '">' + sSel.innerHTML + '</optgroup>' +
-            (jFirst.length ? '<optgroup label="' + esc(JZ) + '">' + jFirst.map(function (p, i) { return '<option value="j' + p + '">' + esc(L.juz) + ' ' + uiNum(i + 1) + '</option>'; }).join('') + '</optgroup>' : '');
-          hs.value = sSel.value;
-        };
-        hs.addEventListener('pointerdown', hfill); hs.addEventListener('focus', hfill);
-        hs.onchange = function () {
-          if (hs.value === 'home') { var bk = document.querySelector('.bk-back'); location.href = bk ? bk.getAttribute('href') : '/'; return; }
-          if (hs.value.charAt(0) === 'j') { repPicked = false; show(+hs.value.slice(1), 0); return; }
-          sSel.value = hs.value; sSel.dispatchEvent(new Event('change'));
-        };
-        hfill(); hb.appendChild(hs);
         bar.insertBefore(hb, bar.firstChild);
+        var IDX = null, idxTab = 'surah';
+        var idxOpen = function () {
+          (IDX ? Promise.resolve(IDX) : getJSON(BASE + '/data/quran-index.json').then(function (d) { IDX = d; return d; })).then(function (d) {
+            var ov = document.createElement('div'); ov.className = 'bk-idx';
+            var nm = Array.prototype.map.call(sSel.options, function (o) { return o.text.replace(/^[\d٠-٩]+\s*/, ''); });
+            var here = MAP.pages[cur - 1][0], hereJ = MAP.juz[cur - 1];
+            var jFirst = []; MAP.juz.forEach(function (j, i) { if (!jFirst[j - 1]) jFirst[j - 1] = i + 1; });
+            var row = function (go, no, on, title, sub, page) {
+              return '<button type="button" class="bk-ixrow' + (on ? ' on' : '') + '" data-go="' + go + '"><span class="bk-ixno">' + uiNum(no) + '</span>' +
+                '<span class="bk-ixt"><b>' + esc(title) + '</b><small>' + esc(sub) + '</small></span><span class="bk-ixpg">' + uiNum(page) + '</span></button>';
+            };
+            var lists = {
+              surah: d.surahs.map(function (x, i) {
+                return row(x[2], i + 1, i + 1 === here, nm[i] || '', uiNum(x[0]) + ' ' + (x[0] > 10 || C.lang !== 'ar' ? HB[5] : HB[6]) + ' · ' + (x[1] ? HB[7] : HB[8]), x[2]);
+              }).join(''),
+              juz: jFirst.map(function (p, i) {
+                var r = MAP.pages[p - 1]; return row(p, i + 1, i + 1 === hereJ, HB[3] + ' ' + uiNum(i + 1), (nm[r[0] - 1] || '') + ' ' + uiNum(r[1]), p);
+              }).join(''),
+              hizb: d.rub.map(function (x, i) {
+                var qn = i % 4, hz = Math.floor(i / 4) + 1;
+                var t = qn === 0 ? HB[9] + ' ' + uiNum(hz) : HB[9 + qn] + ' ' + HB[9] + ' ' + uiNum(hz);
+                var onq = cur >= x[2] && (i + 1 >= d.rub.length || cur < d.rub[i + 1][2]);
+                return row(x[2], hz, onq, t, (nm[x[0] - 1] || '') + ' ' + uiNum(x[1]), x[2]).replace('bk-ixrow', 'bk-ixrow' + (qn ? ' bk-ixq' : ''));
+              }).join('')
+            };
+            ov.innerHTML = '<div class="bk-ixhead"><button type="button" class="bk-ixx" aria-label="' + esc(MOB[C.lang] ? MOB[C.lang].close : 'Close') + '">' + svg('<path d="M15 6l-6 6 6 6"/>') + '</button>' +
+              '<div class="bk-ixtabs" role="tablist">' + [['surah', HB[2]], ['juz', HB[3]], ['hizb', HB[4]]].map(function (t) {
+                return '<button type="button" role="tab" data-t="' + t[0] + '"' + (t[0] === idxTab ? ' class="on"' : '') + '>' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
+              '<a class="bk-ixhome" href="' + esc((document.querySelector('.bk-back') || { getAttribute: function () { return '/'; } }).getAttribute('href')) + '" title="' + esc(HB[1]) + '" aria-label="' + esc(HB[1]) + '">' +
+              svg('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>') + '</a></div><div class="bk-ixlist"></div>';
+            document.body.appendChild(ov);
+            var listEl = ov.querySelector('.bk-ixlist');
+            var fill = function () {
+              listEl.innerHTML = lists[idxTab];
+              ov.querySelectorAll('.bk-ixtabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === idxTab); });
+              var on = listEl.querySelector('.on'); if (on) listEl.scrollTop = Math.max(0, on.offsetTop - listEl.clientHeight / 3);
+            };
+            var shut = function () { ov.classList.remove('on'); setTimeout(function () { ov.remove(); }, 220); };
+            ov.querySelector('.bk-ixx').onclick = shut;
+            ov.querySelector('.bk-ixtabs').onclick = function (e) { var b = e.target.closest('button'); if (b) { idxTab = b.dataset.t; fill(); } };
+            listEl.onclick = function (e) {
+              var b = e.target.closest('.bk-ixrow'); if (!b) return;
+              shut(); repPicked = false; var to = +b.dataset.go; if (to && to !== cur) show(to, 0);
+            };
+            fill(); requestAnimationFrame(function () { ov.classList.add('on'); fill(); });
+          });
+        };
+        hb.onclick = function (e) { e.stopPropagation(); idxOpen(); };
       }
 
       // a select laid invisibly over a bar button: a tap opens the phone's own list (works on iPhone too)
