@@ -559,11 +559,12 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         # the words said in place of the missing ones: in a stretch with nothing matched, the words heard there
         gap_heard, run, said = {}, [], []
         for i, j in pairs + [(-1, -1)]:
-            if i is not None and j is not None:
+            if i == -1 or (i is not None and j is not None and sim[i][j] >= 0.5):      # a word heard right: the gap ends
                 for i2 in run: gap_heard[i2] = " ".join(said[:4])
                 run, said = [], []
-            elif j is None: run.append(i)
-            else: said.append(hyp[j])
+            else:
+                if j is None: run.append(i)
+                else: said.append(hyp[j])
         stop_at = None
         if final and tail and last + 1 < len(win): stop_at = last + 1
         for i, j in pairs:
