@@ -162,6 +162,7 @@
       pt.pos = Math.max(pt.pos, res.next);
       cursor();
       if (again && o.onOther) { o.onOther(P, pt.words[oth.k], oth.text); errs = []; }
+      if (o.tajweed && o.tajweed()) tjCollect(pt, res, pos0, again);
       if (errs.length && o.say && R) {                     // the reciter says the first word that went wrong
         R.mute = true;
         Promise.resolve(o.say(P, errs[0])).catch(noop).then(function () { setTimeout(function () { if (R) R.mute = false; }, 250); });
@@ -171,11 +172,34 @@
         if (P + 1 < parts.length) { P++; cursor(); } else { o.onDone(); }
       }
     }
+    // the tajweed Mushaf: the recitation of whole verses (from a verse's first word to its last, in one go or over a
+    // few stretches) is sent on to be heard for its tajweed; what comes back is given to the page (o.onTajweed)
+    function tjCollect(pt, res, pos0, again) {
+      var ws = res.words.filter(function (x) { return x.k >= pos0; }).sort(function (a, b) { return a.k - b.k; });
+      if (!ws.length || res.back || again || ws.some(function (x) { return x.skip; }) || !res.chunks) { pt.tj = null; return; }
+      var first = pt.words[ws[0].k], last = pt.words[ws[ws.length - 1].k];
+      if (!first || !last) { pt.tj = null; return; }
+      if (pt.tj && first.k !== pt.tj.next) pt.tj = null;
+      if (!pt.tj) { if (first.i !== 0) return; pt.tj = { a: first.ayah, chunks: [], secs: 0 }; }
+      pt.tj.chunks = pt.tj.chunks.concat(res.chunks);
+      pt.tj.secs += res.chunks.reduce(function (n, c) { return n + c.length; }, 0) / res.rate;
+      pt.tj.next = last.k + 1; pt.tj.rate = res.rate;
+      if (pt.tj.secs > 28) { pt.tj = null; return; }
+      var nx = pt.words[last.k + 1];
+      if (nx && nx.ayah === last.ayah) return;              // the verse goes on in the next stretch
+      var job = pt.tj, s = pt.s, p0 = parts.indexOf(pt); pt.tj = null;
+      var fd = new FormData();
+      fd.append('audio', wav16(job.chunks, job.rate), 'a.wav');
+      fd.append('surah', s); fd.append('ayah', job.a); fd.append('to', last.ayah); fd.append('lang', o.lang || 'ar');
+      fetch(API + '/tajweed', { method: 'POST', body: fd }).then(function (x) { return x.ok ? x.json() : null; })
+        .then(function (d) { if (d && o.onTajweed) o.onTajweed(p0, s, d); }).catch(noop);
+    }
     function pump() {
       if (!R || R.busy) return;
       if (R.queue.length) {
         var c = R.queue.shift();
-        parts[P].ready.then(function () { return send(c, true); }).then(commit).catch(fail).then(pump);
+        var rate = R.rate;
+        parts[P].ready.then(function () { return send(c, true); }).then(function (res) { res.chunks = c; res.rate = rate; return res; }).then(commit).catch(fail).then(pump);
         return;
       }
       if (R.speaking && R.seg.length && R.fresh) {

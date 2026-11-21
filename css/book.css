@@ -974,3 +974,9 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .bk-sum .sm-g small{ display:block; }
 /* the word itself, inside the phrase that plays */
 .bk-mpage .bk-segt{ background:rgba(201,120,20,.38); border-radius:4px; box-shadow:0 0 0 2px rgba(201,120,20,.55); }
+/* tajweed notes (the tajweed Mushaf): the word underlined in orange; listed apart from the mistakes */
+.bk-mpage .ml > span[data-l].tw-tjn{ text-decoration:underline wavy rgba(214,120,20,.9); text-decoration-thickness:1.5px; text-underline-offset:6px; }
+.bk-tjbox .lv-tjh{ display:block; margin-top:16px; color:#a0601a; }
+.lv-words.lv-tjw button{ border-color:#f0cfae; background:#fff8ef; }
+.lv-words .lv-tjm{ color:#a0601a !important; }
+.bk-sum .sm-g small.sm-tj{ color:#a0601a; }

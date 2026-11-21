@@ -2361,12 +2361,12 @@
           if (root.__liveBar) root.__liveBar(on);
           if (root.__focus) root.__focus('live', on);
           if (!on && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
-          if (on) { sumW = {}; sumT0 = Date.now(); }
+          if (on) { sumW = {}; sumT0 = Date.now(); tjNotes = {}; }
           else if (root.__liveSummary) root.__liveSummary(sumW, sumT0);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
-        var famPg = {}, famT0 = 0, sumW = {}, sumT0 = 0, famHeard = {};   // famHeard: what the model heard in a mistaken word's place    // sumW: this session's words, «s:a:w» -> how each went (the summary)
+        var famPg = {}, famT0 = 0, sumW = {}, sumT0 = 0, famHeard = {}, tjNotes = {};   // famHeard: what the model heard in a mistaken word's place    // sumW: this session's words, «s:a:w» -> how each went (the summary)
         var famAll = { done: {}, errs: {} };               // the whole listening session, for the plan's lesson check
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
@@ -2444,6 +2444,10 @@
             },
             onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
             onOther: function (p, w, text) { otherPop(w, text); },
+            // the tajweed Mushaf: notes on how the verses were said (the ordinary Mushaf: the memorising alone)
+            lang: C.lang === 'fr' ? 'fr' : C.lang === 'ar' ? 'ar' : (C.lang === 'ur' ? 'ar' : 'en'),
+            tajweed: function () { return document.body.classList.contains('bk-tajweed'); },
+            onTajweed: function (p, sN, d) { tjTake(sN, d); },
             onDone: function () {                             // the page is recited: the next one, and go on listening
               famFlush(true);
               if (cur >= TOTAL) { live.stop(); return; }
@@ -2535,6 +2539,28 @@
           d.querySelector('button').onclick = shut;
           otherPop.shut = shut;
         };
+        // tajweed notes, word by word, as the engine gave them. A note that holds only when the words are joined (idgham,
+        // ikhfa, iqlab, the ghunna between them) is dropped where the reader may stop (a pause mark after the word):
+        // he may have stopped there. Notes are not mistakes in the memorising: not in the grade nor the record
+        var tjTake = function (sN, d) {
+          var idx = 0, jobs = [];
+          (d.counts || []).forEach(function (cnt, ai) {
+            var a = d.ayah + ai, rs = (d.words || []).slice(idx, idx + cnt); idx += cnt;
+            jobs.push(pauseMarks(sN, a).then(function (marks) {
+              rs.forEach(function (r, j) {
+                if (!r || r.ok !== false) return;
+                var stopAfter = marks.indexOf(j + 1) >= 0 || j === cnt - 1;
+                var ns = (r.notes || []).filter(function (n) { return !(stopAfter && /idgham|ikhfa|iqlab|ghunn/i.test(n.rule || '')); })
+                  .map(function (n) { var m = n.msg || {}; return m[C.lang] || m.ar || m.en || ''; }).filter(Boolean);
+                if (!ns.length) return;
+                var loc = sN + ':' + a + ':' + (j + 1);
+                tjNotes[loc] = ns;
+                root.querySelectorAll('.bk-mpage [data-l="' + loc + '"]').forEach(function (e) { e.classList.add('tw-tjn'); });
+              });
+            }));
+          });
+          return Promise.all(jobs);
+        };
         // the session's mistakes: each word as in the Mushaf; a tap plays it
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
         // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
@@ -2556,7 +2582,7 @@
           var all = locs.length - skL.length;
           if (all < 1) return;
           var pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
-          var GR = [[SM[8], 'g'], [SM[9], 'm'], [SM[10], 'o']];
+          var GR = [[SM[8], 'g'], [SM[9], 'm'], [SM[10], 'o']], nTj = Object.keys(tjNotes).length;
           var grade = GR[Math.min(2, (pct >= 95 ? 0 : pct >= 80 ? 1 : 2) + n.skip)];
           errL = errL.concat(skL);
           var N = function (v) { return C.lang === 'ar' ? arNum(String(v)) : String(v); };
@@ -2566,10 +2592,10 @@
               (aMin === aMax ? esc(SM[14]) + ' ' + N(aMin) : esc(SM[2]) + ' ' + N(aMin) + '–' + N(aMax)) + '</small></div><span class="sm-t">⏱ ' + N(Math.floor(secs / 60)) + ':' + N(('0' + secs % 60).slice(-2)) + '</span></div>' +
             '<div class="sm-g ' + grade[1] + '"><svg viewBox="0 0 36 36" width="76" height="76" aria-hidden="true"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>' +
               '<circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="' + pct + ' 100" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>' +
-              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skipA ? '<small>' + esc(SM[19]) + ': ' + N(n.skipA) + '</small>' : '') + (n.skipP ? '<small>' + esc(SM[20]) + ': ' + N(n.skipP) + '</small>' : '') + '</div></div>' +
+              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skipA ? '<small>' + esc(SM[19]) + ': ' + N(n.skipA) + '</small>' : '') + (n.skipP ? '<small>' + esc(SM[20]) + ': ' + N(n.skipP) + '</small>' : '') + (nTj ? '<small class="sm-tj">' + esc(TJN[0]) + ': ' + N(nTj) + '</small>' : '') + '</div></div>' +
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
-            '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>' : '') +
+            '<div class="sm-b">' + (errL.length || nTj ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>' : '') +
               '<button type="button" class="sm-re">' + esc(SM[15]) + '</button><button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
           ov5.appendChild(bx); document.body.appendChild(ov5);
           var shut = function () { ov5.remove(); };
@@ -2578,8 +2604,8 @@
           // for mastery: the same passage once more — its marks cleared, back to where it began, the text hidden, listening
           bx.querySelector('.sm-re').onclick = function () {
             shut();
-            root.querySelectorAll('.bk-mpage .tw-done, .bk-mpage .tw-ti, .bk-mpage .tw-hint').forEach(function (e) {
-              e.classList.remove('rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-ti', 'tw-hint', 'tw-skip');
+            root.querySelectorAll('.bk-mpage .tw-done, .bk-mpage .tw-ti, .bk-mpage .tw-hint, .bk-mpage .tw-tjn').forEach(function (e) {
+              e.classList.remove('rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-ti', 'tw-hint', 'tw-skip', 'tw-tjn');
             });
             var f0 = locs.map(function (l) { return l.split(':').map(Number); }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; })[0];
             var pg = pageOf(f0[0], f0[1]);
@@ -2593,6 +2619,16 @@
             setTimeout(go, 50);
           };
           var eb = bx.querySelector('.sm-e'); if (eb) eb.onclick = function () { errSheet(errL); };
+        };
+        var TJN = C.lang === 'ar' ? ['ملاحظات التجويد', 'للتعلّم، ولا تُحسب في التقدير'] : ['Tajweed notes', 'To learn from; not counted in the grade'];
+        var tjSection = function () {
+          var ls = Object.keys(tjNotes).sort(function (a, b) { var x = a.split(':').map(Number), y = b.split(':').map(Number); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+          if (!ls.length) return '';
+          return '<b class="lv-tjh">' + esc(TJN[0]) + '</b><p class="fs-l small">' + esc(TJN[1]) + '</p><div class="lv-words lv-tjw">' + ls.map(function (l) {
+            var x = l.split(':');
+            return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small>' +
+              tjNotes[l].map(function (m) { return '<em class="lv-hd lv-tjm">' + esc(m) + '</em>'; }).join('') + '</button>';
+          }).join('') + '</div>';
         };
         var errSheet = function (locs) {
           // the words passed over together become one item: «passed over · verse a», the words it held, a tap plays the verse
@@ -2617,7 +2653,7 @@
                    : hd[1] ? esc(HL[1]) + ' <span lang="ar">' + esc(hd[1]) + '</span>' : esc(HL[2]);
             return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small>' +
               (hx ? '<em class="lv-hd">' + hx + '</em>' : '') + '</button>';
-          }).join('') + '</div>' : '<p>' + esc(LB[4]) + '</p>') + '<button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
+          }).join('') + '</div>' : '<p>' + esc(LB[4]) + '</p>') + tjSection() + '<button type="button" class="fs-close">' + esc((MOB[C.lang] || MOB.en).close) + '</button>';
           ov3.appendChild(bx); document.body.appendChild(ov3);
           ov3.onclick = function (e) { if (e.target === ov3) ov3.remove(); };
           bx.querySelector('.fs-close').onclick = function () { ov3.remove(); };
