@@ -117,7 +117,7 @@ def edit_ratio(a, b):
 
 
 def align_words(exp, hyp):
-    """Needleman–Wunsch on words. Returns pairs (i, j) with None for a gap."""
+    """Needleman–Wunsch on words, the expected words' tail free. Returns pairs (i, j) with None for a gap."""
     n, m = len(exp), len(hyp)
     es, hs = [skeleton(w) for w in exp], [skeleton(w) for w in hyp]
     sim = [[edit_ratio(es[i], hs[j]) for j in range(m)] for i in range(n)]
@@ -129,7 +129,12 @@ def align_words(exp, hyp):
             s = sim[i - 1][j - 1]
             opts = (S[i - 1, j - 1] + (s * 2 - 1), S[i - 1, j] + G, S[i, j - 1] + G)
             k = int(np.argmax(opts)); S[i, j] = opts[k]; B[i, j] = k
-    i, j, out = n, m, []
+    # the expected words after the last one said are not missing, only not reached yet: they cost nothing (semi-global).
+    # Without this, a phrase said twice in the window (the basmala's «الرحمن الرحيم» and Al-Fatiha 3) could be matched
+    # to the later one at the same cost, the words between taken as left out; now the nearest one wins
+    i = int(np.argmax(S[:, m])) if m else n
+    out = [(k_, None) for k_ in range(n - 1, i - 1, -1)]
+    j = m
     while i > 0 or j > 0:
         k = B[i, j]
         if i > 0 and j > 0 and k == 0: out.append((i - 1, j - 1)); i -= 1; j -= 1

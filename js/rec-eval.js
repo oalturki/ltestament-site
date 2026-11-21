@@ -5,7 +5,7 @@
    Measures: detected (the planned mistake found), false alarms (words said right marked wrong), unreached (words the
    check never got to), and on the tajweed tasks the tajweed notes on the target word and elsewhere. */
 (function () {
-  var ENGINE = 'live-2026-11-21';
+  var ENGINE = 'live-2026-11-21b';   // b: alignment prefers the nearest match (basmala)
   var app = document.getElementById('evApp');
   var AR = '٠١٢٣٤٥٦٧٨٩', num = function (n) { return String(n).replace(/[0-9]/g, function (d) { return AR[d]; }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
