@@ -533,6 +533,14 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         for k, w in enumerate(ayahs[a - 1].split()):
             exp.append(w); where.append((a, k))
     if not 0 <= pos <= len(exp): raise HTTPException(400, "pos")
+    per_ayah = {}
+    for a_, _ in where: per_ayah[a_] = per_ayah.get(a_, 0) + 1
+
+    def whole_ayah(ks):
+        # the words (by place in the passage) hold a whole verse, however short (كلا سيعلمون، مدهامتان)
+        got = {}
+        for k_ in ks: got[where[k_][0]] = got.get(where[k_][0], 0) + 1
+        return any(n_ == per_ayah[a_] for a_, n_ in got.items())
     try:
         heard = transcribe(wav) if dur >= 0.3 else ""
     except HTTPException:
@@ -571,7 +579,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         due_ok = sum(edit_ratio(skeleton(exp[pos + i]), skeleton(hyp[i])) >= 0.6 for i in range(3) if pos + i < len(exp))
         if due_ok <= 1:
             o = seek_start(exp[pos:pos + 160], hyp)
-            if o is not None and o >= 3:
+            if o is not None and (o >= 3 or (o >= 1 and whole_ayah(range(pos, pos + o)))):
                 skipped = list(range(pos, pos + o)); pos += o
     # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
     # (shown, not counted as a mistake: the model may have misheard); further still, wrong
@@ -632,7 +640,8 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         for n_, w in enumerate(words + [None]):
             if w is not None and w["status"] in ("missing", "unclear") and "heard" not in w:     # not heard at all
                 run_.append(n_); continue
-            if len(run_) >= 3 and sum(words[m_]["status"] == "missing" for m_ in run_) >= 2:
+            if (len(run_) >= 3 and sum(words[m_]["status"] == "missing" for m_ in run_) >= 2) or \
+                    (run_ and whole_ayah([words[m_]["k"] for m_ in run_])):
                 for m_ in run_: words[m_]["status"] = "missing"; words[m_]["skip"] = True
             run_ = []
         if stop_at is not None:
