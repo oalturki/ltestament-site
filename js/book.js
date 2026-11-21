@@ -729,13 +729,18 @@
         var hb = document.createElement('label'); hb.className = 'bk-hamb'; hb.title = HB[0];
         hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
         var hs = document.createElement('select'); hs.className = 'bk-mover'; hs.setAttribute('aria-label', HB[0]);
+        var JZ = { ar: 'الأجزاء', ur: 'پارے', en: 'Juz', fr: 'Juz', es: 'Yuz', ru: 'Джузы' }[C.lang] || 'Juz';
+        var jFirst = [];
+        if (MAP && MAP.juz) MAP.juz.forEach(function (j, i) { if (!jFirst[j - 1]) jFirst[j - 1] = i + 1; });
         var hfill = function () {
-          hs.innerHTML = '<option value="home">⌂ ' + esc(HB[1]) + '</option>' + sSel.innerHTML;
+          hs.innerHTML = '<option value="home">⌂ ' + esc(HB[1]) + '</option><optgroup label="' + esc(HB[0]) + '">' + sSel.innerHTML + '</optgroup>' +
+            (jFirst.length ? '<optgroup label="' + esc(JZ) + '">' + jFirst.map(function (p, i) { return '<option value="j' + p + '">' + esc(L.juz) + ' ' + uiNum(i + 1) + '</option>'; }).join('') + '</optgroup>' : '');
           hs.value = sSel.value;
         };
         hs.addEventListener('pointerdown', hfill); hs.addEventListener('focus', hfill);
         hs.onchange = function () {
           if (hs.value === 'home') { var bk = document.querySelector('.bk-back'); location.href = bk ? bk.getAttribute('href') : '/'; return; }
+          if (hs.value.charAt(0) === 'j') { repPicked = false; show(+hs.value.slice(1), 0); return; }
           sSel.value = hs.value; sSel.dispatchEvent(new Event('change'));
         };
         hfill(); hb.appendChild(hs);
@@ -827,7 +832,7 @@
       if (arView) {
         // Arabic: what is shown (Mushaf, tajweed, a tafsir, a translation) is chosen from a button at the top;
         // the bottom bar has search in its place
-        item(I.search, L.search, null).classList.add('bk-mview');
+        item(I.search, L.search, null).classList.add('bk-mview', 'bk-msrch');
         nav.lastChild.onclick = function (e) { e.stopPropagation(); var b = document.querySelector('.lt-sbtn'); if (b) b.click(); };
         var vb = document.createElement('button'); vb.type = 'button'; vb.className = 'bk-viewbtn';
         if (bar) bar.insertBefore(vb, pg);
@@ -865,6 +870,15 @@
         };
       }
       var moreBtn = item(I.more, L.more); moreBtn.classList.add('bk-mmore');
+      // phones: search and the general settings in the top bar (what is shown, where — the bottom bar is for what is done)
+      if (bar) {
+        var tb = function (cls, icon, label, go) {
+          var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-tbtn ' + cls; b.title = label; b.setAttribute('aria-label', label);
+          b.innerHTML = svg(icon); b.onclick = function (e) { e.stopPropagation(); go(); }; bar.appendChild(b); return b;
+        };
+        tb('bk-tsrch', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
+        tb('bk-tgear', I.more, L.more, function () { moreBtn.click(); });
+      }
       document.body.appendChild(nav);
 
       var ov = document.createElement('div'); ov.className = 'bk-msov bk-msside';   // the settings: a drawer on the side of the page
