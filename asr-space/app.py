@@ -598,13 +598,13 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         lastj = max([j for i, j in pairs if i is not None and j is not None and i <= last and sim[i][j] >= 0.5] or [-1])
         tail = hyp[lastj + 1:]
         # the words said in place of the missing ones: in a stretch with nothing matched, the words heard there
-        # «other»: two words or more said in a stretch where nothing matched — not the passage (someone else talking,
+        # «other»: three words or more said in a stretch (two are as often the verse badly heard) where nothing matched — not the passage (someone else talking,
         # or the reader saying something else): the page asks him to say it again from the stretch's first word
         gap_heard, run, said, other, g0 = {}, [], [], None, None
         for i, j in pairs + [(-1, -1)]:
             if i == -1 or (i is not None and j is not None and sim[i][j] >= 0.5):      # a word heard right: the gap ends
                 for i2 in run: gap_heard[i2] = " ".join(said[:4])
-                if other is None and g0 is not None and len(said) >= 2 and i != -1 and not quranic(said) and not near(said, g0):
+                if other is None and g0 is not None and len(said) >= 3 and i != -1 and not quranic(said) and not near(said, g0):
                     other = {"k": pos + g0, "text": " ".join(said[:6])}
                 run, said, g0 = [], [], None
             else:
@@ -613,7 +613,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 else: said.append(hyp[j])
         stop_at = None
         if final and tail and last + 1 < len(win): stop_at = last + 1
-        if other is None and stop_at is not None and len(tail) >= 2 and not quranic(tail[:6]) and not near(tail[:6], stop_at): other = {"k": pos + stop_at, "text": " ".join(tail[:6])}
+        if other is None and stop_at is not None and len(tail) >= 3 and not quranic(tail[:6]) and not near(tail[:6], stop_at): other = {"k": pos + stop_at, "text": " ".join(tail[:6])}
         for i, j in pairs:
             if i is None or i > last: continue
             a, k = where[pos + i]
