@@ -133,9 +133,11 @@
     var adult = S.consent.age_band !== 'child';
     return S.data.tasks.filter(function (t) { return adult || !t.adult; });
   }
-  function nextTask() {
-    var ts = myTasks();
-    for (var i = 0; i < ts.length; i++) if (!S.done[ts[i].id]) return ts[i];
+  // the next task not yet recorded: after the one just done (the same passage first, then on), else from the start
+  function nextTask(after) {
+    var ts = myTasks(), at = 0;
+    if (after) for (var j = 0; j < ts.length; j++) if (ts[j].id === after.id) at = j + 1;
+    for (var i = 0; i < ts.length; i++) { var t = ts[(at + i) % ts.length]; if (!S.done[t.id]) return t; }
     return null;
   }
   function taskList() {
@@ -300,7 +302,7 @@
         URL.revokeObjectURL(url);
         S.done[t.id] = (S.done[t.id] || 0) + 1;
         S.clips.push({ id: id, task: t.id, path: path });
-        var nx = nextTask();
+        var nx = nextTask(t);
         if (nx) openTask(nx); else taskList();
       }).catch(function (e) { fail(e); btn.disabled = false; btn.textContent = 'احفظ وانتقل للتالي'; });
     };
