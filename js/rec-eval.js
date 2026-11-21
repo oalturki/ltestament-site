@@ -5,7 +5,7 @@
    Measures: detected (the planned mistake found), false alarms (words said right marked wrong), unreached (words the
    check never got to), and on the tajweed tasks the tajweed notes on the target word and elsewhere. */
 (function () {
-  var ENGINE = 'live-2026-11-21c';   // b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again
+  var ENGINE = 'live-2026-11-21d';   // b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again; d: constrained check (word sounds laid on the audio)
   var app = document.getElementById('evApp');
   var AR = '٠١٢٣٤٥٦٧٨٩', num = function (n) { return String(n).replace(/[0-9]/g, function (d) { return AR[d]; }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -144,8 +144,8 @@
             },
             onResult: function (res) {
               stretches.push({ pos: res.pos, next: res.next, heard: res.heard, sec: res.seconds, back: res.back || null, skipped: res.skipped || 0,
-                sought: res.sought || null, relistened: res.relistened || 0, other: res.other ? res.other.text : null,
-                bad: (res.words || []).filter(function (x) { return x.status !== 'ok'; }).map(function (x) { return x.k + ':' + x.status + (x.heard ? '«' + x.heard + '»' : ''); }) });
+                sought: res.sought || null, relistened: res.relistened || 0, verified: res.verified || 0, fit: res.fit || null, other: res.other ? res.other.text : null,
+                bad: (res.words || []).filter(function (x) { return x.status !== 'ok' || x.verified; }).map(function (x) { return x.k + ':' + x.status + (x.heard ? '«' + x.heard + '»' : '') + (x.fit != null ? '~' + x.fit : '') + (x.verified ? '✓' : ''); }) });
             },
             onOther: function (p, w) { other = w ? c.surah + ':' + w.ayah + ':' + w.n : '?'; },
             onTajweed: function (p, s, d) {

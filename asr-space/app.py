@@ -461,8 +461,130 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 heard = heard + " ‖ " + heard2
             except Exception:
                 pass
+    # the constrained check: a word the transcription called wrong, missing or unclear whose sounds are all there in
+    # the audio, in order with its neighbours, was said (the transcription misheard it)
+    fit, verified = {}, 0
+    if final and words and os.environ.get("CTC_CHECK", "1") == "1":
+        try:
+            said_ks = sorted({w["k"] for w in words if not w.get("skip")})
+            if said_ks and said_ks[-1] - said_ks[0] < 80:
+                ks = list(range(said_ks[0], said_ks[-1] + 1))
+                fit = ctc_check(wav, surah, where, ks)
+                for n_, w in enumerate(words):
+                    f_ = fit.get(w["k"])
+                    if f_ is None: continue
+                    w["fit"] = f_
+                    if w["status"] in ("wrong", "missing", "unclear") and not w.get("skip") and f_ >= CTC_OK:
+                        words[n_] = dict(w, status="ok", verified=True); verified += 1
+        except Exception as e:
+            fit = {"err": f"{type(e).__name__}: {e}"[:200]}
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened, "other": other if final else None}
+            "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened,
+            "verified": verified, "fit": fit, "other": other if final else None}
+
+
+# ---- constrained check (المطابقة المقيّدة), step 2 of «منهجية نظام التسميع الذكي». The text is known: instead of asking
+# «what was said?», ask «does this sound fit the words due?». HisnLabs/tajweed-v2 (Apache-2.0) gives, for each 20 ms
+# of the audio, how likely each sound of the Quran phonetic script is; the words due are written in that script
+# (phon-simple.json, from the word lexicon data/lexicon: quran-transcript, Hafs) and laid along the audio (CTC Viterbi,
+# free start and end). Each word gets a score: the mean, over its sounds, of the log-probability of the sound at its
+# best moment (0 = surely said; much below = not this). A word the transcription misheard (اهدنا → «إذ جنص») but whose
+# sounds are there is right; a word left out or changed has no good place for its sounds.
+PHON = json.load(open(os.path.join(os.path.dirname(__file__), "phon-simple.json"), encoding="utf-8"))
+CTC_OK = float(os.environ.get("CTC_OK", "-1.5"))     # a word whose score is at least this was said
+HARAKA = set("\u064e\u064f\u0650")
+_cx = {"sess": None, "meta": None, "fe": None, "err": None}
+
+
+def ctc_model():
+    if _cx["sess"] is None and _cx["err"] is None:
+        try:
+            import onnxruntime as ort
+            from faster_whisper.feature_extractor import FeatureExtractor
+            tajweed_engine()
+            d = _tj["dir"]
+            so = ort.SessionOptions(); so.intra_op_num_threads = int(os.environ.get("TORCH_THREADS", "2"))
+            _cx["sess"] = ort.InferenceSession(os.path.join(d, "onnx/model-int8.onnx"), so, providers=["CPUExecutionProvider"])
+            _cx["meta"] = json.load(open(os.path.join(d, "config.json"), encoding="utf-8"))
+            _cx["fe"] = FeatureExtractor(feature_size=80)
+            _cx["id"] = {ph: i + 1 for i, ph in enumerate(_cx["meta"]["phonemes"])}
+        except Exception as e:
+            _cx["err"] = f"{type(e).__name__}: {e}"[:300]
+    return _cx["sess"]
+
+
+def ctc_lp(wav):
+    """log-probabilities (frames x sounds; 0 = blank) of the audio"""
+    lead = np.zeros(int(SR * 0.4), np.float32)
+    audio = np.concatenate([lead, wav.astype(np.float32), lead])
+    mel = _cx["fe"](audio, padding=0)
+    mel = mel[:, : min(3000, mel.shape[1] // 2 * 2)]
+    return _cx["sess"].run(None, {"mel": mel[None].astype(np.float32), "riwaya": np.array([0], np.int64)})[0][0]
+
+
+def ctc_words(lp, words):
+    """words: [(key, phonemes)]. The words laid along the audio in order (CTC Viterbi, start and end free).
+    Returns {key: score} (mean over a word's sounds of the log-probability at its best frame)."""
+    ids, owner = [], []
+    for key, ph in words:
+        prev = None
+        for ch in ph:
+            i = _cx["id"].get(ch)
+            if i is None or i == prev: continue        # repeats (madd, shadda) as one sound: the memorising, not the length
+            ids.append(i); owner.append(key); prev = i
+    U = len(ids)
+    if not U: return {}
+    T = lp.shape[0]
+    ext = np.zeros(2 * U + 1, np.int64); ext[1::2] = ids
+    S = len(ext)
+    NEG = -1e9
+    skip_ok = np.zeros(S, bool)
+    for s_ in range(2, S):
+        skip_ok[s_] = ext[s_] != 0 and ext[s_] != ext[s_ - 2]
+    dp = np.full(S, NEG); bp = np.zeros((T, S), np.int8)   # 0 stay, 1 from s-1, 2 from s-2, 3 entered here
+    best_end, best_t, best_s = NEG, -1, -1
+    for t in range(T):
+        e = lp[t, ext]
+        stay = dp
+        one = np.concatenate([[NEG], dp[:-1]])
+        two = np.concatenate([[NEG, NEG], dp[:-2]]); two[~skip_ok] = NEG
+        enter = np.full(S, NEG); enter[0] = 0.0; enter[1] = 0.0          # start anywhere
+        cand = np.stack([stay, one, two, enter])
+        k = cand.argmax(0); dp = cand[k, np.arange(S)] + e; bp[t] = k
+        for s_ in (S - 1, S - 2):                                        # end anywhere
+            if dp[s_] > best_end: best_end, best_t, best_s = dp[s_], t, s_
+    if best_t < 0: return {}
+    best = {}
+    s_, t = best_s, best_t
+    while t >= 0:
+        if ext[s_] != 0:
+            u = (s_ - 1) // 2
+            best[u] = max(best.get(u, NEG), float(lp[t, ext[s_]]))
+        k = bp[t, s_]
+        if k == 3: break
+        s_ -= int(k); t -= 1
+    out = {}
+    for u, key in enumerate(owner):
+        out.setdefault(key, []).append(best.get(u, -20.0))
+    return {k_: round(float(np.mean(v)), 2) for k_, v in out.items()}
+
+
+def ctc_check(wav, surah, where, ks):
+    """the scores of the passage's words ks (in order) in this audio; the last one said as the reader stops (waqf)"""
+    if ctc_model() is None: return {}
+    ph_s = PHON.get(str(surah))
+    if not ph_s: return {}
+    words = []
+    for n_, k in enumerate(ks):
+        a, i = where[k]
+        ay = ph_s[a - 1]
+        if len(ay) != len(QURAN[str(surah)][a - 1].split()) or not ay[i]: continue
+        ph = ay[i].replace(" ", "")
+        if n_ == len(ks) - 1:
+            while ph and ph[-1] in HARAKA: ph = ph[:-1]
+        words.append((k, ph))
+    if not words: return {}
+    return ctc_words(ctc_lp(wav), words)
 
 
 # ---- tajweed notes (the tajweed Mushaf only: the ordinary Mushaf's check is about the memorising, this one about
