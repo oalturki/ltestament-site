@@ -2508,8 +2508,8 @@
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
         // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
         // not clearly heard and still wrong, the time, and the mistakes a tap away
-        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية'],
-                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse'] };
+        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية', 'أعد التسميع'],
+                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse', 'Recite it again'] };
         var SM = SUM[C.lang] || SUM.en;
         root.__liveSummary = function (W, t0) {
           var locs = Object.keys(W); if (locs.length < 3) return;
@@ -2532,11 +2532,22 @@
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
             '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(errL.length) + '</small></button>' : '') +
-              '<button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
+              '<button type="button" class="sm-re">' + esc(SM[15]) + '</button><button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
           ov5.appendChild(bx); document.body.appendChild(ov5);
           var shut = function () { ov5.remove(); };
           ov5.onclick = function (e) { if (e.target === ov5) shut(); };
           bx.querySelector('.sm-ok').onclick = shut;
+          // for mastery: the same passage once more — its marks cleared, back to where it began, the text hidden, listening
+          bx.querySelector('.sm-re').onclick = function () {
+            shut();
+            root.querySelectorAll('.bk-mpage .tw-done, .bk-mpage .tw-ti, .bk-mpage .tw-hint').forEach(function (e) {
+              e.classList.remove('rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-ti', 'tw-hint');
+            });
+            var f0 = locs.map(function (l) { return l.split(':').map(Number); }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; })[0];
+            var pg = pageOf(f0[0], f0[1]);
+            if (pg && pg !== cur) show(pg, 1);
+            setTimeout(function () { if (root.__liveToggle) root.__liveToggle(); }, pg && pg !== cur ? 600 : 50);
+          };
           var eb = bx.querySelector('.sm-e'); if (eb) eb.onclick = function () { errSheet(errL); };
         };
         var errSheet = function (locs) {

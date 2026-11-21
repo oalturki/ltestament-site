@@ -963,3 +963,5 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .bk-othpop em{ font-style:normal; font-weight:700; font-family:inherit; }
 .bk-othpop button{ grid-column:2; grid-row:1 / span 3; min-height:44px; padding:0 16px; border-radius:12px; border:0; background:#8a5a14; color:#fff; font:inherit; font-weight:700; }
 .bk-othpop small span{ grid-column:auto; font-size:inherit; color:inherit; }
+.bk-sum .sm-re{ background:#8a5a14; border:0; color:#fff; }
+.bk-sum .sm-b .sm-ok{ background:#fff; border:1px solid #d9c48e; color:#8a5a14; flex:.7; }
