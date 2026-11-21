@@ -45,6 +45,25 @@ import re as _re
 _MARK = _re.compile("^[\u06D6-\u06ED]+$")
 QURAN = {k: [" ".join(w for w in ay.split() if not _MARK.match(w)) for ay in v] for k, v in QURAN.items()}
 _session = _tok = None
+# every pair of words that follows each other somewhere in the Quran (letters only): words said in place of the passage
+# that are found here are Quran from another place (a real slip between similar verses), not someone else talking
+_BIGRAMS = None
+
+
+def quranic(words):
+    global _BIGRAMS
+    if _BIGRAMS is None:
+        b = set()
+        for v in QURAN.values():
+            for ay in v:
+                sk_ = [skeleton(w) for w in ay.split()]
+                b.update(zip(sk_, sk_[1:]))
+        _BIGRAMS = b
+    sk_ = [skeleton(w) for w in words]
+    pairs_ = list(zip(sk_, sk_[1:]))
+    return bool(pairs_) and sum(p in _BIGRAMS for p in pairs_) * 2 >= len(pairs_)
+
+
 BLANK = 1024
 
 
@@ -546,7 +565,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     def judge(hyp):
         win = exp[pos:pos + len(hyp) + 6]
         words, nxt = [], pos
-        if not (hyp and win): return words, nxt
+        if not (hyp and win): return words, nxt, None
         pairs, sim = align_words(win, hyp)
         # the last expected word that was matched: what lies after it has simply not been recited yet
         last = -1
@@ -557,16 +576,22 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         lastj = max([j for i, j in pairs if i is not None and j is not None and i <= last and sim[i][j] >= 0.5] or [-1])
         tail = hyp[lastj + 1:]
         # the words said in place of the missing ones: in a stretch with nothing matched, the words heard there
-        gap_heard, run, said = {}, [], []
+        # «other»: two words or more said in a stretch where nothing matched — not the passage (someone else talking,
+        # or the reader saying something else): the page asks him to say it again from the stretch's first word
+        gap_heard, run, said, other, g0 = {}, [], [], None, None
         for i, j in pairs + [(-1, -1)]:
             if i == -1 or (i is not None and j is not None and sim[i][j] >= 0.5):      # a word heard right: the gap ends
                 for i2 in run: gap_heard[i2] = " ".join(said[:4])
-                run, said = [], []
+                if other is None and g0 is not None and len(said) >= 2 and i != -1 and not quranic(said):
+                    other = {"k": pos + g0, "text": " ".join(said[:6])}
+                run, said, g0 = [], [], None
             else:
+                if i is not None and g0 is None: g0 = i
                 if j is None: run.append(i)
                 else: said.append(hyp[j])
         stop_at = None
         if final and tail and last + 1 < len(win): stop_at = last + 1
+        if other is None and stop_at is not None and len(tail) >= 2 and not quranic(tail[:6]): other = {"k": pos + stop_at, "text": " ".join(tail[:6])}
         for i, j in pairs:
             if i is None or i > last: continue
             a, k = where[pos + i]
@@ -583,9 +608,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         if stop_at is not None:
             a, k = where[pos + stop_at]
             words.append({"k": pos + stop_at, "ayah": a, "i": k, "text": win[stop_at], "heard": " ".join(tail[:3]), "status": "wrong"})
-        return words, pos + last + 1
+        return words, pos + last + 1, other
 
-    words, nxt = judge(hyp)
+    words, nxt, other = judge(hyp)
     # a second hearing: three or more mistakes in a row are more often a stretch the model misheard than a reader who
     # got a whole phrase wrong. So that stretch is heard again, more carefully (a wider search, and — unless the check
     # is strict — told which words to expect); a word heard right the second time is right. A phrase really
@@ -600,7 +625,8 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             try:
                 prompt = None if level == "strict" else " ".join(exp[max(0, pos - 8):pos + len(hyp) + 6])
                 heard2 = transcribe(wav, prompt=prompt, beam=5)
-                words2, nxt2 = judge(words_of(heard2, pos))
+                words2, nxt2, other2 = judge(words_of(heard2, pos))
+                if other and not other2: other = None
                 by2 = {w["k"]: w for w in words2}
                 for n_, w in enumerate(words):
                     w2 = by2.get(w["k"])
@@ -614,4 +640,4 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             except Exception:
                 pass
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000), "sought": sought, "relistened": relistened}
+            "ms": int((time.time() - t0) * 1000), "sought": sought, "relistened": relistened, "other": other if final else None}

@@ -2359,6 +2359,7 @@
           root.classList.toggle('bk-living', on);
           if (root.__liveBar) root.__liveBar(on);
           if (root.__focus) root.__focus('live', on);
+          if (!on && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
           if (on) { sumW = {}; sumT0 = Date.now(); }
           else if (root.__liveSummary) root.__liveSummary(sumW, sumT0);
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
@@ -2397,6 +2398,7 @@
           live = LiveRecite({
             parts: parts,
             onWord: function (p, w, cls) {
+              if ((cls === 'ok' || cls === 'unclear') && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
               if (cls !== 'ti') { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
               if (cls === 'ok' || cls === 'fixed' || cls === 'unclear') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
@@ -2410,6 +2412,7 @@
               root.querySelectorAll('.bk-mpage .tw-ti').forEach(function (e) { e.classList.remove('tw-ti'); if (!e.classList.contains('tw-done')) e.classList.remove('rv'); });
             },
             onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
+            onOther: function (p, w, text) { otherPop(w, text); },
             onDone: function () {                             // the page is recited: the next one, and go on listening
               famFlush(true);
               if (cur >= TOTAL) { live.stop(); return; }
@@ -2485,6 +2488,20 @@
         lbar.querySelector('.lv-eye').onclick = function () {
           var on = root.classList.toggle('bk-peek'), b = lbar.querySelector('.lv-eye');
           b.classList.toggle('on', on); b.setAttribute('aria-label', on ? LB[1] : LB[0]); b.title = on ? LB[1] : LB[0];
+        };
+        // words not from the Quran were heard (someone talking nearby, or the reader saying something else): not counted —
+        // a card asks to say it again from that word; it goes once he does, or by itself
+        var OTH = { ar: ['سُمع كلام ليس من القرآن', 'أعد القراءة من', 'حسنًا'], en: ['Heard words that are not the Quran', 'Recite again from', 'OK'] };
+        var otherPop = function (w, text) {
+          var T = OTH[C.lang] || OTH.en, old = document.querySelector('.bk-othpop'); if (old) old.remove();
+          var d = document.createElement('div'); d.className = 'bk-othpop'; d.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
+          d.innerHTML = '<b>' + esc(T[0]) + '</b>' + (text ? '<small lang="ar">«' + esc(text) + '»</small>' : '') +
+            (w ? '<span>' + esc(T[1]) + ' <em lang="ar">' + esc(w.text) + '</em></span>' : '') + '<button type="button">' + esc(T[2]) + '</button>';
+          document.body.appendChild(d);
+          var shut = function () { d.remove(); clearTimeout(t); };
+          var t = setTimeout(shut, 9000);
+          d.querySelector('button').onclick = shut;
+          otherPop.shut = shut;
         };
         // the session's mistakes: each word as in the Mushaf; a tap plays it
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };

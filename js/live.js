@@ -11,6 +11,7 @@
      onCursor(p, k)                               // the next word expected
      onPartDone(p), onDone()                      // a part / the whole passage recited
      onLevel(x)                                   // 0..1, the voice level (to show that it hears)
+     onOther(p, w, text)                          // optional: words not from the Quran were heard; say it again from w
      onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'error' | 'waking'
      say(p, w) -> Promise                         // optional: the reciter says the word (the engine stops listening meanwhile)
    });
@@ -132,6 +133,10 @@
       pt.tiTo = -1;
       o.onClear(P);
       var errs = [];
+      // words said that are not the Quran at all (someone else talking, or the reader saying something else): not a
+      // mistake yet — the page asks him to say it again from that word. The second time at the same word, it counts.
+      var oth = res.other, again = oth && !(pt.otherAt = pt.otherAt || {})[oth.k];
+      if (again) { pt.otherAt[oth.k] = 1; res.words = res.words.filter(function (x) { return x.k < oth.k; }); res.next = oth.k; }
       res.words.forEach(function (x) {
         var w = pt.words[x.k]; if (!w) return;
         var was = w.done === 'wrong' || w.done === 'missing';
@@ -141,6 +146,7 @@
       });
       pt.pos = Math.max(pt.pos, res.next);
       cursor();
+      if (again && o.onOther) { o.onOther(P, pt.words[oth.k], oth.text); errs = []; }
       if (errs.length && o.say && R) {                     // the reciter says the first word that went wrong
         R.mute = true;
         Promise.resolve(o.say(P, errs[0])).catch(noop).then(function () { setTimeout(function () { if (R) R.mute = false; }, 250); });
