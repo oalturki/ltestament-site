@@ -2,7 +2,6 @@ fastapi>=0.110
 uvicorn[standard]>=0.29
 python-multipart>=0.0.9
 onnxruntime>=1.17
-sentencepiece>=0.2.0
 huggingface_hub>=0.26,<1.0
 numpy>=1.24
 transformers>=4.40,<5
