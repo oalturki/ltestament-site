@@ -2370,7 +2370,24 @@
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
           r.done[loc] = 1; famAll.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = [cls, w.heard || '', w.skip]; }
+          if (cls === 'wrong' || cls === 'missing') { var kd = w.skip ? 'skip' : cls; r.errs[loc] = kd; famAll.errs[loc] = kd; famHeard[loc] = [cls, w.heard || '', w.skip]; }
+        };
+        // two kinds of mistake: a word (said wrong, changed, left out), and a verse or passage passed over — one place
+        // however many words it held (a weakness in joining the verses, not in a word)
+        var skipRuns = function (locs) {
+          var xs = locs.map(function (l) { return l.split(':').map(Number); }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; });
+          var runs = [], prev = null;
+          xs.forEach(function (x) {
+            var joins = prev && x[0] === prev[0] && ((x[1] === prev[1] && x[2] === prev[2] + 1) || (x[1] === prev[1] + 1 && x[2] === 1));
+            if (joins) runs[runs.length - 1].push(x.join(':')); else runs.push([x.join(':')]);
+            prev = x;
+          });
+          return runs;
+        };
+        var errCount = function (errs) {
+          var w = 0, sk = [];
+          Object.keys(errs).forEach(function (l) { if (errs[l] === 'skip') sk.push(l); else w++; });
+          return { words: w, skips: skipRuns(sk).length, all: w + skipRuns(sk).length };
         };
         var famFlush = function (complete) {
           var F = window.Fam, prof = F && F.current();
@@ -2384,7 +2401,7 @@
                 if (!seen[l] && pageOf(+x[0], +x[1]) === +pg) { seen[l] = 1; total++; }
               });
               var locs = Object.keys(r.errs);
-              F.recital({ page: +pg, words: done, total: Math.max(total, done), mistakes: locs.length, seconds: secs,
+              F.recital({ page: +pg, words: done, total: Math.max(total, done), mistakes: errCount(r.errs).all, seconds: secs,
                           complete: complete || done >= total, locs: locs, kinds: locs.map(function (l) { return r.errs[l]; }) })
                 .then(function () { if (root.__famRefresh) root.__famRefresh(); }).catch(function () {});
             }
@@ -2400,7 +2417,7 @@
             parts: parts,
             onWord: function (p, w, cls, replay) {
               if ((cls === 'ok' || cls === 'unclear') && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
-              if (cls !== 'ti' && !replay) { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
+              if (cls !== 'ti' && !replay) { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = w.skip && (cls === 'missing' || cls === 'wrong') ? 'skip' : cls; }
               if (!replay && (cls === 'ok' || cls === 'fixed' || cls === 'unclear')) rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix', 'tw-unc', 'tw-skip');
@@ -2476,7 +2493,7 @@
           var sec = lvT0 ? Math.floor((Date.now() - lvT0) / 1000) : 0;
           var t = ('0' + Math.floor(sec / 60)).slice(-2) + ':' + ('0' + (sec % 60)).slice(-2);
           lbar.querySelector('.lv-time').textContent = C.lang === 'ar' ? arNum(t) : t;
-          var n = Object.keys(famAll.errs).length;
+          var n = errCount(famAll.errs).all;
           lbar.querySelector('.lv-err b').textContent = nmb(n);
           lbar.querySelector('.lv-err').classList.toggle('has', n > 0);
         };
@@ -2509,19 +2526,25 @@
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
         // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
         // not clearly heard and still wrong, the time, and the mistakes a tap away
-        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية', 'أعد التسميع'],
-                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse', 'Recite it again'] };
+        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية', 'أعد التسميع', 'أخطاء الكلمات', 'مواضع التجاوز', 'تجاوز'],
+                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse', 'Recite it again', 'Word mistakes', 'Places passed over', 'Passed over'] };
         var SM = SUM[C.lang] || SUM.en;
         root.__liveSummary = function (W, t0) {
           var locs = Object.keys(W); if (locs.length < 3) return;
-          var n = { ok: 0, fixed: 0, unclear: 0, err: 0 }, errL = [], sMin = 0, aMin = 1e9, aMax = 0;
+          var n = { ok: 0, fixed: 0, unclear: 0, err: 0 }, errL = [], skL = [], sMin = 0, aMin = 1e9, aMax = 0;
           locs.forEach(function (l) {
             var c = W[l], x = l.split(':');
-            if (c === 'ok') n.ok++; else if (c === 'fixed') n.fixed++; else if (c === 'unclear') n.unclear++; else { n.err++; errL.push(l); }
+            if (c === 'ok') n.ok++; else if (c === 'fixed') n.fixed++; else if (c === 'unclear') n.unclear++; else if (c === 'skip') skL.push(l); else { n.err++; errL.push(l); }
             sMin = +x[0]; aMin = Math.min(aMin, +x[1]); aMax = Math.max(aMax, +x[1]);
           });
-          var all = locs.length, pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
-          var grade = pct >= 95 ? [SM[8], 'g'] : pct >= 80 ? [SM[9], 'm'] : [SM[10], 'o'];
+          // the share right counts the words recited; each place passed over takes the grade down a step
+          n.skip = skipRuns(skL).length;
+          var all = locs.length - skL.length;
+          if (all < 1) return;
+          var pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
+          var GR = [[SM[8], 'g'], [SM[9], 'm'], [SM[10], 'o']];
+          var grade = GR[Math.min(2, (pct >= 95 ? 0 : pct >= 80 ? 1 : 2) + n.skip)];
+          errL = errL.concat(skL);
           var N = function (v) { return C.lang === 'ar' ? arNum(String(v)) : String(v); };
           var ov5 = document.createElement('div'); ov5.className = 'bk-tjkey bk-famsheet bk-sumov';
           var bx = document.createElement('div'); bx.className = 'bk-tjbox bk-sum'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
@@ -2529,10 +2552,10 @@
               (aMin === aMax ? esc(SM[14]) + ' ' + N(aMin) : esc(SM[2]) + ' ' + N(aMin) + '–' + N(aMax)) + '</small></div><span class="sm-t">⏱ ' + N(Math.floor(secs / 60)) + ':' + N(('0' + secs % 60).slice(-2)) + '</span></div>' +
             '<div class="sm-g ' + grade[1] + '"><svg viewBox="0 0 36 36" width="76" height="76" aria-hidden="true"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>' +
               '<circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="' + pct + ' 100" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>' +
-              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[13]) + ': ' + N(n.err) + '</small>' : '') + '</div></div>' +
+              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skip ? '<small>' + esc(SM[17]) + ': ' + N(n.skip) + '</small>' : '') + '</div></div>' +
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
-            '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(errL.length) + '</small></button>' : '') +
+            '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>' : '') +
               '<button type="button" class="sm-re">' + esc(SM[15]) + '</button><button type="button" class="sm-ok">' + esc(SM[11]) + '</button></div>';
           ov5.appendChild(bx); document.body.appendChild(ov5);
           var shut = function () { ov5.remove(); };
@@ -2558,10 +2581,21 @@
           var eb = bx.querySelector('.sm-e'); if (eb) eb.onclick = function () { errSheet(errL); };
         };
         var errSheet = function (locs) {
+          // the words passed over together become one item: «passed over · verse a», the words it held, a tap plays the verse
+          var sk = locs.filter(function (l) { return famHeard[l] && famHeard[l][2]; });
+          var items = locs.filter(function (l) { return sk.indexOf(l) < 0; }).map(function (l) { return [l]; }).concat(skipRuns(sk));
+          items.sort(function (a, b) { var x = a[0].split(':').map(Number), y = b[0].split(':').map(Number); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
+          var SKL = C.lang === 'ar' ? ['تجاوز', 'الآية', 'الآيات'] : ['Passed over', 'verse', 'verses'];
           var ov3 = document.createElement('div'); ov3.className = 'bk-tjkey bk-famsheet';
           var bx = document.createElement('div'); bx.className = 'bk-tjbox'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
-          bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + locs.map(function (l) {
-            var x = l.split(':');
+          bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + items.map(function (it) {
+            var l = it[0], x = l.split(':');
+            if (it.length > 1 || sk.indexOf(l) >= 0) {
+              var a1 = +x[1], a2 = +it[it.length - 1].split(':')[1];
+              return '<button type="button" class="lv-skip" data-l="' + l + '" data-a="' + x[0] + ':' + a1 + '"><em class="lv-hd">' + esc(SKL[0]) + ' · ' +
+                esc(a1 === a2 ? SKL[1] + ' ' + nmb(a1) : SKL[2] + ' ' + nmb(a1) + '–' + nmb(a2)) + '</em><span lang="ar">' +
+                esc(it.map(function (y) { return WTXT[y] || ''; }).join(' ')) + '</span></button>';
+            }
             // what was heard in its place: the reader (or the parent) sees the mistake, or that the model misheard
             // («wrong»: heard as something else; «missing»: not said — or other words said in its place)
             var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمعت:', 'قُرئ مكانها:', 'لم تُقرأ', 'تجاوزها القارئ'] : ['Heard as:', 'Said instead:', 'Not recited', 'Passed over'];
@@ -2574,7 +2608,10 @@
           ov3.onclick = function (e) { if (e.target === ov3) ov3.remove(); };
           bx.querySelector('.fs-close').onclick = function () { ov3.remove(); };
           bx.querySelectorAll('.lv-words button').forEach(function (b) {
-            b.onclick = function () { if (live && live.hold) live.hold(); if (C.__playWord) C.__playWord(b.dataset.l, b); };
+            b.onclick = function () {
+              if (b.dataset.a) { var sa = b.dataset.a.split(':'); if (!live || !live.running) playAyah(+sa[0], +sa[1]); return; }
+              if (live && live.hold) live.hold(); if (C.__playWord) C.__playWord(b.dataset.l, b);
+            };
           });
         };
         // phones: the choice of what happens on a mistake lives in the «More» sheet
@@ -2659,16 +2696,17 @@
           var l = fp.lessons[st.next], vs = window.Plan.lessonVerses(fp.plan, l), want = {}, pgs = [];
           vs.forEach(function (g) { var sa = window.Plan.saOf(g); want[sa[0] + ':' + sa[1]] = 1; var pg = window.Plan.pageOf(g); if (pgs.indexOf(pg) < 0) pgs.push(pg); });
           Promise.all(pgs.map(function (pg) { return fetch('/data/mushaf/p' + pg + '.json').then(function (r) { return r.json(); }); })).then(function (ds) {
-            var total = 0, done = 0, errs = 0;
+            var total = 0, done = 0, errs = 0, wErr = {};
             ds.forEach(function (d) {
               (d.l || []).forEach(function (L2) {
                 if (L2[0] !== 'a') return;
                 L2[2].forEach(function (y) {
                   var x = y[1].split(':'); if (!want[x[0] + ':' + x[1]] || /^[\u0660-\u0669\d]+$/.test(y[2] || '')) return;
-                  total++; if (all.done[y[1]]) done++; if (all.errs[y[1]]) errs++;
+                  total++; if (all.done[y[1]]) done++; if (all.errs[y[1]]) wErr[y[1]] = all.errs[y[1]];
                 });
               });
             });
+            errs = errCount(wErr).all;
             if (!total || done < total * 0.95) return;
             var max = pr.mastery_max != null ? pr.mastery_max : 2;
             F.profiles().then(function (list) { list.forEach(function (x) { if (x.id === pr.id) max = x.mastery_max; }); }).catch(function () {}).then(function () {

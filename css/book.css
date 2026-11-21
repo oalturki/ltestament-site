@@ -968,3 +968,7 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 /* a verse (or more) the reader passed over: shown, framed in dashes, so the place is seen */
 .bk-hide .bk-mpage .ml > span[data-l].tw-err.tw-skip{ background:rgba(200,60,50,.08); outline:1.5px dashed rgba(192,57,43,.7); outline-offset:-1px; }
 .bk-mpage .ml > span[data-l].tw-skip{ outline:1.5px dashed rgba(192,57,43,.7); outline-offset:-1px; border-radius:6px; }
+.lv-words button.lv-skip{ border-style:dashed; border-color:rgba(192,57,43,.6); }
+.lv-words button.lv-skip span{ font-size:1.15rem; line-height:1.9; }
+.lv-words button.lv-skip .lv-hd{ font-size:.8rem; margin:0 0 4px; }
+.bk-sum .sm-g small{ display:block; }
