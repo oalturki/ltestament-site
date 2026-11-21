@@ -972,3 +972,5 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .lv-words button.lv-skip span{ font-size:1.15rem; line-height:1.9; }
 .lv-words button.lv-skip .lv-hd{ font-size:.8rem; margin:0 0 4px; }
 .bk-sum .sm-g small{ display:block; }
+/* the word itself, inside the phrase that plays */
+.bk-mpage .bk-segt{ background:rgba(201,120,20,.38); border-radius:4px; box-shadow:0 0 0 2px rgba(201,120,20,.55); }
