@@ -2393,6 +2393,7 @@
           if (root.__planCheck) root.__planCheck(famAll);
         };
         var startLive = function () {
+          if (busy) return setTimeout(startLive, 100);     // a page still turning: listen for the page that comes, not the one leaving
           if (playing) stopAudio();
           var parts = pagePartsNow();
           live = LiveRecite({
