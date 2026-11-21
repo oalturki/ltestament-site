@@ -566,6 +566,9 @@ def ctc_words(lp, words):
     out = {}
     for u, key in enumerate(owner):
         out.setdefault(key, []).append(best.get(u, -20.0))
+    # the last word: where the reader stops, its last sound is often clipped or let fade (the stretch's end): not counted
+    last = owner[-1]
+    if len(out[last]) > 2: out[last] = out[last][:-1]
     return {k_: round(float(np.mean(v)), 2) for k_, v in out.items()}
 
 
