@@ -2370,7 +2370,7 @@
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
           r.done[loc] = 1; famAll.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = [cls, w.heard || '']; }
+          if (cls === 'wrong' || cls === 'missing') { r.errs[loc] = cls; famAll.errs[loc] = cls; famHeard[loc] = [cls, w.heard || '', w.skip]; }
         };
         var famFlush = function (complete) {
           var F = window.Fam, prof = F && F.current();
@@ -2403,10 +2403,10 @@
               if (cls !== 'ti' && !replay) { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
               if (!replay && (cls === 'ok' || cls === 'fixed' || cls === 'unclear')) rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
-                e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
+                e.classList.remove('tw-ti', 'tw-err', 'tw-fix', 'tw-unc', 'tw-skip');
                 e.classList.add('rv');
                 if (cls === 'ti') e.classList.add('tw-ti');
-                else { e.classList.add('tw-done'); if (cls === 'wrong' || cls === 'missing') e.classList.add('tw-err'); if (cls === 'fixed') e.classList.add('tw-fix'); if (cls === 'unclear') e.classList.add('tw-unc'); }
+                else { e.classList.add('tw-done'); if (cls === 'wrong' || cls === 'missing') e.classList.add('tw-err'); if (w.skip) e.classList.add('tw-skip'); if (cls === 'fixed') e.classList.add('tw-fix'); if (cls === 'unclear') e.classList.add('tw-unc'); }
               });
             },
             onClear: function () {
@@ -2542,7 +2542,7 @@
           bx.querySelector('.sm-re').onclick = function () {
             shut();
             root.querySelectorAll('.bk-mpage .tw-done, .bk-mpage .tw-ti, .bk-mpage .tw-hint').forEach(function (e) {
-              e.classList.remove('rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-ti', 'tw-hint');
+              e.classList.remove('rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-ti', 'tw-hint', 'tw-skip');
             });
             var f0 = locs.map(function (l) { return l.split(':').map(Number); }).sort(function (x, y) { return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; })[0];
             var pg = pageOf(f0[0], f0[1]);
@@ -2564,8 +2564,8 @@
             var x = l.split(':');
             // what was heard in its place: the reader (or the parent) sees the mistake, or that the model misheard
             // («wrong»: heard as something else; «missing»: not said — or other words said in its place)
-            var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمعت:', 'قُرئ مكانها:', 'لم تُقرأ'] : ['Heard as:', 'Said instead:', 'Not recited'];
-            var hx = !hd ? '' : hd[0] === 'wrong' && hd[1] ? esc(HL[0]) + ' <span lang="ar">' + esc(hd[1]) + '</span>'
+            var hd = famHeard[l], HL = C.lang === 'ar' ? ['سُمعت:', 'قُرئ مكانها:', 'لم تُقرأ', 'تجاوزها القارئ'] : ['Heard as:', 'Said instead:', 'Not recited', 'Passed over'];
+            var hx = !hd ? '' : hd[2] ? esc(HL[3]) : hd[0] === 'wrong' && hd[1] ? esc(HL[0]) + ' <span lang="ar">' + esc(hd[1]) + '</span>'
                    : hd[1] ? esc(HL[1]) + ' <span lang="ar">' + esc(hd[1]) + '</span>' : esc(HL[2]);
             return '<button type="button" data-l="' + l + '"><span lang="ar">' + esc(WTXT[l] || '…') + '</span><small>' + nmb(x[0]) + ':' + nmb(x[1]) + '</small>' +
               (hx ? '<em class="lv-hd">' + hx + '</em>' : '') + '</button>';

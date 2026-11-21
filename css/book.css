@@ -965,3 +965,6 @@ body:not(.bk-mob) .bk-msitem[data-s=view]{ display:none; }
 .bk-othpop small span{ grid-column:auto; font-size:inherit; color:inherit; }
 .bk-sum .sm-re{ background:#8a5a14; border:0; color:#fff; }
 .bk-sum .sm-b .sm-ok{ background:#fff; border:1px solid #d9c48e; color:#8a5a14; flex:.7; }
+/* a verse (or more) the reader passed over: shown, framed in dashes, so the place is seen */
+.bk-hide .bk-mpage .ml > span[data-l].tw-err.tw-skip{ background:rgba(200,60,50,.08); outline:1.5px dashed rgba(192,57,43,.7); outline-offset:-1px; }
+.bk-mpage .ml > span[data-l].tw-skip{ outline:1.5px dashed rgba(192,57,43,.7); outline-offset:-1px; border-radius:6px; }

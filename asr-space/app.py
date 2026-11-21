@@ -564,6 +564,15 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     if not sought and pos > 0 and len(hyp) >= 3 and edit_ratio(skeleton(exp[pos]) if pos < len(exp) else "", skeleton(hyp[0])) < 0.6:
         o = seek_start(exp[:pos + len(hyp)], hyp)
         if o is not None and o < pos: back, pos = pos, o
+    # the reader went on further than the next word (a verse or more left out): from where he went on, and the words
+    # he passed over are marked — not when the first words heard are the ones due (only the very first misheard)
+    skipped = []
+    if final and not sought and back is None and pos > 0 and len(hyp) >= 3 and pos < len(exp):
+        due_ok = sum(edit_ratio(skeleton(exp[pos + i]), skeleton(hyp[i])) >= 0.6 for i in range(3) if pos + i < len(exp))
+        if due_ok <= 1:
+            o = seek_start(exp[pos:pos + 160], hyp)
+            if o is not None and o >= 3:
+                skipped = list(range(pos, pos + o)); pos += o
     # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
     # (shown, not counted as a mistake: the model may have misheard); further still, wrong
     ok_thr, lo_thr = {"strict": (0.8, 0.8), "easy": (0.55, 0.3)}.get(level, (0.67, 0.4))
@@ -624,6 +633,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         return words, pos + last + 1, other
 
     words, nxt, other = judge(hyp)
+    if skipped and not words: pos, nxt, skipped = skipped[0], skipped[0], []
+    if skipped:
+        words = [{"k": k, "ayah": where[k][0], "i": where[k][1], "text": exp[k], "status": "missing", "skip": True} for k in skipped] + words
     # a second hearing: three or more mistakes in a row are more often a stretch the model misheard than a reader who
     # got a whole phrase wrong. So that stretch is heard again, more carefully (a wider search, and — unless the check
     # is strict — told which words to expect); a word heard right the second time is right. A phrase really
@@ -653,4 +665,4 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             except Exception:
                 pass
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "relistened": relistened, "other": other if final else None}
+            "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened, "other": other if final else None}

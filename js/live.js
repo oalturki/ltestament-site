@@ -6,7 +6,7 @@
 
    var L = LiveRecite({
      api, parts: [{s, a, b}],                     // surah, first and last ayah of each part, in order
-     onWord(p, w, cls)                            // w = {k, ayah, i, text}; cls: 'ti' (heard, not final) | 'ok' | 'fixed' | 'wrong' | 'missing'
+     onWord(p, w, cls)                            // w = {k, ayah, i, text, skip}; cls: 'ti' (heard, not final) | 'ok' | 'fixed' | 'wrong' | 'missing' (skip: passed over)
      onClear(p)                                   // drop the tentative marks of part p
      onCursor(p, k)                               // the next word expected
      onPartDone(p), onDone()                      // a part / the whole passage recited
@@ -116,14 +116,15 @@
         function (e) { R && (R.busy = false); seg.sent = 0; throw e; });
     }
     function interim(res) {
-      // while a stretch goes on: show every word up to the furthest one heard right — no holes in between (a word
-      // in the middle that was not clear yet is shown too; the end of the stretch judges it), and never fewer words
-      // than already shown (no flicker as the guess changes)
+      // while a stretch goes on: show the words already heard right, never fewer than already shown (no flicker)
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
       sought(pt, res);
       if (res.pos !== pt.pos) return;
-      var far = pt.tiTo || -1;
-      res.words.forEach(function (x) { if (x.status === 'ok') far = Math.max(far, x.k); });
+      // only the words heard right one after another from the reader's place: a word is never shown before it was
+      // said (other words heard, or a word not yet clear, stop it — the end of the stretch judges them)
+      var far = pt.tiTo || -1, st = {};
+      res.words.forEach(function (x) { st[x.k] = x.status; });
+      for (var k0 = Math.max(pt.pos, far + 1); st[k0] === 'ok'; k0++) far = k0;
       pt.tiTo = far;
       for (var k = pt.pos; k <= far && k < pt.words.length; k++) {
         var w = pt.words[k];
@@ -156,7 +157,7 @@
         if (x.k < pos0 && w.done && !(was && (x.status === 'ok' || x.status === 'unclear'))) return;
         if (x.status === 'ok') { w.done = was ? 'fixed' : 'ok'; o.onWord(P, w, w.done); }
         else if (x.status === 'unclear') { w.done = was ? 'fixed' : 'unclear'; o.onWord(P, w, w.done); }   // not clearly heard: shown, not a mistake
-        else { w.done = x.status; w.heard = x.heard; o.onWord(P, w, x.status); errs.push(w); }
+        else { w.done = x.status; w.heard = x.heard; w.skip = !!x.skip; o.onWord(P, w, x.status); if (!x.skip || !errs.length) errs.push(w); }
       });
       pt.pos = Math.max(pt.pos, res.next);
       cursor();
