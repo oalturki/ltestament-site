@@ -536,11 +536,12 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     per_ayah = {}
     for a_, _ in where: per_ayah[a_] = per_ayah.get(a_, 0) + 1
 
-    def whole_ayah(ks):
-        # the words (by place in the passage) hold a whole verse, however short (كلا سيعلمون، مدهامتان)
+    def whole_ayahs(ks):
+        # of these words (by place in the passage), the verses held whole, from their first word to their last, however
+        # short (كلا سيعلمون، مدهامتان): what is passed over is told by the verses' ends, not by a count of words
         got = {}
         for k_ in ks: got[where[k_][0]] = got.get(where[k_][0], 0) + 1
-        return any(n_ == per_ayah[a_] for a_, n_ in got.items())
+        return {a_ for a_, n_ in got.items() if n_ == per_ayah[a_]}
     try:
         heard = transcribe(wav) if dur >= 0.3 else ""
     except HTTPException:
@@ -579,7 +580,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         due_ok = sum(edit_ratio(skeleton(exp[pos + i]), skeleton(hyp[i])) >= 0.6 for i in range(3) if pos + i < len(exp))
         if due_ok <= 1:
             o = seek_start(exp[pos:pos + 160], hyp)
-            if o is not None and (o >= 3 or (o >= 1 and whole_ayah(range(pos, pos + o)))):
+            if o is not None and o >= 1:
                 skipped = list(range(pos, pos + o)); pos += o
     # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
     # (shown, not counted as a mistake: the model may have misheard); further still, wrong
@@ -635,14 +636,15 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 s_ = sim[i][j]
                 w["status"] = "ok" if s_ >= ok_thr else ("unclear" if s_ >= lo_thr else "wrong")
             words.append(w)
-        # three words or more left out together, nothing said in their place: passed over (one place, not a word each)
+        # words left out together, nothing said in their place: a whole verse among them is passed over (one place,
+        # not a word each); words left out of a verse said in part are word mistakes
         run_ = []
         for n_, w in enumerate(words + [None]):
             if w is not None and w["status"] in ("missing", "unclear") and "heard" not in w:     # not heard at all
                 run_.append(n_); continue
-            if (len(run_) >= 3 and sum(words[m_]["status"] == "missing" for m_ in run_) >= 2) or \
-                    (run_ and whole_ayah([words[m_]["k"] for m_ in run_])):
-                for m_ in run_: words[m_]["status"] = "missing"; words[m_]["skip"] = True
+            whole = whole_ayahs([words[m_]["k"] for m_ in run_]) if run_ else set()
+            for m_ in run_:
+                if where[words[m_]["k"]][0] in whole: words[m_]["status"] = "missing"; words[m_]["skip"] = True
             run_ = []
         if stop_at is not None:
             a, k = where[pos + stop_at]
@@ -652,7 +654,9 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     words, nxt, other = judge(hyp)
     if skipped and not words: pos, nxt, skipped = skipped[0], skipped[0], []
     if skipped:
-        words = [{"k": k, "ayah": where[k][0], "i": where[k][1], "text": exp[k], "status": "missing", "skip": True} for k in skipped] + words
+        whole = whole_ayahs(skipped)
+        words = [dict({"k": k, "ayah": where[k][0], "i": where[k][1], "text": exp[k], "status": "missing"}, **({"skip": True} if where[k][0] in whole else {}))
+                 for k in skipped] + words
     # a second hearing: three or more mistakes in a row are more often a stretch the model misheard than a reader who
     # got a whole phrase wrong. So that stretch is heard again, more carefully (a wider search, and — unless the check
     # is strict — told which words to expect); a word heard right the second time is right. A phrase really
