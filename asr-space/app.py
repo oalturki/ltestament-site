@@ -752,8 +752,10 @@ def tajweed(audio: UploadFile = File(...), surah: int = Form(...), ayah: int = F
     if len(wav) / SR > 30: raise HTTPException(413, "audio too long (30 s at most)")
     from quran_transcript import Aya
     words = Aya(surah, ayah).get().uthmani.split()
-    heard, prob, times = inf.hear(wav.astype(np.float32), riwaya="hafs")
+    out = inf.hear(wav.astype(np.float32), riwaya="hafs")
+    heard, prob, times = (list(out) + [None, None])[:3] if isinstance(out, (tuple, list)) else (out, None, None)
     ref = im.recited(words, heard, riwaya="hafs")
     lg = lang if lang in ("ar", "en", "fr") else "en"
-    res = [_plain(r) for r in im.listen(ref, heard, prob, times, min_prob=0.3, min_prob_jali=0.7, langs=(lg,))]
-    return {"surah": surah, "ayah": ayah, "words": res, "heard": _plain(heard), "ms": int((time.time() - t0) * 1000)}
+    res = [_plain(r) for r in im.listen(ref, heard, heard_probs=prob, heard_times=times, min_prob=0.3, min_prob_jali=0.7, langs=(lg,))]
+    return {"surah": surah, "ayah": ayah, "n_words": len(words), "words": res, "heard": _plain(heard) if isinstance(heard, str) else str(type(heard)),
+            "hear_out": len(out) if isinstance(out, (tuple, list)) else 1, "ms": int((time.time() - t0) * 1000)}
