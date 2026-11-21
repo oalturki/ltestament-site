@@ -627,6 +627,14 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 s_ = sim[i][j]
                 w["status"] = "ok" if s_ >= ok_thr else ("unclear" if s_ >= lo_thr else "wrong")
             words.append(w)
+        # three words or more left out together, nothing said in their place: passed over (one place, not a word each)
+        run_ = []
+        for n_, w in enumerate(words + [None]):
+            if w is not None and w["status"] in ("missing", "unclear") and "heard" not in w:     # not heard at all
+                run_.append(n_); continue
+            if len(run_) >= 3 and sum(words[m_]["status"] == "missing" for m_ in run_) >= 2:
+                for m_ in run_: words[m_]["status"] = "missing"; words[m_]["skip"] = True
+            run_ = []
         if stop_at is not None:
             a, k = where[pos + stop_at]
             words.append({"k": pos + stop_at, "ayah": a, "i": k, "text": win[stop_at], "heard": " ".join(tail[:3]), "status": "wrong"})

@@ -2384,6 +2384,15 @@
           });
           return runs;
         };
+        // a place passed over is a whole verse (or more) when it holds a verse from its first word to its last; else part of one
+        var wholeAyah = function (run) {
+          var has = {}; run.forEach(function (l) { has[l] = 1; });
+          return run.some(function (l) {
+            var x = l.split(':'); if (x[2] !== '1') return false;
+            for (var k = 1; WTXT[x[0] + ':' + x[1] + ':' + k]; k++) if (!has[x[0] + ':' + x[1] + ':' + k]) return false;
+            return true;
+          });
+        };
         var errCount = function (errs) {
           var w = 0, sk = [];
           Object.keys(errs).forEach(function (l) { if (errs[l] === 'skip') sk.push(l); else w++; });
@@ -2526,8 +2535,8 @@
         lbar.querySelector('.lv-err').onclick = function () { errSheet(Object.keys(famAll.errs)); };
         // after a recitation, as in recitation apps: how it went — the share recited right, the words right, corrected,
         // not clearly heard and still wrong, the time, and the mistakes a tap away
-        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية', 'أعد التسميع', 'أخطاء الكلمات', 'مواضع التجاوز', 'تجاوز'],
-                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse', 'Recite it again', 'Word mistakes', 'Places passed over', 'Passed over'] };
+        var SUM = { ar: ['ملخص الجلسة', 'سورة', 'الآيات', 'صحيحة', 'صُحّحت', 'لم تُسمع بوضوح', 'أخطاء', 'مقروءة', 'أحسنت — تلاوة متقنة', 'جيد — راجع الأخطاء', 'واصل التمرين', 'تم', 'الأخطاء', 'كلمات لم تُصحَّح بعد', 'الآية', 'أعد التسميع', 'أخطاء الكلمات', 'مواضع التجاوز', 'تجاوز', 'تجاوز آيات', 'تجاوز مقاطع'],
+                    en: ['Session summary', 'Surah', 'verses', 'right', 'corrected', 'not clear', 'mistakes', 'recited', 'Well done — a sound recitation', 'Good — go over the mistakes', 'Keep practising', 'Done', 'Mistakes', 'words not corrected yet', 'verse', 'Recite it again', 'Word mistakes', 'Places passed over', 'Passed over', 'Verses passed over', 'Passages passed over'] };
         var SM = SUM[C.lang] || SUM.en;
         root.__liveSummary = function (W, t0) {
           var locs = Object.keys(W); if (locs.length < 3) return;
@@ -2538,7 +2547,8 @@
             sMin = +x[0]; aMin = Math.min(aMin, +x[1]); aMax = Math.max(aMax, +x[1]);
           });
           // the share right counts the words recited; each place passed over takes the grade down a step
-          n.skip = skipRuns(skL).length;
+          var runs = skipRuns(skL); n.skip = runs.length;
+          n.skipA = runs.filter(wholeAyah).length; n.skipP = n.skip - n.skipA;
           var all = locs.length - skL.length;
           if (all < 1) return;
           var pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
@@ -2552,7 +2562,7 @@
               (aMin === aMax ? esc(SM[14]) + ' ' + N(aMin) : esc(SM[2]) + ' ' + N(aMin) + '–' + N(aMax)) + '</small></div><span class="sm-t">⏱ ' + N(Math.floor(secs / 60)) + ':' + N(('0' + secs % 60).slice(-2)) + '</span></div>' +
             '<div class="sm-g ' + grade[1] + '"><svg viewBox="0 0 36 36" width="76" height="76" aria-hidden="true"><circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="3"/>' +
               '<circle cx="18" cy="18" r="15.9" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="' + pct + ' 100" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>' +
-              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skip ? '<small>' + esc(SM[17]) + ': ' + N(n.skip) + '</small>' : '') + '</div></div>' +
+              '<span class="sm-p">' + N(pct) + '٪</span><div><b>' + esc(grade[0]) + '</b>' + (n.err ? '<small>' + esc(SM[16]) + ': ' + N(n.err) + '</small>' : '') + (n.skipA ? '<small>' + esc(SM[19]) + ': ' + N(n.skipA) + '</small>' : '') + (n.skipP ? '<small>' + esc(SM[20]) + ': ' + N(n.skipP) + '</small>' : '') + '</div></div>' +
             '<div class="sm-n"><span class="g"><b>' + N(n.ok) + '</b>' + esc(SM[3]) + '</span><span class="m"><b>' + N(n.fixed) + '</b>' + esc(SM[4]) + '</span>' +
               '<span class="u"><b>' + N(n.unclear) + '</b>' + esc(SM[5]) + '</span><span><b>' + N(all) + '</b>' + esc(SM[7]) + '</span></div>' +
             '<div class="sm-b">' + (errL.length ? '<button type="button" class="sm-e">' + esc(SM[12]) + ' <small>' + N(n.err + n.skip) + '</small></button>' : '') +
@@ -2585,14 +2595,14 @@
           var sk = locs.filter(function (l) { return famHeard[l] && famHeard[l][2]; });
           var items = locs.filter(function (l) { return sk.indexOf(l) < 0; }).map(function (l) { return [l]; }).concat(skipRuns(sk));
           items.sort(function (a, b) { var x = a[0].split(':').map(Number), y = b[0].split(':').map(Number); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; });
-          var SKL = C.lang === 'ar' ? ['تجاوز', 'الآية', 'الآيات'] : ['Passed over', 'verse', 'verses'];
+          var SKL = C.lang === 'ar' ? ['تجاوز', 'الآية', 'الآيات', 'تجاوز مقطع من'] : ['Passed over', 'verse', 'verses', 'Passed over part of'];
           var ov3 = document.createElement('div'); ov3.className = 'bk-tjkey bk-famsheet';
           var bx = document.createElement('div'); bx.className = 'bk-tjbox'; bx.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
           bx.innerHTML = '<b>' + esc(LB[3]) + '</b>' + (locs.length ? '<p class="fs-l small">' + esc(LB[5]) + '</p><div class="lv-words">' + items.map(function (it) {
             var l = it[0], x = l.split(':');
             if (it.length > 1 || sk.indexOf(l) >= 0) {
               var a1 = +x[1], a2 = +it[it.length - 1].split(':')[1];
-              return '<button type="button" class="lv-skip" data-l="' + l + '" data-a="' + x[0] + ':' + a1 + '"><em class="lv-hd">' + esc(SKL[0]) + ' · ' +
+              return '<button type="button" class="lv-skip" data-l="' + l + '" data-a="' + x[0] + ':' + a1 + '"><em class="lv-hd">' + (wholeAyah(it) ? esc(SKL[0]) + ' · ' : esc(SKL[3]) + ' ') +
                 esc(a1 === a2 ? SKL[1] + ' ' + nmb(a1) : SKL[2] + ' ' + nmb(a1) + '–' + nmb(a2)) + '</em><span lang="ar">' +
                 esc(it.map(function (y) { return WTXT[y] || ''; }).join(' ')) + '</span></button>';
             }
