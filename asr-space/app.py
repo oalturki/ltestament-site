@@ -489,14 +489,20 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                     # a short word let pass as «not clear» (و، له، في…) whose sounds are nowhere: left out
                     elif w["status"] == "unclear" and "heard" not in w and f_ <= CTC_BAD:
                         words[n_] = dict(w, status="missing", absent=True)
-                # other words said in its place, none of them Quran, and the word's sounds nowhere in the audio: not a
-                # mistake in the verse but something else said (whatever its length) — the page asks to say it again
+                # other words said in place of the verse: a run of words not heard right, where something was heard,
+                # the sounds of at least one of them nowhere in the audio, and what was heard not Quran (no pair of its
+                # words follows in the Quran; one word alone: not a Quran word) — whatever its length. Not a mistake in
+                # the verse: the page asks to say it again from the run's first word
                 if other is None:
-                    for w in words:
-                        hw = (w.get("heard") or "").split()
-                        if w["status"] == "wrong" and hw and w.get("fit", 0) <= CTC_BAD and not any(quranic_word(x) for x in hw) \
-                                and not (len(hw) >= 2 and quranic(hw)):
-                            other = {"k": w["k"], "text": " ".join(hw[:6]), "by": "fit"}; break
+                    run_, ws_ = [], sorted(words, key=lambda w: w["k"])
+                    for w in ws_ + [None]:
+                        if w is not None and w["status"] in ("wrong", "unclear", "missing") and not w.get("skip"):
+                            run_.append(w); continue
+                        hw = [x for r_ in run_ for x in (r_.get("heard") or "").split()]
+                        if hw and any(r_.get("fit", 0) <= CTC_BAD for r_ in run_):
+                            alien = (not quranic(hw)) if len(hw) >= 2 else not quranic_word(hw[0])
+                            if alien: other = {"k": run_[0]["k"], "text": " ".join(hw[:6]), "by": "fit"}; break
+                        run_ = []
         except Exception as e:
             fit = {"err": f"{type(e).__name__}: {e}"[:200]}
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
