@@ -141,7 +141,7 @@
     return null;
   }
   function taskList() {
-    var ts = myTasks(), n = ts.filter(function (t) { return S.done[t.id]; }).length, nx = nextTask();
+    var ts = myTasks(), n = ts.filter(function (t) { return S.done[t.id]; }).length, nx = nextTask(S.lastTask);
     var groups = {}, order = [];
     ts.forEach(function (t) { if (!groups[t.p]) { groups[t.p] = []; order.push(t.p); } groups[t.p].push(t); });
     h('<div class="rc-card"><h2 class="rc-h">' + esc(S.prof.name) + ' <small>· ' + AGE[S.consent.age_band] + '</small></h2>' +
@@ -302,7 +302,7 @@
         URL.revokeObjectURL(url);
         S.done[t.id] = (S.done[t.id] || 0) + 1;
         S.clips.push({ id: id, task: t.id, path: path });
-        var nx = nextTask(t);
+        S.lastTask = t; var nx = nextTask(t);
         if (nx) openTask(nx); else taskList();
       }).catch(function (e) { fail(e); btn.disabled = false; btn.textContent = 'احفظ وانتقل للتالي'; });
     };
