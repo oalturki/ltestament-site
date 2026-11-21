@@ -558,6 +558,12 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             if o: pos, sought = o, o
             elif len(hyp) < 8: return {"pos": 0, "next": 0, "final": final, "heard": heard, "words": [], "seconds": round(dur, 2),
                                          "ms": int((time.time() - t0) * 1000), "seeking": True}
+    # the reader went back and said again something he had already recited (to fix it, or to take a run at what comes
+    # next): the stretch is checked against the earlier text it matches, not against the words still to come
+    back = None
+    if not sought and pos > 0 and len(hyp) >= 3 and edit_ratio(skeleton(exp[pos]) if pos < len(exp) else "", skeleton(hyp[0])) < 0.6:
+        o = seek_start(exp[:pos + len(hyp)], hyp)
+        if o is not None and o < pos: back, pos = pos, o
     # how strict the check is: a word heard close to the text is right; a little further, «not heard clearly»
     # (shown, not counted as a mistake: the model may have misheard); further still, wrong
     ok_thr, lo_thr = {"strict": (0.8, 0.8), "easy": (0.55, 0.3)}.get(level, (0.67, 0.4))
@@ -640,4 +646,4 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             except Exception:
                 pass
     return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
-            "ms": int((time.time() - t0) * 1000), "sought": sought, "relistened": relistened, "other": other if final else None}
+            "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "relistened": relistened, "other": other if final else None}

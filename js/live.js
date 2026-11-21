@@ -67,10 +67,17 @@
     ['onWord', 'onClear', 'onCursor', 'onPartDone', 'onDone', 'onLevel', 'onState'].forEach(function (k) { if (!o[k]) o[k] = noop; });
     var parts = [], P = 0, R = null, actx = null;
 
+    // a passage already begun in this session (the reader turned to another page and came back) goes on where it was
+    var seen = {};
     function loadParts(list) {
-      parts = list.map(function (x) { return { s: x.s, a: x.a, b: x.b, words: [], pos: 0, ready: null }; });
+      parts = list.map(function (x) {
+        var key = x.s + ':' + x.a + ':' + x.b;
+        return seen[key] || (seen[key] = { s: x.s, a: x.a, b: x.b, words: [], pos: 0, ready: null });
+      });
       P = 0;
+      while (P + 1 < parts.length && parts[P].ready && parts[P].pos >= parts[P].words.length) P++;
       parts.forEach(function (pt) {
+        if (pt.ready) return;
         pt.ready = surahText(pt.s).then(function (t) {
           var k = 0;
           for (var a = pt.a; a <= pt.b; a++) {
@@ -137,9 +144,13 @@
       // mistake yet — the page asks him to say it again from that word. The second time at the same word, it counts.
       var oth = res.other, again = oth && !(pt.otherAt = pt.otherAt || {})[oth.k];
       if (again) { pt.otherAt[oth.k] = 1; res.words = res.words.filter(function (x) { return x.k < oth.k; }); res.next = oth.k; }
+      var pos0 = pt.pos;
       res.words.forEach(function (x) {
         var w = pt.words[x.k]; if (!w) return;
         var was = w.done === 'wrong' || w.done === 'missing';
+        // said again (the reader went back over what he had recited): a mistake then put right counts as corrected;
+        // a word already right stays as it was (not marked again, nor turned into a mistake)
+        if (x.k < pos0 && w.done && !(was && (x.status === 'ok' || x.status === 'unclear'))) return;
         if (x.status === 'ok') { w.done = was ? 'fixed' : 'ok'; o.onWord(P, w, w.done); }
         else if (x.status === 'unclear') { w.done = was ? 'fixed' : 'unclear'; o.onWord(P, w, w.done); }   // not clearly heard: shown, not a mistake
         else { w.done = x.status; w.heard = x.heard; o.onWord(P, w, x.status); errs.push(w); }
@@ -185,8 +196,9 @@
               noise: 0.004, lvl: 0, busy: false, queue: [], fresh: false, mute: false, tick: 0 };
         LiveRecite.active = true;
         var blk = 4096 / actx.sampleRate;
-        node.onaudioprocess = function (ev) {
+        node.onaudioprocess = R.proc = function (ev) {
           if (!R) return;
+          R.lastT = Date.now();
           var x = new Float32Array(ev.inputBuffer.getChannelData(0));
           if (R.mute) x.fill(0);
           var e = 0; for (var i = 0; i < x.length; i++) e += x[i] * x[i];
@@ -214,6 +226,29 @@
         o.onState('listening'); cursor();
       }).catch(function () { o.onState('denied'); });
     }
+    // back on the page after another app or tab: the phone may have cut the microphone off meanwhile (the session goes
+    // on, nothing heard) — open it again and join it to the same listening
+    function rehook(force) {
+      if (!R || document.hidden) return;
+      var r0 = R;
+      if (actx && actx.state !== 'running') actx.resume();
+      var live_ = MIC && MIC.getAudioTracks().some(function (t) { return t.readyState === 'live' && !t.muted; });
+      if (live_ && force !== true) return;
+      MIC = null;
+      getMic().then(function (stream) {
+        if (R !== r0) return;
+        try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {}
+        var src = actx.createMediaStreamSource(stream), node = actx.createScriptProcessor(4096, 1, 1);
+        node.onaudioprocess = r0.proc; r0.src = src; r0.node = node;
+        src.connect(node); node.connect(actx.destination);
+      }).catch(function () { o.onState('denied'); });
+    }
+    document.addEventListener('visibilitychange', function () { rehook(); });
+    window.addEventListener('pageshow', function () { rehook(); });
+    // and if no sound at all reaches the page for three seconds while it is shown, the same
+    setInterval(function () {
+      if (R && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
+    }, 1500);
     function stop(release) {
       if (!R) { if (release) dropMic(); return; }
       var r0 = R;
@@ -232,7 +267,13 @@
     }
     return {
       start: start, stop: stop, warm: function () { warm(API); },
-      setParts: function (list) { loadParts(list); if (R) cursor(); },
+      setParts: function (list) {
+        loadParts(list); if (R) cursor();
+        // a passage gone back to: its words recited so far are shown again as they were (the page drew them anew)
+        parts.forEach(function (pt, i) {
+          pt.ready.then(function () { pt.words.forEach(function (w) { if (w.done) o.onWord(i, w, w.done, true); }); });
+        });
+      },
       // stop listening while something plays (a word said on request), so the microphone does not take it for the reader
       hold: function (pr) { if (!R) return; R.mute = true; Promise.resolve(pr).catch(noop).then(function () { setTimeout(function () { if (R) R.mute = false; }, 250); }); },
       get running() { return !!R; }

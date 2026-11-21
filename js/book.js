@@ -2397,10 +2397,10 @@
           var parts = pagePartsNow();
           live = LiveRecite({
             parts: parts,
-            onWord: function (p, w, cls) {
+            onWord: function (p, w, cls, replay) {
               if ((cls === 'ok' || cls === 'unclear') && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
-              if (cls !== 'ti') { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
-              if (cls === 'ok' || cls === 'fixed' || cls === 'unclear') rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
+              if (cls !== 'ti' && !replay) { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = cls; }
+              if (!replay && (cls === 'ok' || cls === 'fixed' || cls === 'unclear')) rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix');
                 e.classList.add('rv');
