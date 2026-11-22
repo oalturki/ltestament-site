@@ -1123,3 +1123,6 @@ body.bk-mob .bk-mnav .bk-mbtn{ min-height:0 !important; padding:2px 0 !important
 body.bk-mob .bk-mnav .bk-mbtn svg{ width:20px; height:20px; }
 body.bk-mob .bk-mnav .bk-mbtn span{ font-size:.68rem; }
 body.bk-mob .bk-mnav .bk-mtime b, body.bk-mob .bk-mnav .bk-mletters b{ font-size:.92rem; }
+/* phones: the little handle that brings the bars back, in their colours */
+body.bk-mob.bk-chrome-off .bk-mshow{ background:rgba(251,246,236,.97) !important; border:1px solid rgba(138,106,30,.25) !important; box-shadow:0 1px 6px rgba(60,45,15,.15) !important; }
+body.bk-mob.bk-chrome-off .bk-mshow span{ background:#a8801f; }
