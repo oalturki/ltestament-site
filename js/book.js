@@ -438,7 +438,9 @@
       box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(headW / 3.28, lh * 1.15 / 0.41) + 'px'; });
       // The frame wraps the text, as in print: when the page is wider than the text needs, narrow the frame
       // (and the head above it) to the text width instead of leaving empty paper inside the frame.
-      if (!open && lineW < W - 2) {
+      // (iPad/computer: the frame keeps the page's size in every view — the Mushaf, the colour Mushaf, beside a tafsir —
+      // so the open book never changes shape; the text sits in its middle)
+      if (!open && lineW < W - 2 && !document.body.classList.contains('bk-wide')) {
         var extra = fr.offsetWidth - W;            // the frame's borders and padding
         fr.style.maxWidth = (lineW + extra) + 'px';
         if (head) head.style.maxWidth = (lineW + extra) + 'px';

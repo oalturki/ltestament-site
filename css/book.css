@@ -1348,3 +1348,8 @@ body.bk-touring.bk-chrome-off .bk-bar, body.bk-touring.bk-chrome-off .bk-mnav{ t
 /* settings: replay the tour */
 .bk-mstour{ display:block; margin:8px auto 2px; background:none; border:0; color:#8a6a1e; font:inherit; text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
 .bk-tcard p{ white-space:pre-line; }
+/* iPad/computer: one size for the open book whatever it shows (the Mushaf, the colour Mushaf, a tafsir or a translation
+   beside it) — the two pages keep their place, only what is on them changes */
+body.bk-wide .bk-book, body.bk-wide .bk-book.bk-spread, body.bk-wide:not(.bk-is-mushaf) .bk-book:not(.bk-spread){
+  width:min(calc((100vh - 124px) * 1.3), calc(100vw - 24px)) !important; width:min(calc((100dvh - 124px) * 1.3), calc(100vw - 24px)) !important;
+  max-width:none !important; margin-inline:auto !important; flex:0 0 auto !important; }
