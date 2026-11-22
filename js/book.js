@@ -348,10 +348,21 @@
     /* ---------- rendering ---------- */
     // Basmala line: the basmala of Al-Fatiha (page 1, words 1–4) in the page-1 font, as the printed Mushaf repeats it.
     var BASMALA = ['ﱁ', 'ﱂ', 'ﱃ', 'ﱄ'];
+    // in the surah's ornamental frame, either side of its name: Meccan or Medinan (right) and its verses (left)
+    var MECCAN = '100001100111011111111010111111110111111111111100011111010000000000111111111011111111111111111111100111111111101111';
+    function arCount(n, one, two, few, many) {
+      var d = arNum(n);
+      return n === 1 ? one : n === 2 ? two : (n % 100 >= 3 && n % 100 <= 10) ? d + ' ' + few : d + ' ' + many;
+    }
+    function surahNote(sN) {
+      if (!MAP || !MAP.verses) return '';
+      var r = MECCAN.charAt(sN - 1) === '1' ? 'مكية' : 'مدنية', l = arCount(MAP.verses[sN - 1], 'آية', 'آيتان', 'آيات', 'آية');
+      return '<i class="mh-i mh-r" aria-hidden="true">' + r + '</i><i class="mh-i mh-l" aria-hidden="true">' + l + '</i>';
+    }
     function renderAr(el, p, m) {
       var first = MAP.pages[p - 1][0], html = '';
       m.l.forEach(function (L) {
-        if (L[0] === 's') html += '<div class="ml ml-s"><span class="mh" role="img" aria-label="سورة ' + esc(C.arabicNames[L[1] - 1]) + '">' + L[2] + '</span></div>';
+        if (L[0] === 's') html += '<div class="ml ml-s"><span class="mh" role="img" aria-label="سورة ' + esc(C.arabicNames[L[1] - 1]) + '">' + L[2] + surahNote(L[1]) + '</span></div>';
         else if (L[0] === 'b') html += '<div class="ml ml-c ml-b">' + BASMALA.map(function (g) { return '<span>' + g + '</span>'; }).join('') + '</div>';
         else html += '<div class="ml' + (L[1] ? ' ml-c' : '') + '">' + L[2].map(function (w) {
           if (w[2]) WTXT[w[1]] = w[2];

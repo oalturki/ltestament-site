@@ -1288,3 +1288,10 @@ body.bk-wide .bk-idx .bk-ixpg{ font-size:.85rem; }
 body.bk-wide .bk-idx .bk-ixhome, body.bk-wide .bk-idx .bk-ixx{ display:none !important; }
 body.bk-wide .bk-idx .bk-ixclose{ display:flex; flex:none; width:34px; height:34px; border-radius:50%; border:1px solid rgba(138,106,30,.3); background:none;
   color:#8a6a1e; align-items:center; justify-content:center; cursor:pointer; }
+
+/* the surah frame's notes: Meccan/Medinan · verses (right), pages (left) — small, in the ornament's colour */
+.bk-mushaf .mh{ position:relative; }
+.bk-mushaf .mh .mh-i{ position:absolute; top:50%; transform:translateY(-50%); font-family:'Amiri', 'Noto Naskh Arabic', serif; font-style:normal;
+  font-size:.16em; line-height:1; color:#7d6a3c; white-space:nowrap; pointer-events:none; }
+.bk-mushaf .mh .mh-r{ right:13%; }
+.bk-mushaf .mh .mh-l{ left:13%; }
