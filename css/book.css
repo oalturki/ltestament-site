@@ -1126,3 +1126,8 @@ body.bk-mob .bk-mnav .bk-mtime b, body.bk-mob .bk-mnav .bk-mletters b{ font-size
 /* phones: the little handle that brings the bars back, in their colours */
 body.bk-mob.bk-chrome-off .bk-mshow{ background:rgba(251,246,236,.97) !important; border:1px solid rgba(138,106,30,.25) !important; box-shadow:0 1px 6px rgba(60,45,15,.15) !important; }
 body.bk-mob.bk-chrome-off .bk-mshow span{ background:#a8801f; }
+/* phones: the time and letters keep their places from the first moment (empty until counted), so ▶ is centred at once */
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters{ display:flex !important; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; color:#6d5216; }
+body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters[hidden]{ visibility:hidden; }
+body.bk-mob .bk-mnav .bk-mtime{ display:flex !important; }
+body.bk-mob .bk-mnav .bk-mtime:empty{ visibility:hidden; }
