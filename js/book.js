@@ -474,6 +474,7 @@
       });
       box.classList.add('ready');
     }
+    function wideNow() { return document.body.classList.contains('bk-wide'); }
     function renderTr(el, p, d) {
       if (d.trFail) {
         el.classList.add('bk-trpage'); el.classList.remove('bk-arpage', 'bk-mpage', 'pg-r', 'pg-l');
@@ -495,10 +496,14 @@
       el.classList.add('bk-trpage'); el.classList.remove('bk-arpage', 'bk-mpage', 'pg-r', 'pg-l');
       el.innerHTML =
         '<div class="bk-head"><b>' + esc(names[first - 1]) + '</b><span>' + esc(t.juz) + ' ' + (t.lang === 'ar' ? arNum(MAP.juz[p - 1]) : MAP.juz[p - 1]) + '</span></div>' +
+        // iPad/computer: the meaning sits in the same ornamental frame as the Mushaf page facing it (one frame for both
+        // pages — only what is inside changes)
+        (wideNow() ? '<div class="bk-mframe sp-r bk-trframe">' : '') +
         '<div class="bk-content">' + html +
           (notes.length ? '<details class="bk-fn"><summary>' + esc(U.notes) + ' (' + notes.length + ')</summary><p>' + fnMarks(notes.join('\n\n')) + '</p></details>' : '') +
           '<p class="bk-credit">' + t.credit + '</p>' +
         '</div>' +
+        (wideNow() ? '</div>' : '') +
         '<div class="bk-foot"><span>' + p + '</span></div>';
     }
     function renderAll(p, d) {

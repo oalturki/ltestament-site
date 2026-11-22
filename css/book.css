@@ -1361,3 +1361,11 @@ body.bk-wide .bk-book, body.bk-wide .bk-book.bk-spread, body.bk-wide:not(.bk-is-
 .bk-ttext ul{ margin:0; padding-inline-start:20px; }
 .bk-ttext li{ margin:1px 0; }
 .bk-ttext li::marker{ color:#b8892e; }
+
+/* iPad/computer, a tafsir or translation beside the Mushaf: the same paper, head and ornamental frame as the Mushaf page */
+body.bk-wide .bk-trpage{ background:#fffdf7 !important; padding:10px 10px 16px 8px !important; border-radius:3px 10px 10px 3px; }
+body.bk-wide .bk-trpage::before{ display:none; }
+body.bk-wide .bk-trpage > .bk-head{ height:29px; margin:0 0 4px !important; padding:0 8px !important; border-bottom:0; align-items:flex-end; flex:0 0 auto; }
+body.bk-wide .bk-trpage > .bk-foot{ display:none; }
+body.bk-wide .bk-trframe{ flex:1; min-height:0; }
+body.bk-wide .bk-trframe > .bk-content{ flex:1; min-height:0; padding:6px 12px 0 !important; }
