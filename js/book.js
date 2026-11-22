@@ -763,7 +763,7 @@
                    ru: ['Оглавление', 'Главная', 'Сура', 'Джуз', 'Хизб', 'аят', 'аятов', 'мекканская', 'мединская', 'Хизб', '¼', '½', '¾', 'Найти суру'] }[C.lang] || null;
         HB = HB || ['Index', 'Home page', 'Surah', 'Juz', 'Hizb', 'verse', 'verses', 'Meccan', 'Medinan', 'Hizb', '¼', '½', '¾', 'Find a surah'];
         var hb = document.createElement('button'); hb.type = 'button'; hb.className = 'bk-hamb'; hb.title = HB[0]; hb.setAttribute('aria-label', HB[0]);
-        hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>');
+        hb.innerHTML = svg('<path d="M4 6h16M4 12h16M4 18h16"/>') + '<span class="bk-tlbl">' + esc(HB[0]) + '</span>';
         bar.insertBefore(hb, bar.firstChild);
         var IDX = null, idxTab = 'surah';
         var idxOpen = function () {
@@ -976,7 +976,7 @@
       if (bar) {
         var tb = function (cls, icon, label, go) {
           var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-tbtn ' + cls; b.title = label; b.setAttribute('aria-label', label);
-          b.innerHTML = svg(icon); b.onclick = function (e) { e.stopPropagation(); go(); }; bar.appendChild(b); return b;
+          b.innerHTML = svg(icon) + '<span class="bk-tlbl">' + esc(label) + '</span>'; b.onclick = function (e) { e.stopPropagation(); go(); }; bar.appendChild(b); return b;
         };
         tb('bk-tsrch', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
         tb('bk-tgear', I.more, L.more, function () { moreBtn.click(); });

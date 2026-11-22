@@ -1150,3 +1150,23 @@ body.bk-mob .bk-bar{ padding-top:max(4px, env(safe-area-inset-top)) !important; 
 body.bk-mob .bk-bar .bk-hamb, body.bk-mob .bk-bar .bk-tbtn, body.bk-mob .bk-bar .bk-viewbtn, body.bk-mob .bk-bar .bk-mbtn.bk-tmode,
 body.bk-mob .bk-bar select.bk-mpg, body.bk-mob .bk-bar .bk-mjz{ height:30px !important; }
 body.bk-mob .bk-bar .bk-tbtn svg, body.bk-mob .bk-bar .bk-hamb svg{ width:17px; height:17px; }
+
+/* iPad and computer (body.bk-wide): the phone's two bars, their buttons gathered in the middle (not stretched across a
+   wide screen), a little larger, the small buttons with their names beside the icon */
+.bk-tlbl{ display:none; }
+body.bk-wide .bk-title{ display:none; }
+body.bk-wide .bk-bar{ padding-inline:max(12px, calc((100vw - 820px) / 2)) !important; gap:8px !important; }
+body.bk-wide .bk-mnav{ padding-inline:max(12px, calc((100vw - 560px) / 2)) !important; }
+body.bk-wide .bk-bar .bk-hamb, body.bk-wide .bk-bar .bk-tbtn, body.bk-wide .bk-bar .bk-viewbtn, body.bk-wide .bk-bar .bk-mbtn.bk-tmode,
+body.bk-wide .bk-bar select.bk-mpg, body.bk-wide .bk-bar .bk-mjz{ height:36px !important; font-size:.95rem !important; }
+body.bk-wide .bk-bar .bk-hamb, body.bk-wide .bk-bar .bk-tbtn{ width:auto !important; padding:0 12px !important; gap:6px; }
+body.bk-wide .bk-tlbl{ display:inline; font-size:.9rem; font-weight:700; white-space:nowrap; }
+body.bk-wide .bk-bar select.bk-mpg, body.bk-wide .bk-bar .bk-mjz{ width:60px !important; }
+body.bk-wide .bk-mnav .bk-marrow .bk-nav{ width:40px !important; height:40px !important; }
+body.bk-wide .bk-mnav .bk-mplay .bk-play, body.bk-wide .bk-mnav .bk-mmic{ width:46px !important; height:46px !important; }
+/* iPad and computer: room enough — the bars stay, and the page sits between them (never under them) */
+body.bk-wide .bk-stage{ padding:52px 0 72px !important; }
+body.bk-wide.bk-chrome-off .bk-bar, body.bk-wide.bk-chrome-off .bk-mnav{ transform:none !important; opacity:1 !important; pointer-events:auto !important; }
+body.bk-wide.bk-chrome-off .bk-mshow{ display:none !important; }
+/* iPad upright: one page, no wider than a Mushaf page is for its height (else its lines crowd against the frame) */
+body.bk-wide .bk-book:not(.bk-spread){ max-width:calc((100vh - 124px) * 0.66); max-width:calc((100dvh - 124px) * 0.66); margin-inline:auto; }
