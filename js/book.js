@@ -896,9 +896,17 @@
       // (repetition, hiding), recitation (the microphone). Each shows its own buttons and its own line of choices.
       var MDL = { ar: ['تلاوة', 'تحفيظ', 'تسميع', 'الوضع'], ur: ['تلاوت', 'حفظ', 'تسمیع', 'انداز'], en: ['Reading', 'Memorizing', 'Reciting', 'Mode'],
                   fr: ['Lecture', 'Mémorisation', 'Récitation', 'Mode'], es: ['Lectura', 'Memorizar', 'Recitar', 'Modo'], ru: ['Чтение', 'Заучивание', 'Чтение наизусть', 'Режим'] };
-      var MD = MDL[C.lang] || MDL.en, MODES = ['read', 'hifz', 'tasmee'];
+      var MD = MDL[C.lang] || MDL.en, MODES = ['read', 'hifz', 'tasmee', 'silent'];
+      // the fourth: silent recitation — for whoever reviews where reciting aloud does not suit (the mosque, between
+      // the prayers): the verses hidden, the words appear one by one at the reciter's pace (no sound), the reader
+      // recites in himself ahead of them and marks a word he missed
+      var SLL = { ar: ['تسميع صامت', 'صامت', 'ابدأ', 'إيقاف', 'السرعة'], ur: ['خاموش تسمیع', 'خاموش', 'شروع', 'روکیں', 'رفتار'],
+                  en: ['Silent recitation', 'Silent', 'Start', 'Pause', 'Speed'], fr: ['Récitation silencieuse', 'Silencieux', 'Démarrer', 'Pause', 'Vitesse'],
+                  es: ['Recitación en silencio', 'Silencio', 'Empezar', 'Pausa', 'Velocidad'], ru: ['Беззвучная проверка', 'Беззвучно', 'Старт', 'Пауза', 'Скорость'] };
+      var SL = SLL[C.lang] || SLL.en;
+      var modeName = function (m, short) { return m === 'silent' ? SL[short ? 1 : 0] : MD[MODES.indexOf(m)]; };
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
-      modeSel.innerHTML = MODES.map(function (m, i) { return '<option value="' + m + '">' + esc(MD[i]) + '</option>'; }).join('');
+      modeSel.innerHTML = MODES.map(function (m) { return '<option value="' + m + '">' + esc(modeName(m)) + '</option>'; }).join('');
       var modeBtn = item(I2.memo, MD[0]); modeBtn.classList.add('bk-mmode'); modeBtn.appendChild(modeSel);
       // the mode (reading, memorizing, reciting) is chosen at the top, beside what is shown; the bottom bar holds that
       // mode's own tools only, so nothing there moves from one side to the other when the mode changes
@@ -908,13 +916,16 @@
       var hideNow = function () { return root.classList.contains('bk-hide'); };
       var syncEye = function () { var on = hideNow(); eyeBtn.classList.toggle('on', on); eyeBtn.querySelector('span').textContent = on ? ML[3] : ML[2]; };
       var hideBtn = function () { return document.querySelector('.bk-hidebtn:not(.bk-tsbtn):not(.bk-fambtn)'); };
-      var curMode = function () { return root.classList.contains('bk-mt') ? 'tasmee' : root.classList.contains('bk-memo') ? 'hifz' : 'read'; };
+      var curMode = function () { return root.classList.contains('bk-ms') ? 'silent' : root.classList.contains('bk-mt') ? 'tasmee' : root.classList.contains('bk-memo') ? 'hifz' : 'read'; };
       var repSel = function () { return document.querySelector('.bk-rset [data-r="mode"]'); };
       var setMode = function (m) {
         var was = curMode(); if (m === was) return;
         if (window.__bkLive && window.__bkLive.running) window.__bkLive.stop();
         if (m === 'read' && hideNow() && hideBtn()) hideBtn().click();
-        root.classList.toggle('bk-memo', m !== 'read'); root.classList.toggle('bk-mt', m === 'tasmee');
+        if (was === 'silent') silStop(true);
+        root.classList.toggle('bk-memo', m !== 'read'); root.classList.toggle('bk-mt', m === 'tasmee'); root.classList.toggle('bk-ms', m === 'silent');
+        document.body.classList.toggle('bk-ms', m === 'silent');
+        if (m === 'silent') { if (playing) stopAudio(); if (!hideNow() && hideBtn()) hideBtn().click(); }
         // memorization plays by the memorization method; back to reading, plain listening again
         var rs = repSel();
         if (rs && m === 'hifz' && rs.value !== 'hifz') { rs.value = 'hifz'; rs.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -925,13 +936,104 @@
       };
       var modeSync = function () {
         var m = curMode(), i = MODES.indexOf(m);
-        modeSel.value = m; modeBtn.querySelector('span').textContent = MD[i];
+        modeSel.value = m; modeBtn.querySelector('span').textContent = modeName(m, true);
         if (root.__strip) root.__strip();
       };
       root.__setMode = setMode;
       modeSel.onchange = function () { setMode(modeSel.value); };
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
+      /* ---- silent recitation: the words appear at the reciter's pace (his word timings, data/rec), no sound ---- */
+      var SPEEDS = [0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1 };
+      try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; } catch (e) {}
+      var silBtn = document.createElement('button'); silBtn.type = 'button'; silBtn.className = 'bk-msil'; silBtn.setAttribute('aria-label', SL[2]);
+      var silSpd = document.createElement('button'); silSpd.type = 'button'; silSpd.className = 'bk-mspd'; silSpd.title = SL[4];
+      nav.appendChild(silBtn); nav.appendChild(silSpd);
+      var silIcon = function () { silBtn.innerHTML = svg(SIL.on ? '<path d="M8 5v14M16 5v14"/>' : '<path d="M7 5l12 7-12 7z" fill="currentColor"/>'); silBtn.setAttribute('aria-label', SIL.on ? SL[3] : SL[2]); };
+      var silSpdShow = function () { silSpd.innerHTML = '<b>' + uiNum(String(SIL.speed)).replace('.', C.lang === 'ar' ? '٫' : '.') + '×</b><small>' + esc(SL[4]) + '</small>'; };
+      silIcon(); silSpdShow();
+      var els = function (loc) { return root.querySelectorAll('.bk-mpage [data-l="' + loc + '"]'); };
+      var silShowWord = function (x) {
+        els(x.loc).forEach(function (e) { e.classList.add('rv', 'rva', 'sl-on'); });
+        if (root.__fam) root.__fam.word(x.s, { ayah: x.a, n: x.w }, 'ok');
+      };
+      var silShowEnd = function (x) { root.querySelectorAll('.bk-mpage .ae[data-l^="' + x.s + ':' + x.a + ':"]').forEach(function (e) { e.classList.add('rv', 'rva'); }); };
+      // the visible pages' words, verse by verse, each with the time it is said (ms from the verse's start)
+      var silBuild = function () {
+        var vis = visible(), seen = {}, ays = [], byA = {};
+        root.querySelectorAll('.bk-mpage [data-l]:not(.ae)').forEach(function (e) {
+          var l = e.getAttribute('data-l'); if (seen[l]) return; seen[l] = 1;
+          var x = l.split(':').map(Number); if (x.length < 3 || vis.indexOf(pageOf(x[0], x[1])) < 0) return;
+          var k = x[0] + ':' + x[1]; if (!byA[k]) { byA[k] = []; ays.push([x[0], x[1]]); } byA[k].push(x[2]);
+        });
+        ays.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
+        return Promise.all(ays.map(function (sa) { return wordTimes(rec(), sa[0], sa[1]).catch(function () { return []; }); })).then(function (tms) {
+          var seq = [];
+          ays.forEach(function (sa, j) {
+            var ws = byA[sa[0] + ':' + sa[1]].sort(function (p, q) { return p - q; }), tm = {}, last = 0;
+            (tms[j] || []).forEach(function (t) { tm[t[0]] = t[1]; last = Math.max(last, t[2]); });
+            ws.forEach(function (w, n) {
+              var at = tm[w] != null ? tm[w] : n * 450;
+              seq.push({ s: sa[0], a: sa[1], w: w, loc: sa[0] + ':' + sa[1] + ':' + w, at: at, end: n === ws.length - 1 ? Math.max(last, at + 450) : null });
+            });
+          });
+          return seq;
+        });
+      };
+      var silTick = function () {
+        if (!SIL.on || !SIL.seq) return;
+        if (SIL.i >= SIL.seq.length) {                      // the pages done: keep the record, turn, go on
+          if (root.__fam) root.__fam.flush(true);
+          if (cur + step() > TOTAL) { silStop(); return; }
+          SIL.seq = null;
+          show(cur + step(), 1).then(function () { setTimeout(function () { if (SIL.on) silBuild().then(function (q) { SIL.seq = q; SIL.i = 0; silTick(); }); }, 700); });
+          return;
+        }
+        var x = SIL.seq[SIL.i], prev = SIL.seq[SIL.i - 1];
+        // the wait before this word: within a verse, the time between the reciter's words; a new verse, a short pause
+        var gap = !prev ? 300 : (prev.a === x.a && prev.s === x.s) ? x.at - prev.at : Math.max(500, (prev.end || prev.at + 450) - prev.at + 400);
+        SIL.t = setTimeout(function () {
+          if (!SIL.on) return;
+          if (prev && (prev.a !== x.a || prev.s !== x.s)) silShowEnd(prev);
+          silShowWord(x); SIL.i++;
+          if (SIL.i >= SIL.seq.length) silShowEnd(x);
+          silTick();
+        }, Math.max(120, gap / SIL.speed));
+      };
+      var silStart = function () {
+        if (!hideNow() && hideBtn()) hideBtn().click();
+        SIL.on = true; silIcon();
+        if (SIL.seq && SIL.i < SIL.seq.length) return silTick();
+        silBuild().then(function (q) {
+          // start after what is already shown on the page (a reader picking up where he stopped)
+          SIL.seq = q; SIL.i = 0;
+          while (SIL.i < q.length && els(q[SIL.i].loc)[0] && els(q[SIL.i].loc)[0].classList.contains('rv')) SIL.i++;
+          silTick();
+        });
+      };
+      var silStop = function (leave) {
+        clearTimeout(SIL.t); SIL.on = false; silIcon();
+        if (leave) { SIL.seq = null; if (root.__fam) root.__fam.flush(false); }
+      };
+      root.__silStop = silStop;
+      silBtn.onclick = function (e) { e.stopPropagation(); if (SIL.on) silStop(); else silStart(); };
+      silSpd.onclick = function (e) {
+        e.stopPropagation();
+        SIL.speed = SPEEDS[(SPEEDS.indexOf(SIL.speed) + 1) % SPEEDS.length] || 1;
+        try { localStorage.setItem('lt_sil_speed', String(SIL.speed)); } catch (er) {}
+        silSpdShow();
+      };
+      // a tap in silent recitation: on a word shown, «I missed it» (again: not missed); on a word not yet shown, a
+      // look at it — which counts as missed too (the reader did not have it)
+      root.addEventListener('click', function (e) {
+        if (!root.classList.contains('bk-ms')) return;
+        var w = e.target.closest && e.target.closest('.bk-mpage [data-l]:not(.ae)');
+        if (!w) return;
+        var l = w.getAttribute('data-l'), x = l.split(':').map(Number), on = w.classList.contains('sl-err');
+        els(l).forEach(function (el) { el.classList.toggle('sl-err', !on); el.classList.add('rv', 'rva'); });
+        if (root.__fam) { if (on) root.__fam.unerr(l); else root.__fam.word(x[0], { ayah: x[1], n: x[2] }, 'wrong'); }
+        e.stopPropagation(); e.preventDefault();
+      }, true);
       var RCL = { ar: 'سمِّع', ur: 'سنائیں', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Читать' };
       var mmic = document.createElement('button'); mmic.type = 'button'; mmic.className = 'bk-mmic';
       mmic.setAttribute('aria-label', RCL[C.lang] || RCL.en); mmic.title = RCL[C.lang] || RCL.en;
@@ -2584,6 +2686,8 @@
           famPg = {};
           if (root.__planCheck) root.__planCheck(famAll);
         };
+        root.__fam = { word: function (sN, w, cls) { famWord(sN, w, cls); if (!famT0) famT0 = Date.now(); }, flush: function (c) { famFlush(c); },
+                       unerr: function (loc) { Object.keys(famPg).forEach(function (pg) { delete famPg[pg].errs[loc]; }); delete famAll.errs[loc]; } };
         var startLive = function () {
           if (busy) return setTimeout(startLive, 100);     // a page still turning: listen for the page that comes, not the one leaving
           if (playing) stopAudio();

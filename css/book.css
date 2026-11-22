@@ -1178,3 +1178,18 @@ body.bk-wide .bk-idx .bk-ixfind{ margin:0; padding-inline:12px; border-radius:0;
 body.bk-wide .bk-idx .bk-ixlist{ flex:1; background:#FBF6EC; border-radius:0 0 18px 18px; margin-bottom:24px; }
 /* the microphone is the button itself (not a slot around it): it keeps its round size, the slots either side share the rest */
 body.bk-mob .bk-mnav .bk-mmic{ flex:0 0 auto !important; margin-inline:auto !important; }
+
+/* silent recitation (body.bk-ms): the bottom bar — time · ▶/⏸ (the words appear) · the speed; a word shown fades in,
+   a word marked missed is underlined red */
+.bk-msil, .bk-mspd{ display:none; }
+body.bk-mob.bk-ms .bk-mnav .bk-mplay, body.bk-mob.bk-ms .bk-mnav .bk-meye, body.bk-mob.bk-ms .bk-mnav .bk-mmic,
+body.bk-mob.bk-ms .bk-mnav .bk-mletters{ display:none !important; }
+body.bk-mob.bk-ms .bk-mnav .bk-msil{ display:flex; order:2; flex:0 0 auto !important; margin-inline:auto; width:46px; height:46px; border-radius:50%; border:0;
+  align-items:center; justify-content:center; background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#2a1f08; box-shadow:0 2px 8px rgba(120,90,20,.25); cursor:pointer; }
+body.bk-mob.bk-ms .bk-mnav .bk-msil svg{ width:18px; height:18px; }
+body.bk-mob.bk-ms .bk-mnav .bk-mspd{ display:flex; order:3; flex-direction:column; align-items:center; justify-content:center; background:none; border:0;
+  color:#6d5216; font:inherit; line-height:1.1; cursor:pointer; min-width:56px; }
+.bk-mspd b{ font-size:.95rem; } .bk-mspd small{ font-size:.68rem; color:#97835a; }
+.bk-ms .bk-mpage .sl-on{ animation:slIn .35s ease-out; }
+@keyframes slIn{ from{ opacity:.15; } to{ opacity:1; } }
+.bk-ms .bk-mpage .sl-err{ text-decoration:underline wavy #c0392b; text-decoration-thickness:2px; text-underline-offset:6px; color:#a42a1d; }
