@@ -232,6 +232,19 @@
       return kidsP;
     }
     function draw() {
+      // one child's plans, from his parent's «حسابي» (o.kid)
+      if (o.kid) {
+        el.innerHTML = '<p class="kh-note">…</p>';
+        remoteGet(o.kid.id).catch(function () { return []; }).then(function (all) {
+          var live = all.filter(function (x) { return !x.deleted; });
+          el.innerHTML = live.map(function (p) { return card(p, o.kid); }).join('') + (live.length ? '' : '<p class="kh-none">' + esc(l.kidsNone) + '</p>') +
+            '<button type="button" class="kh-add">+ ' + esc(l.add) + '</button>';
+          el.querySelector('.kh-add').onclick = function () { form(null, o.kid); };
+          el.querySelectorAll('[data-e]').forEach(function (b) { b.onclick = function () { form(all.filter(function (x) { return x.id === b.dataset.e; })[0], o.kid); }; });
+          el.querySelectorAll('[data-f]').forEach(fileBtn);
+        });
+        return;
+      }
       var ls = load(), h = ls.length ? '' : '<p class="kh-none">' + esc(l.none) + '</p>';
       ls.forEach(function (p) { h += card(p); });
       h += '<button type="button" class="kh-add">+ ' + esc(l.add) + '</button><div class="pl-kids"></div><p class="kh-note">' + esc(l.note) + '</p>';

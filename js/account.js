@@ -245,6 +245,9 @@
   function render(c, user, list, states) {
     var cur = Fam.current();
     if (!cur || !list.some(function (p) { return p.id === cur.id; })) { Fam.use(list[0]); cur = Fam.current(); }
+    // a child's profile in use: his own card only; adding profiles and the account's settings are the parent's
+    var isParent = !!(cur && cur.parent);
+    if (!isParent) list = list.filter(function (p) { return p.id === cur.id; });
     var html = '<div class="ac-head"><span>' + esc(user.email) + '</span><button type="button" class="ac-link" id="acOut">' + esc(L.signout) + '</button></div>' +
       '<h2 class="ac-h2">' + esc(L.family) + '</h2><div class="ac-cards">';
     list.forEach(function (p) {
@@ -252,29 +255,26 @@
       html += '<div class="ac-card' + (cur && cur.id === p.id ? ' cur' : '') + '" data-id="' + p.id + '">' +
         '<div class="ac-av" style="' + (p.color ? 'background:' + p.color : '') + '">' + Fam.avatar(p.avatar) + '</div>' +
         '<div class="ac-cbody"><b>' + esc(p.name) + (p.is_parent ? ' <small>' + esc(L.you) + '</small>' : '') + '</b>' +
-        '<div class="ac-stats">' + (k.mastered || k.learning ? '<span class="st-m">' + num(k.mastered) + ' ' + esc(L.mastered) + '</span>' : '<span class="st-n">' + esc(L.notStarted) + '</span>') +
+        '<div class="ac-stats">' + (k.mastered ? '<span class="st-m">' + num(k.mastered) + ' ' + esc(L.mastered) + '</span>' : '') +
         (k.learning ? '<span class="st-l">' + num(k.learning) + ' ' + esc(L.learning) + '</span>' : '') +
         (k.due ? '<span class="st-d">' + esc(L.today) + ': ' + num(k.due) + '</span>' : '') + '</div>' +
         (p.last_page ? '<div class="ac-last">' + esc(L.lastPage) + ' ' + num(p.last_page) + '</div>' : '') +
         '<div class="ac-plan" data-plan="' + p.id + '"></div>' +
         '<div class="ac-read" data-read="' + p.id + '"></div>' +
         '<div class="ac-btns"><button type="button" data-a="open" class="ac-btn pri">' + esc(L.open) + '</button>' +
-        '<button type="button" data-a="plan" class="ac-btn">' + esc(PlanUI.T[lang].planLine) + '</button>' +
         '<button type="button" data-a="map" class="ac-btn">' + esc(L.mapBtn) + '</button>' +
-        '<button type="button" data-a="edit" class="ac-btn">' + esc(L.edit) + '</button></div></div></div>';
+        (isParent ? '<button type="button" data-a="edit" class="ac-btn">' + esc(L.edit) + '</button>' : '') + '</div></div></div>';
     });
     html += '</div>';
-    if (list.length < 10) html += '<form class="fb-card ac-add" novalidate><b>' + esc(L.addChild) + '</b>' +
+    // adding a child: the parent's, behind its own button
+    if (isParent && list.length < 10) html += '<details class="ac-set ac-addw"><summary>+ ' + esc(L.addChild) + '</summary><form class="fb-card ac-add" novalidate>' +
       '<label class="fb-label" for="acCN">' + esc(L.childName) + '</label><input id="acCN" maxlength="20">' +
       '<span class="fb-label">' + esc(L.avatar) + '</span><div class="ac-avs">' +
       Object.keys(Fam.avatars).map(function (k, i) { return '<button type="button" data-av="' + k + '"' + (i === 1 ? ' class="on"' : '') + '>' + Fam.avatars[k] + '</button>'; }).join('') +
-      '</div><button class="fb-submit" type="submit">' + esc(L.add) + '</button><p class="fb-msg" id="acAM"></p></form>';
+      '</div><button class="fb-submit" type="submit">' + esc(L.add) + '</button><p class="fb-msg" id="acAM"></p></form></details>';
     html += '<div id="acRead"></div><div id="acPanel"></div>' +
-      '<details class="ac-set"><summary>' + esc(L.settings) + '</summary><div class="fb-card">' +
-      '<label class="fb-label" for="acPin">' + esc(L.pin) + '</label><input id="acPin" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off">' +
-      '<div class="ac-btns"><button type="button" class="ac-btn pri" id="acPinS">' + esc(L.pinSave) + '</button>' +
-      (Fam.pinSet() ? '<button type="button" class="ac-btn" id="acPinO">' + esc(L.pinOff) + '</button>' : '') + '</div><p class="fb-msg" id="acPM"></p>' +
-      '<p class="ac-privacy">' + esc(L.privacy) + '</p><p class="ac-privacy"><b>' + esc(L.delAccount) + ':</b> ' + esc(L.delAccAsk) + '</p></div></details>';
+      (isParent ? '<details class="ac-set"><summary>' + esc(L.settings) + '</summary><div class="fb-card">' +
+      '<p class="ac-privacy">' + esc(L.privacy) + '</p><p class="ac-privacy"><b>' + esc(L.delAccount) + ':</b> ' + esc(L.delAccAsk) + '</p></div></details>' : '');
     app.innerHTML = html;
     $('acOut').onclick = function () { Fam.signOut().then(function () { authView('in'); }); };
     app.querySelectorAll('.ac-card').forEach(function (card) {
@@ -282,8 +282,7 @@
       card.querySelector('[data-a=open]').onclick = function () { guard(p, function () { Fam.use(p); location.href = BOOK + (p.last_page ? '#p=' + p.last_page : ''); }); };
       card.querySelector('[data-a=map]').onclick = function () { guard(p, function () { mapView(c, p, states); }); };
       // plans are made and followed in the Mushaf («خططي»): the parent's own profile shows his children's plans
-      card.querySelector('[data-a=plan]').onclick = function () { location.href = BOOK + (BOOK.indexOf('?') < 0 ? '?' : '&') + 's=plans'; };
-      card.querySelector('[data-a=edit]').onclick = function () { guard(null, function () { editView(c, p); }); };
+      if (card.querySelector('[data-a=edit]')) card.querySelector('[data-a=edit]').onclick = function () { guard(null, function () { editView(c, p); }); };
     });
     var add = app.querySelector('.ac-add');
     if (add) {
@@ -296,12 +295,6 @@
           .catch(function (er) { msg($('acAM'), errText(er), true); });
       };
     }
-    $('acPinS').onclick = function () {
-      var v = $('acPin').value.trim();
-      if (!/^\d{4}$/.test(v)) return msg($('acPM'), L.fill, true);
-      guard(null, function () { Fam.pinSave(v).then(function () { msg($('acPM'), '✓'); home(); }); });
-    };
-    if ($('acPinO')) $('acPinO').onclick = function () { guard(null, function () { Fam.pinSave(null).then(home); }); };
     var cp = list.filter(function (x) { return cur && x.id === cur.id; })[0];
     if (cp) mapView(c, cp, states, true);
     planLines(list);

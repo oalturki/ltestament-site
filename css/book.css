@@ -1554,3 +1554,22 @@ body.bk-mob .bk-micav{ display:none !important; }
 .gd strong{ color:#1b2a3a; }
 body.bk-night .gd-s{ background:#1d2a22; border-color:#3a4a3e; }
 body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
+/* حسابي: the parent's sub-accounts and a child's page */
+.ma-kids{ display:flex; flex-direction:column; gap:8px; }
+.ma-kid{ display:flex; align-items:center; gap:10px; min-height:56px; padding:6px 14px; border-radius:14px; border:1px solid #e9dcb5; background:#FFFDF7; font:inherit; color:#1b2a3a; cursor:pointer; text-align:start; }
+.ma-kid .av{ font-size:1.5rem; }
+.ma-kid b{ flex:1; font-size:1.05rem; }
+.ma-kid small{ color:#8a7550; }
+.ma-kid i{ font-style:normal; color:#b9a77d; font-size:1.4rem; }
+[dir="ltr"] .ma-kid i{ transform:scaleX(-1); }
+.ma-up{ align-self:flex-start; text-decoration:none; font-weight:700; }
+.ma-khead{ display:flex; align-items:center; gap:10px; }
+.ma-khead .av{ font-size:2rem; }
+.ma-khead b{ flex:1; font-size:1.2rem; color:#1b2a3a; }
+.ma-tabs2{ grid-auto-flow:column; grid-auto-columns:1fr; }
+.ma-tab{ display:flex; flex-direction:column; gap:10px; }
+.ma-kpis{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.ma-kpis div{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px; border-radius:14px; background:#FFFDF7; border:1px solid #e9dcb5; }
+.ma-kpis b{ font-size:1.2rem; color:#2f6b45; }
+.ma-kpis small{ color:#6b6250; font-size:.8rem; text-align:center; }
+.ma-back{ font-weight:700; }
