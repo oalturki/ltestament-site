@@ -949,8 +949,8 @@
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       /* ---- silent recitation: the words appear at the reciter's pace (his word timings, data/rec), no sound ---- */
-      var SILSP = [0.5, 0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr', sound: false, au: null, raf: 0 };
-      try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; SIL.pace = localStorage.getItem('lt_sil_pace') || 'hadr'; } catch (e) {}
+      var SILSP = [0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr', sound: false, au: null, raf: 0 };
+      try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; if (SIL.speed < 0.75) SIL.speed = 0.75; SIL.pace = localStorage.getItem('lt_sil_pace') || 'hadr'; } catch (e) {}
       // two paces: hadr — an even pace by each word's length (most review briskly, not holding every madd as the
       // reciter does); or the reciter's own timing
       var silBtn = document.createElement('button'); silBtn.type = 'button'; silBtn.className = 'bk-msil'; silBtn.setAttribute('aria-label', SL[2]);
@@ -982,10 +982,10 @@
       };
       var silShowEnd = function (x) { root.querySelectorAll('.bk-mpage .ae[data-l^="' + x.s + ':' + x.a + ':"]').forEach(function (e) { e.classList.add('rv', 'rva'); }); };
       // the visible pages' words, verse by verse, each with the time it is said (ms from the verse's start)
-      // hadr: a word's time from its letters (about 2½ words a second at 1×)
+      // hadr: a word's time from its letters (about 1¾ words a second at 1×; 0.75× an easy review pace)
       var wordMs = function (loc) {
         var e = els(loc)[0], n = e ? (e.textContent.match(/[\u0621-\u064A\u0671]/g) || []).length : 4;
-        return 150 + 60 * Math.max(1, n);
+        return 210 + 85 * Math.max(1, n);
       };
       var silBuild = function () {
         var vis = visible(), seen = {}, ays = [], byA = {};
@@ -1131,28 +1131,36 @@
       };
       root.__silStop = silStop;
       silBtn.onclick = function (e) { e.stopPropagation(); if (SIL.on) silStop(); else silStart(); };
-      // the pace and the speed: a small panel over the button
+      // each button's own choices: a small list opening upward from it, gone once a choice is made
       var silPop = document.createElement('div'); silPop.className = 'bk-silpop'; document.body.appendChild(silPop);
-      var silPopFill = function () {
-        silPop.innerHTML = '<b>' + esc(SL[12]) + '</b><div class="sp-row">' +
-          [['0', '🔇'], ['1', '🔊']].map(function (o) { return '<button type="button" data-snd="' + o[0] + '"' + ((SIL.sound ? '1' : '0') === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') +
-          '</div><b>' + esc(SL[9]) + '</b><div class="sp-row">' +
-          [['hadr', SL[10]], ['reciter', SL[11] + ' — ' + (function (e) { return e && e.selectedOptions && e.selectedOptions[0] ? e.selectedOptions[0].text : ''; })(q('reciter'))]].map(function (o) {
-            return '<button type="button" data-p="' + o[0] + '"' + (SIL.pace === o[0] ? ' class="on"' : '') + '>' + esc(o[1]) + '</button>'; }).join('') +
-          '</div><b>' + esc(SL[4]) + '</b><div class="sp-row">' +
-          SILSP.map(function (v) { return '<button type="button" data-v="' + v + '"' + (SIL.speed === v ? ' class="on"' : '') + '>' + esc(spdTxt(v)) + '</button>'; }).join('') + '</div>';
+      var popFor = null;
+      var recName = function () { var e = q('reciter'); return e && e.selectedOptions && e.selectedOptions[0] ? e.selectedOptions[0].text : ''; };
+      var silPopFill = function (kind) {
+        var item = function (attr, val, on, txt, sub) { return '<button type="button" ' + attr + '="' + val + '"' + (on ? ' class="on"' : '') + '>' + esc(txt) + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>'; };
+        silPop.innerHTML = kind === 'snd'
+          ? '<b>' + esc(SL[12]) + '</b>' + item('data-snd', '1', SIL.sound, '🔊 ' + SL[12], recName()) + item('data-snd', '0', !SIL.sound, '🔇 ' + SL[1])
+          : '<b>' + esc(SL[9]) + '</b>' + item('data-p', 'hadr', SIL.pace === 'hadr' && !SIL.sound, SL[10]) + item('data-p', 'reciter', SIL.pace !== 'hadr' || SIL.sound, SL[11], recName()) +
+            '<b>' + esc(SL[4]) + '</b><div class="sp-row">' + SILSP.map(function (v) { return item('data-v', v, SIL.speed === v, spdTxt(v)); }).join('') + '</div>';
         silPop.querySelectorAll('button').forEach(function (b) {
           b.onclick = function (e) {
             e.stopPropagation();
+            silPop.classList.remove('on'); popFor = null;
             if (b.dataset.v) { SIL.speed = +b.dataset.v; try { localStorage.setItem('lt_sil_speed', String(SIL.speed)); } catch (er) {} if (SIL.au) SIL.au.playbackRate = SIL.speed; }
             if (b.dataset.snd) { silSound(b.dataset.snd === '1'); return; }
-            if (b.dataset.p && b.dataset.p !== SIL.pace) {
-              SIL.pace = b.dataset.p; try { localStorage.setItem('lt_sil_pace', SIL.pace); } catch (er) {}
-              silRebuild();
+            if (b.dataset.p) {
+              if (SIL.sound && b.dataset.p === 'hadr') { SIL.pace = 'hadr'; try { localStorage.setItem('lt_sil_pace', 'hadr'); } catch (er) {} silSound(false); return; }
+              if (b.dataset.p !== SIL.pace) { SIL.pace = b.dataset.p; try { localStorage.setItem('lt_sil_pace', SIL.pace); } catch (er) {} silRebuild(); }
             }
-            silSpdShow(); silPopFill();
+            silSpdShow();
           };
         });
+      };
+      var silMenu = function (btn, kind) {
+        if (popFor === kind && silPop.classList.contains('on')) { silPop.classList.remove('on'); popFor = null; return; }
+        popFor = kind; silPopFill(kind); silPop.classList.add('on');
+        var r = btn.getBoundingClientRect(), bar = nav.getBoundingClientRect(), w = silPop.offsetWidth;
+        silPop.style.bottom = Math.round(window.innerHeight - bar.top + 6) + 'px';
+        silPop.style.left = Math.round(Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2))) + 'px';
       };
       // the sequence again (another pace, the sound on or off), keeping the place reached
       var silRebuild = function () {
@@ -1164,7 +1172,7 @@
         if (on && !soundOk()) { var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = SL[13]; document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 4000); return; }
         SIL.sound = on; sndBtn.classList.toggle('on', on); sndIcon();
         if (!on) silAudioStop();
-        silRebuild(); silSpdShow(); silPopFill();
+        silRebuild(); silSpdShow();
       };
       var sndBtn = document.createElement('button'); sndBtn.type = 'button'; sndBtn.className = 'bk-msk bk-msnd';
       var sndIcon = function () {
@@ -1173,16 +1181,9 @@
         sndBtn.setAttribute('aria-label', SL[12]);
       };
       sndIcon(); nav.appendChild(sndBtn);
-      sndBtn.onclick = function (e) { e.stopPropagation(); silSound(!SIL.sound); };
-      silSpd.onclick = function (e) {
-        e.stopPropagation();
-        if (silPop.classList.toggle('on')) {
-          silPopFill();
-          var r = silSpd.getBoundingClientRect(), bar = nav.getBoundingClientRect();
-          silPop.style.bottom = Math.round(window.innerHeight - bar.top + 8) + 'px';
-        }
-      };
-      document.addEventListener('click', function (e) { if (!silPop.contains(e.target) && e.target !== silSpd && !silSpd.contains(e.target)) silPop.classList.remove('on'); });
+      sndBtn.onclick = function (e) { e.stopPropagation(); silMenu(sndBtn, 'snd'); };
+      silSpd.onclick = function (e) { e.stopPropagation(); silMenu(silSpd, 'spd'); };
+      document.addEventListener('click', function (e) { if (!silPop.contains(e.target)) { silPop.classList.remove('on'); popFor = null; } });
       // a tap in silent recitation: on a word shown, «I missed it» (again: not missed); on a word not yet shown, a
       // look at it — which counts as missed too (the reader did not have it)
       root.addEventListener('click', function (e) {
