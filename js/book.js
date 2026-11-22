@@ -2353,8 +2353,13 @@
 
     function startPage() {
       if (embed) return 1;
-      var m = /[#&]p=(\d+)/.exec(location.hash);
-      var p = m ? +m[1] : +(load('lt_book_page') || 1);
+      var m = /[#&]p=(\d+)/.exec(location.hash), saved = +(load('lt_book_page') || 0);
+      // opened from the icon on the home screen: iOS keeps the address the icon was made at (#p=23 for ever), so on
+      // such a launch (installed app, no page linking here, first view of the session) the last page read wins
+      var fresh = false; try { fresh = !sessionStorage.getItem('lt_bk_seen'); sessionStorage.setItem('lt_bk_seen', '1'); } catch (e) {}
+      var app = (navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) && !document.referrer;
+      if (m && app && fresh && saved) m = null;
+      var p = m ? +m[1] : (saved || 1);
       return p >= 1 && p <= TOTAL ? p : 1;
     }
 
