@@ -55,3 +55,7 @@
   .ev-e small{ font-family:'Tajawal',sans-serif; color:#C9C2AE; }
   .ev-e.tgt{ background:rgba(159,227,192,.18); } .ev-e.tj{ background:rgba(255,166,77,.15); }
   .ev-t select, .rc-muted select{ font:inherit; background:#0F1B33; color:#EFE6D8; border:1px solid rgba(200,155,60,.4); border-radius:4px; }
+
+/* no text cursor anywhere but where one types */
+body{ caret-color:transparent; }
+input, textarea, select, [contenteditable]:not([contenteditable="false"]){ caret-color:auto; }

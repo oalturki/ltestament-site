@@ -2,6 +2,14 @@
    - dev_banner: { show: bool }                     -> the "under development" banner
    - social:     { x: {url, show}, youtube: {...} } -> icons in the footer
    The last known settings are cached in localStorage and applied immediately, to avoid a flash. */
+// no text cursor anywhere but where one types (a tap on text, or caret browsing, would show one)
+(function () {
+  try {
+    var st = document.createElement('style');
+    st.textContent = 'body{caret-color:transparent}input,textarea,select,[contenteditable]:not([contenteditable="false"]){caret-color:auto}';
+    (document.head || document.documentElement).appendChild(st);
+  } catch (e) {}
+})();
 (function () {
   var URL = 'https://nikwwjswwlwcqekbnpzq.supabase.co/rest/v1/site_settings?select=key,value';
   var KEY = 'sb_publishable_k8fRjG4b4EMj5TH9yXR3qQ_w-fqi76l';

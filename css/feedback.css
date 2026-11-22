@@ -52,3 +52,7 @@
 .fb-card select option{ color:#1B1B18; }
 .q-hint{ font-size:0.8rem; color:#8f8775; margin-top:6px; }
 .q-privacy{ font-size:0.82rem; color:#a89f83; line-height:1.7; margin:4px 0 0; }
+
+/* no text cursor anywhere but where one types */
+body{ caret-color:transparent; }
+input, textarea, select, [contenteditable]:not([contenteditable="false"]){ caret-color:auto; }

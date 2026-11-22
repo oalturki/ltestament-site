@@ -179,3 +179,7 @@
 .rs-note{ margin:0; font-size:.72rem; line-height:1.6; opacity:.6; }
 .ac-read{ font-size:.8rem; opacity:.8; margin-top:2px; }
 .ac-rname{ margin:14px 0 0; font-weight:700; }
+
+/* no text cursor anywhere but where one types */
+body{ caret-color:transparent; }
+input, textarea, select, [contenteditable]:not([contenteditable="false"]){ caret-color:auto; }
