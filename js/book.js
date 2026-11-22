@@ -775,7 +775,7 @@
       // the page, in the middle of the top bar: a list to go to any page
       var pg = document.createElement('select'); pg.className = 'bk-mpg'; pg.setAttribute('aria-label', U.page);
       var po = [];
-      for (var pi = 1; pi <= ((MAP && MAP.pages.length) || TOTAL || 604); pi++) po.push('<option value="' + pi + '">' + uiNum(pi) + '</option>');   // the number only: the list shows it is the pages
+      for (var pi = 1; pi <= ((MAP && MAP.pages.length) || TOTAL || 604); pi++) po.push('<option value="' + pi + '">' + (C.lang === 'ar' ? 'ص' : 'p') + uiNum(pi) + '</option>');   // «ص» before the number, as «ج» before the juz
       pg.innerHTML = po.join(''); pg.value = String(cur);
       pg.onchange = function () { var to = +pg.value; if (to && to !== cur) { repPicked = false; show(to, 0); } };
       if (bar) bar.appendChild(pg);
