@@ -526,7 +526,11 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                         if w is not None and w["status"] in ("wrong", "unclear", "missing") and not w.get("skip"):
                             run_.append(w); continue
                         hw = [x for r_ in run_ for x in (r_.get("heard") or "").split()]
-                        if hw and any(r_.get("fit", 0) <= CTC_BAD for r_ in run_):
+                        # and the reader did not go on with the passage after it in this stretch: words of the verse
+                        # heard right after the run mean words left out (a verse passed over, heard garbled — «إيا كان»
+                        # for «إياك نعبد»), not something else said
+                        after_ok = run_ and any(x["k"] > run_[-1]["k"] and x["status"] == "ok" for x in ws_)
+                        if hw and not after_ok and any(r_.get("fit", 0) <= CTC_BAD for r_ in run_):
                             alien = (not quranic(hw)) if len(hw) >= 2 else not quranic_word(hw[0])
                             if alien: other = {"k": run_[0]["k"], "text": " ".join(hw[:6]), "by": "fit"}; break
                         run_ = []
