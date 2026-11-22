@@ -1143,3 +1143,5 @@ body.bk-mob .bk-bar .bk-tsrch{ order:3 !important; }
 body.bk-mob .bk-bar .bk-mbtn.bk-tmode{ order:4 !important; flex:1 1 0 !important; min-width:0 !important; }
 body.bk-mob .bk-bar select.bk-mpg{ order:5 !important; width:46px !important; text-align:center; text-align-last:center; }
 body.bk-mob .bk-bar .bk-tgear{ order:6 !important; }
+body.bk-mob .bk-bar .bk-viewbtn{ padding:0 4px !important; justify-content:center; font-size:.9rem !important; }
+body.bk-mob .bk-bar .bk-viewbtn svg{ display:none; }
