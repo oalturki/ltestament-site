@@ -4,7 +4,7 @@
 
    LtRemind.items()          the reminders that are on, in the push function's form
    LtRemind.ui(el, o)        the page in the Mushaf's settings: o = {lang, show(page)}
-   A reminder: {id, kind: wird|kahf|hifz|review|custom, title, time 'HH:MM', days (bit0 = Sunday), on, surah} */
+   A reminder: {id, kind: wird|hifz|review|custom, title, time 'HH:MM', days (bit0 = Sunday), on, surah} */
 (function () {
   var KEY = 'lt_reminders';
   var load = function () { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
@@ -12,19 +12,17 @@
   // the suggested ones, all off until the reader turns one on
   var PRESET = [
     { id: 'wird', kind: 'wird', time: '20:00', days: 127, on: false },
-    { id: 'kahf', kind: 'kahf', time: '13:00', days: 32, on: false, surah: 18 },
     { id: 'hifz', kind: 'hifz', time: '17:00', days: 127, on: false },
     { id: 'review', kind: 'review', time: '05:30', days: 127, on: false }
   ];
   function list() {
     var l = load();
     if (!Array.isArray(l)) { l = PRESET.map(function (x) { return Object.assign({}, x); }); save(l); }
+    else if (l.some(function (r) { return r.kind === 'kahf'; })) { l = l.filter(function (r) { return r.kind !== 'kahf'; }); save(l); }
     return l;
   }
   // where a reminder opens the Mushaf
-  var KAHF_PAGE = 293;
   function url(r) {
-    if (r.kind === 'kahf') return '/book/#p=' + KAHF_PAGE;
     if (r.kind === 'hifz') return '/book/?m=hifz';
     if (r.kind === 'review') return '/book/?m=tasmee';
     return '/book/';
