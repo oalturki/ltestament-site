@@ -900,9 +900,12 @@
       // the fourth: silent recitation — for whoever reviews where reciting aloud does not suit (the mosque, between
       // the prayers): the verses hidden, the words appear one by one at the reciter's pace (no sound), the reader
       // recites in himself ahead of them and marks a word he missed
-      var SLL = { ar: ['تسميع صامت', 'صامت', 'ابدأ', 'إيقاف', 'السرعة'], ur: ['خاموش تسمیع', 'خاموش', 'شروع', 'روکیں', 'رفتار'],
-                  en: ['Silent recitation', 'Silent', 'Start', 'Pause', 'Speed'], fr: ['Récitation silencieuse', 'Silencieux', 'Démarrer', 'Pause', 'Vitesse'],
-                  es: ['Recitación en silencio', 'Silencio', 'Empezar', 'Pausa', 'Velocidad'], ru: ['Беззвучная проверка', 'Беззвучно', 'Старт', 'Пауза', 'Скорость'] };
+      var SLL = { ar: ['تسميع صامت', 'صامت', 'ابدأ', 'إيقاف', 'السرعة', 'آية', 'كلمة', 'رجوع', 'تقدّم'],
+                  ur: ['خاموش تسمیع', 'خاموش', 'شروع', 'روکیں', 'رفتار', 'آیت', 'لفظ', 'پیچھے', 'آگے'],
+                  en: ['Silent recitation', 'Silent', 'Start', 'Pause', 'Speed', 'Verse', 'Word', 'Back', 'Forward'],
+                  fr: ['Récitation silencieuse', 'Silencieux', 'Démarrer', 'Pause', 'Vitesse', 'Verset', 'Mot', 'Retour', 'Avancer'],
+                  es: ['Recitación en silencio', 'Silencio', 'Empezar', 'Pausa', 'Velocidad', 'Aleya', 'Palabra', 'Atrás', 'Adelante'],
+                  ru: ['Беззвучная проверка', 'Беззвучно', 'Старт', 'Пауза', 'Скорость', 'Аят', 'Слово', 'Назад', 'Вперёд'] };
       var SL = SLL[C.lang] || SLL.en;
       var modeName = function (m, short) { return m === 'silent' ? SL[short ? 1 : 0] : MD[MODES.indexOf(m)]; };
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
@@ -948,7 +951,21 @@
       try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; } catch (e) {}
       var silBtn = document.createElement('button'); silBtn.type = 'button'; silBtn.className = 'bk-msil'; silBtn.setAttribute('aria-label', SL[2]);
       var silSpd = document.createElement('button'); silSpd.type = 'button'; silSpd.className = 'bk-mspd'; silSpd.title = SL[4];
-      nav.appendChild(silBtn); nav.appendChild(silSpd);
+      // back and forward, by a word and by a verse: a slip — go back and recite it again hidden; a word not
+      // remembered — go forward and see it
+      var silSk = function (cls, dir, unit, ic) {
+        var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-msk ' + cls;
+        b.setAttribute('aria-label', SL[dir < 0 ? 7 : 8] + ' — ' + SL[unit === 'a' ? 5 : 6]);
+        b.innerHTML = svg(ic) + '<small>' + esc(SL[unit === 'a' ? 5 : 6]) + '</small>';
+        b.onclick = function (e) { e.stopPropagation(); silJump(dir, unit); };
+        nav.appendChild(b);
+      };
+      silSk('bk-msk-ab', -1, 'a', '<path d="M18 6l-7 6 7 6M11 6l-7 6 7 6"/>');
+      silSk('bk-msk-wb', -1, 'w', '<path d="M15 6l-6 6 6 6"/>');
+      nav.appendChild(silBtn);
+      silSk('bk-msk-wf', 1, 'w', '<path d="M9 6l6 6-6 6"/>');
+      silSk('bk-msk-af', 1, 'a', '<path d="M6 6l7 6-7 6M13 6l7 6-7 6"/>');
+      nav.appendChild(silSpd);
       var silIcon = function () { silBtn.innerHTML = svg(SIL.on ? '<path d="M8 5v14M16 5v14"/>' : '<path d="M7 5l12 7-12 7z" fill="currentColor"/>'); silBtn.setAttribute('aria-label', SIL.on ? SL[3] : SL[2]); };
       var silSpdShow = function () { silSpd.innerHTML = '<b>' + uiNum(String(SIL.speed)).replace('.', C.lang === 'ar' ? '٫' : '.') + '×</b><small>' + esc(SL[4]) + '</small>'; };
       silIcon(); silSpdShow();
@@ -999,6 +1016,40 @@
           if (SIL.i >= SIL.seq.length) silShowEnd(x);
           silTick();
         }, Math.max(120, gap / SIL.speed));
+      };
+      var silHide = function (x) {
+        els(x.loc).forEach(function (e) { e.classList.remove('rv', 'rva', 'sl-on'); });
+        root.querySelectorAll('.bk-mpage .ae[data-l^="' + x.s + ':' + x.a + ':"]').forEach(function (e) { e.classList.remove('rv', 'rva'); });
+      };
+      var sameA = function (p, q) { return p && q && p.s === q.s && p.a === q.a; };
+      var silJump = function (dir, unit) {
+        var go = function () {
+          var q = SIL.seq, i = SIL.i, j = i;
+          clearTimeout(SIL.t);
+          if (dir < 0) {
+            if (unit === 'w') j = Math.max(0, i - 1);
+            else {
+              // back a verse: to the start of the verse being shown (a verse just finished: that verse, to recite again)
+              var k = i - 1; if (k < 0) { if (SIL.on) silTick(); return; }
+              while (k > 0 && sameA(q[k - 1], q[k])) k--;
+              j = k;
+            }
+            for (var n = j; n < i; n++) silHide(q[n]);
+          } else {
+            if (unit === 'w') j = Math.min(q.length, i + 1);
+            else { j = i; while (j < q.length && (j === i || sameA(q[j - 1], q[j]))) j++; }
+            for (var m = i; m < j; m++) { silShowWord(q[m]); if (m === q.length - 1 || !sameA(q[m], q[m + 1])) silShowEnd(q[m]); }
+          }
+          SIL.i = j;
+          if (SIL.on) SIL.t = setTimeout(silTick, dir < 0 ? 700 : 300);
+        };
+        if (SIL.seq) return go();
+        if (!hideNow() && hideBtn()) hideBtn().click();
+        silBuild().then(function (q) {
+          SIL.seq = q; SIL.i = 0;
+          while (SIL.i < q.length && els(q[SIL.i].loc)[0] && els(q[SIL.i].loc)[0].classList.contains('rv')) SIL.i++;
+          go();
+        });
       };
       var silStart = function () {
         if (!hideNow() && hideBtn()) hideBtn().click();
