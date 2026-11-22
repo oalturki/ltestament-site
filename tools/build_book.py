@@ -69,7 +69,7 @@ def index_names(lang):
     return AR_NAMES if UI_NAMES[lang] == 'ar' else NAMES[UI_NAMES[lang]]
 
 UI = {
- 'ar': dict(frame='شكل الإطار', frameEdge='زخرفة على الحافة', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', frameLeaves='حواف الأوراق', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
+ 'ar': dict(frame='شكل الإطار', frameEdge='زخرفة على الحافة', frameFull='زخرفة كاملة', frameSides='تمييز اليمين واليسار', frameNone='بلا زخرفة', frameLeaves='حواف الأوراق', docTitle='مصحف العهد الأخير', listen='استمع', pause='إيقاف', reciter='القارئ', full='افتح المصحف كاملًا', fontCredit='خط المصحف: مجمع الملك فهد لطباعة المصحف الشريف', title='المصحف ككتاب', sub='تصفّح القرآن الكريم صفحةً صفحة كما في مصحف المدينة النبوية المطبوع، مع التلاوة.',
             page='صفحة', notes='حواشي الترجمة', retry='أعد المحاولة', error='تعذّر تحميل الصفحة. تأكد من اتصالك بالإنترنت ثم أعد المحاولة.',
             loading='جارِ فتح المصحف…', text='النص', meaning='الترجمة', index='السورة', tr='الترجمة', prev='الصفحة السابقة', next='الصفحة التالية',
             hint='قلّب الصفحات بالسهمين أو بسحب الصفحة', btn='تصفّح كمصحف'),
@@ -135,7 +135,7 @@ def page(lang):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>{u['title']} — {fb['site']}</title>
+<title>{u.get('docTitle') or u['title'] + ' — ' + fb['site']}</title>
 <meta name="description" content="{u['sub']}">
 <link rel="canonical" href="https://ltestament.com{book_path(lang)}">
 <meta name="theme-color" content="#0A1425">
@@ -146,7 +146,7 @@ def page(lang):
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="العهد الأخير">
-<meta property="og:title" content="{u['title']} — {fb['site']}">
+<meta property="og:title" content="{u.get('docTitle') or u['title'] + ' — ' + fb['site']}">
 <meta property="og:description" content="{u['sub']}">
 <meta property="og:image" content="https://ltestament.com/og-{lang}.jpg">
 <meta name="twitter:card" content="summary_large_image">
