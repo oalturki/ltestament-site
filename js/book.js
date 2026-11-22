@@ -1031,7 +1031,7 @@
           var seq = [];
           ays.forEach(function (sa, j) {
             var ws = byA[sa[0] + ':' + sa[1]].sort(function (p, q) { return p - q; }), tm = {}, last = 0;
-            (tms[j] || []).forEach(function (t) { tm[t[0]] = t[1]; last = Math.max(last, t[2]); });
+            (tms[j] || []).forEach(function (t) { if (tm[t[0]] == null) tm[t[0]] = t[1]; last = Math.max(last, t[2]); });   // (a word the reciter goes back to: its first time)
             if (isHadr()) {
               tm = {}; var acc = 0;
               ws.forEach(function (w) { tm[w] = acc; acc += wordMs(sa[0] + ':' + sa[1] + ':' + w); });
