@@ -1263,3 +1263,6 @@ body.bk-wide .bk-msov:not(.bk-msside) .bk-mshead h2{ flex:1 1 0; width:0; min-wi
 body.bk-wide .bk-msov:not(.bk-msside) .bk-msheet{ min-width:240px; }
 body.bk-wide .bk-msov:not(.bk-msside) .bk-vlist button > span{ display:block; flex:1 1 auto; min-width:0; }
 body.bk-wide .bk-msov:not(.bk-msside) .bk-mshead h2{ font-size:1rem; }
+/* lists and bars are not text to edit: no text cursor on a tap (inputs keep theirs) */
+.bk-msheet, .bk-bar, .bk-mnav, .bk-silpop, .bk-idx{ caret-color:transparent; -webkit-user-select:none; user-select:none; }
+.bk-msheet input, .bk-msheet textarea, .bk-idx input, .bk-bar input{ caret-color:auto; -webkit-user-select:text; user-select:text; }
