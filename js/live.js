@@ -99,7 +99,7 @@
       var k = pt.pos; while (k < pt.words.length && pt.words[k].ti) k++;
       o.onCursor(P, k < pt.words.length ? pt.words[k] : null);
     }
-    function send(seg, final) {
+    function send(seg, final, again) {
       var pt = parts[P], fd = new FormData(), from = seg.sent || 0;
       fd.append('audio', wav16(seg.slice(from), R.rate), 'a.wav');
       fd.append('sid', seg.sid); fd.append('append', from > 0 ? 'true' : 'false');
@@ -112,9 +112,11 @@
       R.busy = true;
       var myP = P;
       return fetch(API + '/live', { method: 'POST', body: fd }).then(function (x) {
+        // the service does not have this stretch's beginning (restarted, or a piece was lost): send it whole, once
+        if (x.status === 409 && !again) { seg.sent = 0; return send(seg, final, true).then(function (r) { r.__again = 1; return r; }); }
         if (!x.ok) return x.text().then(function (t) { throw new Error(x.status + ' ' + t); });
         return x.json();
-      }).then(function (res) { R && (R.busy = false); res.part = myP; return res; },
+      }).then(function (res) { if (res.__again) return res; R && (R.busy = false); res.part = myP; return res; },
         function (e) { R && (R.busy = false); seg.sent = 0; throw e; });
     }
     function interim(res) {

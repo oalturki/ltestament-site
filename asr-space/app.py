@@ -307,7 +307,11 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     if sid:
         now = time.time()
         for k in [k for k, v in _sess.items() if now - v["t"] > 120]: _sess.pop(k, None)
-        if append and sid in _sess: wav = np.concatenate([_sess[sid]["pcm"], wav])
+        # the stretch so far is not here (the service restarted, or the page's earlier piece never arrived): say so,
+        # and the page sends the whole stretch again — never judge its end alone (the words before it would count as
+        # left out)
+        if append and sid not in _sess: raise HTTPException(409, "resend the whole stretch")
+        if append: wav = np.concatenate([_sess[sid]["pcm"], wav])
         _sess[sid] = {"pcm": wav, "t": now}
         if final: _sess.pop(sid, None)
     dur = len(wav) / SR
