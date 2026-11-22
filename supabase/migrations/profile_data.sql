@@ -15,3 +15,9 @@ create policy "own profile data" on public.profile_data for all to authenticated
 
 -- A code for each profile (applied as migration "profile_pin"): asked before the profile is opened on a shared device.
 alter table public.family_profiles add column pin_hash text check (pin_hash is null or char_length(pin_hash) = 64);
+
+-- The reader's own plans (js/plans.js) kept the same way (migration "profile_data_plans").
+alter table public.profile_data drop constraint profile_data_key_check;
+alter table public.profile_data add constraint profile_data_key_check check (key in ('reminders', 'marks', 'plans'));
+alter table public.profile_data drop constraint profile_data_data_check;
+alter table public.profile_data add constraint profile_data_data_check check (pg_column_size(data) < 60000);

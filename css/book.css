@@ -1515,3 +1515,13 @@ body.bk-mob .bk-micav{ display:none !important; }
 .ma-cset{ min-height:38px; padding:0 12px; border-radius:12px; border:1px solid #2f6b45; background:#fff; color:#2f6b45; font:inherit; font-weight:700; cursor:pointer; }
 .ma-cbox{ display:flex; flex-direction:column; gap:10px; }
 .ma-pin{ min-height:48px; border-radius:12px; border:1px solid #d9c88f; background:#fff; font-size:22px; letter-spacing:.6em; text-align:center; }
+/* خططي */
+.pl-type{ font-style:normal; font-size:.75rem; font-weight:700; padding:2px 8px; border-radius:10px; background:var(--kc,#2f6b45); color:#fff; }
+.pl-today{ line-height:1.7; }
+.pl-today small{ color:#8a7550; }
+.pl-btns{ display:flex; gap:8px; align-items:center; }
+.pl-done{ min-height:36px; padding:0 14px; border-radius:12px; border:1px solid #2f6b45; background:#fff; color:#2f6b45; font:inherit; font-weight:700; cursor:pointer; }
+.pl-undo{ border:0; background:none; color:#7a5c1e; text-decoration:underline; font:inherit; cursor:pointer; }
+.pl-sum{ margin:0; color:#2f6b45; font-weight:700; }
+.kh-row .kh-seg{ flex:none; min-width:46%; }
+.pl-unit button, .pl-ord button{ font-size:.85rem; line-height:1.3; padding:4px; }

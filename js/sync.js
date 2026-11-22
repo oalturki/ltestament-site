@@ -6,12 +6,13 @@
    first sign-in it becomes his profile's, and is merged with what the account already holds.
    Table profile_data (supabase/migrations/profile_data.sql), one row per profile and kind.
 
+   (Plans, js/plans.js, are kept the same way: lt_plans.)
    LtSync.touch(kind)   the data of this kind changed here: send it to the account (a moment later)
    LtSync.pull()        bring this profile's data from the account
    LtSync.switched()    the profile in use changed (event lt-profile): swap the device's copies, then pull */
 (function () {
   if (window.LtSync) return;
-  var KINDS = { reminders: 'lt_reminders', marks: 'lt_book_marks' };
+  var KINDS = { reminders: 'lt_reminders', marks: 'lt_book_marks', plans: 'lt_plans' };
   var load = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
   var store = function (k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
   var signedIn = function () { return !!load('sb-nikwwjswwlwcqekbnpzq-auth-token'); };

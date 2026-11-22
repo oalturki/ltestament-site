@@ -1427,6 +1427,7 @@
         marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
         recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         remind: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+        plans: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M8 14h3M8 17h6"/>',
         account: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor" stroke="none"/>',
         lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>',
         back: '<path d="M9 6l6 6-6 6"/>'
@@ -1445,9 +1446,14 @@
       var goSec = function (k) {
         Object.keys(secs).forEach(function (x) { secs[x].hidden = x !== k; });
         menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
+        // the tour and the font's credit: at the end of the settings list only, not under each page
+        sbody.querySelectorAll('.bk-mstour, .bk-msfoot').forEach(function (e) { e.hidden = !!k; });
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
         if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); } }); });
+        if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
+          window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
+        });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -1479,6 +1485,8 @@
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
+      var PLL = { ar: 'خططي', ur: 'میرے منصوبے', en: 'My plans', fr: 'Mes plans', es: 'Mis planes', ru: 'Мои планы' };
+      var plSec = section('plans', PLL[C.lang] || PLL.en, 'plans');
       var RML = { ar: 'التذكيرات', ur: 'یاد دہانیاں', en: 'Reminders', fr: 'Rappels', es: 'Recordatorios', ru: 'Напоминания' };
       var remSec = section('remind', RML[C.lang] || RML.en, 'remind');
       var fb0 = document.querySelector('.bk-fambtn');
@@ -1587,6 +1595,7 @@
         if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
         if (subs.view) subs.view.textContent = selText(q('frameSel'));
+        if (subs.plans) { var pls = []; try { pls = JSON.parse(localStorage.getItem('lt_plans') || '[]') || []; } catch (e) {} subs.plans.textContent = pls.length ? uiNum(pls.length) : ''; }
         if (subs.account) { var ap = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) ap = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} subs.account.textContent = ap ? ap.name : ACL[1]; }
         if (subs.lang) subs.lang.textContent = ({ ar: 'العربية', en: 'English', fr: 'Français', es: 'Español', ru: 'Русский', ur: 'اردو' })[C.lang] || '';
         if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
@@ -3276,6 +3285,7 @@
           });
           famPg = {};
           if (root.__planCheck) root.__planCheck(famAll);
+          if (window.LtPlans) window.LtPlans.check(famAll);          // the reader's own plans (js/plans.js)
         };
         root.__fam = { word: function (sN, w, cls) { famWord(sN, w, cls); if (!famT0) famT0 = Date.now(); }, flush: function (c) { famFlush(c); },
                        unerr: function (loc) { Object.keys(famPg).forEach(function (pg) { delete famPg[pg].errs[loc]; }); delete famAll.errs[loc]; } };
