@@ -805,7 +805,9 @@
               '<div class="bk-ixtabs" role="tablist">' + [['surah', HB[2]], ['juz', HB[3]], ['hizb', HB[4]]].map(function (t) {
                 return '<button type="button" role="tab" data-t="' + t[0] + '"' + (t[0] === idxTab ? ' class="on"' : '') + '>' + esc(t[1]) + '</button>'; }).join('') + '</div>' +
               '<a class="bk-ixhome" href="' + esc((document.querySelector('.bk-back') || { getAttribute: function () { return '/'; } }).getAttribute('href')) + '" title="' + esc(HB[1]) + '" aria-label="' + esc(HB[1]) + '">' +
-              svg('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>') + '</a></div>' +
+              svg('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>') + '</a>' +
+              // iPad/computer: a close (×) in the home button's place (the index there is a list over the page)
+              '<button type="button" class="bk-ixclose" aria-label="' + esc(MOB[C.lang] ? MOB[C.lang].close : 'Close') + '">' + svg('<path d="M6 6l12 12M18 6L6 18"/>') + '</button></div>' +
               '<div class="bk-ixfind">' + svg('<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>') + '<input type="search" placeholder="' + esc(HB[13]) + '" aria-label="' + esc(HB[13]) + '"></div>' +
               '<div class="bk-ixlist"></div>';
             document.body.appendChild(ov);
@@ -827,6 +829,7 @@
             };
             var shut = function () { ov.classList.remove('on'); setTimeout(function () { ov.remove(); }, 220); };
             ov.querySelector('.bk-ixx').onclick = shut;
+            ov.querySelector('.bk-ixclose').onclick = shut;
             ov.querySelector('.bk-ixtabs').onclick = function (e) { var b = e.target.closest('button'); if (b) { idxTab = b.dataset.t; fill(); } };
             listEl.onclick = function (e) {
               var b = e.target.closest('.bk-ixrow'); if (!b) return;
