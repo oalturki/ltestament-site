@@ -1170,3 +1170,11 @@ body.bk-wide.bk-chrome-off .bk-bar, body.bk-wide.bk-chrome-off .bk-mnav{ transfo
 body.bk-wide.bk-chrome-off .bk-mshow{ display:none !important; }
 /* iPad upright: one page, no wider than a Mushaf page is for its height (else its lines crowd against the frame) */
 body.bk-wide .bk-book:not(.bk-spread){ max-width:calc((100vh - 124px) * 0.66); max-width:calc((100dvh - 124px) * 0.66); margin-inline:auto; }
+/* iPad and computer: the index as a panel in the middle, not stretched across the screen */
+body.bk-wide .bk-idx{ background:rgba(60,45,15,.25) !important; align-items:center; }
+body.bk-wide .bk-idx > *{ width:min(640px, 100%); }
+body.bk-wide .bk-idx .bk-ixhead{ background:#FBF6EC; border-radius:18px 18px 0 0; margin-top:24px; }
+body.bk-wide .bk-idx .bk-ixfind{ margin:0; padding-inline:12px; border-radius:0; background:#FBF6EC; border:0; border-bottom:1px solid rgba(60,45,15,.1); height:46px; }
+body.bk-wide .bk-idx .bk-ixlist{ flex:1; background:#FBF6EC; border-radius:0 0 18px 18px; margin-bottom:24px; }
+/* the microphone is the button itself (not a slot around it): it keeps its round size, the slots either side share the rest */
+body.bk-mob .bk-mnav .bk-mmic{ flex:0 0 auto !important; margin-inline:auto !important; }

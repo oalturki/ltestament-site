@@ -769,7 +769,7 @@
         var idxOpen = function () {
           (IDX ? Promise.resolve(IDX) : getJSON(BASE + '/data/quran-index.json').then(function (d) { IDX = d; return d; })).then(function (d) {
             var ov = document.createElement('div'); ov.className = 'bk-idx';
-            var nm = Array.prototype.map.call(sSel.options, function (o) { return o.text.replace(/^[\d٠-٩]+\s*/, ''); });
+            var nm = Array.prototype.map.call(sSel.options, function (o) { return o.text.replace(/^[\d٠-٩]+[.\s ]*/, ''); });
             var here = MAP.pages[cur - 1][0], hereJ = MAP.juz[cur - 1];
             var jFirst = []; MAP.juz.forEach(function (j, i) { if (!jFirst[j - 1]) jFirst[j - 1] = i + 1; });
             var row = function (go, no, on, title, sub, page) {
