@@ -1271,3 +1271,16 @@ body.bk-wide:not(.bk-is-mushaf) .bk-book:not(.bk-spread), .bk-wide:not(.bk-is-mu
 /* the meaning's page: a margin between its text and the page's edge */
 body.bk-wide .bk-trpage .bk-content{ padding:4px 22px 0 !important; }
 body.bk-wide .bk-trpage .bk-head{ padding:0 22px 8px !important; }
+
+/* iPad/computer: the index drops down under its button, a panel as wide as its names, compact rows */
+body.bk-wide .bk-idx{ align-items:flex-start !important; padding:50px 0 18px !important; background:rgba(60,45,15,.18) !important; }
+body.bk-wide .bk-idx > *{ width:380px !important; max-width:calc(100vw - 16px); margin-inline-start:var(--ix-ms, calc((100vw - 380px) / 2)) !important; }
+body.bk-wide .bk-idx .bk-ixhead{ margin-top:0 !important; border-radius:16px 16px 0 0; padding:8px 10px; }
+body.bk-wide .bk-idx .bk-ixlist{ margin-bottom:0 !important; border-radius:0 0 16px 16px; box-shadow:0 10px 32px rgba(60,45,15,.25); padding:6px 8px 10px; }
+body.bk-wide .bk-idx .bk-ixx, body.bk-wide .bk-idx .bk-ixhome{ width:34px; height:34px; }
+body.bk-wide .bk-idx .bk-ixtabs button{ height:30px; font-size:.92rem; }
+body.bk-wide .bk-idx .bk-ixfind{ height:38px; }
+body.bk-wide .bk-idx .bk-ixrow{ padding:6px 10px; margin-bottom:4px; border-radius:10px; gap:10px; }
+body.bk-wide .bk-idx .bk-ixno{ width:28px; height:28px; font-size:.8rem; }
+body.bk-wide .bk-idx .bk-ixt b{ font-size:.98rem; } body.bk-wide .bk-idx .bk-ixt small{ font-size:.78rem; }
+body.bk-wide .bk-idx .bk-ixpg{ font-size:.85rem; }

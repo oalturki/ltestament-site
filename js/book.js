@@ -1257,6 +1257,12 @@
       }
       document.body.appendChild(nav);
 
+      // iPad/computer: a tap outside the index panel closes it
+      document.addEventListener('click', function (e) {
+        if (!document.body.classList.contains('bk-wide')) return;
+        var ix = e.target.classList && e.target.classList.contains('bk-idx') ? e.target : null;
+        if (ix) { var x = ix.querySelector('.bk-ixx'); if (x) x.click(); }
+      });
       // iPad/computer: a list opened from a top-bar button is placed under that button (css: body.bk-wide .bk-msov)
       var ddX = null;
       document.addEventListener('click', function (e) {
@@ -1264,6 +1270,13 @@
         var b = e.target.closest && e.target.closest('.bk-bar button, .bk-bar select, .bk-bar .bk-mbtn');
         if (!b) return;
         var r = b.getBoundingClientRect(); ddX = r.left + r.width / 2;
+        // the index: its panel starts under the index button
+        if (b.classList.contains('bk-hamb')) {
+          var rtl = getComputedStyle(document.documentElement).direction === 'rtl', w = Math.min(380, window.innerWidth - 16);
+          var ms = rtl ? window.innerWidth - r.right : r.left;
+          ms = Math.max(8, Math.min(window.innerWidth - w - 8, ms));
+          [0, 60].forEach(function (t) { setTimeout(function () { var ix = document.querySelector('.bk-idx'); if (ix) ix.style.setProperty('--ix-ms', Math.round(ms) + 'px'); }, t); });
+        }
         [0, 60, 250].forEach(function (t) {
           setTimeout(function () {
             var sh = document.querySelector('.bk-msov.on:not(.bk-msside) .bk-msheet'); if (!sh || ddX == null) return;
