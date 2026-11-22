@@ -4,6 +4,7 @@
 Sources (Quranic Universal Library, qul.tarteel.ai — downloaded by the site owner, kept in tools/data/rec/):
   abdulbasit-murattal.json      Abdul Basit, murattal, ayah by ayah, word timings      /resources/recitation/115
   minshawi-murattal.json        Al-Minshawi, murattal, ayah by ayah, word timings      /resources/recitation/108
+  maher-murattal.json           Maher al-Muaiqly, murattal, ayah by ayah, word timings /resources/recitation/113
   basfar-walk-segments.json     Abdullah Basfar + Ibrahim Walk (Saheeh Intl), surah files, ayah timings   /resources/recitation/331
   basfar-walk-surah.json
   abdulbasit-walk-surah.json    Abdul Basit + Ibrahim Walk (Saheeh Intl), surah files, no timings         /resources/recitation/326
@@ -18,7 +19,7 @@ import json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / 'tools' / 'data' / 'rec'
 OUT = ROOT / 'data' / 'rec'
-WORD = {'abdulbasit': 'abdulbasit-murattal.json', 'minshawi': 'minshawi-murattal.json'}
+WORD = {'abdulbasit': 'abdulbasit-murattal.json', 'minshawi': 'minshawi-murattal.json', 'maher': 'maher-murattal.json'}
 AYAH = {}  # surah-file reciters with ayah timings (none in use: the Basfar + Walk timings in QUL do not match its audio)
 
 

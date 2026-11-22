@@ -45,12 +45,16 @@ RECITERS = [
          label=dict(ar='عبد الباسط عبد الصمد', en='Abdul Basit Abdul Samad')),
     dict(id='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=None,
          label=dict(ar='محمد صديق المنشاوي', en='Muhammad Siddiq al-Minshawi')),
+    dict(id='maher', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/maherAlMuaiqly/{s}{a}.mp3', timed=True, langs=None,
+         label=dict(ar='ماهر المعيقلي', en='Maher al-Muaiqly')),
     # English pages: the same recitations, each ayah followed by its meaning read by Ibrahim Walk (Saheeh International,
     # one file per ayah from everyayah.com) — recitation and meaning stay in step because both are ayah by ayah.
     dict(id='abdulbasit-en', data='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=['en'],
          then=WALK, label=dict(ar='عبد الباسط + المعنى بالإنجليزية', en='Abdul Basit + English meaning (Ibrahim Walk)')),
     dict(id='minshawi-en', data='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=['en'],
          then=WALK, label=dict(ar='المنشاوي + المعنى بالإنجليزية', en='al-Minshawi + English meaning (Ibrahim Walk)')),
+    dict(id='maher-en', data='maher', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/maherAlMuaiqly/{s}{a}.mp3', timed=True, langs=['en'],
+         then=WALK, label=dict(ar='المعيقلي + المعنى بالإنجليزية', en='al-Muaiqly + English meaning (Ibrahim Walk)')),
     # English pages: the meaning alone, read continuously (the English text is highlighted ayah by ayah).
     dict(id='walk', kind='ayah', url=WALK, timed=False, langs=['en'], meaningOnly=True,  # trimLead=True would skip the reciter's tail at the start of some files; off: it can clip the first English word
         
