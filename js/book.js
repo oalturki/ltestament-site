@@ -1614,8 +1614,9 @@
         if (subs.rec) {
           var pf = window.Fam && window.Fam.current && window.Fam.current(), rb = subs.rec.parentNode.querySelector('b');
           subs.rec.textContent = '';
-          if (rb) rb.textContent = recTitle(pf && pf.name);
-          if (secs.rec) secs.rec.dataset.title = recTitle(pf && pf.name);
+          // inside his own profile it is just «السجل» (a parent sees «سجل محمد» only from outside, in his child's page)
+          if (rb) rb.textContent = recTitle();
+          if (secs.rec) secs.rec.dataset.title = recTitle();
         }
         if (subs.khatma) {
           var kt = window.Khatma && window.Khatma.stripText(C.lang);
