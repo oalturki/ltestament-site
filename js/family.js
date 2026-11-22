@@ -76,7 +76,7 @@
     return rpc('record_recital', {
       p_profile: p.id, p_page: o.page, p_words: o.words | 0, p_total: o.total | 0, p_mistakes: o.mistakes | 0,
       p_seconds: Math.min(86400, Math.round(o.seconds || 0)), p_complete: !!o.complete,
-      p_locs: (o.locs || []).slice(0, 200), p_kinds: (o.kinds || []).slice(0, 200)
+      p_locs: (o.locs || []).slice(0, 200), p_kinds: (o.kinds || []).slice(0, 200), p_kind: o.kind === 'silent' ? 'silent' : 'recite'
     });
   }
   function practice(o) {

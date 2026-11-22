@@ -1031,7 +1031,7 @@
         if (!w) return;
         var l = w.getAttribute('data-l'), x = l.split(':').map(Number), on = w.classList.contains('sl-err');
         els(l).forEach(function (el) { el.classList.toggle('sl-err', !on); el.classList.add('rv', 'rva'); });
-        if (root.__fam) { if (on) root.__fam.unerr(l); else root.__fam.word(x[0], { ayah: x[1], n: x[2] }, 'wrong'); }
+        if (root.__fam) { if (on) root.__fam.unerr(l); else root.__fam.word(x[0], { ayah: x[1], n: x[2] }, 'self'); }
         e.stopPropagation(); e.preventDefault();
       }, true);
       var RCL = { ar: 'سمِّع', ur: 'سنائیں', en: 'Recite', fr: 'Réciter', es: 'Recitar', ru: 'Читать' };
@@ -2635,7 +2635,7 @@
         var famWord = function (sN, w, cls) {
           var pg = pageOf(sN, w.ayah), r = famPg[pg] || (famPg[pg] = { done: {}, errs: {} }), loc = sN + ':' + w.ayah + ':' + w.n;
           r.done[loc] = 1; famAll.done[loc] = 1;
-          if (cls === 'wrong' || cls === 'missing') { var kd = w.skip ? 'skip' : cls; r.errs[loc] = kd; famAll.errs[loc] = kd; famHeard[loc] = [cls, w.heard || '', w.skip]; }
+          if (cls === 'wrong' || cls === 'missing' || cls === 'self') { var kd = w.skip ? 'skip' : cls; r.errs[loc] = kd; famAll.errs[loc] = kd; famHeard[loc] = [cls, w.heard || '', w.skip]; }
         };
         // two kinds of mistake: a word (said wrong, changed, left out), and a verse or passage passed over — one place
         // however many words it held (a weakness in joining the verses, not in a word)
@@ -2679,7 +2679,7 @@
               });
               var locs = Object.keys(r.errs);
               F.recital({ page: +pg, words: done, total: Math.max(total, done), mistakes: errCount(r.errs).all, seconds: secs,
-                          complete: complete || done >= total, locs: locs, kinds: locs.map(function (l) { return r.errs[l]; }) })
+                          complete: complete || done >= total, locs: locs, kind: root.classList.contains('bk-ms') ? 'silent' : 'recite', kinds: locs.map(function (l) { return r.errs[l]; }) })
                 .then(function () { if (root.__famRefresh) root.__famRefresh(); }).catch(function () {});
             }
           });
@@ -2981,7 +2981,7 @@
         var nm = function (x) { return C.lang === 'ar' ? arNum(x) : String(x); };
         var famLoad = function () {
           if (window.Fam) return Promise.resolve(window.Fam);
-          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=1'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
+          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=2'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
         };
         var planLoad = function () {
           if (window.Plan) return Promise.resolve(window.Plan);

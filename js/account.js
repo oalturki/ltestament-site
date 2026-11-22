@@ -13,7 +13,7 @@
       mapBtn: 'الخريطة', edit: 'تعديل', del: 'حذف', delAsk: 'سيُحذف الملف وسجله كله نهائيًا. اكتب الاسم للتأكيد:', save: 'حفظ', cancel: 'إلغاء',
       mastered: 'مُتقَنة', learning: 'يحفظها', due: 'حانت مراجعتها', overdue: 'متأخرة', notStarted: 'لم يبدأ', today: 'مراجعة اليوم',
       lastPage: 'آخر موضع: صفحة', active: 'أيام النشاط (٧ أيام)', avgM: 'متوسط الأخطاء في الصفحة', week: 'هذا الأسبوع', prev: 'الأسبوع الماضي',
-      topM: 'كلمات يتكرر الخطأ فيها', skips: 'مواضع التجاوز (٧ أيام)', none: 'لا شيء بعد', page: 'صفحة', juz: 'الجزء', close: 'إغلاق', openPage: 'افتح الصفحة',
+      topM: 'كلمات يتكرر الخطأ فيها', selfA: 'تقدير ذاتي — تسميع صامت (٧ أيام)', skips: 'مواضع التجاوز (٧ أيام)', none: 'لا شيء بعد', page: 'صفحة', juz: 'الجزء', close: 'إغلاق', openPage: 'افتح الصفحة',
       lastRec: 'آخر تسميع', mistakes: 'الأخطاء', nextRev: 'المراجعة القادمة', masteryMax: 'حدّ الإتقان (أخطاء في الصفحة)', of604: 'من ٦٠٤',
       pin: 'رمز حماية ملف الوالد على هذا الجهاز (٤ أرقام، اختياري)', pinSave: 'حفظ الرمز', pinOff: 'إلغاء الرمز', pinAsk: 'رمز ملف الوالد', pinBad: 'الرمز غير صحيح.',
       err: 'حدث خطأ، أعد المحاولة.', badLogin: 'البريد أو كلمة المرور غير صحيحة.', exists: 'هذا البريد مسجَّل من قبل؛ ادخل أو استعد كلمة المرور.',
@@ -30,7 +30,7 @@
       mapBtn: 'Map', edit: 'Edit', del: 'Delete', delAsk: 'The profile and its whole record will be deleted for good. Type the name to confirm:', save: 'Save', cancel: 'Cancel',
       mastered: 'Mastered', learning: 'Memorizing', due: 'Due for review', overdue: 'Overdue', notStarted: 'Not started', today: 'Review today',
       lastPage: 'Last place: page', active: 'Active days (7 days)', avgM: 'Average mistakes per page', week: 'This week', prev: 'Last week',
-      topM: 'Words often missed', skips: 'Places passed over (7 days)', none: 'Nothing yet', page: 'Page', juz: 'Juz', close: 'Close', openPage: 'Open the page',
+      topM: 'Words often missed', selfA: 'Self-assessed — silent (7 days)', skips: 'Places passed over (7 days)', none: 'Nothing yet', page: 'Page', juz: 'Juz', close: 'Close', openPage: 'Open the page',
       lastRec: 'Last recited', mistakes: 'Mistakes', nextRev: 'Next review', masteryMax: 'Mastery limit (mistakes per page)', of604: 'of 604',
       pin: 'PIN for the parent profile on this device (4 digits, optional)', pinSave: 'Save PIN', pinOff: 'Remove PIN', pinAsk: 'Parent profile PIN', pinBad: 'Wrong PIN.',
       err: 'Something went wrong; please try again.', badLogin: 'Wrong email or password.', exists: 'This email is already registered; sign in or reset the password.',
@@ -47,7 +47,7 @@
       mapBtn: 'نقشہ', edit: 'ترمیم', del: 'حذف', delAsk: 'پروفائل اور اس کا پورا ریکارڈ ہمیشہ کے لیے حذف ہو جائے گا۔ تصدیق کے لیے نام لکھیں:', save: 'محفوظ کریں', cancel: 'منسوخ',
       mastered: 'پختہ', learning: 'یاد کر رہا ہے', due: 'دہرائی کا وقت', overdue: 'تاخیر', notStarted: 'شروع نہیں', today: 'آج کی دہرائی',
       lastPage: 'آخری جگہ: صفحہ', active: 'سرگرم دن (۷ دن)', avgM: 'فی صفحہ اوسط غلطیاں', week: 'یہ ہفتہ', prev: 'پچھلا ہفتہ',
-      topM: 'بار بار غلط ہونے والے الفاظ', skips: 'چھوڑے گئے مقامات (۷ دن)', none: 'ابھی کچھ نہیں', page: 'صفحہ', juz: 'پارہ', close: 'بند کریں', openPage: 'صفحہ کھولیں',
+      topM: 'بار بار غلط ہونے والے الفاظ', selfA: 'خود جائزہ — خاموش تسمیع (۷ دن)', skips: 'چھوڑے گئے مقامات (۷ دن)', none: 'ابھی کچھ نہیں', page: 'صفحہ', juz: 'پارہ', close: 'بند کریں', openPage: 'صفحہ کھولیں',
       lastRec: 'آخری بار سنایا', mistakes: 'غلطیاں', nextRev: 'اگلی دہرائی', masteryMax: 'پختگی کی حد (فی صفحہ غلطیاں)', of604: '۶۰۴ میں سے',
       pin: 'اس آلے پر والد/والدہ کے پروفائل کا پن (۴ ہندسے، اختیاری)', pinSave: 'پن محفوظ کریں', pinOff: 'پن ہٹائیں', pinAsk: 'والد/والدہ کا پن', pinBad: 'غلط پن۔',
       err: 'کچھ غلط ہو گیا؛ دوبارہ کوشش کریں۔', badLogin: 'ای میل یا پاس ورڈ غلط ہے۔', exists: 'یہ ای میل پہلے سے رجسٹرڈ ہے؛ لاگ اِن کریں یا پاس ورڈ بحال کریں۔',
@@ -64,7 +64,7 @@
       mapBtn: 'Carte', edit: 'Modifier', del: 'Supprimer', delAsk: 'Le profil et tout son dossier seront supprimés définitivement. Tapez le nom pour confirmer :', save: 'Enregistrer', cancel: 'Annuler',
       mastered: 'Maîtrisée', learning: 'En mémorisation', due: 'À réviser', overdue: 'En retard', notStarted: 'Non commencée', today: 'Révision du jour',
       lastPage: 'Dernière position : page', active: 'Jours actifs (7 jours)', avgM: 'Erreurs moyennes par page', week: 'Cette semaine', prev: 'Semaine dernière',
-      topM: 'Mots souvent manqués', skips: 'Passages sautés (7 jours)', none: 'Rien pour l’instant', page: 'Page', juz: 'Juz', close: 'Fermer', openPage: 'Ouvrir la page',
+      topM: 'Mots souvent manqués', selfA: 'Auto-évaluation — silencieux (7 jours)', skips: 'Passages sautés (7 jours)', none: 'Rien pour l’instant', page: 'Page', juz: 'Juz', close: 'Fermer', openPage: 'Ouvrir la page',
       lastRec: 'Dernière récitation', mistakes: 'Erreurs', nextRev: 'Prochaine révision', masteryMax: 'Seuil de maîtrise (erreurs par page)', of604: 'sur 604',
       pin: 'Code du profil parent sur cet appareil (4 chiffres, facultatif)', pinSave: 'Enregistrer le code', pinOff: 'Retirer le code', pinAsk: 'Code du profil parent', pinBad: 'Code incorrect.',
       err: 'Une erreur s’est produite ; réessayez.', badLogin: 'E-mail ou mot de passe incorrect.', exists: 'Cet e-mail est déjà inscrit ; connectez-vous ou réinitialisez le mot de passe.',
@@ -81,7 +81,7 @@
       mapBtn: 'Mapa', edit: 'Editar', del: 'Borrar', delAsk: 'El perfil y todo su registro se borrarán para siempre. Escribe el nombre para confirmar:', save: 'Guardar', cancel: 'Cancelar',
       mastered: 'Dominada', learning: 'Memorizando', due: 'Toca repasar', overdue: 'Atrasada', notStarted: 'Sin empezar', today: 'Repaso de hoy',
       lastPage: 'Último lugar: página', active: 'Días activos (7 días)', avgM: 'Errores medios por página', week: 'Esta semana', prev: 'Semana pasada',
-      topM: 'Palabras que suele fallar', skips: 'Pasajes saltados (7 días)', none: 'Nada aún', page: 'Página', juz: 'Yuz', close: 'Cerrar', openPage: 'Abrir la página',
+      topM: 'Palabras que suele fallar', selfA: 'Autoevaluación — en silencio (7 días)', skips: 'Pasajes saltados (7 días)', none: 'Nada aún', page: 'Página', juz: 'Yuz', close: 'Cerrar', openPage: 'Abrir la página',
       lastRec: 'Última recitación', mistakes: 'Errores', nextRev: 'Próximo repaso', masteryMax: 'Límite de dominio (errores por página)', of604: 'de 604',
       pin: 'PIN del perfil del padre en este dispositivo (4 cifras, opcional)', pinSave: 'Guardar PIN', pinOff: 'Quitar PIN', pinAsk: 'PIN del perfil del padre', pinBad: 'PIN incorrecto.',
       err: 'Algo falló; inténtalo de nuevo.', badLogin: 'Correo o contraseña incorrectos.', exists: 'Este correo ya está registrado; entra o restablece la contraseña.',
@@ -98,7 +98,7 @@
       mapBtn: 'Карта', edit: 'Изменить', del: 'Удалить', delAsk: 'Профиль и весь его журнал будут удалены навсегда. Введите имя для подтверждения:', save: 'Сохранить', cancel: 'Отмена',
       mastered: 'Выучена', learning: 'Учит', due: 'Пора повторить', overdue: 'Просрочена', notStarted: 'Не начата', today: 'Повторение сегодня',
       lastPage: 'Последнее место: стр.', active: 'Активные дни (7 дней)', avgM: 'Ошибок на страницу в среднем', week: 'Эта неделя', prev: 'Прошлая неделя',
-      topM: 'Слова с частыми ошибками', skips: 'Пропущенные места (7 дней)', none: 'Пока ничего', page: 'Стр.', juz: 'Джуз', close: 'Закрыть', openPage: 'Открыть страницу',
+      topM: 'Слова с частыми ошибками', selfA: 'Самооценка — беззвучно (7 дней)', skips: 'Пропущенные места (7 дней)', none: 'Пока ничего', page: 'Стр.', juz: 'Джуз', close: 'Закрыть', openPage: 'Открыть страницу',
       lastRec: 'Последнее чтение', mistakes: 'Ошибки', nextRev: 'Следующее повторение', masteryMax: 'Порог (ошибок на страницу)', of604: 'из 604',
       pin: 'PIN профиля родителя на этом устройстве (4 цифры, по желанию)', pinSave: 'Сохранить PIN', pinOff: 'Убрать PIN', pinAsk: 'PIN профиля родителя', pinBad: 'Неверный PIN.',
       err: 'Что-то пошло не так; попробуйте ещё раз.', badLogin: 'Неверная почта или пароль.', exists: 'Эта почта уже зарегистрирована; войдите или восстановите пароль.',
@@ -423,8 +423,9 @@
       var avg = function (x) { return x[1] ? (Math.round(x[0] / x[1] * 10) / 10) : null; };
       // the two kinds apart: words (said wrong, left out) and places passed over — one place per run of words passed
       // over together in one recitation (stored a row per word), counted for the last seven days
-      var cnt = {}, skB = {};
+      var cnt = {}, skB = {}, selfN = 0;
       X.forEach(function (x) {
+        if (x.kind === 'self' && new Date(x.created_at).getTime() >= d7) selfN++;
         if (x.kind === 'skip') { if (new Date(x.created_at).getTime() >= d7) (skB[x.created_at] = skB[x.created_at] || []).push(x.loc); return; }
         cnt[x.loc] = (cnt[x.loc] || 0) + 1;
       });
@@ -440,6 +441,7 @@
         '<div><span>' + esc(L.avgM) + ' — ' + esc(L.week) + '</span><b>' + (avg(a) == null ? '—' : num(avg(a))) + '</b></div>' +
         '<div><span>' + esc(L.avgM) + ' — ' + esc(L.prev) + '</span><b>' + (avg(b) == null ? '—' : num(avg(b))) + '</b></div>' +
         '<div><span>' + esc(L.skips) + '</span><b>' + num(skips) + '</b></div>' +
+        (selfN ? '<div><span>' + esc(L.selfA) + '</span><b>' + num(selfN) + '</b></div>' : '') +
         (p.last_page ? '<div><span>' + esc(L.lastPage) + '</span><b>' + num(p.last_page) + '</b></div>' : '') + '</div>' +
         '<span class="fb-label">' + esc(L.topM) + '</span><div class="ac-words" id="acWords">' + (top.length ? '…' : esc(L.none)) + '</div>';
       if (!top.length) return;
