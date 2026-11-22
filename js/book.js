@@ -2651,7 +2651,7 @@
     function setupFrame() {
       var sel = q('frameSel'), v = load('lt_book_frame');
       // no choice made yet: on phones the ornament on the outer edge (the margin carries the juz/hizb marks), elsewhere both sides
-      if (['sides', 'full', 'edge', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'edge' : 'sides';
+      if (['sides', 'full', 'edge', 'leaves', 'none'].indexOf(v) < 0) v = !embed && mobTrial() && window.matchMedia('(max-width:600px)').matches ? 'edge' : 'sides';
       frameChoice = v; applyFrame();
       if (!sel) return;
       sel.value = v;
