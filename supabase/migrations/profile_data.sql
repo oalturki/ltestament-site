@@ -1,0 +1,14 @@
+-- A profile's own Mushaf data that is not a khatma (reminders, bookmarks), one row per kind, kept whole as JSON
+-- (js/sync.js). The account is the person; the profiles are him and the children he adds.
+create table public.profile_data (
+  profile_id uuid not null references public.family_profiles(id) on delete cascade,
+  key text not null check (key in ('reminders', 'marks')),
+  account_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  data jsonb not null check (pg_column_size(data) < 20000),
+  updated_at timestamptz not null default now(),
+  primary key (profile_id, key)
+);
+create index profile_data_account on public.profile_data(account_id);
+alter table public.profile_data enable row level security;
+create policy "own profile data" on public.profile_data for all to authenticated
+  using (account_id = (select auth.uid())) with check (account_id = (select auth.uid()) and public.owns_profile(profile_id));

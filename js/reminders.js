@@ -8,7 +8,7 @@
 (function () {
   var KEY = 'lt_reminders';
   var load = function () { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
-  var save = function (l) { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch (e) {} };
+  var save = function (l) { try { localStorage.setItem(KEY, JSON.stringify(l)); } catch (e) {} if (window.LtSync) window.LtSync.touch('reminders'); };
   // the suggested ones, all off until the reader turns one on
   var PRESET = [
     { id: 'wird', kind: 'wird', time: '20:00', days: 127, on: false },
@@ -17,7 +17,7 @@
   ];
   function list() {
     var l = load();
-    if (!Array.isArray(l)) { l = PRESET.map(function (x) { return Object.assign({}, x); }); save(l); }
+    if (!Array.isArray(l)) { l = PRESET.map(function (x) { return Object.assign({}, x); }); try { localStorage.setItem(KEY, JSON.stringify(l)); } catch (e) {} }   // the presets: not a change of his
     else if (l.some(function (r) { return r.kind === 'kahf'; })) { l = l.filter(function (r) { return r.kind !== 'kahf'; }); save(l); }
     return l;
   }

@@ -1480,3 +1480,31 @@ body.bk-mob .bk-micav{ display:none !important; }
 [dir="ltr"] .kh-pre i, .kh-pick:dir(ltr) .kh-pre i{ transform:scaleX(-1); }
 .kh-own b{ color:#2f6b45; }
 .kh-pick .kh-cancel{ margin-top:6px; min-height:44px; border-radius:14px; border:1px solid #e2d3a4; background:#fff; font:inherit; color:#1b2a3a; cursor:pointer; }
+
+/* حسابي */
+.ma{ display:flex; flex-direction:column; gap:10px; }
+.ma-intro{ margin:2px 2px 4px; line-height:1.7; color:#5a5140; }
+.ma-form{ display:flex; flex-direction:column; gap:10px; }
+.ma-form label, .ma-new label{ display:flex; flex-direction:column; gap:4px; font-size:.85rem; color:#6b6250; }
+.ma-form input:not([type="checkbox"]), .ma-new input{ min-height:44px; border-radius:12px; border:1px solid #d9c88f; background:#fff; color:#1b2a3a; font:inherit; font-size:16px; padding:0 12px; }
+.ma-ok{ flex-direction:row !important; align-items:flex-start; gap:8px !important; line-height:1.6; }
+.ma-ok input{ margin-top:4px; width:18px; height:18px; flex:none; }
+.ma-go{ min-height:46px; border:0; border-radius:14px; background:#2f6b45; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.ma-go:disabled{ opacity:.6; }
+.ma-link{ align-self:center; border:0; background:none; color:#7a5c1e; font:inherit; text-decoration:underline; cursor:pointer; padding:6px; }
+.ma-msg{ margin:0; min-height:1em; color:#2f6b45; line-height:1.6; }
+.ma-msg.bad{ color:#b03a2e; }
+.ma-priv{ font-size:.8rem; color:#8a7f68; line-height:1.6; margin:0; }
+.ma-as{ margin:0; color:#5a5140; }
+.ma-l{ font-weight:700; color:#1b2a3a; margin-top:4px; }
+.ma-profs{ display:flex; flex-wrap:wrap; gap:8px; }
+.ma-profs button{ display:flex; align-items:center; gap:6px; min-height:44px; padding:4px 14px 4px 10px; border-radius:22px; border:1px solid #e2d3a4; background:#FFFDF7; font:inherit; color:#1b2a3a; cursor:pointer; }
+.ma-profs button span{ font-size:1.3rem; }
+.ma-profs button.on{ background:#2f6b45; border-color:#2f6b45; color:#fff; }
+.ma-add{ min-height:44px; border-radius:14px; border:1px dashed #c9b37a; background:none; color:#2f6b45; font:inherit; font-weight:700; cursor:pointer; }
+.ma-new{ display:flex; flex-direction:column; gap:10px; padding:12px; border-radius:14px; background:#FFFDF7; border:1px solid #e9dcb5; }
+.ma-avs{ display:grid; grid-template-columns:repeat(8,1fr); gap:6px; }
+.ma-avs button{ aspect-ratio:1; border-radius:10px; border:1px solid #e9dcb5; background:#fff; font-size:1.3rem; cursor:pointer; padding:0; }
+.ma-avs button.on{ border:2px solid #2f6b45; background:#eaf3ec; }
+.ma-btns{ display:grid; grid-template-columns:2fr 1fr; gap:8px; }
+.ma-cancel{ min-height:46px; border-radius:14px; border:1px solid #e2d3a4; background:#fff; font:inherit; cursor:pointer; }

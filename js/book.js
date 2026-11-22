@@ -176,7 +176,7 @@
   function arNum(n) { return String(n).replace(/[0-9]/g, function (d) { return AR_DIGITS[d]; }); }
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function fnMarks(t) { return esc(t).replace(/\[(\d+)\]/g, '<sup>$1</sup>'); }
-  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} if (k === 'lt_book_marks' && window.LtSync) window.LtSync.touch('marks'); }
   function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function track(ev, d) { try { if (window.ltTrack) window.ltTrack(ev, d); } catch (e) {} }
   var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
@@ -1427,6 +1427,7 @@
         marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
         recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         remind: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+        account: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor" stroke="none"/>',
         lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>',
         back: '<path d="M9 6l6 6-6 6"/>'
       };
@@ -1446,6 +1447,7 @@
         menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
+        if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); } }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -1470,6 +1472,10 @@
                  es: ['Mi registro', 'El Mushaf', 'Modo: lectura', 'Modo: memorización'], ru: ['Мой журнал', 'Мусхаф', 'Режим: чтение', 'Режим: заучивание'] }[C.lang] || null;
       var M3 = MS || ['My record', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
       newCard(M3[0]);
+      // the person's account: where all of this is kept, and his children's profiles (js/myaccount.js)
+      var ACL = { ar: ['حسابي', 'غير مسجّل'], ur: ['میرا اکاؤنٹ', 'لاگ اِن نہیں'], en: ['My account', 'Not signed in'], fr: ['Mon compte', 'Non connecté'],
+                  es: ['Mi cuenta', 'Sin conectar'], ru: ['Мой аккаунт', 'Вход не выполнен'] }[C.lang] || ['My account', 'Not signed in'];
+      var accSec = section('account', ACL[0], 'account');
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
@@ -1581,6 +1587,7 @@
         if (subs.marks) subs.marks.textContent = listJ('lt_book_marks').length ? n(listJ('lt_book_marks').length) : '';
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
         if (subs.view) subs.view.textContent = selText(q('frameSel'));
+        if (subs.account) { var ap = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) ap = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} subs.account.textContent = ap ? ap.name : ACL[1]; }
         if (subs.lang) subs.lang.textContent = ({ ar: 'العربية', en: 'English', fr: 'Français', es: 'Español', ru: 'Русский', ur: 'اردو' })[C.lang] || '';
         if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
         if (subs.khatma) {
@@ -1642,6 +1649,10 @@
       };
       strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
       // khatmas and reminders: loaded with the Mushaf, so today's wird shows on the page; a reminder opens the khatmas
+      // the account's copy of this profile's reminders and bookmarks (js/sync.js); when it brings changes, show them
+      ltLoad(['/js/sync.js'], function () {});
+      window.addEventListener('lt-sync', function () { fillPanes(); fillMenu(); });
+      window.addEventListener('lt-profile', function () { if (window.Khatma) window.Khatma.pull().then(function () { root.__strip(); }); fillMenu(); });
       ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () {
         root.__strip();
         window.Khatma.pull().then(function () { root.__strip(); });
@@ -3553,7 +3564,7 @@
 
         // ---- the student record (سجل الطالب): who is reading (the profile the record goes to), switching between the
         // family's profiles, today's review; the record itself is kept by js/family.js (Supabase)
-        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ تقدّم أبنائك: أنشئ حساب الأسرة أو ادخل.", "دخول / حساب جديد", "رمز ملف الوالد", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے بچوں کی پیش رفت محفوظ کریں: خاندان کا اکاؤنٹ بنائیں یا لاگ اِن کریں۔", "لاگ اِن / نیا اکاؤنٹ", "والد/والدہ کا پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your children’s progress: create a family account or sign in.", "Sign in / New account", "Parent profile PIN", "Wrong PIN.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez les progrès de vos enfants : créez un compte famille ou connectez-vous.", "Connexion / Nouveau compte", "Code du profil parent", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda el progreso de tus hijos: crea una cuenta familiar o entra.", "Entrar / Cuenta nueva", "PIN del perfil del padre", "PIN incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте успехи детей: создайте семейный аккаунт или войдите.", "Вход / Новый аккаунт", "PIN профиля родителя", "Неверный PIN.", "стр."]};
+        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ ختماتك وتقدّمك وتقدّم أولادك: ادخل حسابك أو أنشئه.", "دخول / حساب جديد", "رمز ملف الوالد", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے ختم اور پیش رفت، اور اپنے بچوں کی پیش رفت محفوظ کریں: لاگ اِن کریں یا اکاؤنٹ بنائیں۔", "لاگ اِن / نیا اکاؤنٹ", "والد/والدہ کا پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your khatmas and progress, and your children’s: sign in or create your account.", "Sign in / New account", "Parent profile PIN", "Wrong PIN.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez vos khatmas et vos progrès, et ceux de vos enfants : connectez-vous ou créez votre compte.", "Connexion / Nouveau compte", "Code du profil parent", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda tus jatmas y tu progreso, y el de tus hijos: entra o crea tu cuenta.", "Entrar / Cuenta nueva", "PIN del perfil del padre", "PIN incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте свои хатмы и успехи, и успехи детей: войдите или создайте аккаунт.", "Вход / Новый аккаунт", "PIN профиля родителя", "Неверный PIN.", "стр."]};
         var FL = FLS[C.lang] || FLS.en, ACC = '/account/?lang=' + C.lang;
         var PLS = {"ar": ["ورد اليوم", "المراجعة القريبة", "الحفظ الجديد", "المراجعة البعيدة", "متأخر", "دروس", "أتممت درس اليوم، بارك الله فيك.", "أعد الدرس؛ الأخطاء:", "أتمّ المنهج، بارك الله فيه.", "ضبط وتثبيت", "اختبار", "أنجز"],
           "ur": ["آج کا ورد", "قریبی دہرائی", "نیا حفظ", "دور کی دہرائی", "پیچھے", "اسباق", "آج کا سبق مکمل، اللہ برکت دے۔", "سبق دوبارہ پڑھیں؛ غلطیاں:", "نصاب مکمل، اللہ برکت دے۔", "پختگی کا دن", "امتحان", "مکمل"],
