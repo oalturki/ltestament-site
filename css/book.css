@@ -1240,3 +1240,10 @@ body.bk-mob.bk-ms .bk-mnav .bk-mtime{ position:absolute; left:50%; transform:tra
 body.bk-mob.bk-ms .bk-mnav .bk-mtime small{ display:none; }
 body.bk-mob.bk-ms .bk-mnav .bk-msil{ width:42px; height:42px; }
 body.bk-mob.bk-ms .bk-mnav .bk-mtime b{ font-size:.8rem; font-weight:600; }
+
+/* iPad/computer with a translation or tafsir beside the Mushaf: room for the two pages (not one page's width halved);
+   the page number stays in the bar; the mode button only as wide as its word */
+body.bk-wide .bk-book:not(.bk-spread):not([data-show="ar"]){ max-width:calc((100vh - 124px) * 1.32); max-width:calc((100dvh - 124px) * 1.32); }
+body.bk-wide.bk-mob .bk-bar select.bk-mpg{ display:block !important; }
+body.bk-wide .bk-bar .bk-mbtn.bk-tmode{ flex:0 0 auto !important; width:auto !important; min-width:96px !important; padding:0 18px !important; }
+body.bk-wide .bk-bar .bk-viewbtn{ flex:0 1 auto !important; max-width:260px; }
