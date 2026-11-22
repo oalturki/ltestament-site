@@ -103,7 +103,32 @@
   function pinSave(pin) { if (!pin) { store('lt_pin', null); return Promise.resolve(); } return pinHash(pin).then(function (h) { store('lt_pin', h); }); }
   function pinCheck(pin) { var h0 = load('lt_pin'); if (!h0) return Promise.resolve(true); return pinHash(pin).then(function (h) { return h === h0; }); }
 
+  // a code for each profile, kept in the account (family_profiles.pin_hash), asked before opening that profile on a
+  // shared device. The parent opens his children's profiles without their codes; the older parent code kept on one
+  // device (lt_pin) still counts for the parent's profile.
+  function codeHash(p, pin) {
+    var enc = new TextEncoder().encode('lt-pin:' + p.id + ':' + pin);
+    return crypto.subtle.digest('SHA-256', enc).then(function (b) { return Array.from(new Uint8Array(b)).map(function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); });
+  }
+  function hasCode(p) { return !!(p && (p.pin_hash || (p.is_parent && pinSet()))); }
+  function guard(p, ask) {
+    var cur = current();
+    if (!p || (cur && cur.id === p.id) || !hasCode(p) || (cur && cur.parent && !p.is_parent)) return Promise.resolve(true);
+    var v = ask(); if (v == null) return Promise.resolve(null);      // null: he did not give a code
+    v = String(v).trim();
+    var a = p.pin_hash ? codeHash(p, v).then(function (h) { return h === p.pin_hash; }) : Promise.resolve(false);
+    return a.then(function (ok) { return ok || (p.is_parent && pinSet() ? pinCheck(v) : false); });
+  }
+  function setCode(p, pin) {
+    return (pin ? codeHash(p, pin) : Promise.resolve(null)).then(function (h) {
+      return ready().then(function (c) { return c.from('family_profiles').update({ pin_hash: h }).eq('id', p.id); }).then(function (r) {
+        if (r.error) throw r.error; p.pin_hash = h; if (!pin && p.is_parent) pinSave(null); return p;
+      });
+    });
+  }
+
   window.Fam = {
+    hasCode: hasCode, guard: guard, setCode: setCode,
     client: client, ready: ready, signedIn: signedIn, current: current, use: use, profiles: profiles, ensureParent: ensureParent,
     recital: recital, practice: practice, lastPage: lastPage, avatars: AVATARS,
     avatar: function (k) { return AVATARS[k] || AVATARS.star; },

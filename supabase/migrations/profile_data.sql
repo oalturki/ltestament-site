@@ -12,3 +12,6 @@ create index profile_data_account on public.profile_data(account_id);
 alter table public.profile_data enable row level security;
 create policy "own profile data" on public.profile_data for all to authenticated
   using (account_id = (select auth.uid())) with check (account_id = (select auth.uid()) and public.owns_profile(profile_id));
+
+-- A code for each profile (applied as migration "profile_pin"): asked before the profile is opened on a shared device.
+alter table public.family_profiles add column pin_hash text check (pin_hash is null or char_length(pin_hash) = 64);

@@ -3564,7 +3564,7 @@
 
         // ---- the student record (سجل الطالب): who is reading (the profile the record goes to), switching between the
         // family's profiles, today's review; the record itself is kept by js/family.js (Supabase)
-        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ ختماتك وتقدّمك وتقدّم أولادك: ادخل حسابك أو أنشئه.", "دخول / حساب جديد", "رمز ملف الوالد", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے ختم اور پیش رفت، اور اپنے بچوں کی پیش رفت محفوظ کریں: لاگ اِن کریں یا اکاؤنٹ بنائیں۔", "لاگ اِن / نیا اکاؤنٹ", "والد/والدہ کا پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your khatmas and progress, and your children’s: sign in or create your account.", "Sign in / New account", "Parent profile PIN", "Wrong PIN.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez vos khatmas et vos progrès, et ceux de vos enfants : connectez-vous ou créez votre compte.", "Connexion / Nouveau compte", "Code du profil parent", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda tus jatmas y tu progreso, y el de tus hijos: entra o crea tu cuenta.", "Entrar / Cuenta nueva", "PIN del perfil del padre", "PIN incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте свои хатмы и успехи, и успехи детей: войдите или создайте аккаунт.", "Вход / Новый аккаунт", "PIN профиля родителя", "Неверный PIN.", "стр."]};
+        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ ختماتك وتقدّمك وتقدّم أولادك: ادخل حسابك أو أنشئه.", "دخول / حساب جديد", "رمز الدخول", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے ختم اور پیش رفت، اور اپنے بچوں کی پیش رفت محفوظ کریں: لاگ اِن کریں یا اکاؤنٹ بنائیں۔", "لاگ اِن / نیا اکاؤنٹ", "پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your khatmas and progress, and your children’s: sign in or create your account.", "Sign in / New account", "Code", "Wrong code.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez vos khatmas et vos progrès, et ceux de vos enfants : connectez-vous ou créez votre compte.", "Connexion / Nouveau compte", "Code", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda tus jatmas y tu progreso, y el de tus hijos: entra o crea tu cuenta.", "Entrar / Cuenta nueva", "Código", "Código incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте свои хатмы и успехи, и успехи детей: войдите или создайте аккаунт.", "Вход / Новый аккаунт", "Код", "Неверный код.", "стр."]};
         var FL = FLS[C.lang] || FLS.en, ACC = '/account/?lang=' + C.lang;
         var PLS = {"ar": ["ورد اليوم", "المراجعة القريبة", "الحفظ الجديد", "المراجعة البعيدة", "متأخر", "دروس", "أتممت درس اليوم، بارك الله فيك.", "أعد الدرس؛ الأخطاء:", "أتمّ المنهج، بارك الله فيه.", "ضبط وتثبيت", "اختبار", "أنجز"],
           "ur": ["آج کا ورد", "قریبی دہرائی", "نیا حفظ", "دور کی دہرائی", "پیچھے", "اسباق", "آج کا سبق مکمل، اللہ برکت دے۔", "سبق دوبارہ پڑھیں؛ غلطیاں:", "نصاب مکمل، اللہ برکت دے۔", "پختگی کا دن", "امتحان", "مکمل"],
@@ -3576,7 +3576,7 @@
         var nm = function (x) { return C.lang === 'ar' ? arNum(x) : String(x); };
         var famLoad = function () {
           if (window.Fam) return Promise.resolve(window.Fam);
-          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=2'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
+          return new Promise(function (ok, bad) { var sc = document.createElement('script'); sc.src = '/js/family.js?v=3'; sc.onload = function () { ok(window.Fam); }; sc.onerror = bad; document.head.appendChild(sc); });
         };
         var planLoad = function () {
           if (window.Plan) return Promise.resolve(window.Plan);
@@ -3678,10 +3678,7 @@
                 b.onclick = function () {
                   var x = list.filter(function (y) { return y.id === b.dataset.id; })[0], cu = F.current();
                   var go = function () { F.use(x); famShow(); shut(); famSheet(); };
-                  if (x.is_parent && cu && !cu.parent && F.pinSet()) {
-                    var v = prompt(FL[8]); if (v == null) return;
-                    F.pinCheck(v.trim()).then(function (ok) { if (ok) go(); else alert(FL[9]); });
-                  } else go();
+                  F.guard(x, function () { return prompt(FL[8] + ' — ' + x.name); }).then(function (ok) { if (ok) go(); else if (ok === false) alert(FL[9]); });
                 };
               });
               // today's wird from the plan, if this profile has one

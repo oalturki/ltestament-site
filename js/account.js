@@ -337,11 +337,12 @@
       onChange: function () { Fam.profiles().then(planLines); } });
   }
   // the parent's profile (and settings, editing) behind the device PIN, when one is set and a child's profile is in use
+  // (each profile may have its own code, set in the Mushaf's «حسابي»: asked before opening it, the parent's before his settings)
   function guard(p, then) {
-    var cur = Fam.current();
-    if (!Fam.pinSet() || (p && !p.is_parent) || (cur && cur.parent)) return then();
-    var v = prompt(L.pinAsk); if (v == null) return;
-    Fam.pinCheck(v.trim()).then(function (ok) { if (ok) then(); else alert(L.pinBad); });
+    Fam.profiles().then(function (list) {
+      var t = p || list.filter(function (x) { return x.is_parent; })[0];
+      return Fam.guard(t, function () { return prompt(L.pinAsk + (t ? ' — ' + t.name : '')); });
+    }).then(function (ok) { if (ok) then(); else if (ok === false) alert(L.pinBad); }).catch(function () { then(); });
   }
   function editView(c, p) {
     var pan = $('acPanel');

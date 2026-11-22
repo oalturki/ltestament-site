@@ -20,7 +20,7 @@
   var famP = null;
   function fam() {
     if (window.Fam) return Promise.resolve(window.Fam);
-    if (!famP) famP = new Promise(function (ok, bad) { var s = document.createElement('script'); s.src = '/js/family.js?v=1'; s.onload = function () { ok(window.Fam); }; s.onerror = bad; document.head.appendChild(s); });
+    if (!famP) famP = new Promise(function (ok, bad) { var s = document.createElement('script'); s.src = '/js/family.js?v=3'; s.onload = function () { ok(window.Fam); }; s.onerror = bad; document.head.appendChild(s); });
     return famP;
   }
   var dirty = function () { try { return JSON.parse(load('lt_sync_dirty') || '{}'); } catch (e) { return {}; } };
