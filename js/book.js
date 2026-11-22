@@ -1743,9 +1743,9 @@
       var pc = document.createElement('div'); pc.className = 'bk-pcard'; pc.setAttribute('role', 'region');
       var ic = function (d, f) { return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + (f ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       pc.innerHTML = '<div class="pc-top"><button type="button" class="pc-x" aria-label="' + esc(PL[0]) + '">' + ic('<path d="M6 6l12 12M18 6L6 18"/>') + '</button>' +
-        '<div class="pc-t"><b class="pc-r"></b><small class="pc-w"></small></div><button type="button" class="pc-set" aria-label="' + esc(PL[3]) + '">' + ic(I.more) + '</button></div>' +
-        '<div class="pc-bar"><span class="pc-a">0:00</span><i><b></b></i><span class="pc-b">-0:00</span></div>' +
-        '<div class="pc-ctl"><button type="button" class="pc-spd" aria-label="' + esc(PL[4]) + '">1×</button>' +
+        '<div class="pc-t"><button type="button" class="pc-r"></button><small class="pc-w"></small></div><button type="button" class="pc-set" aria-label="' + esc(PL[3]) + '">' + ic(I.more) + '</button></div>' +
+        '<div class="pc-bar"><i><b></b></i><span class="pc-b">-0:00</span></div>' +   // the time left only, on the right
+        '<div class="pc-ctl">' +   // (the speed: in the settings)
         '<button type="button" class="pc-rs pc-ra" aria-label="' + esc(PL[8]) + '">' + ic('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>') + '<small>' + esc(PL[6]) + '</small></button>' +
         '<button type="button" class="pc-prev" aria-label="' + esc(PL[1]) + '">' + ic('<path d="M11 19l-9-7 9-7zM22 19l-9-7 9-7z"/>', true) + '</button>' +
         '<button type="button" class="pc-pp">' + ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) + '</button>' +
@@ -1756,11 +1756,10 @@
       var mmss = function (t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); };
       var pFill = function () {
         var r = rec(), st = recState;
-        $p('.pc-r').textContent = r ? r.label : '';
+        $p('.pc-r').innerHTML = r ? esc(r.label) + ' <i aria-hidden="true">▾</i>' : '';
         $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : '';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
-        var sp = (rep && rep.speed) || 1; $p('.pc-spd').textContent = sp + '×';     // Latin digits: «١×» reads like «ا×»
         var st0 = recState; $p('.pc-rp').disabled = !(st0 && st0.kind === 'ayah' && st0.words && st0.words.length > 1);
         // the ayah's progress: its own file, or its stretch of the surah's file
         var a0 = 0, a1 = 0, t = audio ? audio.currentTime : 0;
@@ -1772,7 +1771,7 @@
           }
         }
         var el = Math.max(0, t - a0), len = Math.max(0.01, a1 - a0);
-        $p('.pc-a').textContent = mmss(el); $p('.pc-b').textContent = '-' + mmss(len - el);
+        $p('.pc-b').textContent = '-' + mmss(len - el);
         $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
       };
       var cardShow = function (on) {
@@ -1810,15 +1809,27 @@
       $p('.pc-prev').onclick = function (e) { e.stopPropagation(); jump(-1); };
       $p('.pc-next').onclick = function (e) { e.stopPropagation(); jump(1); };
       var SPEEDS = [1, 1.25, 1.5, 2, 0.75];
-      $p('.pc-spd').onclick = function (e) {
+      // the reciter's name: a tap lists the reciters, the choice takes effect at once
+      $p('.pc-r').onclick = function (e) {
         e.stopPropagation();
-        var sp = (rep && rep.speed) || 1, i = SPEEDS.indexOf(sp);
-        rep.speed = SPEEDS[(i + 1) % SPEEDS.length];
-        if (!embed) store('lt_rec_rep', JSON.stringify(rep));
-        if (audio) audio.defaultPlaybackRate = audio.playbackRate = rep.speed;
-        if (root.__repFill) root.__repFill();
-        pFill();
+        var old = pc.querySelector('.pc-rlist'); if (old) { old.remove(); return; }
+        var sel = q('reciter'); if (!sel) return;
+        var ul = document.createElement('div'); ul.className = 'pc-rlist';
+        [].forEach.call(sel.options, function (o) {
+          if (o.disabled || o.hidden) return;
+          var b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = o.text; if (o.value === sel.value) b2.className = 'on';
+          b2.onclick = function (ev) {
+            ev.stopPropagation(); ul.remove();
+            if (sel.value === o.value) return;
+            var was = playing; sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true }));
+            if (was && !playing) { var pb = q('play'); if (pb) pb.click(); }
+            setTimeout(pFill, 80);
+          };
+          ul.appendChild(b2);
+        });
+        pc.appendChild(ul);
       };
+      pc.addEventListener('click', function (e) { var l = pc.querySelector('.pc-rlist'); if (l && !l.contains(e.target) && !e.target.closest('.pc-r')) l.remove(); });
       $p('.pc-set').onclick = function (e) { e.stopPropagation(); if (root.__openListen) root.__openListen(); };
       // replay the verse from its start, or the phrase being read (from the reciter's stop before it), then go on as before
       var replay = function (phrase) {

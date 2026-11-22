@@ -1369,3 +1369,12 @@ body.bk-wide .bk-trpage > .bk-head{ height:29px; margin:0 0 4px !important; padd
 body.bk-wide .bk-trpage > .bk-foot{ display:none; }
 body.bk-wide .bk-trframe{ flex:1; min-height:0; }
 body.bk-wide .bk-trframe > .bk-content{ flex:1; min-height:0; padding:6px 12px 0 !important; }
+/* the player panel: the reciter's name opens the list of reciters; five equal places, so ▶ sits in the middle */
+.pc-r{ border:0; background:none; font:inherit; font-size:1.1rem; font-weight:800; color:inherit; cursor:pointer; padding:0; }
+.pc-r i{ font-style:normal; font-size:.7em; color:#8a6a1e; }
+.pc-rlist{ position:absolute; left:50%; transform:translateX(-50%); bottom:calc(100% + 8px); background:#fbf6ec; border-radius:14px; padding:6px;
+  box-shadow:0 10px 30px rgba(60,45,15,.28); min-width:230px; max-height:50vh; overflow:auto; z-index:5; }
+.pc-rlist button{ display:block; width:100%; text-align:start; border:0; background:none; padding:10px 12px; border-radius:10px; font:inherit; color:#3b2f1a; cursor:pointer; }
+.pc-rlist button.on{ background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#2a1f08; font-weight:700; }
+.pc-ctl button{ flex:1 1 0; }
+.pc-bar .pc-b{ min-width:44px; text-align:end; }
