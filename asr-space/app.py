@@ -498,16 +498,20 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     fit, verified = {}, 0
     if final and words and os.environ.get("CTC_CHECK", "1") == "1":
         try:
-            said_ks = sorted({w["k"] for w in words if not w.get("skip")})
+            # the words laid on the audio include a verse taken as passed over: the transcription may have missed a
+            # whole verse at a stretch's start (read fast, right after a pause) — its sounds then settle it
+            said_ks = sorted({w["k"] for w in words})
             if said_ks and said_ks[-1] - said_ks[0] < 80:
                 ks = list(range(said_ks[0], said_ks[-1] + 1))
                 fit = ctc_check(wav, surah, where, ks)
+                unskip = set()
                 for n_, w in enumerate(words):
                     f_ = fit.get(w["k"])
                     if f_ is None: continue
                     w["fit"] = f_
-                    if w["status"] in ("wrong", "missing", "unclear") and not w.get("skip") and f_ >= CTC_OK:
-                        words[n_] = dict(w, status="ok", verified=True); verified += 1
+                    if w["status"] in ("wrong", "missing", "unclear") and f_ >= CTC_OK:
+                        if w.get("skip"): unskip.add(where[w["k"]][0])
+                        words[n_] = dict(w, status="ok", verified=True); words[n_].pop("skip", None); verified += 1
                     # heard as something that is no Quran word at all (the hearing failed, «جنص»), and its sounds neither
                     # clearly there nor clearly absent: not understood — shown, not counted (the Quran's words decide)
                     elif w["status"] == "wrong" and w.get("heard") and CTC_BAD < f_ < CTC_OK \
@@ -516,6 +520,10 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                     # a short word let pass as «not clear» (و، له، في…) whose sounds are nowhere: left out
                     elif w["status"] == "unclear" and "heard" not in w and f_ <= CTC_BAD:
                         words[n_] = dict(w, status="missing", absent=True)
+                # a verse found in part is not passed over: its words not found are words left out
+                if unskip:
+                    for n_, w in enumerate(words):
+                        if w.get("skip") and where[w["k"]][0] in unskip: words[n_] = dict(w); words[n_].pop("skip", None)
                 # other words said in place of the verse: a run of words not heard right, where something was heard,
                 # the sounds of at least one of them nowhere in the audio, and what was heard not Quran (no pair of its
                 # words follows in the Quran; one word alone: not a Quran word) — whatever its length. Not a mistake in
