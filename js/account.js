@@ -242,64 +242,40 @@
     });
     return r;
   }
+  // The account page holds only the account itself (email, password, privacy, deleting); everything of the Mushaf —
+  // each profile's reports, plans, khatmas, his children's — is in the Mushaf's «حسابي», each in its own profile.
+  // From there two views open here: ?map=<profile> (the detailed map of the 604 pages) and ?edit=<profile>.
+  var AX = {
+    ar: { title: 'حسابي', sub: 'بيانات حسابك في الموقع. أما ملفك وملفات أولادك وتقاريرهم وخططهم ففي المصحف: الإعدادات ← حسابي.', go: 'افتح «حسابي» في المصحف', pass: 'تغيير كلمة المرور', back: 'العودة إلى المصحف' },
+    en: { title: 'My account', sub: 'Your account on the site. Your profile, your children’s, their reports and plans are in the Mushaf: Settings › My account.', go: 'Open «My account» in the Mushaf', pass: 'Change the password', back: 'Back to the Mushaf' },
+    fr: { title: 'Mon compte', sub: 'Votre compte sur le site. Votre profil, ceux de vos enfants, leurs rapports et leurs plans sont dans le Mushaf : Réglages › Mon compte.', go: 'Ouvrir «Mon compte» dans le Mushaf', pass: 'Changer le mot de passe', back: 'Retour au Mushaf' },
+    es: { title: 'Mi cuenta', sub: 'Tu cuenta en el sitio. Tu perfil, el de tus hijos, sus informes y planes están en el Mushaf: Ajustes › Mi cuenta.', go: 'Abrir «Mi cuenta» en el Mushaf', pass: 'Cambiar la contraseña', back: 'Volver al Mushaf' },
+    ru: { title: 'Мой аккаунт', sub: 'Ваш аккаунт на сайте. Ваш профиль, профили детей, их отчёты и планы — в Мусхафе: Настройки › Мой аккаунт.', go: 'Открыть «Мой аккаунт» в Мусхафе', pass: 'Сменить пароль', back: 'Назад в Мусхаф' },
+    ur: { title: 'میرا اکاؤنٹ', sub: 'سائٹ پر آپ کا اکاؤنٹ۔ آپ کا اور آپ کے بچوں کا پروفائل، رپورٹیں اور منصوبے مصحف میں ہیں: ترتیبات › میرا اکاؤنٹ۔', go: 'مصحف میں «میرا اکاؤنٹ» کھولیں', pass: 'پاس ورڈ بدلیں', back: 'مصحف پر واپس' }
+  }[lang] || null;
   function render(c, user, list, states) {
+    var A = AX || AX_EN;
     var cur = Fam.current();
     if (!cur || !list.some(function (p) { return p.id === cur.id; })) { Fam.use(list[0]); cur = Fam.current(); }
-    // a child's profile in use: his own card only; adding profiles and the account's settings are the parent's
-    var isParent = !!(cur && cur.parent);
-    if (!isParent) list = list.filter(function (p) { return p.id === cur.id; });
-    var html = '<div class="ac-head"><span>' + esc(user.email) + '</span><button type="button" class="ac-link" id="acOut">' + esc(L.signout) + '</button></div>' +
-      '<h2 class="ac-h2">' + esc(L.family) + '</h2><div class="ac-cards">';
-    list.forEach(function (p) {
-      var k = counts(states, p.id);
-      html += '<div class="ac-card' + (cur && cur.id === p.id ? ' cur' : '') + '" data-id="' + p.id + '">' +
-        '<div class="ac-av" style="' + (p.color ? 'background:' + p.color : '') + '">' + Fam.avatar(p.avatar) + '</div>' +
-        '<div class="ac-cbody"><b>' + esc(p.name) + (p.is_parent ? ' <small>' + esc(L.you) + '</small>' : '') + '</b>' +
-        '<div class="ac-stats">' + (k.mastered ? '<span class="st-m">' + num(k.mastered) + ' ' + esc(L.mastered) + '</span>' : '') +
-        (k.learning ? '<span class="st-l">' + num(k.learning) + ' ' + esc(L.learning) + '</span>' : '') +
-        (k.due ? '<span class="st-d">' + esc(L.today) + ': ' + num(k.due) + '</span>' : '') + '</div>' +
-        (p.last_page ? '<div class="ac-last">' + esc(L.lastPage) + ' ' + num(p.last_page) + '</div>' : '') +
-        '<div class="ac-plan" data-plan="' + p.id + '"></div>' +
-        '<div class="ac-read" data-read="' + p.id + '"></div>' +
-        '<div class="ac-btns"><button type="button" data-a="open" class="ac-btn pri">' + esc(L.open) + '</button>' +
-        '<button type="button" data-a="map" class="ac-btn">' + esc(L.mapBtn) + '</button>' +
-        (isParent ? '<button type="button" data-a="edit" class="ac-btn">' + esc(L.edit) + '</button>' : '') + '</div></div></div>';
-    });
-    html += '</div>';
-    // adding a child: the parent's, behind its own button
-    if (isParent && list.length < 10) html += '<details class="ac-set ac-addw"><summary>+ ' + esc(L.addChild) + '</summary><form class="fb-card ac-add" novalidate>' +
-      '<label class="fb-label" for="acCN">' + esc(L.childName) + '</label><input id="acCN" maxlength="20">' +
-      '<span class="fb-label">' + esc(L.avatar) + '</span><div class="ac-avs">' +
-      Object.keys(Fam.avatars).map(function (k, i) { return '<button type="button" data-av="' + k + '"' + (i === 1 ? ' class="on"' : '') + '>' + Fam.avatars[k] + '</button>'; }).join('') +
-      '</div><button class="fb-submit" type="submit">' + esc(L.add) + '</button><p class="fb-msg" id="acAM"></p></form></details>';
-    html += '<div id="acRead"></div><div id="acPanel"></div>' +
-      (isParent ? '<details class="ac-set"><summary>' + esc(L.settings) + '</summary><div class="fb-card">' +
-      '<p class="ac-privacy">' + esc(L.privacy) + '</p><p class="ac-privacy"><b>' + esc(L.delAccount) + ':</b> ' + esc(L.delAccAsk) + '</p></div></details>' : '');
-    app.innerHTML = html;
-    $('acOut').onclick = function () { Fam.signOut().then(function () { authView('in'); }); };
-    app.querySelectorAll('.ac-card').forEach(function (card) {
-      var p = list.filter(function (x) { return x.id === card.dataset.id; })[0];
-      card.querySelector('[data-a=open]').onclick = function () { guard(p, function () { Fam.use(p); location.href = BOOK + (p.last_page ? '#p=' + p.last_page : ''); }); };
-      card.querySelector('[data-a=map]').onclick = function () { guard(p, function () { mapView(c, p, states); }); };
-      // plans are made and followed in the Mushaf («خططي»): the parent's own profile shows his children's plans
-      if (card.querySelector('[data-a=edit]')) card.querySelector('[data-a=edit]').onclick = function () { guard(null, function () { editView(c, p); }); };
-    });
-    var add = app.querySelector('.ac-add');
-    if (add) {
-      var av = 'moon';
-      add.querySelectorAll('.ac-avs button').forEach(function (b) { b.onclick = function () { av = b.dataset.av; add.querySelectorAll('.ac-avs button').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
-      add.onsubmit = function (e) {
-        e.preventDefault();
-        var n = $('acCN').value.trim(); if (!n) return msg($('acAM'), L.fill, true);
-        c.from('family_profiles').insert({ name: n.slice(0, 20), avatar: av }).then(function (r) { if (r.error) throw r.error; home(); })
-          .catch(function (er) { msg($('acAM'), errText(er), true); });
-      };
+    var isParent = !!(cur && cur.parent), q = new URLSearchParams(location.search);
+    var acct = BOOK + (BOOK.indexOf('?') < 0 ? '?' : '&') + 's=account';
+    var one = q.get('map') || q.get('edit'), p1 = one && list.filter(function (x) { return x.id === one; })[0];
+    // a view opened from the Mushaf: that alone, and the way back
+    if (p1) {
+      app.innerHTML = '<div id="acPanel"></div><a class="ac-btn pri ac-go" href="' + acct + '">' + esc(A.back) + '</a>';
+      if (q.get('map')) guard(p1, function () { mapView(c, p1, states); });
+      else if (isParent) editView(c, p1);
+      return;
     }
-    var cp = list.filter(function (x) { return cur && x.id === cur.id; })[0];
-    if (cp) mapView(c, cp, states, true);
-    planLines(list);
-    readLines(list, cur);
+    app.innerHTML = '<div class="ac-head"><span>' + esc(user.email) + '</span><button type="button" class="ac-link" id="acOut">' + esc(L.signout) + '</button></div>' +
+      '<a class="ac-btn pri ac-go" href="' + acct + '">' + esc(A.go) + '</a><div id="acPanel"></div>' +
+      (isParent ? '<div class="fb-card ac-acct"><button type="button" class="ac-btn" id="acPass">' + esc(A.pass) + '</button>' +
+        '<p class="ac-privacy">' + esc(L.privacy) + '</p><p class="ac-privacy"><b>' + esc(L.delAccount) + ':</b> ' + esc(L.delAccAsk) + '</p></div>' : '');
+    $('acOut').onclick = function () { Fam.signOut().then(function () { authView('in'); }); };
+    if ($('acPass')) $('acPass').onclick = function () { guard(null, resetView); };
   }
+  var AX_EN = { title: 'My account', sub: '', go: 'Open «My account» in the Mushaf', pass: 'Change the password', back: 'Back to the Mushaf' };
+  if (AX) { $('acTitle').textContent = AX.title; $('acSub').textContent = AX.sub; $('acBack').textContent = AX.back; document.title = AX.title + ' — ' + (lang === 'ar' ? 'العهد الأخير' : 'The Last Testament'); }
   // reading statistics (js/readstats.js): this week's pages and letters on each card; the whole card for the profile in use
   function readLines(list, cur) {
     if (!window.ReadStats) return;

@@ -196,3 +196,6 @@ input, textarea, select, [contenteditable]:not([contenteditable="false"]){ caret
 .ac-page .ac-card, .ac-page .ac-cell, .ac-page .ac-kpis div{ border-color:#e9dcb5; }
 .ac-page .ac-card.cur{ border-color:#C89B3C; }
 body{ background:#F7F1E3; }
+.ac-go{ display:block; text-align:center; text-decoration:none; padding:12px; margin:14px 0; font-size:1rem; }
+.ac-acct{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+.ac-acct .ac-btn{ align-self:flex-start; }

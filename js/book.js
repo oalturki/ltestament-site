@@ -1451,7 +1451,7 @@
         sbody.querySelectorAll('.bk-mstour, .bk-msfoot').forEach(function (e) { e.hidden = !!k; });
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
-        if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); } }); });
+        if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); }, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } }); });
         if (k === 'guide' && !gdSec.dataset.ok) fetch('/data/guide/' + C.lang + '.html').then(function (r) { return r.text(); }).then(function (h) {
           gdSec.innerHTML = '<div class="gd">' + h + '</div>'; gdSec.dataset.ok = '1';
         }).catch(function () {});
