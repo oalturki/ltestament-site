@@ -1353,3 +1353,11 @@ body.bk-touring.bk-chrome-off .bk-bar, body.bk-touring.bk-chrome-off .bk-mnav{ t
 body.bk-wide .bk-book, body.bk-wide .bk-book.bk-spread, body.bk-wide:not(.bk-is-mushaf) .bk-book:not(.bk-spread){
   width:min(calc((100vh - 124px) * 1.3), calc(100vw - 24px)) !important; width:min(calc((100dvh - 124px) * 1.3), calc(100vw - 24px)) !important;
   max-width:none !important; margin-inline:auto !important; flex:0 0 auto !important; }
+.bk-ttext{ margin:0 0 14px; line-height:1.75; font-size:.97rem; }
+.bk-ttext .th{ display:block; font-weight:700; color:#6d5216; font-size:.98rem; margin:6px 0 2px; }
+.bk-ttext .th:first-child{ margin-top:0; }
+.bk-ttext .tp{ display:block; margin-top:6px; }
+.bk-ttext .tp:first-child{ margin-top:0; }
+.bk-ttext ul{ margin:0; padding-inline-start:20px; }
+.bk-ttext li{ margin:1px 0; }
+.bk-ttext li::marker{ color:#b8892e; }

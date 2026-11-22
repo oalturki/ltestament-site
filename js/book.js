@@ -1853,73 +1853,73 @@
       // search, settings, the home screen (its text by device: ios / prompt / other)
       var TR = {
         ar: { next: 'التالي', skip: 'تخطٍّ', end: 'إنهاء', install: 'تثبيت', steps: [
-          ['مصحف العهد الأخير', 'يتضمن:\n١- مصحف مجمع الملك فهد.\n٢- مصحف التجويد الملوّن.\n٣- عددًا من التفاسير.\n٤- عددًا من ترجمات معاني القرآن الكريم.'],
+          ['مصحف العهد الأخير', '#يتضمن:\n• مصحف مجمع الملك فهد.\n• مصحف التجويد الملوّن.\n• عددًا من التفاسير.\n• عددًا من ترجمات معاني القرآن الكريم.'],
           ['الخدمات الرئيسية والأوضاع', '• القراءة، والاستماع.\n• التحفيظ.\n• التسميع.\n• التسميع الصامت.'],
           ['إظهار الأزرار والقوائم', 'لمس الصفحة أو نقرها في الجوال يُظهر الأزرار ويخفيها. والضغط مطوّلًا على الكلمة يعرض معناها وتفسير آيتها.'],
           ['الفهرس', 'يعرض السور والأجزاء وأرباع الأحزاب، والانتقال إلى أي موضع.'],
-          ['الأوضاع', 'الافتراضي: القراءة والاستماع للتلاوات.\nالتحفيظ والتكرار، والتسميع مع التصحيح، والتسميع الصامت يتيح التسميع الذاتي بالتلاوة ومتابعة ظهور النص للمراجعة.'],
+          ['الأوضاع', '#الافتراضي:\n• القراءة والاستماع للتلاوات.\n#الأوضاع الأخرى:\n• التحفيظ والتكرار.\n• التسميع مع التصحيح.\n• التسميع الصامت: يتيح التسميع الذاتي بالتلاوة ومتابعة ظهور النص للمراجعة.'],
           ['البحث', 'عن الكلمة أو الآية في القرآن الكريم.'],
-          ['الإعدادات', 'تتضمن الحساب الشخصي وسجلات القراءة، والختمات، وتقارير الأبناء، والتحكم في الإعدادات العامة للموقع، ومشاركته.\nوفي كل وضع من الأوضاع تظهر إعداداته والتحكم في خياراته أسفل الشاشة.'],
+          ['الإعدادات', '#تتضمن:\n• الحساب الشخصي وسجلات القراءة.\n• الختمات.\n• تقارير الأبناء.\n• التحكم في الإعدادات العامة للموقع.\n• مشاركة الموقع.\nوفي كل وضع من الأوضاع تظهر إعداداته والتحكم في خياراته أسفل الشاشة.'],
           ['التثبيت على الشاشة الرئيسية', ''] ],
           ios: 'ليظهر الموقع على شاشة جوالك كغيره من التطبيقات، افتحه على سفاري واضغط زر المشاركة، ثم «إضافة إلى الشاشة الرئيسية».',
           prompt: 'ليظهر الموقع على شاشة جهازك كغيره من التطبيقات، ويفتح بلمسة واحدة: ثبّته على جهازك.',
           other: 'ليكون المصحف معك كالتطبيق: من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».', again: 'جولة تعريفية' },
         en: { next: 'Next', skip: 'Skip', end: 'Finish', install: 'Install', steps: [
-          ['The Last Testament Mushaf', 'It includes:\n1- The King Fahd Complex Mushaf.\n2- The colour-coded tajweed Mushaf.\n3- Several tafsirs.\n4- Several translations of the meanings of the Quran.'],
+          ['The Last Testament Mushaf', '#It includes:\n• The King Fahd Complex Mushaf.\n• The colour-coded tajweed Mushaf.\n• Several tafsirs.\n• Several translations of the meanings of the Quran.'],
           ['Main services and modes', '• Reading and listening.\n• Memorizing.\n• Reciting.\n• Silent recitation.'],
           ['Showing the buttons and lists', 'Touching or tapping the page on a phone shows and hides the buttons. Pressing and holding a word shows its meaning and the commentary on its verse.'],
           ['Index', 'Shows the surahs, the juz and the hizb quarters, and takes you to any place.'],
-          ['Modes', 'Default: reading and listening to recitations.\nMemorizing by repetition, reciting with correction, and silent recitation — recite to yourself and follow the text as it appears, to review.'],
+          ['Modes', '#Default:\n• Reading and listening to recitations.\n#Other modes:\n• Memorizing by repetition.\n• Reciting with correction.\n• Silent recitation: recite to yourself and follow the text as it appears, to review.'],
           ['Search', 'For a word or a verse in the Quran.'],
-          ['Settings', 'Your account and reading records, khatmas, your children’s reports, the site’s general settings, and sharing it.\nIn every mode its own settings and options are at the bottom of the screen.'],
+          ['Settings', '#They include:\n• Your account and reading records.\n• Khatmas.\n• Your children’s reports.\n• The site’s general settings.\n• Sharing the site.\nIn every mode its own settings and options are at the bottom of the screen.'],
           ['Install on the home screen', ''] ],
           ios: 'To have the site on your phone like any other app, open it in Safari, tap Share, then “Add to Home Screen”.',
           prompt: 'To have the site on your device like any other app, a tap away: install it.',
           other: 'Keep the Mushaf like an app: in your browser menu choose “Add to Home Screen” or “Install app”.', again: 'Welcome tour' },
         ur: { next: 'آگے', skip: 'چھوڑیں', end: 'ختم', install: 'انسٹال کریں', steps: [
-          ['العہد الأخیر کا مصحف', 'اس میں شامل ہیں:\n١- شاہ فہد کمپلیکس کا مصحف۔\n٢- رنگین تجوید والا مصحف۔\n٣- متعدد تفاسیر۔\n٤- قرآن کریم کے معانی کے متعدد تراجم۔'],
+          ['العہد الأخیر کا مصحف', '#اس میں شامل ہیں:\n• شاہ فہد کمپلیکس کا مصحف۔\n• رنگین تجوید والا مصحف۔\n• متعدد تفاسیر۔\n• قرآن کریم کے معانی کے متعدد تراجم۔'],
           ['اہم خدمات اور انداز', '• قراءت اور سماعت۔\n• حفظ۔\n• تسمیع۔\n• خاموش تسمیع۔'],
           ['بٹن اور فہرستیں دکھانا', 'فون پر صفحے کو چھونے سے بٹن ظاہر یا چھپ جاتے ہیں۔ کسی لفظ کو دبائے رکھیں تو اس کا معنی اور آیت کی تفسیر ملے گی۔'],
           ['فہرست', 'سورتیں، پارے اور ربع حزب دکھاتی ہے، اور کسی بھی مقام پر لے جاتی ہے۔'],
-          ['انداز', 'بنیادی: قراءت اور تلاوت سننا۔\nحفظ اور تکرار، تصحیح کے ساتھ تسمیع، اور خاموش تسمیع — خود تلاوت کریں اور متن کے ظاہر ہونے کے ساتھ مراجعہ کریں۔'],
+          ['انداز', '#بنیادی:\n• قراءت اور تلاوت سننا۔\n#دوسرے انداز:\n• حفظ اور تکرار۔\n• تصحیح کے ساتھ تسمیع۔\n• خاموش تسمیع: خود تلاوت کریں اور متن کے ظاہر ہونے کے ساتھ مراجعہ کریں۔'],
           ['تلاش', 'قرآن کریم میں کسی لفظ یا آیت کی۔'],
-          ['ترتیبات', 'ذاتی اکاؤنٹ اور قراءت کا ریکارڈ، ختم، بچوں کی رپورٹیں، سائٹ کی عمومی ترتیبات، اور اسے شیئر کرنا۔\nہر انداز کی اپنی ترتیبات اسکرین کے نیچے ہیں۔'],
+          ['ترتیبات', '#ان میں شامل ہیں:\n• ذاتی اکاؤنٹ اور قراءت کا ریکارڈ۔\n• ختم۔\n• بچوں کی رپورٹیں۔\n• سائٹ کی عمومی ترتیبات۔\n• سائٹ شیئر کرنا۔\nہر انداز کی اپنی ترتیبات اسکرین کے نیچے ہیں۔'],
           ['ہوم اسکرین پر انسٹال کریں', ''] ],
           ios: 'سائٹ کو اپنے فون پر دوسری ایپس کی طرح رکھنے کے لیے سفاری میں کھولیں، شیئر دبائیں، پھر «Add to Home Screen»۔',
           prompt: 'سائٹ کو اپنے آلے پر دوسری ایپس کی طرح رکھیں، ایک لمس پر: اسے انسٹال کریں۔',
           other: 'مصحف کو ایپ کی طرح رکھیں: براؤزر کے مینو سے «Add to Home Screen» یا «Install app» چنیں۔', again: 'تعارفی دورہ' },
         fr: { next: 'Suivant', skip: 'Passer', end: 'Terminer', install: 'Installer', steps: [
-          ['Le Mushaf du Dernier Testament', 'Il comprend :\n1- Le Mushaf du Complexe du Roi Fahd.\n2- Le Mushaf du tajwid en couleurs.\n3- Plusieurs tafsirs.\n4- Plusieurs traductions du sens du Coran.'],
+          ['Le Mushaf du Dernier Testament', '#Il comprend :\n• Le Mushaf du Complexe du Roi Fahd.\n• Le Mushaf du tajwid en couleurs.\n• Plusieurs tafsirs.\n• Plusieurs traductions du sens du Coran.'],
           ['Services et modes', '• Lecture et écoute.\n• Mémorisation.\n• Récitation.\n• Récitation silencieuse.'],
           ['Afficher boutons et listes', 'Toucher la page sur un téléphone affiche ou masque les boutons. Un appui long sur un mot montre son sens et le commentaire du verset.'],
           ['Sommaire', 'Affiche les sourates, les juz et les quarts de hizb, et mène à tout endroit.'],
-          ['Modes', 'Par défaut : lecture et écoute des récitations.\nMémorisation par répétition, récitation avec correction, et récitation silencieuse — récitez en vous-même et suivez le texte qui apparaît, pour réviser.'],
+          ['Modes', '#Par défaut :\n• Lecture et écoute des récitations.\n#Autres modes :\n• Mémorisation par répétition.\n• Récitation avec correction.\n• Récitation silencieuse : récitez en vous-même et suivez le texte qui apparaît, pour réviser.'],
           ['Recherche', 'D’un mot ou d’un verset du Coran.'],
-          ['Réglages', 'Votre compte et vos lectures, les khatmas, les rapports des enfants, les réglages généraux du site, et le partage.\nDans chaque mode, ses réglages et options sont en bas de l’écran.'],
+          ['Réglages', '#Ils comprennent :\n• Votre compte et vos lectures.\n• Les khatmas.\n• Les rapports des enfants.\n• Les réglages généraux du site.\n• Le partage du site.\nDans chaque mode, ses réglages et options sont en bas de l’écran.'],
           ['Installer sur l’écran d’accueil', ''] ],
           ios: 'Pour avoir le site sur votre téléphone comme toute app : ouvrez-le dans Safari, touchez Partager, puis « Sur l’écran d’accueil ».',
           prompt: 'Pour avoir le site sur votre appareil comme toute app, à portée de main : installez-le.',
           other: 'Gardez le Mushaf comme une app : dans le menu du navigateur, « Ajouter à l’écran d’accueil » ou « Installer l’application ».', again: 'Visite guidée' },
         es: { next: 'Siguiente', skip: 'Omitir', end: 'Terminar', install: 'Instalar', steps: [
-          ['El Mushaf del Último Testamento', 'Incluye:\n1- El Mushaf del Complejo Rey Fahd.\n2- El Mushaf del tajwid en colores.\n3- Varios tafsires.\n4- Varias traducciones del significado del Corán.'],
+          ['El Mushaf del Último Testamento', '#Incluye:\n• El Mushaf del Complejo Rey Fahd.\n• El Mushaf del tajwid en colores.\n• Varios tafsires.\n• Varias traducciones del significado del Corán.'],
           ['Servicios y modos', '• Lectura y escucha.\n• Memorización.\n• Recitación.\n• Recitación en silencio.'],
           ['Mostrar botones y listas', 'Tocar la página en el teléfono muestra u oculta los botones. Mantener pulsada una palabra muestra su significado y el comentario de la aleya.'],
           ['Índice', 'Muestra las suras, los yuz y los cuartos de hizb, y lleva a cualquier lugar.'],
-          ['Modos', 'Por defecto: lectura y escucha de recitaciones.\nMemorización con repetición, recitación con corrección y recitación en silencio: recita para ti y sigue el texto que aparece, para repasar.'],
+          ['Modos', '#Por defecto:\n• Lectura y escucha de recitaciones.\n#Otros modos:\n• Memorización con repetición.\n• Recitación con corrección.\n• Recitación en silencio: recita para ti y sigue el texto que aparece, para repasar.'],
           ['Buscar', 'Una palabra o una aleya del Corán.'],
-          ['Ajustes', 'Tu cuenta y tus lecturas, las jatmas, los informes de los hijos, los ajustes generales del sitio y compartirlo.\nEn cada modo, sus ajustes y opciones están en la parte inferior.'],
+          ['Ajustes', '#Incluyen:\n• Tu cuenta y tus lecturas.\n• Las jatmas.\n• Los informes de los hijos.\n• Los ajustes generales del sitio.\n• Compartir el sitio.\nEn cada modo, sus ajustes y opciones están en la parte inferior.'],
           ['Instalar en la pantalla de inicio', ''] ],
           ios: 'Para tener el sitio en tu teléfono como cualquier app, ábrelo en Safari, toca Compartir y luego «Añadir a pantalla de inicio».',
           prompt: 'Para tener el sitio en tu dispositivo como cualquier app, a un toque: instálalo.',
           other: 'Ten el Mushaf como una app: en el menú del navegador elige «Añadir a la pantalla de inicio» o «Instalar aplicación».', again: 'Recorrido de bienvenida' },
         ru: { next: 'Далее', skip: 'Пропустить', end: 'Завершить', install: 'Установить', steps: [
-          ['Мусхаф «Последнего Завета»', 'Включает:\n1- Мусхаф Комплекса короля Фахда.\n2- Цветной мусхаф с таджвидом.\n3- Несколько тафсиров.\n4- Несколько переводов смыслов Корана.'],
+          ['Мусхаф «Последнего Завета»', '#Включает:\n• Мусхаф Комплекса короля Фахда.\n• Цветной мусхаф с таджвидом.\n• Несколько тафсиров.\n• Несколько переводов смыслов Корана.'],
           ['Основные возможности и режимы', '• Чтение и прослушивание.\n• Заучивание.\n• Проверка чтения.\n• Беззвучная проверка.'],
           ['Кнопки и списки', 'Касание страницы на телефоне показывает или скрывает кнопки. Удержание слова показывает его смысл и толкование аята.'],
           ['Оглавление', 'Показывает суры, джузы и четверти хизба и переводит в любое место.'],
-          ['Режимы', 'По умолчанию: чтение и прослушивание.\nЗаучивание повторением, проверка чтения с исправлением и беззвучная проверка — читайте про себя и следите за появлением текста.'],
+          ['Режимы', '#По умолчанию:\n• Чтение и прослушивание.\n#Другие режимы:\n• Заучивание повторением.\n• Проверка чтения с исправлением.\n• Беззвучная проверка: читайте про себя и следите за появлением текста.'],
           ['Поиск', 'Слова или аята в Коране.'],
-          ['Настройки', 'Ваш аккаунт и записи чтения, хатмы, отчёты детей, общие настройки сайта и возможность поделиться.\nВ каждом режиме его настройки — внизу экрана.'],
+          ['Настройки', '#Включают:\n• Ваш аккаунт и записи чтения.\n• Хатмы.\n• Отчёты детей.\n• Общие настройки сайта.\n• Возможность поделиться сайтом.\nВ каждом режиме его настройки — внизу экрана.'],
           ['Установка на главный экран', ''] ],
           ios: 'Чтобы сайт был на телефоне как приложение, откройте его в Safari, нажмите «Поделиться», затем «На экран Домой».',
           prompt: 'Чтобы сайт был на устройстве как приложение, в одно касание, установите его.',
@@ -1927,6 +1927,18 @@
       var TL = TR[C.lang] || TR.en;
       var standalone = function () { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; };
       var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      // a step's text: «#…» a side heading (heading type, ending in a colon), «• …» a bullet, any other line a paragraph
+      var tourHTML = function (t) {
+        var out = '', ul = false;
+        t.split('\n').forEach(function (l) {
+          var li = /^•\s*/.test(l);
+          if (li && !ul) { out += '<ul>'; ul = true; } else if (!li && ul) { out += '</ul>'; ul = false; }
+          if (li) out += '<li>' + esc(l.replace(/^•\s*/, '')) + '</li>';
+          else if (l.charAt(0) === '#') out += '<b class="th">' + esc(l.slice(1)) + '</b>';
+          else out += '<span class="tp">' + esc(l) + '</span>';
+        });
+        return out + (ul ? '</ul>' : '');
+      };
       var tour = function () {
         if (document.querySelector('.bk-tour')) return;
         var PAGE = 2, LAST = 7;
@@ -1940,7 +1952,7 @@
         var n = standalone() ? LAST : LAST + 1, i = 0;
         document.body.classList.add('bk-touring'); chrome(true); clearTimeout(hideT);
         var ov = document.createElement('div'); ov.className = 'bk-tour';
-        ov.innerHTML = '<div class="bk-tspot"></div><div class="bk-tcard" role="dialog" aria-modal="true"><b></b><p></p><div class="bk-tbtns">' +
+        ov.innerHTML = '<div class="bk-tspot"></div><div class="bk-tcard" role="dialog" aria-modal="true"><b></b><div class="bk-ttext"></div><div class="bk-tbtns">' +
           '<button type="button" class="bk-tskip"></button><span class="bk-tdots"></span><button type="button" class="bk-tnext"></button></div></div>';
         document.body.appendChild(ov);
         var spot = ov.querySelector('.bk-tspot'), card = ov.querySelector('.bk-tcard');
@@ -1961,7 +1973,7 @@
         var show = function () {
           var st = TL.steps[i], last = i === n - 1;
           card.querySelector('b').textContent = st[0];
-          var p = card.querySelector('p'), nx = card.querySelector('.bk-tnext');
+          var p = card.querySelector('.bk-ttext'), nx = card.querySelector('.bk-tnext');
           nx.textContent = last ? TL.end : TL.next; nx.onclick = function () { if (last) end(); else { i++; show(); } };
           card.querySelector('.bk-tskip').textContent = TL.skip; card.querySelector('.bk-tskip').style.visibility = last ? 'hidden' : '';
           card.querySelector('.bk-tdots').innerHTML = Array.apply(null, Array(n)).map(function (x, k) { return '<i' + (k === i ? ' class="on"' : '') + '></i>'; }).join('');
@@ -1971,7 +1983,7 @@
             p.textContent = isIOS ? TL.ios : ip ? TL.prompt : TL.other;
             // the browser offers to install: «install» beside «finish»
             if (ip && !isIOS) { nx.textContent = TL.install; sk.textContent = TL.end; sk.style.visibility = ''; nx.onclick = function () { ip.prompt(); (ip.userChoice || Promise.resolve()).then(function () { window.__ltInstall = null; end(); }); }; }
-          } else p.textContent = st[1];
+          } else p.innerHTML = tourHTML(st[1]);
           requestAnimationFrame(place);
         };
         card.querySelector('.bk-tskip').onclick = end;
