@@ -1193,3 +1193,4 @@ body.bk-mob.bk-ms .bk-mnav .bk-mspd{ display:flex; order:3; flex-direction:colum
 .bk-ms .bk-mpage .sl-on{ animation:slIn .35s ease-out; }
 @keyframes slIn{ from{ opacity:.15; } to{ opacity:1; } }
 .bk-ms .bk-mpage .sl-err{ text-decoration:underline wavy #c0392b; text-decoration-thickness:2px; text-underline-offset:6px; color:#a42a1d; }
+body.bk-ms .bk-liveopt{ display:none !important; }
