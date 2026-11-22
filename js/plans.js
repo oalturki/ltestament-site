@@ -211,7 +211,8 @@
     // a plan's card; kid: the child's profile, when the parent looks at his child's plans
     function card(p, kid) {
       var st = stat(p), t = ymd(new Date()), lastI = st.next < 0 ? st.total - 1 : st.next - 1;
-      var locked = !kid && p.setBy && (!me || p.setBy.id !== me.id);
+      var byP0 = null; try { byP0 = JSON.parse(sessionStorage.getItem('lt_by_parent') || 'null'); } catch (e) {}
+      var locked = !kid && p.setBy && (!me || p.setBy.id !== me.id) && !(byP0 && byP0.id === p.setBy.id);
       var state = st.fin ? '<span class="kh-ok">' + esc(l.fin) + '</span>' : st.behind > 0 ? '<span class="kh-late">' + esc(l.behind) + ' ' + esc(l.wirdsN(st.behind, lang)) + '</span>'
         : !st.dueNow ? '<span class="kh-ok">' + esc(l.ahead) + '</span>' : '<span>' + esc(l.onTime) + '</span>';
       return '<div class="kh-card pl-card' + (st.fin ? ' fin' : '') + '" style="--kc:' + esc(p.color || COLORS[0]) + '"><div class="kh-top"><i class="pl-type">' + esc(l.type[p.type === 'review' ? 1 : 0]) + '</i><b>' + esc(p.name) + '</b>' +
@@ -251,8 +252,8 @@
       el.innerHTML = h;
       wire(el, null);
       el.querySelector('.kh-add').onclick = function () { form(null, null); };
-      // the parent: his children's plans, to make and follow
-      kids().then(function (ks) {
+      // (the parent sees and makes his children's plans in their accounts, opened from «الحسابات الفرعية»)
+      if (false) kids().then(function (ks) {
         var box = el.querySelector('.pl-kids'); if (!box || !ks.length) return;
         Promise.all(ks.map(function (k) { return remoteGet(k.id).catch(function () { return []; }); })).then(function (all) {
           var hh = '<div class="kh-l">' + esc(l.kids) + '</div>', any = false;
@@ -419,6 +420,9 @@
         // a changed range or division: the wirds are made again
         if (p0 && ['by', 'a', 'b', 'ord', 'unit', 'n', 'from', 'to'].some(function (k) { return p0[k] !== p[k]; }) || (p0 && JSON.stringify(p0.list || null) !== JSON.stringify(p.list || null))) p.done = {};
         if (kid && me) p.setBy = { id: me.id, name: me.name };
+        // made by the parent in his child's account: set by him, the child follows it
+        var byP = null; try { byP = JSON.parse(sessionStorage.getItem('lt_by_parent') || 'null'); } catch (e) {}
+        if (!kid && byP && me && !me.parent && !p0) p.setBy = byP;
         btn.disabled = true; msg.textContent = l.saving; msg.classList.remove('bad');
         (file ? P.upload(file).then(function (path) { p.file = path; }) : Promise.resolve()).then(function () {
           if (kid) return remotePut(kid.id, function (ls) { return putIn(ls, p); });

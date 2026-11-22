@@ -14,7 +14,10 @@
   if (window.LtSync) return;
   var KINDS = { reminders: 'lt_reminders', marks: 'lt_book_marks', plans: 'lt_plans' };
   // kept on this device only, but each profile has its own: his recent places and the page he was on
-  var LOCAL = ['lt_book_recent', 'lt_book_page'];
+  // and his own settings: how the Mushaf looks and sounds is each reader's (frame, weight, night, meanings, reciter,
+  // the memorizing and reciting choices, the language)
+  var LOCAL = ['lt_book_recent', 'lt_book_page', 'lt_book_frame', 'lt_book_lang', 'lt_book_rec', 'lt_book_show', 'lt_book_tajweed', 'lt_book_tr',
+               'lt_live_err', 'lt_live_level', 'lt_mfw', 'lt_night', 'lt_rec_rep', 'lt_sil_pace', 'lt_sil_speed', 'lt_wake'];
   var load = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
   var store = function (k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
   var signedIn = function () { return !!load('sb-nikwwjswwlwcqekbnpzq-auth-token'); };

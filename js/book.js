@@ -1433,6 +1433,7 @@
         marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
         recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         remind: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+        subs: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.6.1 4.7 1.9 5.5 4.8"/>',
         guide: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
         plans: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M8 14h3M8 17h6"/>',
         account: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor" stroke="none"/>',
@@ -1457,6 +1458,7 @@
         sbody.querySelectorAll('.bk-mstour, .bk-msfoot').forEach(function (e) { e.hidden = !!k; });
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
+        if (k === 'subs') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.subs(subSec, { lang: C.lang, done: function () { fillMenu(); } }); });
         if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); }, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } }); });
         if (k === 'guide' && !gdSec.dataset.ok) fetch('/data/guide/' + C.lang + '.html').then(function (r) { return r.text(); }).then(function (h) {
           gdSec.innerHTML = '<div class="gd">' + h + '</div>'; gdSec.dataset.ok = '1';
@@ -1489,9 +1491,12 @@
       var M3 = MS || ['My record', 'The Mushaf', 'Current mode: reading', 'Current mode: memorizing'];
       newCard(M3[0]);
       // the person's account: where all of this is kept, and his children's profiles (js/myaccount.js)
-      var ACL = { ar: ['حسابي', 'غير مسجّل'], ur: ['میرا اکاؤنٹ', 'لاگ اِن نہیں'], en: ['My account', 'Not signed in'], fr: ['Mon compte', 'Non connecté'],
-                  es: ['Mi cuenta', 'Sin conectar'], ru: ['Мой аккаунт', 'Вход не выполнен'] }[C.lang] || ['My account', 'Not signed in'];
+      var ACL = { ar: ['حسابي', 'غير مسجّل', 'حساب:'], ur: ['میرا اکاؤنٹ', 'لاگ اِن نہیں', 'اکاؤنٹ:'], en: ['My account', 'Not signed in', 'Account:'], fr: ['Mon compte', 'Non connecté', 'Compte :'],
+                  es: ['Mi cuenta', 'Sin conectar', 'Cuenta:'], ru: ['Мой аккаунт', 'Вход не выполнен', 'Аккаунт:'] }[C.lang] || ['My account', 'Not signed in', 'Account:'];
       var accSec = section('account', ACL[0], 'account');
+      var SBL = { ar: 'الحسابات الفرعية', ur: 'ذیلی اکاؤنٹس', en: 'Sub-accounts', fr: 'Comptes secondaires', es: 'Subcuentas', ru: 'Дополнительные профили' };
+      var subSec = section('subs', SBL[C.lang] || SBL.en, 'subs');
+      var accInfo = function () { var p0 = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) p0 = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} return p0 || {}; };
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
@@ -1609,7 +1614,9 @@
         if (subs.recent) subs.recent.textContent = listJ('lt_book_recent').length ? n(listJ('lt_book_recent').length) : '';
         if (subs.view) subs.view.textContent = selText(q('frameSel'));
         if (subs.plans) { var pls = []; try { pls = JSON.parse(localStorage.getItem('lt_plans') || '[]') || []; } catch (e) {} subs.plans.textContent = pls.length ? uiNum(pls.length) : ''; }
-        if (subs.account) { var ap = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) ap = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} subs.account.textContent = ap ? ap.name : ACL[1]; }
+        if (subs.subs) { subs.subs.parentNode.parentNode.hidden = !(accInfo().parent); subs.subs.textContent = ''; }
+        if (subs.account) { var an = subs.account.parentNode.querySelector('b'), ai = accInfo(); if (an) an.textContent = ai.name ? ACL[2] + ' ' + ai.name : ACL[0]; if (secs.account) secs.account.dataset.title = an ? an.textContent : ACL[0]; }
+        if (subs.account) { var ap = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) ap = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} subs.account.textContent = ap ? '' : ACL[1]; }
         if (subs.lang) subs.lang.textContent = ({ ar: 'العربية', en: 'English', fr: 'Français', es: 'Español', ru: 'Русский', ur: 'اردو' })[C.lang] || '';
         if (subs.rec) {
           var pf = window.Fam && window.Fam.current && window.Fam.current(), rb = subs.rec.parentNode.querySelector('b');
@@ -1681,7 +1688,12 @@
       ltLoad(['/js/sync.js'], function () {});
       window.addEventListener('lt-sync', function () { fillPanes(); fillMenu(); });
       // another reader on this device: the Mushaf opens where he stopped (his own last page)
-      window.addEventListener('lt-switched', function () { var pg = +(load('lt_book_page') || 0); if (pg >= 1 && pg <= TOTAL && pg !== cur) show(pg, 0); });
+      // (his settings too: the page is opened again, in his look, at his page)
+      window.addEventListener('lt-switched', function () {
+        var pg = +(load('lt_book_page') || 0);
+        if (pg >= 1 && pg <= TOTAL) history.replaceState(null, '', location.pathname + location.search.replace(/[?&]s=\w+/, '') + '#p=' + pg);
+        setTimeout(function () { location.reload(); }, 150);
+      });
       window.addEventListener('lt-profile', function () { if (window.Khatma) window.Khatma.pull().then(function () { root.__strip(); }); fillMenu(); });
       ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () {
         root.__strip();
