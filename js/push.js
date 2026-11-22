@@ -42,7 +42,7 @@
     return K.list().filter(function (k) { return k.remind && k.remind.on && !k.fin; }).map(function (k) {
       var sl = K.slots(k);
       return { id: k.id, name: k.name, time: k.remind.time, days: k.rdays, start: k.start, end: sl[sl.length - 1] };
-    });
+    }).concat(window.LtRemind ? window.LtRemind.items() : []);   // and the Mushaf's other reminders (js/reminders.js)
   }
   var lang0 = 'ar';
   function send(sub) {

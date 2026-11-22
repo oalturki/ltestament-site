@@ -1431,3 +1431,26 @@ body.bk-night .bk-goback{ background:#d4ae3c; color:#1b1409; }
 /* the reciter's avatar beside the old microphone: not in the new design (whose profile it is shows in the settings) —
    it was floating over the page */
 body.bk-mob .bk-micav{ display:none !important; }
+
+/* settings → reminders */
+.rm-note{ font-size:.86rem; color:#7d6a3c; line-height:1.6; margin:2px 2px 10px; }
+.rm-en{ display:block; margin-top:8px; border:0; border-radius:10px; padding:9px 14px; background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#2a1f08; font:inherit; font-weight:700; cursor:pointer; }
+.rm-h{ margin:14px 4px 6px; font-size:.88rem; color:#8a6a1e; font-weight:700; }
+.rm-card{ background:#fffdf7; border-radius:14px; padding:2px 12px; box-shadow:0 1px 3px rgba(60,45,15,.08); }
+.rm-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(138,106,30,.12); }
+.rm-row:last-child{ border-bottom:0; }
+.rm-main{ flex:1; text-align:start; background:none; border:0; font:inherit; color:#2a2a22; cursor:pointer; padding:0; }
+.rm-main b{ display:block; font-size:1rem; } .rm-main small{ color:#97835a; font-size:.82rem; }
+.rm-sw{ flex:none; width:48px; height:28px; border-radius:14px; border:0; background:#d6cdb8; position:relative; cursor:pointer; transition:background .2s; }
+.rm-sw::after{ content:""; position:absolute; top:3px; inset-inline-start:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:inset-inline-start .2s; }
+.rm-sw.on{ background:#2e6b3f; } .rm-sw.on::after{ inset-inline-start:23px; }
+.rm-ed{ padding:4px 0 12px; border-bottom:1px solid rgba(138,106,30,.12); display:grid; gap:10px; }
+.rm-ed label{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:.92rem; color:#6d5216; }
+.rm-ed input{ font:inherit; border:1px solid rgba(138,106,30,.3); border-radius:9px; padding:6px 10px; background:#fff; color:#2a2a22; min-width:0; }
+.rm-ed input[type=text]{ flex:1; caret-color:auto; }
+.rm-days > span{ display:block; font-size:.92rem; color:#6d5216; margin-bottom:6px; }
+.rm-days > div{ display:flex; flex-wrap:wrap; gap:5px; }
+.rm-days button{ border:1px solid rgba(138,106,30,.3); background:none; border-radius:9px; padding:5px 8px; font:inherit; font-size:.82rem; color:#6d5216; cursor:pointer; }
+.rm-days button.on{ background:#2e6b3f; border-color:#2e6b3f; color:#fff; }
+.rm-del{ justify-self:start; border:0; background:none; color:#b3261e; font:inherit; cursor:pointer; padding:4px 0; }
+.rm-add{ display:block; width:100%; text-align:start; border:0; background:none; color:#2e6b3f; font:inherit; font-weight:700; padding:12px 0; cursor:pointer; }

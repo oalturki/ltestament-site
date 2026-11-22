@@ -1407,6 +1407,7 @@
         recite: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
         marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
         recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+        remind: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
         back: '<path d="M9 6l6 6-6 6"/>'
       };
       var head2 = ov.querySelector('.bk-mshead'), headT = head2.querySelector('h2');
@@ -1425,6 +1426,7 @@
         menu.hidden = !!k; quick.hidden = !!k; backB.hidden = !k;
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
+        if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
       };
@@ -1451,6 +1453,8 @@
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
       var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
+      var RML = { ar: 'التذكيرات', ur: 'یاد دہانیاں', en: 'Reminders', fr: 'Rappels', es: 'Recordatorios', ru: 'Напоминания' };
+      var remSec = section('remind', RML[C.lang] || RML.en, 'remind');
       var fb0 = document.querySelector('.bk-fambtn');
       var recSec = fb0 ? section('rec', S2.rec) : null;
       paneM = section('marks', S2.marks);
@@ -1599,10 +1603,12 @@
       };
       strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
       // khatmas and reminders: loaded with the Mushaf, so today's wird shows on the page; a reminder opens the khatmas
-      ltLoad(['/js/push.js', '/js/khatma.js'], function () {
+      ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () {
         root.__strip();
         window.Khatma.pull().then(function () { root.__strip(); });
         if (/[?&]k=/.test(location.search)) { open(); goSec('khatma'); }
+        // a reminder of memorizing or reviewing opens the Mushaf in that mode
+        var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)

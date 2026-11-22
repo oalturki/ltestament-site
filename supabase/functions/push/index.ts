@@ -4,6 +4,7 @@
 // POST {action:'remove', endpoint}                   -> forgets a device
 // POST {action:'send'} with header x-cron            -> every 15 minutes (pg_cron): sends the reminders whose time has come
 // A reminder: {id, name, time:'HH:MM', days:<bitmask, bit0 = Sunday>, start:'YYYY-MM-DD', end:'YYYY-MM-DD'}
+// — a khatma's wird; or, from the Mushaf's reminders (js/reminders.js), with kind: wird|kahf|hifz|review|custom and url
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -29,6 +30,21 @@ function local(tz: string) {
   const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday);
   return { d: `${p.year}-${p.month}-${p.day}`, m: (+p.hour % 24) * 60 + +p.minute, wd };
 }
+// the Mushaf's reminders: [title, body] by kind
+const KT: Record<string, Record<string, [string, string]>> = {
+  ar: { wird: ['الورد اليومي', 'حان وقت وردك من القرآن الكريم'], kahf: ['سورة الكهف', 'يوم الجمعة: لا تنسَ قراءة سورة الكهف'], hifz: ['وقت الحفظ', 'افتح المصحف لحفظ وردك الجديد'],
+        review: ['وقت المراجعة', 'افتح المصحف لمراجعة ما حفظت'], custom: ['تذكير', 'افتح المصحف'] },
+  en: { wird: ['Daily wird', 'Time for your portion of the Quran'], kahf: ['Surat al-Kahf', 'Friday: remember to read Surat al-Kahf'], hifz: ['Time to memorize', 'Open the Mushaf to memorize your new portion'],
+        review: ['Time to review', 'Open the Mushaf to review what you memorized'], custom: ['Reminder', 'Open the Mushaf'] },
+  ur: { wird: ['روزانہ ورد', 'قرآن کریم سے اپنے ورد کا وقت'], kahf: ['سورۃ الکہف', 'جمعہ: سورۃ الکہف پڑھنا نہ بھولیں'], hifz: ['حفظ کا وقت', 'نیا حصہ حفظ کرنے کے لیے مصحف کھولیں'],
+        review: ['دہرائی کا وقت', 'حفظ شدہ حصہ دہرانے کے لیے مصحف کھولیں'], custom: ['یاد دہانی', 'مصحف کھولیں'] },
+  fr: { wird: ['Wird quotidien', 'L’heure de votre portion du Coran'], kahf: ['Sourate al-Kahf', 'Vendredi : pensez à lire la sourate al-Kahf'], hifz: ['Temps de mémorisation', 'Ouvrez le Mushaf pour mémoriser'],
+        review: ['Temps de révision', 'Ouvrez le Mushaf pour réviser'], custom: ['Rappel', 'Ouvrez le Mushaf'] },
+  es: { wird: ['Wird diario', 'Hora de tu porción del Corán'], kahf: ['Sura al-Kahf', 'Viernes: recuerda leer la sura al-Kahf'], hifz: ['Hora de memorizar', 'Abre el Mushaf para memorizar'],
+        review: ['Hora de repasar', 'Abre el Mushaf para repasar'], custom: ['Recordatorio', 'Abre el Mushaf'] },
+  ru: { wird: ['Ежедневный вирд', 'Время для вашей части Корана'], kahf: ['Сура аль-Кахф', 'Пятница: не забудьте прочитать суру аль-Кахф'], hifz: ['Время заучивания', 'Откройте Мусхаф, чтобы заучить'],
+        review: ['Время повторения', 'Откройте Мусхаф, чтобы повторить'], custom: ['Напоминание', 'Откройте Мусхаф'] },
+};
 const TXT: Record<string, [string, string]> = {
   ar: ['حان وقت وردك', 'افتح المصحف لتكمل ختمتك'], en: ['Time for your daily portion', 'Open the Mushaf to continue your khatma'],
   ur: ['آپ کے ورد کا وقت', 'اپنا ختم جاری رکھنے کے لیے مصحف کھولیں'], fr: ['L’heure de votre portion', 'Ouvrez le Mushaf pour poursuivre votre khatma'],
@@ -45,9 +61,11 @@ Deno.serve(async (req) => {
   if (b.action === 'save') {
     const sub = b.sub;
     if (!sub || typeof sub.endpoint !== 'string' || !/^https:\/\//.test(sub.endpoint) || !sub.keys) return json({ error: 'bad subscription' }, 400);
-    const rem = (Array.isArray(b.reminders) ? b.reminders : []).slice(0, 20).map((r: any) => ({
+    const rem = (Array.isArray(b.reminders) ? b.reminders : []).slice(0, 30).map((r: any) => ({
       id: String(r.id || '').slice(0, 64), name: String(r.name || '').slice(0, 60), time: /^\d\d:\d\d$/.test(r.time) ? r.time : '20:00',
       days: Math.max(1, Math.min(127, +r.days || 127)), start: String(r.start || '').slice(0, 10), end: String(r.end || '').slice(0, 10),
+      kind: ['wird', 'kahf', 'hifz', 'review', 'custom'].includes(r.kind) ? r.kind : undefined,
+      url: typeof r.url === 'string' && /^\/book\/[\w?=#&-]{0,40}$/.test(r.url) ? r.url : undefined,
     }));
     const tz = (() => { try { new Intl.DateTimeFormat('en', { timeZone: b.tz }); return String(b.tz); } catch { return 'Asia/Riyadh'; } })();
     const r = await db.from('push_subs').upsert({ endpoint: sub.endpoint, sub, tz, lang: String(b.lang || 'ar').slice(0, 5), reminders: rem, updated_at: new Date().toISOString() });
@@ -68,9 +86,11 @@ Deno.serve(async (req) => {
         const [hh, mm] = r.time.split(':').map(Number), at = hh * 60 + mm;
         // due: its time passed less than 30 minutes ago, on a reading day within the khatma, not sent yet today
         if (t.m < at || t.m - at >= 30 || !((r.days >> t.wd) & 1) || (r.start && t.d < r.start) || (r.end && t.d > r.end) || sentMap[r.id] === t.d) continue;
-        const tx = TXT[s.lang] || TXT.ar;
+        const tx = TXT[s.lang] || TXT.ar, kt = r.kind ? ((KT[s.lang] || KT.ar)[r.kind]) : null;
+        const msg = kt ? { title: r.kind === 'custom' && r.name ? r.name : kt[0], body: kt[1], tag: 'rem-' + r.id, url: r.url || '/book/' }
+                       : { title: tx[0], body: (r.name ? r.name + ' — ' : '') + tx[1], tag: 'wird-' + r.id, url: '/book/?k=' + encodeURIComponent(r.id) };
         try {
-          await webpush.sendNotification(s.sub, JSON.stringify({ title: tx[0], body: (r.name ? r.name + ' — ' : '') + tx[1], tag: 'wird-' + r.id, url: '/book/?k=' + encodeURIComponent(r.id), lang: s.lang, dir: s.lang === 'ar' || s.lang === 'ur' ? 'rtl' : 'ltr' }), { TTL: 3600 });
+          await webpush.sendNotification(s.sub, JSON.stringify({ ...msg, lang: s.lang, dir: s.lang === 'ar' || s.lang === 'ur' ? 'rtl' : 'ltr' }), { TTL: 3600 });
           sent++;
         } catch (e: any) {
           if (e && (e.statusCode === 404 || e.statusCode === 410)) { await db.from('push_subs').delete().eq('endpoint', s.endpoint); gone++; break; }
