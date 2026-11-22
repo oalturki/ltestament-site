@@ -1079,3 +1079,23 @@ body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mtime:not(:empty){ display:flex; flex-
 body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mtime{ order:1; }
 body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mplay{ order:2; }
 body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters{ order:3; min-width:56px; }
+
+/* phones: the sheets (a mode's settings, the general settings) and the index in the bars' colours — the paper's,
+   dark ink, gold-brown accents (the page's own variables, set anew inside them) */
+body.bk-mob .bk-msheet, body.bk-mob .bk-idx{ --night:#FBF6EC; --night-deep:#F1E7D2; --parch:#3b2f1a; --gold-soft:#8a6a1e; --gold:#a8801f; --muted:#97835a;
+  background:#FBF6EC !important; color:#3b2f1a !important; border-color:transparent !important; }
+body.bk-mob .bk-msov, body.bk-mob .bk-msov.bk-msside{ background:rgba(60,45,15,.28); }
+body.bk-mob .bk-msheet .bk-msrow{ border-bottom-color:rgba(60,45,15,.1); }
+body.bk-mob .bk-msheet select, body.bk-mob .bk-msheet input:not([type=checkbox]):not([type=radio]):not([type=range]){
+  background:rgba(138,106,30,.08) !important; color:#3b2f1a !important; border-color:rgba(138,106,30,.25) !important; }
+body.bk-mob .bk-idx .bk-ixhead{ border-bottom-color:rgba(60,45,15,.12); }
+body.bk-mob .bk-idx .bk-ixx, body.bk-mob .bk-idx .bk-ixhome{ border-color:rgba(138,106,30,.3); color:#8a6a1e; }
+body.bk-mob .bk-idx .bk-ixtabs{ background:rgba(138,106,30,.08); }
+body.bk-mob .bk-idx .bk-ixtabs button{ color:#5a4513; }
+body.bk-mob .bk-idx .bk-ixtabs button.on{ background:#c9a227; color:#2a1f08; }
+body.bk-mob .bk-idx .bk-ixfind{ background:#fff; border-color:rgba(138,106,30,.2); color:#8a6a1e; }
+body.bk-mob .bk-idx .bk-ixfind input{ color:#3b2f1a; }
+body.bk-mob .bk-idx .bk-ixrow{ background:#fff; border-color:rgba(138,106,30,.12); }
+body.bk-mob .bk-idx .bk-ixrow.on{ background:#F6EACB; border-color:#c9a227; }
+body.bk-mob .bk-idx .bk-ixno{ background:rgba(138,106,30,.1); color:#8a6a1e; }
+body.bk-mob .bk-idx .bk-ixt small, body.bk-mob .bk-idx .bk-ixpg{ color:#97835a; }
