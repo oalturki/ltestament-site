@@ -772,7 +772,7 @@ html[dir=rtl] .bk-msside .bk-msheet, [dir=rtl] .bk-msside .bk-msheet{ direction:
 .bk-msside .bk-mscard{ background:linear-gradient(180deg, #DCC684, #C9B273); border:0; border-radius:24px; padding:6px 10px 12px; margin:0 0 14px; overflow:visible; }
 .bk-msside .bk-mscardh{ margin:6px 0 8px; text-align:center; font-size:.92rem; font-weight:700; color:#4a3d22; opacity:1; }
 .bk-msside .bk-msitem{ background:#FFFDF7; color:#1b2a3a; border-radius:16px; min-height:54px; margin-top:8px; padding:8px 12px; border:0 !important; }
-.bk-msside .bk-msitem:first-of-type{ margin-top:0; }
+.bk-msside .bk-mscard > .bk-msitem:first-child, .bk-msside .bk-mscardh + .bk-msitem{ margin-top:0; }
 .bk-msside .bk-msitem .ic{ background:none; color:#2f6b45; width:30px; }
 .bk-msside .bk-msitem .ic svg{ width:24px; height:24px; stroke-width:2; }
 .bk-msside .bk-msitem .tx b{ color:#1b2a3a; }
