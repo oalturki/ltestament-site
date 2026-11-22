@@ -900,12 +900,12 @@
       // the fourth: silent recitation — for whoever reviews where reciting aloud does not suit (the mosque, between
       // the prayers): the verses hidden, the words appear one by one at the reciter's pace (no sound), the reader
       // recites in himself ahead of them and marks a word he missed
-      var SLL = { ar: ['تسميع صامت', 'صامت', 'ابدأ', 'إيقاف', 'السرعة', 'آية', 'كلمة', 'رجوع', 'تقدّم', 'الإيقاع', 'الحدر', 'كالشيخ'],
-                  ur: ['خاموش تسمیع', 'خاموش', 'شروع', 'روکیں', 'رفتار', 'آیت', 'لفظ', 'پیچھے', 'آگے', 'رفتار کا انداز', 'حدر', 'قاری کی طرح'],
-                  en: ['Silent recitation', 'Silent', 'Start', 'Pause', 'Speed', 'Verse', 'Word', 'Back', 'Forward', 'Pace', 'Hadr (brisk)', 'As the reciter'],
-                  fr: ['Récitation silencieuse', 'Silencieux', 'Démarrer', 'Pause', 'Vitesse', 'Verset', 'Mot', 'Retour', 'Avancer', 'Rythme', 'Hadr (rapide)', 'Comme le récitant'],
-                  es: ['Recitación en silencio', 'Silencio', 'Empezar', 'Pausa', 'Velocidad', 'Aleya', 'Palabra', 'Atrás', 'Adelante', 'Ritmo', 'Hadr (ágil)', 'Como el recitador'],
-                  ru: ['Беззвучная проверка', 'Беззвучно', 'Старт', 'Пауза', 'Скорость', 'Аят', 'Слово', 'Назад', 'Вперёд', 'Темп', 'Хадр (быстро)', 'Как чтец'] };
+      var SLL = { ar: ['تسميع صامت', 'صامت', 'ابدأ', 'إيقاف', 'السرعة', 'آية', 'كلمة', 'رجوع', 'تقدّم', 'المحاكاة', 'الحدر', 'الترتيل', 'الصوت', 'صوت الشيخ غير متاح لهذا القارئ'],
+                  ur: ['خاموش تسمیع', 'خاموش', 'شروع', 'روکیں', 'رفتار', 'آیت', 'لفظ', 'پیچھے', 'آگے', 'نقل', 'حدر', 'ترتیل', 'آواز', 'اس قاری کی آواز دستیاب نہیں'],
+                  en: ['Silent recitation', 'Silent', 'Start', 'Pause', 'Speed', 'Verse', 'Word', 'Back', 'Forward', 'Simulate', 'Hadr (brisk)', 'Tartil', 'Sound', 'Sound not available for this reciter'],
+                  fr: ['Récitation silencieuse', 'Silencieux', 'Démarrer', 'Pause', 'Vitesse', 'Verset', 'Mot', 'Retour', 'Avancer', 'Simulation', 'Hadr (rapide)', 'Tartil', 'Son', 'Son indisponible pour ce récitant'],
+                  es: ['Recitación en silencio', 'Silencio', 'Empezar', 'Pausa', 'Velocidad', 'Aleya', 'Palabra', 'Atrás', 'Adelante', 'Simulación', 'Hadr (ágil)', 'Tartil', 'Sonido', 'Sonido no disponible para este recitador'],
+                  ru: ['Беззвучная проверка', 'Беззвучно', 'Старт', 'Пауза', 'Скорость', 'Аят', 'Слово', 'Назад', 'Вперёд', 'Имитация', 'Хадр (быстро)', 'Тартиль', 'Звук', 'Звук недоступен для этого чтеца'] };
       var SL = SLL[C.lang] || SLL.en;
       var modeName = function (m, short) { return m === 'silent' ? SL[short ? 1 : 0] : MD[MODES.indexOf(m)]; };
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
@@ -949,7 +949,7 @@
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       /* ---- silent recitation: the words appear at the reciter's pace (his word timings, data/rec), no sound ---- */
-      var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr' };
+      var SILSP = [0.5, 0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr', sound: false, au: null, raf: 0 };
       try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; SIL.pace = localStorage.getItem('lt_sil_pace') || 'hadr'; } catch (e) {}
       // two paces: hadr — an even pace by each word's length (most review briskly, not holding every madd as the
       // reciter does); or the reciter's own timing
@@ -971,8 +971,9 @@
       silSk('bk-msk-af', 1, 'a', '<path d="M6 6l7 6-7 6M13 6l7 6-7 6"/>');
       nav.appendChild(silSpd);
       var silIcon = function () { silBtn.innerHTML = svg(SIL.on ? '<path d="M8 5v14M16 5v14"/>' : '<path d="M7 5l12 7-12 7z" fill="currentColor"/>'); silBtn.setAttribute('aria-label', SIL.on ? SL[3] : SL[2]); };
+      var isHadr = function () { return SIL.pace === 'hadr' && !SIL.sound; };   // the reciter's sound goes at his own timing
       var spdTxt = function (v) { return uiNum(String(v)).replace('.', C.lang === 'ar' ? '٫' : '.') + '×'; };
-      var silSpdShow = function () { silSpd.innerHTML = '<b>' + spdTxt(SIL.speed) + '</b><small>' + esc(SIL.pace === 'hadr' ? SL[10] : SL[11]) + '</small>'; };
+      var silSpdShow = function () { silSpd.innerHTML = '<b>' + spdTxt(SIL.speed) + '</b><small>' + esc(isHadr() ? SL[10] : SL[11]) + '</small>'; };
       silIcon(); silSpdShow();
       var els = function (loc) { return root.querySelectorAll('.bk-mpage [data-l="' + loc + '"]'); };
       var silShowWord = function (x) {
@@ -994,12 +995,12 @@
           var k = x[0] + ':' + x[1]; if (!byA[k]) { byA[k] = []; ays.push([x[0], x[1]]); } byA[k].push(x[2]);
         });
         ays.sort(function (p, q) { return p[0] - q[0] || p[1] - q[1]; });
-        return Promise.all(ays.map(function (sa) { return SIL.pace === 'hadr' ? [] : wordTimes(rec(), sa[0], sa[1]).catch(function () { return []; }); })).then(function (tms) {
+        return Promise.all(ays.map(function (sa) { return isHadr() ? [] : wordTimes(rec(), sa[0], sa[1]).catch(function () { return []; }); })).then(function (tms) {
           var seq = [];
           ays.forEach(function (sa, j) {
             var ws = byA[sa[0] + ':' + sa[1]].sort(function (p, q) { return p - q; }), tm = {}, last = 0;
             (tms[j] || []).forEach(function (t) { tm[t[0]] = t[1]; last = Math.max(last, t[2]); });
-            if (SIL.pace === 'hadr') {
+            if (isHadr()) {
               tm = {}; var acc = 0;
               ws.forEach(function (w) { tm[w] = acc; acc += wordMs(sa[0] + ':' + sa[1] + ':' + w); });
               last = acc;
@@ -1021,9 +1022,10 @@
           show(cur + step(), 1).then(function () { setTimeout(function () { if (SIL.on) silBuild().then(function (q) { SIL.seq = q; SIL.i = 0; silTick(); }); }, 700); });
           return;
         }
+        if (SIL.sound) return silAudioGo();
         var x = SIL.seq[SIL.i], prev = SIL.seq[SIL.i - 1];
         // the wait before this word: within a verse, the time between the reciter's words; a new verse, a short pause
-        var gap = !prev ? 300 : (prev.a === x.a && prev.s === x.s) ? x.at - prev.at : Math.max(SIL.pace === 'hadr' ? 300 : 500, (prev.end || prev.at + 450) - prev.at + (SIL.pace === 'hadr' ? 250 : 400));
+        var gap = !prev ? 300 : (prev.a === x.a && prev.s === x.s) ? x.at - prev.at : Math.max(isHadr() ? 300 : 500, (prev.end || prev.at + 450) - prev.at + (isHadr() ? 250 : 400));
         SIL.t = setTimeout(function () {
           if (!SIL.on) return;
           if (prev && (prev.a !== x.a || prev.s !== x.s)) silShowEnd(prev);
@@ -1048,7 +1050,7 @@
       var silJump = function (dir, unit) {
         var go = function () {
           var q = SIL.seq, i = SIL.i, j = i;
-          clearTimeout(SIL.t);
+          clearTimeout(SIL.t); silAudioStop();
           if (dir < 0) {
             if (unit === 'w') j = Math.max(0, i - 1);
             else {
@@ -1074,6 +1076,44 @@
           go();
         });
       };
+      // with the sound: the reciter's verse file plays from the word reached, and each word shows as he says it
+      var soundOk = function () { var r = rec(); return r && r.timed && r.kind === 'ayah' && !r.meaningOnly; };
+      var silAudioStop = function () { if (SIL.raf) { cancelAnimationFrame(SIL.raf); SIL.raf = 0; } if (SIL.au) SIL.au.pause(); };
+      var silAudioGo = function () {
+        if (!SIL.on || !SIL.seq) return;
+        var x = SIL.seq[SIL.i]; if (!x) return silTick();
+        if (playing) stopAudio();
+        var a = SIL.au || (SIL.au = new Audio()), url = srcOf(rec(), x.s, x.a);
+        a.preload = 'auto';
+        var same = a.getAttribute('src') === url && !a.paused && !a.ended && a.currentTime * 1000 <= x.at + 300;
+        if (!same) {
+          if (a.getAttribute('src') !== url) a.src = url;
+          var first = !SIL.seq[SIL.i - 1] || !sameA(SIL.seq[SIL.i - 1], x);
+          var at = first ? 0 : Math.max(0, x.at - 80) / 1000;
+          var seek = function () { try { a.currentTime = at; } catch (e) {} };
+          if (a.readyState >= 1) seek(); else a.addEventListener('loadedmetadata', seek, { once: true });
+        }
+        a.defaultPlaybackRate = a.playbackRate = SIL.speed;
+        a.onended = function () {
+          if (!SIL.on || !SIL.sound) return;
+          var q = SIL.seq; if (!q) return;
+          // the verse heard to its end: what remains of it shows, then the next verse
+          while (SIL.i < q.length && sameA(q[SIL.i], x)) { silShowWord(q[SIL.i]); SIL.i++; }
+          silShowEnd(x);
+          silTick();
+        };
+        var pr = a.play(); if (pr && pr.catch) pr.catch(function () { silStop(); });
+        if (SIL.raf) cancelAnimationFrame(SIL.raf);
+        var loop = function () {
+          SIL.raf = 0;
+          if (!SIL.on || !SIL.sound || !SIL.seq) return;
+          var q = SIL.seq, t = a.currentTime * 1000;
+          while (SIL.i < q.length && sameA(q[SIL.i], x) && q[SIL.i].at <= t + 40) { silShowWord(q[SIL.i]); SIL.i++; }
+          if (SIL.i >= q.length && !(SIL.seq[SIL.i - 1] && SIL.seq[SIL.i - 1].end != null)) return silTick();   // the page ends inside the verse
+          SIL.raf = requestAnimationFrame(loop);
+        };
+        SIL.raf = requestAnimationFrame(loop);
+      };
       var silStart = function () {
         if (!hideNow() && hideBtn()) hideBtn().click();
         SIL.on = true; silIcon();
@@ -1086,7 +1126,7 @@
         });
       };
       var silStop = function (leave) {
-        clearTimeout(SIL.t); SIL.on = false; silIcon();
+        clearTimeout(SIL.t); silAudioStop(); SIL.on = false; silIcon();
         if (leave) { SIL.seq = null; if (root.__fam) root.__fam.flush(false); }
       };
       root.__silStop = silStop;
@@ -1094,23 +1134,46 @@
       // the pace and the speed: a small panel over the button
       var silPop = document.createElement('div'); silPop.className = 'bk-silpop'; document.body.appendChild(silPop);
       var silPopFill = function () {
-        silPop.innerHTML = '<b>' + esc(SL[9]) + '</b><div class="sp-row">' +
+        silPop.innerHTML = '<b>' + esc(SL[12]) + '</b><div class="sp-row">' +
+          [['0', '🔇'], ['1', '🔊']].map(function (o) { return '<button type="button" data-snd="' + o[0] + '"' + ((SIL.sound ? '1' : '0') === o[0] ? ' class="on"' : '') + '>' + o[1] + '</button>'; }).join('') +
+          '</div><b>' + esc(SL[9]) + '</b><div class="sp-row">' +
           [['hadr', SL[10]], ['reciter', SL[11] + ' — ' + (function (e) { return e && e.selectedOptions && e.selectedOptions[0] ? e.selectedOptions[0].text : ''; })(q('reciter'))]].map(function (o) {
             return '<button type="button" data-p="' + o[0] + '"' + (SIL.pace === o[0] ? ' class="on"' : '') + '>' + esc(o[1]) + '</button>'; }).join('') +
           '</div><b>' + esc(SL[4]) + '</b><div class="sp-row">' +
-          SPEEDS.map(function (v) { return '<button type="button" data-v="' + v + '"' + (SIL.speed === v ? ' class="on"' : '') + '>' + esc(spdTxt(v)) + '</button>'; }).join('') + '</div>';
+          SILSP.map(function (v) { return '<button type="button" data-v="' + v + '"' + (SIL.speed === v ? ' class="on"' : '') + '>' + esc(spdTxt(v)) + '</button>'; }).join('') + '</div>';
         silPop.querySelectorAll('button').forEach(function (b) {
           b.onclick = function (e) {
             e.stopPropagation();
-            if (b.dataset.v) { SIL.speed = +b.dataset.v; try { localStorage.setItem('lt_sil_speed', String(SIL.speed)); } catch (er) {} }
+            if (b.dataset.v) { SIL.speed = +b.dataset.v; try { localStorage.setItem('lt_sil_speed', String(SIL.speed)); } catch (er) {} if (SIL.au) SIL.au.playbackRate = SIL.speed; }
+            if (b.dataset.snd) { silSound(b.dataset.snd === '1'); return; }
             if (b.dataset.p && b.dataset.p !== SIL.pace) {
               SIL.pace = b.dataset.p; try { localStorage.setItem('lt_sil_pace', SIL.pace); } catch (er) {}
-              if (SIL.seq) { var keep = SIL.i, was = SIL.on; clearTimeout(SIL.t); silBuild().then(function (q2) { SIL.seq = q2; SIL.i = Math.min(keep, q2.length); if (was && SIL.on) silTick(); }); }
+              silRebuild();
             }
             silSpdShow(); silPopFill();
           };
         });
       };
+      // the sequence again (another pace, the sound on or off), keeping the place reached
+      var silRebuild = function () {
+        if (!SIL.seq) return;
+        var keep = SIL.i, was = SIL.on; clearTimeout(SIL.t); silAudioStop();
+        silBuild().then(function (q2) { SIL.seq = q2; SIL.i = Math.min(keep, q2.length); if (was && SIL.on) silTick(); });
+      };
+      var silSound = function (on) {
+        if (on && !soundOk()) { var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = SL[13]; document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 4000); return; }
+        SIL.sound = on; sndBtn.classList.toggle('on', on); sndIcon();
+        if (!on) silAudioStop();
+        silRebuild(); silSpdShow(); silPopFill();
+      };
+      var sndBtn = document.createElement('button'); sndBtn.type = 'button'; sndBtn.className = 'bk-msk bk-msnd';
+      var sndIcon = function () {
+        sndBtn.innerHTML = svg(SIL.sound ? '<path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/>'
+                                         : '<path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/>') + '<small>' + esc(SL[12]) + '</small>';
+        sndBtn.setAttribute('aria-label', SL[12]);
+      };
+      sndIcon(); nav.appendChild(sndBtn);
+      sndBtn.onclick = function (e) { e.stopPropagation(); silSound(!SIL.sound); };
       silSpd.onclick = function (e) {
         e.stopPropagation();
         if (silPop.classList.toggle('on')) {
@@ -2633,7 +2696,7 @@
         hb.onclick = function () {
           var on = !root.classList.contains('bk-hide');
           hset(on);
-          if (on) {
+          if (on && !root.classList.contains('bk-ms')) {      // (silent recitation has its own way: no tap-to-show hint)
             var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = HL.hint;
             document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 4500);
           }
