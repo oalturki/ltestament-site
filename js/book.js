@@ -1587,7 +1587,7 @@
       var shb = document.createElement('button'); shb.type = 'button'; shb.className = 'bk-msq';
       shb.innerHTML = svg('<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>') + '<span>' + esc(SHL[0]) + '</span>';
       shb.onclick = function () {
-        var url = location.origin + location.pathname + '#p=' + cur, title = C.lang === 'ar' ? 'مصحف العهد الأخير' : document.title;
+        var url = location.origin + location.pathname + '#p=' + cur, title = document.title;
         var copied = function () { var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = SHL[1]; document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 2500); };
         if (navigator.share) { navigator.share({ title: title, url: url }).catch(function () {}); return; }
         if (navigator.clipboard) navigator.clipboard.writeText(url).then(copied, function () { prompt('', url); });
