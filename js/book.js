@@ -1520,7 +1520,7 @@
           h = ST[0]; v = rep && rep.mode !== 'cont' ? selText(q('reciter')) + ' · ' + fv('mode') : '';
         } else if (md === 'hifz') {
           h = ST[1];
-          v = rep && rep.mode === 'hifz' ? fv('surah') + ' ' + uiNum(fv('ha1') || 1) + '–' + uiNum(fv('ha2') || 1) : ST[3];
+          v = '';   // memorizing: the passage is chosen in the settings, not shown over the page
         } else {
           h = ST[2]; v = '';   // recitation: what happens on a mistake is chosen in the settings, not shown on the page
         }
@@ -1562,13 +1562,8 @@
       if (fb0) { group(recSec); moves.push([fb0, row('', fb0)]); }
       body = reciteSec;
       var qz = document.querySelector('.bk-quizlink');
-      // the quiz: a small button in the top bar (not among the settings)
-      if (qz && bar) {
-        var qslot = document.createElement('span'); qslot.className = 'bk-mquiz'; bar.insertBefore(qslot, pg);
-        if (!qz.querySelector('svg')) qz.insertAdjacentHTML('afterbegin', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14M12 17h.01"/></svg>');
-        qz.setAttribute('aria-label', qz.textContent.trim());
-        moves.push([qz, qslot]);
-      }
+      // the quiz: in the settings (the top bar is the same in every mode: index, juz, Mushaf, search, mode, page, settings)
+      if (qz) { var qzRow = row('', qz); reciteSec.appendChild(qzRow); moves.push([qz, qzRow]); }
       var hbn = document.querySelector('.bk-hidebtn:not(.bk-tsbtn):not(.bk-fambtn)'), tsn = document.querySelector('.bk-tsbtn');
       if (hbn && bar) {
         var hslot = document.createElement('span'); hslot.className = 'bk-mquiz'; bar.insertBefore(hslot, pg);

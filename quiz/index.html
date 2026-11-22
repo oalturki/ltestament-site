@@ -46,6 +46,8 @@
   .qz-done{ text-align:center; color:#EFE6D8; }
   .qz-score{ font-size:3rem; font-weight:800; color:#DCC078; }
   .qz-credit{ color:#8a8270; font-size:.8rem; margin-top:18px; text-align:center; }
+  .qz-close{ position:fixed; top:14px; left:14px; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.08); color:#DCC078; text-decoration:none; font-size:1.1rem; border:1px solid rgba(220,192,120,.35); z-index:10; }
 </style>
 </head>
 <body>
@@ -58,6 +60,16 @@
     <p class="qz-credit">المعاني: «السراج في بيان غريب القرآن» عبر موسوعة القرآن الكريم QuranEnc.com</p>
   </div>
 </main>
+<script>
+/* opened from the Mushaf (?p=N): the way back is to that page of the Mushaf, with a close (×) too */
+(function () {
+  var m = /[?&]p=(\d+)/.exec(location.search); if (!m) return;
+  var back = document.querySelector('.fb-back'); if (!back) return;
+  back.href = '/book/#p=' + m[1]; back.textContent = '→ العودة إلى المصحف';
+  var x = document.createElement('a'); x.href = back.href; x.className = 'qz-close'; x.setAttribute('aria-label', 'إغلاق'); x.textContent = '✕';
+  document.body.appendChild(x);
+})();
+</script>
 <script src="/js/quiz.js"></script>
 <script src="/js/site.js" defer></script>
 </body>
