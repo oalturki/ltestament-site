@@ -281,7 +281,8 @@
       var p = list.filter(function (x) { return x.id === card.dataset.id; })[0];
       card.querySelector('[data-a=open]').onclick = function () { guard(p, function () { Fam.use(p); location.href = BOOK + (p.last_page ? '#p=' + p.last_page : ''); }); };
       card.querySelector('[data-a=map]').onclick = function () { guard(p, function () { mapView(c, p, states); }); };
-      card.querySelector('[data-a=plan]').onclick = function () { guard(p, function () { planView(p); }); };
+      // plans are made and followed in the Mushaf («خططي»): the parent's own profile shows his children's plans
+      card.querySelector('[data-a=plan]').onclick = function () { location.href = BOOK + (BOOK.indexOf('?') < 0 ? '?' : '&') + 's=plans'; };
       card.querySelector('[data-a=edit]').onclick = function () { guard(null, function () { editView(c, p); }); };
     });
     var add = app.querySelector('.ac-add');
@@ -323,6 +324,7 @@
   }
   // each card's plan line: lessons done and how far behind
   function planLines(list) {
+    return;     // the study plan moved into the Mushaf's plans (js/plans.js)
     PlanUI.summary(list.map(function (p) { return p.id; })).then(function (m) {
       Object.keys(m).forEach(function (pid) {
         var el = app.querySelector('.ac-plan[data-plan="' + pid + '"]'); if (!el) return;

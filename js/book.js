@@ -1666,6 +1666,7 @@
         root.__strip();
         window.Khatma.pull().then(function () { root.__strip(); });
         if (/[?&]k=/.test(location.search)) { open(); goSec('khatma'); }
+        var sq = /[?&]s=(plans|account|remind|khatma)\b/.exec(location.search); if (sq) { open(); goSec(sq[1]); }
         // a reminder of memorizing or reviewing opens the Mushaf in that mode
         var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
       });

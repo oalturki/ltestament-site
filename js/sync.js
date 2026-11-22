@@ -63,9 +63,14 @@
     }
     if (!mine) return theirs;
     if (!theirs) return mine;
+    // each item: the one changed last (plans carry t), else this device's when it changed here
     var by = {}, ord = [];
     (mineChanged ? [theirs, mine] : [mine, theirs]).forEach(function (l) {
-      l.forEach(function (r) { if (!by[r.id]) ord.push(r.id); by[r.id] = r; });
+      l.forEach(function (r) {
+        if (!by[r.id]) ord.push(r.id);
+        else if (by[r.id].t && r.t && by[r.id].t > r.t) return;
+        by[r.id] = r;
+      });
     });
     return ord.map(function (id) { return by[id]; });
   }

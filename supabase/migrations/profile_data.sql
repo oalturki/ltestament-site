@@ -21,3 +21,6 @@ alter table public.profile_data drop constraint profile_data_key_check;
 alter table public.profile_data add constraint profile_data_key_check check (key in ('reminders', 'marks', 'plans'));
 alter table public.profile_data drop constraint profile_data_data_check;
 alter table public.profile_data add constraint profile_data_data_check check (pg_column_size(data) < 60000);
+
+-- The study plans (المنهج المقرر) moved into the plans above (2026-11-22): each active study plan became a plan in
+-- its profile's profile_data row ('plans'), its holidays as days off; the study plans were set inactive (kept).
