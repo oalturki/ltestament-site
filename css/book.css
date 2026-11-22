@@ -1145,3 +1145,8 @@ body.bk-mob .bk-bar select.bk-mpg{ order:5 !important; width:46px !important; te
 body.bk-mob .bk-bar .bk-tgear{ order:6 !important; }
 body.bk-mob .bk-bar .bk-viewbtn{ padding:0 4px !important; justify-content:center; font-size:.9rem !important; }
 body.bk-mob .bk-bar .bk-viewbtn svg{ display:none; }
+/* phones: a lower top bar, so it ends above the page's frame */
+body.bk-mob .bk-bar{ padding-top:max(4px, env(safe-area-inset-top)) !important; padding-bottom:4px !important; min-height:0 !important; }
+body.bk-mob .bk-bar .bk-hamb, body.bk-mob .bk-bar .bk-tbtn, body.bk-mob .bk-bar .bk-viewbtn, body.bk-mob .bk-bar .bk-mbtn.bk-tmode,
+body.bk-mob .bk-bar select.bk-mpg, body.bk-mob .bk-bar .bk-mjz{ height:30px !important; }
+body.bk-mob .bk-bar .bk-tbtn svg, body.bk-mob .bk-bar .bk-hamb svg{ width:17px; height:17px; }
