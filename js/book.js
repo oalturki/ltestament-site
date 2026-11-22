@@ -255,6 +255,14 @@
     ru: { done: 'Готово', tools: 'Инструменты', hint1: 'Коснитесь страницы, чтобы показать или скрыть кнопки.', hint2: 'Нажмите и удерживайте слово, чтобы увидеть его смысл и толкование аята.', ok: 'Понятно', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Настройки', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
+  // one sound at a time on the page: whatever starts last plays, the others stop (the page's recitation, a word's
+  // phrase, the silent recitation's voice, …). Each source registers how it stops; starting one stops the rest.
+  var SOUNDS = {};
+  function soundOn(name, stop) {
+    if (stop) SOUNDS[name] = stop;
+    Object.keys(SOUNDS).forEach(function (k) { if (k !== name) try { SOUNDS[k](); } catch (e) {} });
+  }
+  window.__ltSoundOn = soundOn;
   // the browser's own install offer (Android, computer): kept for the tour's last step instead of its small banner
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__ltInstall = e; });
   function mobTrial() {
@@ -1129,7 +1137,7 @@
       var silAudioGo = function () {
         if (!SIL.on || !SIL.seq) return;
         var x = SIL.seq[SIL.i]; if (!x) return silTick();
-        if (playing) stopAudio();
+        if (window.__ltSoundOn) window.__ltSoundOn('silent', function () { silStop(); });
         var a = SIL.au || (SIL.au = new Audio()), url = srcOf(rec(), x.s, x.a);
         a.preload = 'auto';
         var same = a.getAttribute('src') === url && !a.paused && !a.ended && a.currentTime * 1000 <= x.at + 300;
@@ -2559,6 +2567,7 @@
     C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn, done, seg) {
       var P = wParts(loc), ctx = wCtxGet();
       if (playing) stopAudio();
+      soundOn('word', function () { if (wSrc) { var x = wSrc; wSrc = null; try { if (x.onended) x.onended(); x.onended = null; x.stop(); } catch (e) {} } });
       if (!ctx || !window.fetch) return;
       if (ctx.state !== 'running') ctx.resume();          // inside the tap: phones allow sound only from a tap
       if (wSrc) { try { wSrc.onended = null; wSrc.stop(); } catch (e) {} wSrc = null; }
@@ -2588,6 +2597,7 @@
     var playT0 = 0;
     function startAudio() {
       if (!RECS.length) return;
+      soundOn('page', stopAudio);
       playT0 = Date.now();
       if (!audio) {
         audio = new Audio(); audio.preload = 'auto';
