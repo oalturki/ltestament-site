@@ -1419,7 +1419,8 @@
       var srch = document.createElement('button'); srch.type = 'button'; srch.className = 'bk-msq';
       srch.innerHTML = svg(I.search) + '<span>' + esc(L.search) + '</span>';
       var bmk = document.createElement('button'); bmk.type = 'button'; bmk.className = 'bk-msq';
-      quick.appendChild(bmk); quick.appendChild(srch); sbody.appendChild(quick);
+      // at the top: sharing only (search is on the page's own bar; the bookmark is in «علاماتي»)
+      sbody.appendChild(quick);
       // the settings as a list, as in Mushaf apps: one row per subject (icon, title, its current value), each opening
       // its own page with a way back. The rows come in cards: my reading; the Mushaf (view, listening, recitation);
       // my places (bookmarks, recent places).
@@ -1594,6 +1595,7 @@
         paneR.innerHTML = rec.length ? rec.map(function (p) { return '<button type="button" class="bk-msplace" data-p="' + p + '">' + pageLabel(p) + '</button>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noRecent) + '</p>';
         paneM.innerHTML = marks.length ? marks.map(function (p) { return '<div class="bk-msplace"><button type="button" data-p="' + p + '">' + pageLabel(p) + '</button><button type="button" class="bk-msdel" data-d="' + p + '" aria-label="' + esc(S2.del) + '">×</button></div>'; }).join('') : '<p class="bk-msnone">' + esc(S2.noMarks) + '</p>';
         [paneR, paneM].forEach(function (pn) { pn.querySelectorAll('[data-p]').forEach(function (b) { b.onclick = function () { shut(); show(+b.dataset.p, 0); }; }); });
+        paneM.insertBefore(bmk, paneM.firstChild); bmk.classList.add('bk-msmark');
         paneM.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { store('lt_book_marks', JSON.stringify(listJ('lt_book_marks').filter(function (x) { return x !== +b.dataset.d; }))); fillPanes(); fillMenu(); }; });
         var on = marks.indexOf(cur) >= 0;
         bmk.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="' + (on ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg><span>' + esc(on ? S2.unmark : S2.mark) + '</span>';
