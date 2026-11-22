@@ -536,6 +536,21 @@
         if (el.classList.contains('bk-mpage')) fitMushaf(el);
         else if (el.classList.contains('bk-trpage')) fit(el, tr().lang === 'ur' ? trMax + 1 : trMax, 11);
       });
+      // iPad/computer: the meaning's frame lines up with the Mushaf frame facing it — same top, same bottom, same width
+      // (the two heads are set in different fonts, so their heights are matched here, not guessed)
+      if (wideNow()) {
+        var mf = book.querySelector('.bk-mpage .bk-mframe'), tf = book.querySelector('.bk-trpage .bk-trframe'), th = tf && tf.parentNode.querySelector('.bk-head');
+        if (mf && tf && th) {
+          th.style.height = ''; th.style.marginBottom = '';
+          var d = mf.getBoundingClientRect().top - tf.getBoundingClientRect().top;
+          if (Math.abs(d) > 0.5) th.style.height = Math.max(0, th.getBoundingClientRect().height + d) + 'px';
+          var db = mf.getBoundingClientRect().bottom - tf.getBoundingClientRect().bottom, tp = tf.parentNode;
+          if (Math.abs(db) > 0.5) tp.style.paddingBottom = Math.max(0, parseFloat(getComputedStyle(tp).paddingBottom) - db) + 'px';
+          var dw = mf.getBoundingClientRect().width - tf.getBoundingClientRect().width;
+          if (Math.abs(dw) > 0.5) tf.style.width = (tf.getBoundingClientRect().width + dw) + 'px';
+          var c = tf.querySelector('.bk-content'); if (c) fit(tp, tr().lang === 'ur' ? trMax + 1 : trMax, 11);
+        }
+      }
       // Two facing Mushaf pages: make the open book as wide as its pages need, so the pages meet at the spine
       // like a real Mushaf instead of floating apart on wide paper. Then place the margin notes again.
       if (spread) {
