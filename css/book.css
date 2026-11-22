@@ -1099,3 +1099,15 @@ body.bk-mob .bk-idx .bk-ixrow{ background:#fff; border-color:rgba(138,106,30,.12
 body.bk-mob .bk-idx .bk-ixrow.on{ background:#F6EACB; border-color:#c9a227; }
 body.bk-mob .bk-idx .bk-ixno{ background:rgba(138,106,30,.1); color:#8a6a1e; }
 body.bk-mob .bk-idx .bk-ixt small, body.bk-mob .bk-idx .bk-ixpg{ color:#97835a; }
+
+/* phones, every mode the same bottom bar: ‹ · time (always on the right) · the mode's main button (▶ to listen; 🎤 to
+   recite), small, in the middle · the mode's own figure or tool on the left (letters read; hide the verses) · › */
+body.bk-mob .bk-mnav .bk-mtime:not(:empty){ display:flex !important; flex-direction:column; align-items:center; justify-content:center; color:#6d5216; line-height:1.1; min-width:56px; order:1 !important; }
+body.bk-mob .bk-mnav .bk-mplay, body.bk-mob .bk-mnav .bk-mmic{ order:2 !important; }
+body.bk-mob .bk-mnav .bk-meye, body.bk-mob .bk-mnav .bk-mletters{ order:3 !important; min-width:56px; }
+body.bk-mob.bk-memo:not(.bk-mt) .bk-mnav .bk-mplay .bk-play{ width:46px !important; height:46px !important; margin-top:0 !important; border:0 !important;
+  box-shadow:0 2px 8px rgba(120,90,20,.25) !important; }
+body.bk-mob .bk-mnav .bk-mmic{ width:46px !important; height:46px !important; margin-top:0 !important; animation:none !important;
+  background:linear-gradient(160deg, #d4ae3c, #b8892e) !important; color:#2a1f08 !important; box-shadow:0 2px 8px rgba(120,90,20,.25) !important; }
+body.bk-mob .bk-mnav .bk-mmic svg{ width:20px; height:20px; }
+body.bk-mob .bk-mnav .bk-meye{ color:#6d5216 !important; }
