@@ -259,6 +259,8 @@
     // the phone design is now the default; ?old keeps the earlier one for whoever asks, ?new restores the default
     if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
     if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '0');
+    // asking for the new bars on a large screen (?wide=1) brings back the new design, even where ?old was once used
+    if (/[?&]wide=1\b/.test(location.search)) store('lt_mob_trial', '1');
     return load('lt_mob_trial') !== '0';
   }
   // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
