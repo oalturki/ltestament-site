@@ -1621,7 +1621,9 @@
       shb.onclick = function () {
         var url = location.origin + location.pathname + '#p=' + cur, title = document.title;
         var copied = function () { var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = SHL[1]; document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 2500); };
-        if (navigator.share) { navigator.share({ title: title, url: url }).catch(function () {}); return; }
+        // the line sent with the link: the page's own description (set per language in tools/build_book.py)
+        var dm = document.querySelector('meta[name="description"]'), text = dm ? dm.getAttribute('content') : '';
+        if (navigator.share) { navigator.share(text ? { title: title, text: text, url: url } : { title: title, url: url }).catch(function () {}); return; }
         if (navigator.clipboard) navigator.clipboard.writeText(url).then(copied, function () { prompt('', url); });
         else prompt('', url);
       };
