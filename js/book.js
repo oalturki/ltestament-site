@@ -297,7 +297,9 @@
     ];
     if (optTr && C.lang === 'ar' && !C.translations.some(function (t) { return t.tafsir; })) C.translations = TAFS.concat(C.translations);
     if (optTr && !embed) {
-      var arTr = load('lt_book_artr');
+      // the Mushaf opens as the Mushaf: a tafsir or translation chosen holds for this visit only (the tab's session)
+      try { localStorage.removeItem('lt_book_artr'); } catch (e) {}
+      var arTr = null; try { arTr = sessionStorage.getItem('lt_book_artr'); } catch (e) {}
       if (arTr && C.translations.some(function (t) { return t.key === arTr; })) { mushaf = false; C.defaultTranslation = arTr; }
     }
     root.classList.toggle('bk-is-mushaf', mushaf);
@@ -1854,7 +1856,7 @@
             var wasMushaf = mushaf;
             mushaf = !ts.value;
             root.classList.toggle('bk-is-mushaf', mushaf);
-            if (!embed) store('lt_book_artr', ts.value);
+            if (!embed) try { sessionStorage.setItem('lt_book_artr', ts.value); } catch (e) {}
             if (mushaf !== wasMushaf) {
               book.dataset.show = 'ar';
               root.querySelectorAll('.bk-tab[data-show]').forEach(function (b) { b.classList.toggle('on', b.dataset.show === 'ar'); });

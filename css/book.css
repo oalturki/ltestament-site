@@ -1257,3 +1257,9 @@ body.bk-wide .bk-msov:not(.bk-msside) .bk-msheet{ position:absolute; top:50px; l
 body.bk-wide .bk-msov.on:not(.bk-msside) .bk-msheet{ transform:none; }
 body.bk-wide .bk-msov:not(.bk-msside) .bk-msgrip{ display:none; }
 body.bk-wide .bk-viewov .bk-msbody{ max-height:calc(100dvh - 150px); }
+/* the list's width from its items' names; a description below a name wraps to the width they give */
+body.bk-wide .bk-msov:not(.bk-msside) .bk-msheet small{ display:block; width:0; min-width:100%; white-space:normal; }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-mshead h2{ flex:1 1 0; width:0; min-width:0; white-space:normal; }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-msheet{ min-width:240px; }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-vlist button > span{ display:block; flex:1 1 auto; min-width:0; }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-mshead h2{ font-size:1rem; }
