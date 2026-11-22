@@ -1612,6 +1612,26 @@
       fw.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { e.preventDefault(); fwSet(+b.dataset.v); } });
       fwSet(['0', '1', '2'].indexOf(load('lt_mfw')) >= 0 ? +load('lt_mfw') : 1);
       var fwRow = row(FWL[0], fw); if (fwRow) fwRow.appendChild(fw);   // (made here, so it lives in the sheet: no home to return to)
+      // night: dark paper, light text — or as the device is set
+      var NTL = { ar: ['الوضع الليلي', 'فاتح', 'ليلي', 'حسب الجهاز'], ur: ['رات کا انداز', 'روشن', 'رات', 'آلے کے مطابق'], en: ['Night mode', 'Light', 'Night', 'As device'],
+                  fr: ['Mode nuit', 'Clair', 'Nuit', 'Selon l’appareil'], es: ['Modo noche', 'Claro', 'Noche', 'Según el dispositivo'], ru: ['Ночной режим', 'Светлый', 'Ночной', 'Как в системе'] }[C.lang] || ['Night mode', 'Light', 'Night', 'As device'];
+      var nt = document.createElement('span'); nt.className = 'bk-fwsel bk-ntsel';
+      var mqD = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null, ntV = 'light';
+      var ntApply = function () {
+        var on = ntV === 'night' || (ntV === 'auto' && mqD && mqD.matches);
+        document.body.classList.toggle('bk-night', !!on);
+        var tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', on ? '#17150f' : '#FBF7EC');
+      };
+      var ntSet = function (v) {
+        ntV = v; store('lt_night', v);
+        nt.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+        ntApply();
+      };
+      nt.innerHTML = ['light', 'night', 'auto'].map(function (v, i) { return '<button type="button" data-v="' + v + '">' + esc(NTL[i + 1]) + '</button>'; }).join('');
+      nt.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { e.preventDefault(); ntSet(b.dataset.v); } });
+      if (mqD) { if (mqD.addEventListener) mqD.addEventListener('change', ntApply); else if (mqD.addListener) mqD.addListener(ntApply); }
+      ntSet(['light', 'night', 'auto'].indexOf(load('lt_night')) >= 0 ? load('lt_night') : 'light');
+      var ntRow = row(NTL[0], nt); if (ntRow) ntRow.appendChild(nt);
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
       group(listenSec);

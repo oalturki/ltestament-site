@@ -1397,3 +1397,24 @@ body.bk-fw2:not(.bk-tajweed) .bk-mushaf .ml:not(.ml-s){ -webkit-text-stroke:.04e
 /* zoomed: the page moves under the finger, nothing else scrolls */
 body.bk-zoomed .bk-stage{ overflow:hidden; touch-action:none; }
 .bk-book{ will-change:auto; }
+
+/* night mode: dark paper and bars, light text; the ornaments dimmed; the colour (tajweed) Mushaf inverted so its
+   black text turns light while its colours keep their hue */
+body.bk-mob.bk-night, body.bk-night .bk-stage{ background:#17150f !important; }
+body.bk-night .bk-mpage, body.bk-night .bk-page, body.bk-night .bk-trpage{ background:#1f1c16 !important; color:#e8e0cc !important; box-shadow:none !important; }
+body.bk-night .bk-mframe{ background-color:#1f1c16 !important; }
+body.bk-night .bk-mushaf, body.bk-night .bk-mhead, body.bk-night .bk-trpage .bk-content, body.bk-night .bk-trpage .bk-head{ color:#e8e0cc !important; }
+body.bk-night .bk-mframe, body.bk-night .bk-mushaf .mh{ filter:brightness(.72) saturate(.85); }
+body.bk-night .bk-mushaf .mh .mh-i{ color:#d9c99a; }
+body.bk-night.bk-tajweed .bk-mushaf{ filter:invert(1) hue-rotate(180deg) brightness(.95); }
+body.bk-night .bk-mushaf .hl, body.bk-night .bk-mushaf .on{ background:rgba(212,174,60,.25) !important; }
+body.bk-mob.bk-night .bk-bar, body.bk-mob.bk-night .bk-mnav{ background:rgba(30,27,21,.97) !important; color:#e0d3b0 !important; box-shadow:0 0 18px rgba(0,0,0,.5) !important; }
+body.bk-mob.bk-night .bk-hamb, body.bk-mob.bk-night .bk-tbtn, body.bk-mob.bk-night .bk-bar .bk-viewbtn, body.bk-mob.bk-night .bk-bar .bk-mbtn.bk-tmode, body.bk-mob.bk-night .bk-bar select.bk-mpg, body.bk-mob.bk-night .bk-bar select{
+  background:rgba(212,174,60,.12) !important; color:#e0d3b0 !important; }
+body.bk-mob.bk-night .bk-mnav, body.bk-mob.bk-night .bk-mnav *{ color:#e0d3b0; }
+body.bk-mob.bk-night .bk-mnav .bk-nav{ background:rgba(212,174,60,.12) !important; color:#e0d3b0 !important; }
+body.bk-night .bk-mframe.sp-l, body.bk-night .bk-mframe.sp-r{ --leaf:#2a261e; }
+body.bk-night[data-frame] .bk-mframe{ border-color:rgba(212,174,60,.35) !important; }
+
+body.bk-night [data-frame="leaves"] .bk-mframe.sp-l, body.bk-night[data-frame="leaves"] .bk-mframe.sp-l{ box-shadow:4px 0 0 -1px #26221b, 4px 0 0 0px rgba(212,174,60,.45), 8px 0 0 -3px #2b261e, 8px 0 0 -2px rgba(212,174,60,.45), 12px 0 0 -5px #302a21, 12px 0 0 -4px rgba(212,174,60,.45), 16px 0 0 -7px #352e24, 16px 0 0 -6px rgba(212,174,60,.45), 20px 0 0 -9px #3a3227, 20px 0 0 -8px rgba(212,174,60,.45) !important; background-image:linear-gradient(to right, rgba(0,0,0,.35), rgba(0,0,0,0) 24px) !important; filter:none; }
+body.bk-night [data-frame="leaves"] .bk-mframe.sp-r, body.bk-night[data-frame="leaves"] .bk-mframe.sp-r{ box-shadow:-4px 0 0 -1px #26221b, -4px 0 0 0px rgba(212,174,60,.45), -8px 0 0 -3px #2b261e, -8px 0 0 -2px rgba(212,174,60,.45), -12px 0 0 -5px #302a21, -12px 0 0 -4px rgba(212,174,60,.45), -16px 0 0 -7px #352e24, -16px 0 0 -6px rgba(212,174,60,.45), -20px 0 0 -9px #3a3227, -20px 0 0 -8px rgba(212,174,60,.45) !important; background-image:linear-gradient(to left, rgba(0,0,0,.35), rgba(0,0,0,0) 24px) !important; filter:none; }
