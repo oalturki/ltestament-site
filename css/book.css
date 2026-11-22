@@ -1297,3 +1297,5 @@ body.bk-wide .bk-idx .bk-ixclose{ display:flex; flex:none; width:34px; height:34
 .bk-mushaf .mh .mh-l{ left:13%; }
 .bk-mushaf .mh .mh-l{ font-size:.13em; left:16%; }
 .bk-mushaf .mh .mh-r{ right:16%; }
+/* iPad/computer: every spread the same size — the first two pages (short text, centred) no longer stretch to the screen's width */
+body.bk-wide .bk-book.bk-spread{ max-width:calc((100vh - 124px) * 1.3); max-width:calc((100dvh - 124px) * 1.3); margin-inline:auto; }
