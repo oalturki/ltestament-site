@@ -1428,3 +1428,6 @@ body.bk-night [data-frame="leaves"] .bk-mframe.sp-r, body.bk-night[data-frame="l
 .bk-backx{ padding:6px 10px; opacity:.7; font-size:1.1rem; }
 body.bk-ms .bk-back{ bottom:calc(98px + env(safe-area-inset-bottom)); }
 body.bk-night .bk-back{ background:#d4ae3c; color:#1b1409; }
+/* the reciter's avatar beside the old microphone: not in the new design (whose profile it is shows in the settings) —
+   it was floating over the page */
+body.bk-mob .bk-micav{ display:none !important; }
