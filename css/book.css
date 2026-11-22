@@ -1295,3 +1295,5 @@ body.bk-wide .bk-idx .bk-ixclose{ display:flex; flex:none; width:34px; height:34
   font-size:.16em; line-height:1; color:#7d6a3c; white-space:nowrap; pointer-events:none; }
 .bk-mushaf .mh .mh-r{ right:13%; }
 .bk-mushaf .mh .mh-l{ left:13%; }
+.bk-mushaf .mh .mh-l{ font-size:.13em; left:16%; }
+.bk-mushaf .mh .mh-r{ right:16%; }
