@@ -1111,3 +1111,15 @@ body.bk-mob .bk-mnav .bk-mmic{ width:46px !important; height:46px !important; ma
   background:linear-gradient(160deg, #d4ae3c, #b8892e) !important; color:#2a1f08 !important; box-shadow:0 2px 8px rgba(120,90,20,.25) !important; }
 body.bk-mob .bk-mnav .bk-mmic svg{ width:20px; height:20px; }
 body.bk-mob .bk-mnav .bk-meye{ color:#6d5216 !important; }
+/* phones: a lower bottom bar (it covers less of the page), every button in its fixed place, the main one smaller */
+body.bk-mob .bk-mnav{ min-height:0 !important; padding:4px 12px max(6px, env(safe-area-inset-bottom)) !important; gap:0; }
+body.bk-mob .bk-mnav > *{ flex:1 1 0; display:flex; justify-content:center; }
+body.bk-mob .bk-mnav .bk-marrow{ flex:0 0 auto; }
+body.bk-mob .bk-mnav .bk-marrow .bk-nav{ width:34px !important; height:34px !important; }
+body.bk-mob .bk-mnav .bk-mplay .bk-play, body.bk-mob.bk-memo:not(.bk-mt) .bk-mnav .bk-mplay .bk-play, body.bk-mob .bk-mnav .bk-mmic{
+  width:40px !important; height:40px !important; margin:0 !important; }
+body.bk-mob .bk-mnav .bk-mplay .bk-play svg, body.bk-mob .bk-mnav .bk-mmic svg{ width:16px !important; height:16px !important; }
+body.bk-mob .bk-mnav .bk-mbtn{ min-height:0 !important; padding:2px 0 !important; gap:1px; }
+body.bk-mob .bk-mnav .bk-mbtn svg{ width:20px; height:20px; }
+body.bk-mob .bk-mnav .bk-mbtn span{ font-size:.68rem; }
+body.bk-mob .bk-mnav .bk-mtime b, body.bk-mob .bk-mnav .bk-mletters b{ font-size:.92rem; }
