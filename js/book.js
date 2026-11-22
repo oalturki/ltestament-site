@@ -727,7 +727,12 @@
        «More» opens a sheet with the rest (page frame, reciter, go to page, quiz). The existing controls are
        moved, not copied, so their handlers stay as they are; above 600px they go back where they were. */
     function mobileShell() {
-      var L = MOB[C.lang] || MOB.en, mq = window.matchMedia('(max-width:600px)');
+      // the same shell on every screen (iPad, computer), once approved; until then on phones, and on larger screens
+      // only when asked for (?wide=1, kept on the device; ?wide=0 to leave it) — to review it before everyone sees it
+      var wide = /[?&]wide=([01])/.exec(location.search);
+      try { if (wide) localStorage.setItem('lt_wide', wide[1]); wide = localStorage.getItem('lt_wide') === '1'; } catch (e) { wide = !!(wide && wide[1] === '1'); }
+      var L = MOB[C.lang] || MOB.en, mq = window.matchMedia(wide ? 'all' : '(max-width:600px)');
+      if (wide) document.body.classList.add('bk-wide');
       var svg = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       var I = {
         index: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
