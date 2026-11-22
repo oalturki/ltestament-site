@@ -829,7 +829,7 @@ html[dir=rtl] .bk-msside .bk-msheet, [dir=rtl] .bk-msside .bk-msheet{ direction:
 .kh-colors button.on{ background:var(--kc); box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--kc); }
 .kh-name{ min-height:46px; border-radius:14px; border:1px solid #d9c88f; background:#fff; padding:0 12px; font:inherit; font-size:16px; color:#1b2a3a; }
 .kh-l{ font-size:.85rem; font-weight:700; color:#8a6a1e; margin-top:4px; }
-.kh-seg{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; padding:4px; background:#FFFDF7; border:1px solid #e2d3a4; border-radius:14px; }
+.kh-seg{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:4px; padding:4px; background:#FFFDF7; border:1px solid #e2d3a4; border-radius:14px; }
 .kh-seg button{ min-height:38px; border:0; border-radius:10px; background:none; color:#1b2a3a; font:inherit; font-weight:700; cursor:pointer; }
 .kh-seg button.on{ background:#2f6b45; color:#fff; }
 .kh-ft{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
@@ -1466,3 +1466,17 @@ body.bk-mob .bk-micav{ display:none !important; }
 .bk-lg .nm small{ font-size:13px; opacity:.65; }
 .bk-lg.on{ background:rgba(200,155,60,.18); border-color:rgba(200,155,60,.55); }
 .bk-lg.on .bd{ background:var(--gold-soft); color:#1d2a1f; }
+
+/* ختمة جديدة: the usual khatmas by duration, then one of his own */
+.kh-pick{ display:flex; flex-direction:column; gap:8px; }
+.kh-pt{ font-weight:800; font-size:1.05rem; color:#1b2a3a; margin:8px 4px 0; }
+.kh-pcard{ background:#FFFDF7; border:1px solid #e9dcb5; border-radius:18px; overflow:hidden; }
+.kh-pre{ display:flex; align-items:center; gap:10px; width:100%; padding:12px 16px; border:0; background:none; font:inherit; color:#1b2a3a; cursor:pointer; text-align:start; }
+.kh-pre + .kh-pre{ border-top:1px solid #efe5c8; }
+.kh-pre span{ flex:1; display:flex; flex-direction:column; gap:3px; }
+.kh-pre b{ font-size:1.05rem; }
+.kh-pre small{ color:#8a7550; font-size:.88rem; }
+.kh-pre i{ font-style:normal; color:#b9a77d; font-size:1.4rem; }
+[dir="ltr"] .kh-pre i, .kh-pick:dir(ltr) .kh-pre i{ transform:scaleX(-1); }
+.kh-own b{ color:#2f6b45; }
+.kh-pick .kh-cancel{ margin-top:6px; min-height:44px; border-radius:14px; border:1px solid #e2d3a4; background:#fff; font:inherit; color:#1b2a3a; cursor:pointer; }

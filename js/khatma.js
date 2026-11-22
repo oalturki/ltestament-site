@@ -1,6 +1,8 @@
-/* Khatmas (ختماتي): reading the Quran, or part of it, through in a set time — as in Mushaf apps.
-   A khatma is a range of Mushaf pages (chosen by juz, pages or surahs), a duration in days, the reading days of the
-   week, and a start date; the daily wird is the pages divided over the reading days. Progress is automatic: a page
+/* Khatmas (ختماتي): reading the whole Quran through in a set time — as in Mushaf apps.
+   A khatma is the whole Mushaf (pages 1–604), divided by juz, hizb, quarter or pages (k.unit), a daily wird of so many
+   of them (k.n, for juz, hizb and quarters), a duration in days, the reading days of the week, and a start date. With juz or
+   hizb, each day's wird starts and ends where a juz or hizb does. (Khatmas made before this may hold part of the
+   Mushaf, from k.from to k.to, divided by pages: they go on as they were.) Progress is automatic: a page
    of the range read in the Mushaf (open 20 s, heard to its end, or recited) is done (window event 'lt-page').
    Today's wird starts at the first page not read yet; the reader sees whether he is on time or behind.
 
@@ -104,6 +106,12 @@
     if (ch.length) { keep(ls); ch.forEach(changed); }
   }
 
+  // where each juz and hizb starts (Mushaf page; a juz or hizb starting inside a page counts from the next one)
+  var JZ = [1,22,42,63,82,102,122,142,162,182,202,222,242,262,282,302,322,342,362,382,402,422,442,462,482,503,522,542,562,582];
+  var HZ = [1,11,22,32,42,51,63,72,82,92,102,112,122,132,142,151,162,173,182,192,202,212,222,231,242,252,262,272,282,292,302,312,322,332,342,352,362,371,382,392,402,413,422,431,442,451,462,472,482,491,503,513,522,531,542,553,562,572,582,591];
+  var RB = [1,5,7,9,11,14,17,19,22,24,27,29,32,34,37,39,42,44,46,49,51,54,56,59,63,64,67,69,72,74,77,79,82,84,87,89,92,94,97,100,102,104,106,109,112,114,117,119,122,124,126,129,132,134,137,140,142,144,146,148,151,154,156,158,162,164,167,170,173,175,177,179,182,184,187,189,192,194,196,199,202,204,206,209,212,214,217,219,222,224,226,228,231,233,236,238,242,244,247,249,252,254,256,259,262,264,267,270,272,275,277,280,282,284,287,289,292,295,297,299,302,304,306,309,312,315,317,319,322,324,326,329,332,334,336,339,342,344,347,350,352,354,356,359,362,364,367,369,371,374,377,379,382,384,386,389,392,394,396,399,402,404,407,410,413,415,418,420,422,425,426,429,431,433,436,439,442,444,446,449,451,454,456,459,462,464,467,469,472,474,477,479,482,484,486,488,491,493,496,499,503,505,507,510,513,515,517,519,522,524,526,529,531,534,536,539,542,544,547,550,553,554,558,560,562,564,566,569,572,575,577,579,582,585,587,589,591,594,596,600];                                       // the quarters (أرباع الأحزاب)
+  function bounds(u) { return u === 'juz' ? JZ : u === 'hizb' ? HZ : u === 'rub' ? RB : null; }
+  function units(k) { return k.from === 1 && k.to === 604 ? bounds(k.unit) : null; }
   // the reading days from the start, for the duration: [dates]
   function slots(k) {
     var out = [], d = parse(k.start);
@@ -116,30 +124,34 @@
   // where a khatma stands today
   function stat(k) {
     var total = k.to - k.from + 1, sl = slots(k), t = ymd(new Date());
-    var per = Math.ceil(total / sl.length);
+    var U = units(k), per = U ? Math.max(1, k.n || Math.ceil(U.length / sl.length)) : Math.ceil(total / sl.length);
     var past = sl.filter(function (d) { return d <= t; }).length;       // reading days up to today
     var isDay = sl.indexOf(t) >= 0;
-    var want = Math.min(total, per * past);
+    // pages that should be read after d reading days (by whole juz or hizb when divided so)
+    var upto = function (d) { if (!U) return Math.min(total, per * d); var u = Math.min(U.length, per * d); return u >= U.length ? total : U[u] - 1; };
+    var want = upto(past);
     var dn = (k.done || []).filter(function (p) { return p >= k.from && p <= k.to; }).length;
     var first = 0;
     for (var p = k.from; p <= k.to; p++) if ((k.done || []).indexOf(p) < 0) { first = p; break; }
     var todayLeft = Math.max(0, want - dn);                             // today's share, with any days missed before it
-    var before = Math.min(total, per * (past - (isDay ? 1 : 0)));
+    var before = upto(past - (isDay ? 1 : 0));
     return { total: total, done: dn, per: per, want: want, behind: Math.max(0, before - dn), left: todayLeft,
       from: todayLeft ? first : 0, to: todayLeft ? Math.min(k.to, first + todayLeft - 1) : 0, end: sl[sl.length - 1], fin: dn >= total,
-      isDay: isDay, pct: Math.round(dn * 100 / total), first: first };
+      isDay: isDay, pct: Math.round(dn * 100 / total), first: first, unit: U ? k.unit : 'page' };
   }
   function active() { return list().filter(function (k) { return !k.ended && stat(k).done < stat(k).total; }); }
 
   var T = {
-    ar: { title: 'ختماتي', add: 'ختمة جديدة', none: 'لا ختمات بعد. أنشئ ختمة يُقسَّم فيها المصحف أو جزء منه على أيام، ويُتابَع تقدمك فيها تلقائيًا من قراءتك.',
-      name: 'الاسم', mine: 'ختمتي', range: 'نطاق الختمة', by: ['بالأجزاء', 'بالصفحات', 'بالسور'], from: 'من', to: 'إلى', juz: 'الجزء', page: 'صفحة', surah: 'سورة',
+    ar: { title: 'ختماتي', add: 'ختمة جديدة', none: 'لا ختمات بعد. أنشئ ختمة للقرآن كاملًا مقسَّمًا على أيام بالأجزاء أو الأحزاب أو الصفحات، ويُتابَع تقدمك فيها تلقائيًا من قراءتك.',
+      name: 'الاسم', mine: 'ختمتي', range: 'تقسيم الختمة', by: ['بالأجزاء', 'بالأحزاب', 'بالأرباع', 'بالصفحات'], hz: 'الحزب',
+      newK: 'ختمة جديدة', sugg: 'مقترحة', all: 'الكل', custom: 'ختمة مخصّصة', customS: 'تختار مدتها وأيام قراءتها وتقسيم وردها', kDays: 'ختمة', daily: 'الورد اليومي', approx: 'تقريبًا', from: 'من', to: 'إلى', juz: 'الجزء', page: 'صفحة', surah: 'سورة',
       days: 'المدة (الأيام)', rdays: 'أيام القراءة', every: 'كل يوم', wird: 'الورد', perDay: 'في كل يوم قراءة', start: 'تبدأ', remind: 'وقت التذكير',
       create: 'إنشاء', saveB: 'حفظ', cancel: 'إلغاء', del: 'حذف', edit: 'تعديل', delAsk: 'حذف هذه الختمة؟', read: 'اقرأ', today: 'ورد اليوم', pages: 'صفحات', p1: 'ص',
       onTime: 'على الموعد', behind: 'متأخر', ahead: 'أتممت ورد اليوم', ends: 'تنتهي', done: 'تمّت الختمة، تقبّل الله.', rest: 'لا ورد اليوم',
       wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], cont: 'أكمل', of: 'من', jz: 'جزء', note: 'يُحتسب التقدم من الصفحات التي تقرؤها في المصحف.', finished: 'المكتملة', started: 'كل ختماتي' },
-    en: { title: 'My khatmas', add: 'New khatma', none: 'No khatmas yet. Create one to read the Quran, or part of it, over a set number of days; your progress is followed from your reading.',
-      name: 'Name', mine: 'My khatma', range: 'Range', by: ['By juz', 'By pages', 'By surahs'], from: 'From', to: 'To', juz: 'Juz', page: 'Page', surah: 'Surah',
+    en: { title: 'My khatmas', add: 'New khatma', none: 'No khatmas yet. Create one to read the whole Quran over a set number of days, divided by juz, hizb or pages; your progress is followed from your reading.',
+      name: 'Name', mine: 'My khatma', range: 'Divide by', by: ['Juz', 'Hizb', 'Quarters', 'Pages'], hz: 'Hizb',
+      newK: 'New khatma', sugg: 'Suggested', all: 'All', custom: 'Custom khatma', customS: 'Choose its duration, reading days and how the wird is divided', kDays: 'Khatma in', daily: 'Daily wird', approx: 'about', from: 'From', to: 'To', juz: 'Juz', page: 'Page', surah: 'Surah',
       days: 'Duration (days)', rdays: 'Reading days', every: 'Every day', wird: 'Daily portion', perDay: 'each reading day', start: 'Starts', remind: 'Reminder time',
       create: 'Create', saveB: 'Save', cancel: 'Cancel', del: 'Delete', edit: 'Edit', delAsk: 'Delete this khatma?', read: 'Read', today: 'Today', pages: 'pages', p1: 'p.',
       onTime: 'On time', behind: 'Behind', ahead: 'Today’s portion done', ends: 'Ends', done: 'Khatma completed.', rest: 'No reading today',
@@ -160,6 +172,20 @@
     var j = Math.round(p / 20);
     if (j >= 1 && Math.abs(p - j * 20) <= (j >= 2 ? 4 : 1)) return lang === 'ar' ? arCount(j, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(j, lang) + ' ' + L(lang).jz;
     return pagesText(p, lang);
+  }
+  // the wird in the khatma's own unit: «جزء واحد», «حزبان», «٥ صفحات»
+  function unitText(n, unit, lang) {
+    if (unit === 'juz') return lang === 'ar' ? arCount(n, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : num(n, lang) + ' juz';
+    if (unit === 'hizb') return lang === 'ar' ? arCount(n, 'حزب واحد', 'حزبان', 'أحزاب', 'حزبًا') : num(n, lang) + ' hizb';
+    if (unit === 'rub') return lang === 'ar' ? arCount(n, 'ربع', 'ربعان', 'أرباع', 'ربعًا') : num(n, lang) + (n === 1 ? ' quarter' : ' quarters');
+    return pagesText(n, lang);
+  }
+  // today's wird named by its juz or hizb: «الجزء ٥» / «الحزب ٩–١٠»
+  function unitName(s, lang) {
+    if (!s.to || s.unit === 'page') return '';
+    var U = s.unit === 'juz' ? JZ : HZ, a = 0, b = 0;      // quarters: named by their hizb
+    for (var i = 0; i < U.length; i++) { if (U[i] <= s.from) a = i + 1; if (U[i] <= s.to) b = i + 1; }
+    return (s.unit === 'juz' ? L(lang).juz : L(lang).hz) + ' ' + num(a, lang) + (b > a ? '–' + num(b, lang) : '');
   }
   // the khatma's number, in words where Arabic has them: «الختمة الثالثة»
   var ORD = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة'];
@@ -198,47 +224,53 @@
           '<button type="button" class="kh-edit" data-e="' + k.id + '">' + esc(l.edit) + '</button></div>' +
           '<div class="kh-bar"><i style="width:' + s.pct + '%"></i></div>' +
           '<div class="kh-meta"><span>' + num(s.done, lang) + ' / ' + num(s.total, lang) + ' · ' + num(s.pct, lang) + '٪</span>' + state + '</div>' +
-          (s.fin ? '' : '<div class="kh-today"><span><b>' + esc(l.today) + ':</b> ' + (s.to ? esc(l.p1) + ' ' + num(s.from, lang) + (s.to > s.from ? '–' + num(s.to, lang) : '') : '—') + '</span>' +
+          (s.fin ? '' : '<div class="kh-today"><span><b>' + esc(l.today) + ':</b> ' + (s.to ? (unitName(s, lang) ? esc(unitName(s, lang)) + ' · ' : '') + esc(l.p1) + ' ' + num(s.from, lang) + (s.to > s.from ? '–' + num(s.to, lang) : '') : '—') + '</span>' +
             '<button type="button" class="kh-read" data-p="' + (s.first || k.from) + '">' + esc(s.done ? l.cont : l.read) + '</button></div>') +
-          '<div class="kh-end">' + esc(l.wird) + ': ' + esc(amountText(s.per, lang)) + ' · ' + esc(l.ends) + ' ' + esc(hijri(s.end, lang)) + '</div></div>';
+          '<div class="kh-end">' + esc(l.wird) + ': ' + esc(s.unit === 'page' ? amountText(s.per, lang) : unitText(s.per, s.unit, lang)) + ' · ' + esc(l.ends) + ' ' + esc(hijri(s.end, lang)) + '</div></div>';
       });
       h += '<button type="button" class="kh-add">+ ' + esc(l.add) + '</button><p class="kh-note">' + esc(l.note) + '</p>';
       el.innerHTML = h;
-      el.querySelector('.kh-add').onclick = function () { form(null); };
+      el.querySelector('.kh-add').onclick = pick;
       el.querySelectorAll('[data-e]').forEach(function (b) { b.onclick = function () { form(list().filter(function (x) { return x.id === b.dataset.e; })[0]); }; });
       el.querySelectorAll('.kh-read').forEach(function (b) { b.onclick = function () { o.close(); o.show(+b.dataset.p); }; });
     };
-    var form = function (k0) {
+    // a new khatma: the usual ones by duration (the wird in quarters, hizbs or juz), or one of his own
+    var PRE = [240, 120, 80, 60, 40, 30, 20, 15, 10, 7, 3];
+    var preset = function (d) {
+      var r = Math.ceil(240 / d), u = r % 8 === 0 ? 'juz' : r % 4 === 0 ? 'hizb' : 'rub';
+      return { days: d, unit: u, n: u === 'juz' ? r / 8 : u === 'hizb' ? r / 4 : r, exact: 240 % d === 0 };
+    };
+    var pick = function () {
+      var rowH = function (d) {
+        var p = preset(d);
+        return '<button type="button" class="kh-pre" data-pd="' + d + '"><span><b>' + esc(l.kDays) + ' ' + (lang === 'ar' ? arCount(d, 'يوم واحد', 'يومين', 'أيام', 'يومًا') : num(d, lang) + ' days') + '</b>' +
+          '<small>' + esc(l.daily) + ': ' + esc(unitText(p.n, p.unit, lang)) + (p.exact ? '' : ' ' + esc(l.approx)) + '</small></span><i>‹</i></button>';
+      };
+      el.innerHTML = '<div class="kh-pick"><div class="kh-pt">' + esc(l.sugg) + '</div><div class="kh-pcard">' + [30, 60].map(rowH).join('') + '</div>' +
+        '<div class="kh-pt">' + esc(l.all) + '</div><div class="kh-pcard">' + PRE.map(rowH).join('') +
+        '<button type="button" class="kh-pre kh-own"><span><b>' + esc(l.custom) + '</b><small>' + esc(l.customS) + '</small></span><i>‹</i></button></div>' +
+        '<button type="button" class="kh-cancel">' + esc(l.cancel) + '</button></div>';
+      el.querySelectorAll('[data-pd]').forEach(function (b) {
+        b.onclick = function () { var p = preset(+b.dataset.pd); form(null, { unit: p.unit, n: p.n, days: p.days }); };
+      });
+      el.querySelector('.kh-own').onclick = function () { form(null); };
+      el.querySelector('.kh-cancel').onclick = draw;
+      el.scrollTop = 0; if (el.parentNode) el.parentNode.scrollTop = 0;
+    };
+    var form = function (k0, pre) {
       map().then(function (mm) {
         var no0 = k0 && k0.no || nextNo();
-        var k = k0 ? JSON.parse(JSON.stringify(k0)) : { id: uid(), no: no0, name: nth(no0, lang), color: COLORS[(no0 - 1) % COLORS.length], unit: 'juz', from: 1, to: 604,
+        var k = k0 ? JSON.parse(JSON.stringify(k0)) : { id: uid(), no: no0, name: nth(no0, lang), color: COLORS[(no0 - 1) % COLORS.length], unit: 'juz', n: 1, from: 1, to: 604,
           days: 30, rdays: 127, start: ymd(new Date()), remind: { on: false, time: '20:00' }, done: [] };
-        var names = o.names || [];
-        var opt = function (unit, side) {
-          var o2 = '', i;
-          if (unit === 'juz') for (i = 1; i <= 30; i++) o2 += '<option value="' + i + '">' + esc(l.juz) + ' ' + num(i, lang) + '</option>';
-          else if (unit === 'surah') for (i = 1; i <= 114; i++) o2 += '<option value="' + i + '">' + num(i, lang) + ' ' + esc(names[i - 1] || '') + '</option>';
-          else for (i = 1; i <= 604; i++) o2 += '<option value="' + i + '">' + esc(l.page) + ' ' + num(i, lang) + '</option>';
-          return o2;
-        };
-        // the range as pages, and back
-        var toPages = function (unit, a, b) {
-          if (unit === 'juz') return [mm.jStart[a - 1], b < 30 ? mm.jStart[b] - 1 : 604];
-          if (unit === 'surah') return [mm.sFirst[a - 1], mm.sLast[b - 1]];
-          return [a, b];
-        };
-        var fromPages = function (unit) {
-          if (unit === 'juz') return [mm.m.juz[k.from - 1], mm.m.juz[k.to - 1]];
-          if (unit === 'surah') return [mm.m.pages[k.from - 1][0], mm.m.pages[k.to - 1][2]];
-          return [k.from, k.to];
-        };
-        var u0 = fromPages(k.unit);
+        if (pre) Object.assign(k, pre);
+        // an older khatma of part of the Mushaf keeps its range, divided by pages
+        var whole = k.from === 1 && k.to === 604;
+        if (!whole || ['juz', 'hizb', 'rub', 'page'].indexOf(k.unit) < 0) k.unit = 'page';
         el.innerHTML = '<div class="kh-form">' +
           '<div class="kh-colors">' + COLORS.map(function (c) { return '<button type="button" data-c="' + c + '" style="--kc:' + c + '"' + (c === k.color ? ' class="on"' : '') + '></button>'; }).join('') + '</div>' +
           '<input class="kh-name" maxlength="40" value="' + esc(k.name) + '" aria-label="' + esc(l.name) + '">' +
           '<div class="kh-l">' + esc(l.range) + '</div>' +
-          '<div class="kh-seg">' + ['juz', 'page', 'surah'].map(function (u, i) { return '<button type="button" data-u="' + u + '"' + (u === k.unit ? ' class="on"' : '') + '>' + esc(l.by[i]) + '</button>'; }).join('') + '</div>' +
-          '<div class="kh-ft"><label>' + esc(l.from) + '<select class="kh-a"></select></label><label>' + esc(l.to) + '<select class="kh-b"></select></label></div>' +
+          '<div class="kh-seg">' + (whole ? ['juz', 'hizb', 'rub', 'page'] : ['page']).map(function (u, i) { return '<button type="button" data-u="' + u + '"' + (u === k.unit ? ' class="on"' : '') + '>' + esc(l.by[['juz', 'hizb', 'rub', 'page'].indexOf(u)]) + '</button>'; }).join('') + '</div>' +
           '<div class="kh-row"><span>' + esc(l.days) + '</span><span class="kh-step"><button type="button" data-d="1">+</button><input class="kh-days" type="number" inputmode="numeric" min="1" max="3650"><button type="button" data-d="-1">−</button></span></div>' +
           '<div class="kh-row kh-rdays"><span>' + esc(l.rdays) + '</span><span class="kh-wd">' + l.wd.map(function (w, i) { return '<button type="button" data-w="' + i + '">' + esc(w) + '</button>'; }).join('') + '</span></div>' +
           '<div class="kh-row"><span>' + esc(l.wird) + '</span><span class="kh-step"><button type="button" data-a="1">+</button><b class="kh-amt"></b><button type="button" data-a="-1">−</button></span></div>' +
@@ -248,29 +280,34 @@
           '<div class="kh-btns"><button type="button" class="kh-save">' + esc(k0 ? l.saveB : l.create) + '</button><button type="button" class="kh-cancel">' + esc(l.cancel) + '</button>' +
           (k0 ? '<button type="button" class="kh-del">' + esc(l.del) + '</button>' : '') + '</div></div>';
         var $ = function (s) { return el.querySelector(s); };
-        var sa = $('.kh-a'), sb = $('.kh-b'), dI = $('.kh-days');
-        var fill = function () {
-          sa.innerHTML = opt(k.unit); sb.innerHTML = opt(k.unit);
-          var u = fromPages(k.unit); sa.value = String(u[0]); sb.value = String(u[1]);
-        };
-        var total = function () { return k.to - k.from + 1; };
+        var dI = $('.kh-days');
+        var U = function () { return bounds(k.unit); };
+        var total = function () { return U() ? U().length : k.to - k.from + 1; };       // in the khatma's unit
         var nSlots = function () { return slots(k).length; };
         var show = function () {
           dI.value = String(k.days);
           el.querySelectorAll('.kh-wd button').forEach(function (b) { b.classList.toggle('on', !!((k.rdays >> +b.dataset.w) & 1)); });
-          $('.kh-amt').textContent = amountText(Math.ceil(total() / nSlots()), lang) + ' ' + l.perDay;
+          var per = Math.ceil(total() / nSlots());
+          if (U()) k.n = per;
+          $('.kh-amt').textContent = (U() ? unitText(per, k.unit, lang) : amountText(per, lang)) + ' ' + l.perDay;
         };
-        var range = function () {
-          var a = +sa.value, b = +sb.value; if (b < a) { var t = a; a = b; b = t; }
-          var p = toPages(k.unit, a, b); k.from = p[0]; k.to = p[1]; show();
+        // the duration that gives a wird of np units a day
+        var daysFor = function (np) {
+          var want = Math.max(1, Math.ceil(total() / np)), perWeek = 0;     // reading days needed
+          for (var i = 0; i < 7; i++) if ((k.rdays >> i) & 1) perWeek++;
+          k.days = Math.max(1, Math.ceil(want * 7 / perWeek));
+          while (k.days > 1 && slots(Object.assign({}, k, { days: k.days - 1 })).length >= want) k.days--;
         };
-        fill(); show();
+        show();
         $('.kh-start').value = k.start; $('.kh-time').value = k.remind.time; $('.kh-on').checked = !!k.remind.on;
         el.querySelectorAll('[data-c]').forEach(function (b) { b.onclick = function () { k.color = b.dataset.c; el.querySelectorAll('[data-c]').forEach(function (x) { x.classList.toggle('on', x === b); }); }; });
         el.querySelectorAll('[data-u]').forEach(function (b) {
-          b.onclick = function () { k.unit = b.dataset.u; el.querySelectorAll('[data-u]').forEach(function (x) { x.classList.toggle('on', x === b); }); fill(); range(); };
+          b.onclick = function () {
+            k.unit = b.dataset.u; el.querySelectorAll('[data-u]').forEach(function (x) { x.classList.toggle('on', x === b); });
+            if (U()) daysFor(Math.max(1, Math.round(total() / nSlots())));       // a whole number of juz or hizb a day
+            show();
+          };
         });
-        sa.onchange = range; sb.onchange = range;
         el.querySelectorAll('[data-d]').forEach(function (b) { b.onclick = function () { k.days = Math.max(1, Math.min(3650, k.days + +b.dataset.d)); show(); }; });
         dI.onchange = function () { k.days = Math.max(1, Math.min(3650, +dI.value || 1)); show(); };
         el.querySelectorAll('[data-w]').forEach(function (b) {
@@ -280,13 +317,10 @@
         el.querySelectorAll('[data-a]').forEach(function (b) {
           b.onclick = function () {
             var per = Math.ceil(total() / nSlots()), up = +b.dataset.a > 0, np;
-            if (per >= 19) { var j = Math.round(per / 20) + (up ? 1 : -1); np = j >= 1 ? j * 20 : 15; }
+            if (U()) np = Math.max(1, Math.min(total(), per + (up ? 1 : -1)));
+            else if (per >= 19) { var j = Math.round(per / 20) + (up ? 1 : -1); np = j >= 1 ? j * 20 : 15; }
             else np = Math.max(1, per + (up ? 1 : -1));
-            var want = Math.max(1, Math.round(total() / np)), perWeek = 0;     // reading days needed
-            for (var i = 0; i < 7; i++) if ((k.rdays >> i) & 1) perWeek++;
-            k.days = Math.max(1, Math.ceil(want * 7 / perWeek));
-            while (k.days > 1 && slots(Object.assign({}, k, { days: k.days - 1 })).length >= want) k.days--;
-            show();
+            daysFor(np); show();
           };
         });
         var pushNote = function () {
