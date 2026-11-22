@@ -1543,3 +1543,14 @@ body.bk-mob .bk-micav{ display:none !important; }
 .pl-kid{ display:flex; flex-direction:column; gap:8px; padding:10px 0; border-top:1px solid #efe5c8; }
 .pl-kadd{ min-height:40px; border-radius:12px; border:1px dashed #c9b37a; background:none; color:#2f6b45; font:inherit; font-weight:700; cursor:pointer; }
 .pl-fit{ margin-top:4px; }
+/* دليل الاستخدام */
+.gd{ display:flex; flex-direction:column; gap:8px; color:#1b2a3a; line-height:1.85; }
+.gd-s{ border:1px solid #e9dcb5; border-radius:14px; background:#FFFDF7; padding:0 14px; }
+.gd-s summary{ font-weight:800; font-size:1.05rem; padding:12px 0; cursor:pointer; color:#2f6b45; list-style-position:inside; }
+.gd-s[open]{ padding-bottom:10px; }
+.gd p{ margin:6px 0; }
+.gd ul, .gd ol{ margin:4px 0; padding-inline-start:20px; }
+.gd li{ margin:4px 0; }
+.gd strong{ color:#1b2a3a; }
+body.bk-night .gd-s{ background:#1d2a22; border-color:#3a4a3e; }
+body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }

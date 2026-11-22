@@ -1427,6 +1427,7 @@
         marks: '<path d="M6 3h12v18l-6-4-6 4z"/>',
         recent: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
         remind: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+        guide: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
         plans: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M8 14h3M8 17h6"/>',
         account: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor" stroke="none"/>',
         lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>',
@@ -1451,6 +1452,9 @@
         headT.textContent = k ? secs[k].dataset.title : L.settings;
         if (k === 'stats') rsFill();
         if (k === 'account') ltLoad(['/js/sync.js', '/js/myaccount.js'], function () { window.LtAcc.ui(accSec, { lang: C.lang, done: function () { fillPanes(); } }); });
+        if (k === 'guide' && !gdSec.dataset.ok) fetch('/data/guide/' + C.lang + '.html').then(function (r) { return r.text(); }).then(function (h) {
+          gdSec.innerHTML = '<div class="gd">' + h + '</div>'; gdSec.dataset.ok = '1';
+        }).catch(function () {});
         if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
           window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
         });
@@ -1545,7 +1549,7 @@
       newCard(MH[0]);
       var listenSec = section('listen', S2.listen); card.removeChild(card.lastChild);
       var reciteSec = section('recite', S2.recite); card.removeChild(card.lastChild);
-      var mTitles = [MH[1], MD[1], MD[2]], mIcons = [IC.listen, I2.memo, IC.recite], mRows = {};
+      var mTitles = [MH[1], MD[1], MD[2], SL[0]], mIcons = [IC.listen, I2.memo, IC.recite, '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 11.5 5.4M19 11a7 7 0 0 1-.4 2.3M12 18v3M3 3l18 18"/>'], mRows = {};
       var useBars = {};
       [listenSec, reciteSec].forEach(function (sec) {
         var u = document.createElement('button'); u.type = 'button'; u.className = 'bk-msuse'; sec.insertBefore(u, sec.firstChild);
@@ -1566,6 +1570,9 @@
         r.onclick = function () { openMode(m); };
         card.appendChild(r); mRows[m] = r;
       });
+      // the user guide: a page per service, folded (data/guide/<lang>.html, built by tools/build_guide.py; Arabic so far)
+      var GDL = { ar: ['المساعدة', 'دليل الاستخدام'] }[C.lang];
+      var gdSec = GDL ? (newCard(GDL[0]), section('guide', GDL[1], 'guide')) : null;
       var pageLabel = function (p) {
         var pg2 = MAP.pages[p - 1];
         return '<b>' + esc(C.uiNames[pg2[0] - 1]) + '</b><small>' + esc(S2.page) + ' ' + uiNum(p) + ' · ' + esc(S2.juz) + ' ' + uiNum(MAP.juz[p - 1]) + '</small>';
