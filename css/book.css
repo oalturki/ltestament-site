@@ -1384,3 +1384,5 @@ body.bk-wide .bk-trframe > .bk-content{ flex:1; min-height:0; padding:6px 12px 0
 body.bk-mob .bk-mnav{ box-sizing:border-box; min-height:calc(56px + max(6px, env(safe-area-inset-bottom))) !important; align-items:center !important; }
 body.bk-mob .bk-mnav .bk-mplay, body.bk-mob .bk-mnav .bk-mmic, body.bk-mob .bk-mnav .bk-msil{ align-self:center; min-height:46px; }
 body.bk-mob.bk-ms .bk-mnav{ min-height:calc(70px + max(6px, env(safe-area-inset-bottom))) !important; }
+/* the Mushaf text a touch fuller (on screens the thin strokes of the print font look lighter than on paper) */
+body:not(.bk-tajweed) .bk-mushaf .ml:not(.ml-s){ -webkit-text-stroke:.022em currentColor; }
