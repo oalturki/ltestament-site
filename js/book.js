@@ -1393,19 +1393,25 @@
         '<div class="bk-msbody"></div></section>';
       document.body.appendChild(ov);
       var SH = {
-        ar: { main: 'أساسي', recent: 'آخر المواضع', marks: 'علاماتي', view: 'العرض', listen: 'الاستماع', recite: 'التسميع', rec: 'سجل الطالب', go: 'الانتقال',
+        ar: { main: 'أساسي', recent: 'آخر المواضع', marks: 'علاماتي', view: 'العرض', listen: 'الاستماع', recite: 'التسميع', rec: 'السجل', go: 'الانتقال',
               mark: 'علامة على الصفحة', unmark: 'إزالة العلامة', noRecent: 'لا مواضع بعد.', noMarks: 'لا علامات بعد. ضع علامة على الصفحة من الزر أعلاه.', page: 'صفحة', juz: 'الجزء', del: 'حذف' },
-        ur: { main: 'بنیادی', recent: 'حالیہ مقامات', marks: 'میرے نشانات', view: 'منظر', listen: 'سننا', recite: 'تسمیع', rec: 'طالب علم کا ریکارڈ', go: 'جائیں',
+        ur: { main: 'بنیادی', recent: 'حالیہ مقامات', marks: 'میرے نشانات', view: 'منظر', listen: 'سننا', recite: 'تسمیع', rec: 'ریکارڈ', go: 'جائیں',
               mark: 'صفحے پر نشان', unmark: 'نشان ہٹائیں', noRecent: 'ابھی کوئی مقام نہیں۔', noMarks: 'ابھی کوئی نشان نہیں۔', page: 'صفحہ', juz: 'پارہ', del: 'حذف' },
-        en: { main: 'Main', recent: 'Recent places', marks: 'My bookmarks', view: 'View', listen: 'Listening', recite: 'Recitation', rec: 'Student record', go: 'Go to',
+        en: { main: 'Main', recent: 'Recent places', marks: 'My bookmarks', view: 'View', listen: 'Listening', recite: 'Recitation', rec: 'Record', go: 'Go to',
               mark: 'Bookmark this page', unmark: 'Remove bookmark', noRecent: 'No places yet.', noMarks: 'No bookmarks yet. Bookmark a page with the button above.', page: 'Page', juz: 'Juz', del: 'Delete' },
-        fr: { main: 'Principal', recent: 'Derniers passages', marks: 'Mes signets', view: 'Affichage', listen: 'Écoute', recite: 'Récitation', rec: 'Dossier de l’élève', go: 'Aller à',
+        fr: { main: 'Principal', recent: 'Derniers passages', marks: 'Mes signets', view: 'Affichage', listen: 'Écoute', recite: 'Récitation', rec: 'Dossier', go: 'Aller à',
               mark: 'Marquer la page', unmark: 'Retirer le signet', noRecent: 'Aucun passage encore.', noMarks: 'Aucun signet encore.', page: 'Page', juz: 'Juz', del: 'Supprimer' },
-        es: { main: 'Principal', recent: 'Últimos lugares', marks: 'Mis marcadores', view: 'Vista', listen: 'Escucha', recite: 'Recitación', rec: 'Registro del alumno', go: 'Ir a',
+        es: { main: 'Principal', recent: 'Últimos lugares', marks: 'Mis marcadores', view: 'Vista', listen: 'Escucha', recite: 'Recitación', rec: 'Registro', go: 'Ir a',
               mark: 'Marcar la página', unmark: 'Quitar el marcador', noRecent: 'Aún no hay lugares.', noMarks: 'Aún no hay marcadores.', page: 'Página', juz: 'Juz', del: 'Borrar' },
-        ru: { main: 'Основное', recent: 'Недавние места', marks: 'Мои закладки', view: 'Вид', listen: 'Слушание', recite: 'Чтение наизусть', rec: 'Журнал ученика', go: 'Перейти',
+        ru: { main: 'Основное', recent: 'Недавние места', marks: 'Мои закладки', view: 'Вид', listen: 'Слушание', recite: 'Чтение наизусть', rec: 'Журнал', go: 'Перейти',
               mark: 'Закладка на страницу', unmark: 'Убрать закладку', noRecent: 'Пока ничего.', noMarks: 'Закладок пока нет.', page: 'Стр.', juz: 'Джуз', del: 'Удалить' } };
       var S2 = SH[C.lang] || SH.en;
+      // «سجل محمد»: the record named by whose it is («الطالب» is a school's word, not a family's)
+      var recTitle = function (nm) {
+        var R = { ar: ['السجل', 'سجل '], ur: ['ریکارڈ', ' کا ریکارڈ'], en: ['Record', '’s record'], fr: ['Dossier', 'Dossier de '], es: ['Registro', 'Registro de '], ru: ['Журнал', 'Журнал: '] }[C.lang] || ['Record', '’s record'];
+        if (!nm) return R[0];
+        return C.lang === 'en' || C.lang === 'ur' ? nm + R[1] : R[1] + nm;
+      };
       var RSL = { ar: 'قراءتي', ur: 'میری تلاوت', en: 'My reading', fr: 'Ma lecture', es: 'Mi lectura', ru: 'Моё чтение' };
       var sbody = ov.querySelector('.bk-msbody');
       // quick actions: search and the bookmark of this page
@@ -1605,7 +1611,12 @@
         if (subs.plans) { var pls = []; try { pls = JSON.parse(localStorage.getItem('lt_plans') || '[]') || []; } catch (e) {} subs.plans.textContent = pls.length ? uiNum(pls.length) : ''; }
         if (subs.account) { var ap = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) ap = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} subs.account.textContent = ap ? ap.name : ACL[1]; }
         if (subs.lang) subs.lang.textContent = ({ ar: 'العربية', en: 'English', fr: 'Français', es: 'Español', ru: 'Русский', ur: 'اردو' })[C.lang] || '';
-        if (subs.rec) { var pf = window.Fam && window.Fam.current && window.Fam.current(); subs.rec.textContent = pf ? pf.name : ''; }
+        if (subs.rec) {
+          var pf = window.Fam && window.Fam.current && window.Fam.current(), rb = subs.rec.parentNode.querySelector('b');
+          subs.rec.textContent = '';
+          if (rb) rb.textContent = recTitle(pf && pf.name);
+          if (secs.rec) secs.rec.dataset.title = recTitle(pf && pf.name);
+        }
         if (subs.khatma) {
           var kt = window.Khatma && window.Khatma.stripText(C.lang);
           subs.khatma.textContent = kt ? kt.h + ': ' + kt.v : '';
@@ -3584,7 +3595,7 @@
 
         // ---- the student record (سجل الطالب): who is reading (the profile the record goes to), switching between the
         // family's profiles, today's review; the record itself is kept by js/family.js (Supabase)
-        var FLS = {"ar": ["سجل الطالب", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ ختماتك وتقدّمك وتقدّم أولادك: ادخل حسابك أو أنشئه.", "دخول / حساب جديد", "رمز الدخول", "الرمز غير صحيح.", "صفحات"], "ur": ["طالب علم کا ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے ختم اور پیش رفت، اور اپنے بچوں کی پیش رفت محفوظ کریں: لاگ اِن کریں یا اکاؤنٹ بنائیں۔", "لاگ اِن / نیا اکاؤنٹ", "پن", "غلط پن۔", "صفحات"], "en": ["Student record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your khatmas and progress, and your children’s: sign in or create your account.", "Sign in / New account", "Code", "Wrong code.", "pages"], "fr": ["Dossier de l’élève", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez vos khatmas et vos progrès, et ceux de vos enfants : connectez-vous ou créez votre compte.", "Connexion / Nouveau compte", "Code", "Code incorrect.", "pages"], "es": ["Registro del alumno", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda tus jatmas y tu progreso, y el de tus hijos: entra o crea tu cuenta.", "Entrar / Cuenta nueva", "Código", "Código incorrecto.", "páginas"], "ru": ["Журнал ученика", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте свои хатмы и успехи, и успехи детей: войдите или создайте аккаунт.", "Вход / Новый аккаунт", "Код", "Неверный код.", "стр."]};
+        var FLS = {"ar": ["السجل", "من يقرأ؟", "مراجعة اليوم", "ابدأ المراجعة", "لا مراجعة اليوم", "افتح سجل الطالب", "احفظ ختماتك وتقدّمك وتقدّم أولادك: ادخل حسابك أو أنشئه.", "دخول / حساب جديد", "رمز الدخول", "الرمز غير صحيح.", "صفحات"], "ur": ["ریکارڈ", "کون پڑھ رہا ہے؟", "آج کی دہرائی", "دہرائی شروع کریں", "آج کوئی دہرائی نہیں", "ریکارڈ کھولیں", "اپنے ختم اور پیش رفت، اور اپنے بچوں کی پیش رفت محفوظ کریں: لاگ اِن کریں یا اکاؤنٹ بنائیں۔", "لاگ اِن / نیا اکاؤنٹ", "پن", "غلط پن۔", "صفحات"], "en": ["Record", "Who is reading?", "Review today", "Start reviewing", "No review today", "Open the record", "Keep your khatmas and progress, and your children’s: sign in or create your account.", "Sign in / New account", "Code", "Wrong code.", "pages"], "fr": ["Dossier", "Qui lit ?", "Révision du jour", "Commencer la révision", "Pas de révision aujourd’hui", "Ouvrir le dossier", "Gardez vos khatmas et vos progrès, et ceux de vos enfants : connectez-vous ou créez votre compte.", "Connexion / Nouveau compte", "Code", "Code incorrect.", "pages"], "es": ["Registro", "¿Quién lee?", "Repaso de hoy", "Empezar el repaso", "Hoy no hay repaso", "Abrir el registro", "Guarda tus jatmas y tu progreso, y el de tus hijos: entra o crea tu cuenta.", "Entrar / Cuenta nueva", "Código", "Código incorrecto.", "páginas"], "ru": ["Журнал", "Кто читает?", "Повторение сегодня", "Начать повторение", "Сегодня повторять нечего", "Открыть журнал", "Сохраняйте свои хатмы и успехи, и успехи детей: войдите или создайте аккаунт.", "Вход / Новый аккаунт", "Код", "Неверный код.", "стр."]};
         var FL = FLS[C.lang] || FLS.en, ACC = '/account/?lang=' + C.lang;
         var PLS = {"ar": ["ورد اليوم", "المراجعة القريبة", "الحفظ الجديد", "المراجعة البعيدة", "متأخر", "دروس", "أتممت درس اليوم، بارك الله فيك.", "أعد الدرس؛ الأخطاء:", "أتمّ المنهج، بارك الله فيه.", "ضبط وتثبيت", "اختبار", "أنجز"],
           "ur": ["آج کا ورد", "قریبی دہرائی", "نیا حفظ", "دور کی دہرائی", "پیچھے", "اسباق", "آج کا سبق مکمل، اللہ برکت دے۔", "سبق دوبارہ پڑھیں؛ غلطیاں:", "نصاب مکمل، اللہ برکت دے۔", "پختگی کا دن", "امتحان", "مکمل"],

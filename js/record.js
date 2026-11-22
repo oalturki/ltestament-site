@@ -62,7 +62,7 @@
     h('<div class="rc-card"><h2 class="rc-h">من سيسجّل؟</h2><div class="rc-profs">' +
       S.profiles.map(function (p) {
         return '<button class="rc-prof' + (cur && cur.id === p.id ? ' on' : '') + '" data-id="' + p.id + '">' + esc(p.name) + '</button>';
-      }).join('') + '</div><p class="rc-muted">لإضافة ابن أو بنت: <a href="/account/">سجل الطالب</a>.</p></div>');
+      }).join('') + '</div><p class="rc-muted">لإضافة ابن أو بنت: <a href="/book/?s=account">حسابي</a>.</p></div>');
     app.querySelectorAll('.rc-prof').forEach(function (b) {
       b.onclick = function () {
         S.prof = S.profiles.filter(function (p) { return p.id === b.dataset.id; })[0];
