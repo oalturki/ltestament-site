@@ -1131,3 +1131,15 @@ body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters{ display:flex !impor
 body.bk-mob:not(.bk-memo):not(.bk-mt) .bk-mnav .bk-mletters[hidden]{ visibility:hidden; }
 body.bk-mob .bk-mnav .bk-mtime{ display:flex !important; }
 body.bk-mob .bk-mnav .bk-mtime:empty{ visibility:hidden; }
+
+/* phones, the top bar in mirror order (right to left): ☰ · juz · what is shown · 🔍 (the middle) · the mode · page · ⚙ —
+   the small ones at the ends, the two wide ones of one width either side of the search */
+.bk-mjz{ display:none; }
+body.bk-mob .bk-bar .bk-hamb{ order:0 !important; }
+body.bk-mob .bk-bar .bk-mjz{ display:block; order:1; flex:none; width:46px; height:34px; border-radius:10px; border:0; text-align:center; text-align-last:center;
+  background:rgba(138,106,30,.08); color:#6d5216; font:inherit; font-size:.85rem; font-weight:700; padding:0 2px; -webkit-appearance:none; appearance:none; }
+body.bk-mob .bk-bar .bk-viewbtn{ order:2 !important; flex:1 1 0 !important; min-width:0 !important; }
+body.bk-mob .bk-bar .bk-tsrch{ order:3 !important; }
+body.bk-mob .bk-bar .bk-mbtn.bk-tmode{ order:4 !important; flex:1 1 0 !important; min-width:0 !important; }
+body.bk-mob .bk-bar select.bk-mpg{ order:5 !important; width:46px !important; text-align:center; text-align-last:center; }
+body.bk-mob .bk-bar .bk-tgear{ order:6 !important; }

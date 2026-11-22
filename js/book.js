@@ -640,6 +640,7 @@
         : goSurah && vis0.indexOf(surahStart[goSurah - 1]) >= 0 ? goSurah : MAP.pages[cur - 1][0];
       if (q('surahSel')) q('surahSel').value = String(ss); fitSel();
       var mpg = root.querySelector('.bk-mpg'); if (mpg) mpg.value = String(cur);
+      var mjz = document.querySelector('.bk-mjz'); if (mjz && MAP) mjz.value = String(MAP.juz[cur - 1]);
       if (!embed) { history.replaceState(null, '', '#p=' + cur); store('lt_book_page', String(cur)); }
       else { var full = root.querySelector('a.bk-full'); if (full) full.href = full.getAttribute('href').split('#')[0] + '#p=' + cur; }   // open the full book at this page
     }
@@ -819,6 +820,15 @@
           });
         };
         hb.onclick = function (e) { e.stopPropagation(); idxOpen(); };
+        // the juz, beside the index (the page's twin on the other side): its number; a tap lists the thirty
+        var jz = document.createElement('select'); jz.className = 'bk-mjz';
+        jz.setAttribute('aria-label', { ar: 'الجزء', ur: 'پارہ', en: 'Juz', fr: 'Juz', es: 'Yuz', ru: 'Джуз' }[C.lang] || 'Juz');
+        var jStart = []; MAP.juz.forEach(function (j, i) { if (!jStart[j - 1]) jStart[j - 1] = i + 1; });
+        jz.innerHTML = jStart.map(function (p, i) { return '<option value="' + (i + 1) + '">' + (C.lang === 'ar' ? 'ج' : 'J') + uiNum(i + 1) + '</option>'; }).join('');
+        jz.value = String(MAP.juz[cur - 1] || 1);
+        jz.onchange = function () { repPicked = false; var to = jStart[+jz.value - 1]; if (to && to !== cur) show(to, 0); };
+        jz.addEventListener('click', function (e) { e.stopPropagation(); });
+        bar.insertBefore(jz, hb.nextSibling);
         // the surah's name at the head of the page opens the index too (as in Mushaf apps): the name is already on every
         // page, so the bar needs none — the reader taps the name where it is
         root.addEventListener('click', function (e) {
