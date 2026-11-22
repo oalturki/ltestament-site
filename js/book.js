@@ -255,6 +255,8 @@
     ru: { done: 'Готово', tools: 'Инструменты', hint1: 'Коснитесь страницы, чтобы показать или скрыть кнопки.', hint2: 'Нажмите и удерживайте слово, чтобы увидеть его смысл и толкование аята.', ok: 'Понятно', juzs: 'Джузы', juz: 'Джуз', index: 'Оглавление', tr: 'Перевод', search: 'Поиск', more: 'Настройки', settings: 'Настройки', close: 'Закрыть', frame: 'Рамка страницы', reciter: 'Чтец', page: 'Перейти к странице' }
   };
   // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
+  // the browser's own install offer (Android, computer): kept for the tour's last step instead of its small banner
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__ltInstall = e; });
   function mobTrial() {
     // the phone design is now the default; ?old keeps the earlier one for whoever asks, ?new restores the default
     if (/[?&]new\b/.test(location.search)) store('lt_mob_trial', '1');
@@ -1594,6 +1596,11 @@
         else prompt('', url);
       };
       var qrow = sbody.querySelector('.bk-msquick'); (qrow || sbody).appendChild(shb);   // beside «bookmark» and «search», at the top
+      var trb = document.createElement('button'); trb.type = 'button'; trb.className = 'bk-mstour';
+      trb.textContent = '';
+      trb.onclick = function () { shut(); if (root.__tour) setTimeout(root.__tour, 350); };
+      setTimeout(function () { trb.textContent = root.__tourLabel || 'Tour'; }, 0);
+      sbody.appendChild(trb);
       var okb = document.createElement('button'); okb.type = 'button'; okb.className = 'bk-msok'; okb.textContent = L.done;
       okb.onclick = function () { shut(); };
       sbody.appendChild(okb);
@@ -1838,8 +1845,126 @@
       });
       book.addEventListener('touchend', function () { if (mq.matches && !ov.classList.contains('on')) hideT = setTimeout(function () { chrome(false); }, 300); }, { passive: true });
       hideT = setTimeout(function () { chrome(false); }, 3500);
-      // the first time: say how it works, once
-      if (mq.matches && load('lt_mob_hint') !== '1') {
+      /* ---- the welcome tour: once, the first time the Mushaf opens (again from the settings) — a few steps, each
+         lighting one control with a line or two beneath it; the last recommends keeping the Mushaf on the home screen ---- */
+      var TR = {
+        ar: { next: 'التالي', skip: 'تخطٍّ', done: 'تم', install: 'تثبيت', steps: [
+          ['المس الصفحة', 'لمسة على الصفحة تُظهر الأزرار وتخفيها. واضغط مطولًا على أي كلمة لمعرفة معناها وتفسير آيتها.'],
+          ['الفهرس', 'السور والأجزاء وأرباع الأحزاب، والانتقال إلى أي موضع.'],
+          ['الوضع', 'تلاوة مع القارئ، وتحفيظ بالتكرار، وتسميع يصحّح لك، وتسميع صامت تراجع فيه حفظك في المسجد.'],
+          ['البحث', 'ابحث عن كلمة أو آية في القرآن الكريم.'],
+          ['الإعدادات', 'شكل الإطار، والقارئ، وسجلّ قراءتك وختماتك، والعلامات، ومشاركة المصحف.'],
+          ['على الشاشة الرئيسية', ''] ],
+          ios: 'ليكون المصحف معك كالتطبيق: اضغط زر المشاركة في سفاري ثم «إضافة إلى الشاشة الرئيسية».',
+          prompt: 'ليكون المصحف معك كالتطبيق، يفتح بلمسة واحدة: ثبّته على جهازك.',
+          other: 'ليكون المصحف معك كالتطبيق: من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية» أو «تثبيت التطبيق».', again: 'جولة تعريفية' },
+        en: { next: 'Next', skip: 'Skip', done: 'Done', install: 'Install', steps: [
+          ['Tap the page', 'A tap on the page shows or hides the buttons. Press and hold any word for its meaning and the commentary on its verse.'],
+          ['Index', 'The surahs, the juz and the hizb quarters — go anywhere.'],
+          ['Mode', 'Recite along with a reciter, memorize by repetition, recite and be corrected, or recite silently to review in the mosque.'],
+          ['Search', 'Find a word or a verse in the Quran.'],
+          ['Settings', 'Page frame, reciter, your reading and khatmas, bookmarks, and sharing the Mushaf.'],
+          ['On your home screen', ''] ],
+          ios: 'Keep the Mushaf like an app: tap Share in Safari, then “Add to Home Screen”.',
+          prompt: 'Keep the Mushaf like an app, a tap away: install it on your device.',
+          other: 'Keep the Mushaf like an app: in your browser menu choose “Add to Home Screen” or “Install app”.', again: 'Welcome tour' },
+        ur: { next: 'آگے', skip: 'چھوڑیں', done: 'ٹھیک ہے', install: 'انسٹال کریں', steps: [
+          ['صفحہ چھوئیں', 'صفحے کو چھونے سے بٹن ظاہر یا چھپ جاتے ہیں۔ کسی لفظ کو دبائے رکھیں تو اس کا معنی اور آیت کی تفسیر ملے گی۔'],
+          ['فہرست', 'سورتیں، پارے اور ربع حزب — جہاں چاہیں جائیں۔'],
+          ['انداز', 'قاری کے ساتھ تلاوت، دہرا کر حفظ، تسمیع جو غلطی بتائے، اور مسجد میں خاموش تسمیع۔'],
+          ['تلاش', 'قرآن کریم میں کوئی لفظ یا آیت تلاش کریں۔'],
+          ['ترتیبات', 'فریم، قاری، آپ کی قراءت اور ختم، نشانیاں، اور مصحف شیئر کرنا۔'],
+          ['ہوم اسکرین پر', ''] ],
+          ios: 'مصحف کو ایپ کی طرح رکھیں: سفاری میں شیئر دبائیں، پھر «Add to Home Screen»۔',
+          prompt: 'مصحف کو ایپ کی طرح رکھیں: اسے اپنے آلے پر انسٹال کریں۔',
+          other: 'مصحف کو ایپ کی طرح رکھیں: براؤزر کے مینو سے «Add to Home Screen» یا «Install app» چنیں۔', again: 'تعارفی دورہ' },
+        fr: { next: 'Suivant', skip: 'Passer', done: 'Terminé', install: 'Installer', steps: [
+          ['Touchez la page', 'Un toucher affiche ou masque les boutons. Appuyez longuement sur un mot pour son sens et le commentaire du verset.'],
+          ['Sommaire', 'Les sourates, les juz et les quarts de hizb — allez où vous voulez.'],
+          ['Mode', 'Réciter avec un récitateur, mémoriser par répétition, réciter et être corrigé, ou réciter en silence pour réviser à la mosquée.'],
+          ['Recherche', 'Trouvez un mot ou un verset du Coran.'],
+          ['Réglages', 'Cadre, récitateur, vos lectures et khatmas, signets, et partage du Mushaf.'],
+          ['Sur l’écran d’accueil', ''] ],
+          ios: 'Gardez le Mushaf comme une app : touchez Partager dans Safari, puis « Sur l’écran d’accueil ».',
+          prompt: 'Gardez le Mushaf comme une app, à portée de main : installez-le.',
+          other: 'Gardez le Mushaf comme une app : dans le menu du navigateur, « Ajouter à l’écran d’accueil » ou « Installer l’application ».', again: 'Visite guidée' },
+        es: { next: 'Siguiente', skip: 'Omitir', done: 'Listo', install: 'Instalar', steps: [
+          ['Toca la página', 'Un toque muestra u oculta los botones. Mantén pulsada una palabra para ver su significado y el comentario de la aleya.'],
+          ['Índice', 'Las suras, los yuz y los cuartos de hizb: ve a donde quieras.'],
+          ['Modo', 'Recitar con un recitador, memorizar repitiendo, recitar y ser corregido, o recitar en silencio para repasar en la mezquita.'],
+          ['Buscar', 'Encuentra una palabra o una aleya del Corán.'],
+          ['Ajustes', 'Marco, recitador, tus lecturas y jatmas, marcadores y compartir el Mushaf.'],
+          ['En la pantalla de inicio', ''] ],
+          ios: 'Ten el Mushaf como una app: toca Compartir en Safari y luego «Añadir a pantalla de inicio».',
+          prompt: 'Ten el Mushaf como una app, a un toque: instálalo en tu dispositivo.',
+          other: 'Ten el Mushaf como una app: en el menú del navegador elige «Añadir a la pantalla de inicio» o «Instalar aplicación».', again: 'Recorrido de bienvenida' },
+        ru: { next: 'Далее', skip: 'Пропустить', done: 'Готово', install: 'Установить', steps: [
+          ['Коснитесь страницы', 'Касание показывает или скрывает кнопки. Удерживайте слово, чтобы увидеть его смысл и толкование аята.'],
+          ['Оглавление', 'Суры, джузы и четверти хизба — переходите куда угодно.'],
+          ['Режим', 'Чтение с чтецом, заучивание повторением, проверка чтения и беззвучное повторение в мечети.'],
+          ['Поиск', 'Найдите слово или аят Корана.'],
+          ['Настройки', 'Рамка, чтец, ваше чтение и хатмы, закладки и возможность поделиться мусхафом.'],
+          ['На главном экране', ''] ],
+          ios: 'Держите мусхаф как приложение: в Safari нажмите «Поделиться», затем «На экран Домой».',
+          prompt: 'Держите мусхаф как приложение — установите его на устройство.',
+          other: 'Держите мусхаф как приложение: в меню браузера выберите «Добавить на главный экран» или «Установить приложение».', again: 'Знакомство' } };
+      var TL = TR[C.lang] || TR.en;
+      var standalone = function () { return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; };
+      var isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      var tour = function () {
+        if (document.querySelector('.bk-tour')) return;
+        var T = [
+          function () { return document.querySelector('.bk-mframe') || book; },
+          function () { return document.querySelector('.bk-bar .bk-hamb'); },
+          function () { return document.querySelector('.bk-bar .bk-tmode'); },
+          function () { return document.querySelector('.bk-bar .bk-tsrch'); },
+          function () { return document.querySelector('.bk-bar .bk-tgear'); },
+          null ];
+        var n = standalone() ? 5 : 6, i = 0;
+        document.body.classList.add('bk-touring'); chrome(true); clearTimeout(hideT);
+        var ov = document.createElement('div'); ov.className = 'bk-tour';
+        ov.innerHTML = '<div class="bk-tspot"></div><div class="bk-tcard" role="dialog" aria-modal="true"><b></b><p></p><div class="bk-tbtns">' +
+          '<button type="button" class="bk-tskip"></button><span class="bk-tdots"></span><button type="button" class="bk-tnext"></button></div></div>';
+        document.body.appendChild(ov);
+        var spot = ov.querySelector('.bk-tspot'), card = ov.querySelector('.bk-tcard');
+        var end = function () { store('lt_tour', '1'); store('lt_mob_hint', '1'); ov.remove(); document.body.classList.remove('bk-touring'); hideT = setTimeout(function () { chrome(false); }, 1500); window.removeEventListener('resize', place); };
+        var place = function () {
+          var get = T[i], el = get && get(), cw = Math.min(340, window.innerWidth - 24);
+          card.style.width = cw + 'px';
+          if (!el) { spot.style.display = 'none'; card.style.left = Math.round((window.innerWidth - cw) / 2) + 'px'; card.style.top = Math.round(window.innerHeight / 2 - card.offsetHeight / 2) + 'px'; ov.classList.add('dim'); return; }
+          ov.classList.remove('dim'); spot.style.display = '';
+          var r = el.getBoundingClientRect(), pad = i === 0 ? -8 : 6;
+          var top = Math.max(4, r.top - pad), bot = Math.min(window.innerHeight - 4, r.bottom + pad);
+          spot.style.left = (r.left - pad) + 'px'; spot.style.top = top + 'px'; spot.style.width = (r.width + 2 * pad) + 'px'; spot.style.height = (bot - top) + 'px';
+          var below = i === 0 ? false : r.bottom + 16 + card.offsetHeight < window.innerHeight;
+          var cx = Math.max(12, Math.min(window.innerWidth - cw - 12, r.left + r.width / 2 - cw / 2));
+          card.style.left = cx + 'px';
+          card.style.top = (i === 0 ? Math.round(window.innerHeight / 2 - card.offsetHeight / 2) : below ? r.bottom + pad + 12 : Math.max(12, top - card.offsetHeight - 12)) + 'px';
+        };
+        var show = function () {
+          var st = TL.steps[i], last = i === n - 1;
+          card.querySelector('b').textContent = st[0];
+          var p = card.querySelector('p'), nx = card.querySelector('.bk-tnext');
+          nx.textContent = last ? TL.done : TL.next; nx.onclick = function () { if (last) end(); else { i++; show(); } };
+          card.querySelector('.bk-tskip').textContent = TL.skip; card.querySelector('.bk-tskip').style.visibility = last ? 'hidden' : '';
+          card.querySelector('.bk-tdots').innerHTML = Array.apply(null, Array(n)).map(function (x, k) { return '<i' + (k === i ? ' class="on"' : '') + '></i>'; }).join('');
+          if (i === 5) {
+            var ip = window.__ltInstall;
+            p.textContent = isIOS ? TL.ios : ip ? TL.prompt : TL.other;
+            if (ip && !isIOS) { nx.textContent = TL.install; nx.onclick = function () { ip.prompt(); (ip.userChoice || Promise.resolve()).then(function () { window.__ltInstall = null; end(); }); }; }
+          } else p.textContent = st[1];
+          requestAnimationFrame(place);
+        };
+        card.querySelector('.bk-tskip').onclick = end;
+        ov.addEventListener('click', function (e) { e.stopPropagation(); });
+        window.addEventListener('resize', place);
+        show();
+      };
+      root.__tour = tour;
+      root.__tourLabel = TL.again;
+      if (mq.matches && load('lt_tour') !== '1') setTimeout(tour, 900);
+      // (the earlier one-card hint, kept for whoever finished the tour before this hint existed)
+      if (false) {
         var hint = document.createElement('div'); hint.className = 'bk-mhint'; hint.setAttribute('role', 'status');
         hint.innerHTML = '<p>' + esc(L.hint1) + '</p><p>' + esc(L.hint2) + '</p><button type="button">' + esc(L.ok) + '</button>';
         document.body.appendChild(hint);

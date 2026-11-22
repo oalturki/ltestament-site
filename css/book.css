@@ -1327,3 +1327,23 @@ body.bk-mob.bk-memo .bk-mnav .bk-mletters{ display:none !important; }
 .bk-msshare{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; margin:6px 0 2px; padding:11px 14px; border-radius:12px;
   border:1px solid rgba(138,106,30,.35); background:rgba(138,106,30,.06); color:#6d5216; font:inherit; font-weight:600; cursor:pointer; }
 .bk-msshare svg{ width:18px; height:18px; }
+
+/* the welcome tour: the page dimmed but for the control being shown, a card with a line or two beneath it */
+.bk-tour{ position:fixed; inset:0; z-index:90; }
+.bk-tour.dim{ background:rgba(30,22,8,.55); }
+.bk-tspot{ position:fixed; border-radius:14px; box-shadow:0 0 0 9999px rgba(30,22,8,.55); outline:2px solid #d4ae3c; outline-offset:2px;
+  transition:left .25s, top .25s, width .25s, height .25s; pointer-events:none; }
+.bk-tcard{ position:fixed; background:#fbf6ec; color:#3b2f1a; border-radius:16px; padding:16px 16px 12px; box-shadow:0 12px 36px rgba(0,0,0,.3);
+  transition:left .25s, top .25s; caret-color:transparent; }
+.bk-tcard b{ display:block; font-size:1.08rem; color:#6d5216; margin-bottom:6px; }
+.bk-tcard p{ margin:0 0 14px; line-height:1.75; font-size:.97rem; }
+.bk-tbtns{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.bk-tbtns button{ border:0; border-radius:10px; font:inherit; cursor:pointer; padding:9px 16px; }
+.bk-tskip{ background:none; color:#97835a; }
+.bk-tnext{ background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#2a1f08; font-weight:700; min-width:88px; }
+.bk-tdots{ display:flex; gap:5px; }
+.bk-tdots i{ width:6px; height:6px; border-radius:50%; background:rgba(138,106,30,.25); }
+.bk-tdots i.on{ background:#b8892e; width:16px; border-radius:3px; }
+body.bk-touring.bk-chrome-off .bk-bar, body.bk-touring.bk-chrome-off .bk-mnav{ transform:none !important; opacity:1 !important; }
+/* settings: replay the tour */
+.bk-mstour{ display:block; margin:8px auto 2px; background:none; border:0; color:#8a6a1e; font:inherit; text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
