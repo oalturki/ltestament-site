@@ -1378,7 +1378,7 @@
           h = ST[1];
           v = rep && rep.mode === 'hifz' ? fv('surah') + ' ' + uiNum(fv('ha1') || 1) + '–' + uiNum(fv('ha2') || 1) : ST[3];
         } else {
-          h = ST[2]; var eo1 = reciteSec.querySelector('.bk-msrow select'); v = eo1 ? selText(eo1) : '';
+          h = ST[2]; v = '';   // recitation: what happens on a mistake is chosen in the settings, not shown on the page
         }
         strip.innerHTML = v ? '<b>' + esc(h) + ':</b><span>' + esc(v) + '</span>' : '';
         var bt = document.querySelector('.bk-mnav'), r0 = bt ? bt.getBoundingClientRect() : null;
@@ -3003,9 +3003,13 @@
         // phones: the choice of what happens on a mistake lives in the «More» sheet
         var eoHome = document.createComment(''); lwrap.insertBefore(eoHome, eo);
         var eoRow = null, lvRow = null, mqL = window.matchMedia('(max-width:600px)');
+        var eoTries = 0;
         var eoPlace = function () {
-          var sb = root.__sheetBody;
-          if (mqL.matches && sb) {
+          var sb = root.__sheetBody, shell = mqL.matches || document.body.classList.contains('bk-mob');
+          // the settings sheet may not be built yet: wait for it (the choice is not left on the page meanwhile)
+          if (shell && !sb) { if (eo.parentNode === lwrap) eo.style.display = 'none'; if (eoTries++ < 40) setTimeout(eoPlace, 250); return; }
+          eo.style.display = '';
+          if (shell && sb) {
             if (!eoRow) { eoRow = document.createElement('label'); eoRow.className = 'bk-msrow'; eoRow.innerHTML = '<span>' + esc(EOL[0]) + '</span>'; var rg = root.__reciteGroup; sb.insertBefore(eoRow, rg ? rg.nextSibling : null); }
             eoRow.appendChild(eo);
             if (!lvRow) {
