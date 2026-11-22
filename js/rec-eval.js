@@ -180,14 +180,15 @@
             if (!c.target) return false;
             return c.kind === 'ayah' ? loc.indexOf(c.target + ':') === 0 : loc === c.target;
           };
-          var errors = [], fa = 0, unreached = 0, tHit = 0, tAll = 0;
+          var errors = [], fa = 0, unreached = 0, tHit = 0, tAll = 0, slips = c.slips || [], slipHit = 0;
           words.forEach(function (loc) {
             var f = final[loc], tg = inTarget(loc);
             if (tg) tAll++;
             if (!f) { unreached++; return; }
             if (f.cls === 'wrong' || f.cls === 'missing') {
               errors.push({ loc: loc, text: L0[loc].u, cls: f.cls, skip: f.skip, heard: f.heard, target: tg });
-              if (tg) tHit++; else fa++;
+              // the reader's own real slip (confirmed, beyond the task): found rightly, not a false alarm
+              if (tg) tHit++; else if (slips.indexOf(loc) >= 0) { slipHit++; errors[errors.length - 1].slip = true; } else fa++;
             }
           });
           var det = null;
@@ -198,7 +199,7 @@
           return {
             clip_id: c.id, engine: ENGINE, level: (function () { try { return localStorage.getItem('lt_live_level') || 'normal'; } catch (e) { return 'normal'; } })(),
             detected: det, false_alarms: fa, unreached: unreached,
-            result: { errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
+            result: { slips: slips.length ? [slipHit, slips.length] : undefined, errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
                       words: words.length, ms: Date.now() - t0, speed: S.speed, title: P.title }
           };
         });
