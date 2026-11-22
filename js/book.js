@@ -1255,6 +1255,21 @@
       }
       document.body.appendChild(nav);
 
+      // iPad/computer: a list opened from a top-bar button is placed under that button (css: body.bk-wide .bk-msov)
+      var ddX = null;
+      document.addEventListener('click', function (e) {
+        if (!document.body.classList.contains('bk-wide')) return;
+        var b = e.target.closest && e.target.closest('.bk-bar button, .bk-bar select, .bk-bar .bk-mbtn');
+        if (!b) return;
+        var r = b.getBoundingClientRect(); ddX = r.left + r.width / 2;
+        [0, 60, 250].forEach(function (t) {
+          setTimeout(function () {
+            var sh = document.querySelector('.bk-msov.on:not(.bk-msside) .bk-msheet'); if (!sh || ddX == null) return;
+            var w = sh.offsetWidth, l = Math.max(8, Math.min(window.innerWidth - w - 8, ddX - w / 2));
+            sh.style.setProperty('--dd-l', Math.round(l) + 'px');
+          }, t);
+        });
+      }, true);
       var ov = document.createElement('div'); ov.className = 'bk-msov bk-msside';   // the settings: a drawer on the side of the page
       ov.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true" aria-label="' + esc(L.settings) + '"><div class="bk-msgrip"></div>' +
         '<div class="bk-mshead"><h2>' + esc(L.settings) + '</h2><button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div>' +

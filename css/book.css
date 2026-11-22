@@ -1247,3 +1247,13 @@ body.bk-wide .bk-book:not(.bk-spread):not([data-show="ar"]){ max-width:calc((100
 body.bk-wide.bk-mob .bk-bar select.bk-mpg{ display:block !important; }
 body.bk-wide .bk-bar .bk-mbtn.bk-tmode{ flex:0 0 auto !important; width:auto !important; min-width:96px !important; padding:0 18px !important; }
 body.bk-wide .bk-bar .bk-viewbtn{ flex:0 1 auto !important; max-width:260px; }
+
+/* iPad/computer: a list opened from a top-bar button drops down under that button, as wide as it needs (not a sheet
+   across the whole screen); the settings stay a drawer at the side */
+body.bk-wide .bk-msov:not(.bk-msside){ align-items:flex-start; background:rgba(60,45,15,.18); }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-msheet{ position:absolute; top:50px; left:var(--dd-l, 50%); width:max-content; min-width:280px;
+  max-width:min(460px, calc(100vw - 16px)); max-height:calc(100vh - 70px); max-height:calc(100dvh - 70px); border-radius:16px; border:0;
+  box-shadow:0 10px 32px rgba(60,45,15,.28); padding:8px 14px 12px; transform:translateY(-8px); }
+body.bk-wide .bk-msov.on:not(.bk-msside) .bk-msheet{ transform:none; }
+body.bk-wide .bk-msov:not(.bk-msside) .bk-msgrip{ display:none; }
+body.bk-wide .bk-viewov .bk-msbody{ max-height:calc(100dvh - 150px); }
