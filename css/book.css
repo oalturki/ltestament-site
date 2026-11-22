@@ -1266,3 +1266,8 @@ body.bk-wide .bk-msov:not(.bk-msside) .bk-mshead h2{ font-size:1rem; }
 /* lists and bars are not text to edit: no text cursor on a tap (inputs keep theirs) */
 .bk-msheet, .bk-bar, .bk-mnav, .bk-silpop, .bk-idx{ caret-color:transparent; -webkit-user-select:none; user-select:none; }
 .bk-msheet input, .bk-msheet textarea, .bk-idx input, .bk-bar input{ caret-color:auto; -webkit-user-select:text; user-select:text; }
+/* (a tafsir beside the Mushaf leaves data-show at "ar": the root's Mushaf-only class tells instead) */
+body.bk-wide:not(.bk-is-mushaf) .bk-book:not(.bk-spread), .bk-wide:not(.bk-is-mushaf) .bk-book:not(.bk-spread){ max-width:calc((100vh - 124px) * 1.32); max-width:calc((100dvh - 124px) * 1.32); }
+/* the meaning's page: a margin between its text and the page's edge */
+body.bk-wide .bk-trpage .bk-content{ padding:4px 22px 0 !important; }
+body.bk-wide .bk-trpage .bk-head{ padding:0 22px 8px !important; }
