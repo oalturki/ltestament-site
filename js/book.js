@@ -409,6 +409,13 @@
       box.style.fontSize = fs + 'px';
       var lineW = Math.min(W, maxW * fs / F0 / (open ? 1 : 0.99));
       if (!open) box.style.setProperty('--mw', lineW + 'px');
+      // a guard: the fifteen lines must lie wholly inside the box — none cut at the top or bottom, none wider than
+      // it — whatever the screen, browser or font did; if not, a size a little smaller, until they do
+      for (var g = 0; g < 12 && (box.scrollHeight > box.clientHeight + 1 || box.scrollWidth > box.clientWidth + 1); g++) {
+        fs *= 0.97; box.style.fontSize = fs + 'px';
+        lineW = Math.min(W, maxW * fs / F0 / (open ? 1 : 0.99));
+        if (!open) box.style.setProperty('--mw', lineW + 'px');
+      }
       // The header glyph (frame + surah name) is 3.28em wide and 0.41em tall: as wide as the text, within about one line.
       var headW = open ? W * 0.8 : lineW;
       box.querySelectorAll('.mh').forEach(function (h) { h.style.fontSize = Math.min(headW / 3.28, lh * 1.15 / 0.41) + 'px'; });
@@ -1635,6 +1642,17 @@
       setShow(mushaf ? 'ar' : (optTr && C.lang === 'ar' && window.matchMedia('(max-width:600px)').matches) ? 'tr' : ((!embed && load('lt_book_show')) || C.defaultShow));
 
       var wasStep = step(), rt;
+      // the page's own room changing (the bars appearing, the browser's toolbars, a rotation, the window resized):
+      // fit the Mushaf again, so its lines are never sized for room it no longer has
+      if (window.ResizeObserver) {
+        var roT, roSz = '';
+        var ro = new ResizeObserver(function () {
+          var sz = pgR.clientWidth + 'x' + pgR.clientHeight + '|' + pgL.clientWidth + 'x' + pgL.clientHeight;
+          if (sz === roSz) return; roSz = sz;
+          clearTimeout(roT); roT = setTimeout(fitAll, 120);
+        });
+        ro.observe(pgR); ro.observe(pgL);
+      }
       window.addEventListener('resize', function () {
         clearTimeout(rt);
         rt = setTimeout(function () {
