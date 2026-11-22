@@ -1418,3 +1418,13 @@ body.bk-night[data-frame] .bk-mframe{ border-color:rgba(212,174,60,.35) !importa
 
 body.bk-night [data-frame="leaves"] .bk-mframe.sp-l, body.bk-night[data-frame="leaves"] .bk-mframe.sp-l{ box-shadow:4px 0 0 -1px #26221b, 4px 0 0 0px rgba(212,174,60,.45), 8px 0 0 -3px #2b261e, 8px 0 0 -2px rgba(212,174,60,.45), 12px 0 0 -5px #302a21, 12px 0 0 -4px rgba(212,174,60,.45), 16px 0 0 -7px #352e24, 16px 0 0 -6px rgba(212,174,60,.45), 20px 0 0 -9px #3a3227, 20px 0 0 -8px rgba(212,174,60,.45) !important; background-image:linear-gradient(to right, rgba(0,0,0,.35), rgba(0,0,0,0) 24px) !important; filter:none; }
 body.bk-night [data-frame="leaves"] .bk-mframe.sp-r, body.bk-night[data-frame="leaves"] .bk-mframe.sp-r{ box-shadow:-4px 0 0 -1px #26221b, -4px 0 0 0px rgba(212,174,60,.45), -8px 0 0 -3px #2b261e, -8px 0 0 -2px rgba(212,174,60,.45), -12px 0 0 -5px #302a21, -12px 0 0 -4px rgba(212,174,60,.45), -16px 0 0 -7px #352e24, -16px 0 0 -6px rgba(212,174,60,.45), -20px 0 0 -9px #3a3227, -20px 0 0 -8px rgba(212,174,60,.45) !important; background-image:linear-gradient(to left, rgba(0,0,0,.35), rgba(0,0,0,0) 24px) !important; filter:none; }
+
+/* «back to where I was» after a jump: a small pill above the bottom bar */
+.bk-back{ display:none; position:fixed; left:50%; transform:translateX(-50%); bottom:calc(84px + env(safe-area-inset-bottom)); z-index:35;
+  background:#2a1f08; color:#f3e4b8; border-radius:999px; box-shadow:0 6px 18px rgba(0,0,0,.25); align-items:center; padding:2px 4px; }
+.bk-back.on{ display:flex; }
+.bk-back button{ border:0; background:none; color:inherit; font:inherit; cursor:pointer; }
+.bk-backgo{ display:flex; align-items:center; gap:6px; padding:8px 10px 8px 6px; font-size:.92rem; font-weight:700; }
+.bk-backx{ padding:6px 10px; opacity:.7; font-size:1.1rem; }
+body.bk-ms .bk-back{ bottom:calc(98px + env(safe-area-inset-bottom)); }
+body.bk-night .bk-back{ background:#d4ae3c; color:#1b1409; }

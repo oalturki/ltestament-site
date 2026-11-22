@@ -722,9 +722,31 @@
     function place(n, b) { n.style.left = b.left + 'px'; n.style.top = b.top + 'px'; n.style.width = b.width + 'px'; n.style.height = b.height + 'px'; }
     // a surah chosen from the index: recitation starts at its first ayah, even mid-page
     var goSurah = 0, goNext = 0;
-    function show(p, dir, auto) {
+    // «back to where I was»: a jump (index, search, juz, page number, a link) — not a page turn — remembers the page
+    // left; a small button brings the reader back to it (several jumps: back one at a time)
+    var backStack = [], shownOnce = false, backEl = null;
+    var BKL = { ar: 'العودة إلى ص', ur: 'واپس صفحہ ', en: 'Back to p. ', fr: 'Retour p. ', es: 'Volver a p. ', ru: 'Назад к с. ' }[C.lang] || 'Back to p. ';
+    function backShow() {
+      if (embed) return;
+      if (!backEl) {
+        backEl = document.createElement('div'); backEl.className = 'bk-back';
+        backEl.innerHTML = '<button type="button" class="bk-backgo"></button><button type="button" class="bk-backx" aria-label="×">×</button>';
+        document.body.appendChild(backEl);
+        backEl.querySelector('.bk-backgo').onclick = function (e) {
+          e.stopPropagation(); var b = backStack.pop(); if (b == null) return backShow();
+          show(b, 0, false, true).then(function () { backShow(); });
+        };
+        backEl.querySelector('.bk-backx').onclick = function (e) { e.stopPropagation(); backStack = []; backShow(); };
+      }
+      var b = backStack[backStack.length - 1];
+      if (b == null || Math.abs(b - cur) <= step()) { backEl.classList.remove('on'); if (b != null && Math.abs(b - cur) <= step()) backStack.pop(); return; }
+      backEl.querySelector('.bk-backgo').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-5-5 5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>' + esc(BKL + uiNum(b));
+      backEl.classList.add('on');
+    }
+    function show(p, dir, auto, back) {
       if (window.__ltZoomReset) window.__ltZoomReset();
       p = norm(p);
+      if (shownOnce && !auto && !back && Math.abs(p - cur) > step()) { backStack.push(cur); if (backStack.length > 10) backStack.shift(); }
       if (!auto) { goSurah = goNext; goNext = 0; }
       if (!auto) stopAudio();          // the reader turned the page: stop the recitation
       if (busy) return Promise.resolve(false);
@@ -733,7 +755,7 @@
       return pageData(p).then(function (d) {
         clearTimeout(slow); book.style.opacity = '';
         var animate = dir && !window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-        if (!animate) { cur = p; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); next(); return true; }
+        if (!animate) { cur = p; shownOnce = true; renderAll(p, d); fitAll(); updateControls(); busy = false; prefetch(); next(); backShow(); return true; }
         // Page turn, drawn in 2D so it looks the same in every browser and never leaves the book:
         // the turning page narrows toward the spine, then its other side opens out on the facing page.
         // Forward (RTL): the LEFT page folds onto the right; back: the mirror. On a phone (one page) forward folds
@@ -755,7 +777,7 @@
         var done = function () { layers.forEach(function (n) { n.remove(); }); busy = false; prefetch(); next(); return true; };
         if (one && !fwd) {
           var oldV = snap(vis);
-          cur = p; renderAll(p, d); fitAll(); updateControls();
+          cur = p; shownOnce = true; renderAll(p, d); fitAll(); updateControls(); backShow();
           var newV = snap(vis);
           lay(oldV, 'bk-cover');
           var opening = lay(newV, 'bk-flip', 'right', 0.001);
@@ -763,7 +785,7 @@
         }
         var A = one ? vis : (fwd ? pgL : pgR), B = one ? null : (fwd ? pgR : pgL);
         var oldA = snap(A), oldB = B ? snap(B) : null;
-        cur = p; renderAll(p, d); fitAll(); updateControls();
+        cur = p; shownOnce = true; renderAll(p, d); fitAll(); updateControls(); backShow();
         var newB = B ? snap(B) : null;
         if (oldB) lay(oldB, 'bk-cover');
         var folding = lay(oldA, 'bk-flip', fwd ? 'right' : 'left', 1);
