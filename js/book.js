@@ -949,7 +949,7 @@
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       /* ---- silent recitation: the words appear at the reciter's pace (his word timings, data/rec), no sound ---- */
-      var SPEEDS = [0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr' };
+      var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr' };
       try { SIL.speed = +localStorage.getItem('lt_sil_speed') || 1; SIL.pace = localStorage.getItem('lt_sil_pace') || 'hadr'; } catch (e) {}
       // two paces: hadr — an even pace by each word's length (most review briskly, not holding every madd as the
       // reciter does); or the reciter's own timing
