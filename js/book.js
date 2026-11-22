@@ -3033,9 +3033,14 @@
           var w = e.target.closest && e.target.closest('.bk-mpage [data-l]');
           if (!w || e.target.closest('.bk-flip,.bk-cover')) return;
           var l = w.getAttribute('data-l');
-          if (w.classList.contains('ae')) {                // the ayah number: the whole ayah
-            var pr = l.split(':').slice(0, 2).join(':') + ':';
-            root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) { x.classList.add('rv'); });
+          if (w.classList.contains('ae')) {                // the ayah number: the whole ayah; a second tap hides it again
+            var pr = l.split(':').slice(0, 2).join(':') + ':', shown = w.classList.contains('rv-ayah');
+            root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) {
+              // only what this tap showed is hidden again (a word shown alone, or recited, stays as it is)
+              if (shown) { if (x.classList.contains('rva')) x.classList.remove('rv', 'rva'); }
+              else if (!x.classList.contains('rv')) x.classList.add('rv', 'rva');
+            });
+            root.querySelectorAll('.ae[data-l^="' + pr + '"]').forEach(function (x) { x.classList.toggle('rv-ayah', !shown); });
           } else if (w.classList.contains('tw-err') && C.__playWord) {   // a mistake: hear the word, when the reader wants it
             var lw = window.__bkLive;
             var pr = new Promise(function (res) { C.__playWord(l, null, res); setTimeout(res, 8000); });
