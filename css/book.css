@@ -1210,4 +1210,7 @@ body.bk-mob.bk-ms .bk-mnav .bk-msk-wf{ order:5; } body.bk-mob.bk-ms .bk-mnav .bk
 html[dir="rtl"] body.bk-ms .bk-msk svg{ transform:scaleX(-1); }
 body.bk-mob.bk-ms.bk-chrome-off .bk-mnav{ transform:none !important; opacity:1 !important; pointer-events:auto !important; }
 body.bk-mob.bk-ms .bk-mshow{ display:none !important; }
-body.bk-mob.bk-ms:not(.bk-wide) .bk-stage{ padding-bottom:calc(64px + env(safe-area-inset-bottom)) !important; }
+/* the page keeps its size as in the other modes; only where it would run under the bar (a short screen) is it fitted above it */
+body.bk-mob.bk-ms.bk-ms-pad:not(.bk-wide) .bk-stage{ padding-bottom:calc(64px + env(safe-area-inset-bottom)) !important; }
+/* the silent recitation's buttons belong to it alone (the general bottom-bar rule shows every child) */
+body:not(.bk-ms) .bk-mnav .bk-msk, body:not(.bk-ms) .bk-mnav .bk-msil, body:not(.bk-ms) .bk-mnav .bk-mspd{ display:none !important; }

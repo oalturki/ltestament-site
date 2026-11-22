@@ -929,6 +929,8 @@
         root.classList.toggle('bk-memo', m !== 'read'); root.classList.toggle('bk-mt', m === 'tasmee'); root.classList.toggle('bk-ms', m === 'silent');
         document.body.classList.toggle('bk-ms', m === 'silent');
         if (m === 'silent') { if (playing) stopAudio(); if (!hideNow() && hideBtn()) hideBtn().click(); }
+        document.body.classList.remove('bk-ms-pad');
+        if (m === 'silent') setTimeout(silRoom, 400);
         // memorization plays by the memorization method; back to reading, plain listening again
         var rs = repSel();
         if (rs && m === 'hifz' && rs.value !== 'hifz') { rs.value = 'hifz'; rs.dispatchEvent(new Event('change', { bubbles: true })); }
@@ -1017,6 +1019,14 @@
           silTick();
         }, Math.max(120, gap / SIL.speed));
       };
+      // does the page (at its usual size) run under the bar? then, and only then, fit it above
+      var silRoom = function () {
+        if (!document.body.classList.contains('bk-ms') || document.body.classList.contains('bk-ms-pad')) return;
+        var bar = nav.getBoundingClientRect().top, low = 0;
+        root.querySelectorAll('.bk-mframe').forEach(function (e) { low = Math.max(low, e.getBoundingClientRect().bottom); });
+        if (low > bar - 2) document.body.classList.add('bk-ms-pad');
+      };
+      window.addEventListener('resize', function () { document.body.classList.remove('bk-ms-pad'); setTimeout(silRoom, 400); });
       var silHide = function (x) {
         els(x.loc).forEach(function (e) { e.classList.remove('rv', 'rva', 'sl-on'); });
         root.querySelectorAll('.bk-mpage .ae[data-l^="' + x.s + ':' + x.a + ':"]').forEach(function (e) { e.classList.remove('rv', 'rva'); });
