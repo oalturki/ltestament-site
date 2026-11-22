@@ -156,7 +156,7 @@ def page(lang):
 {extra_font}<link rel="preconnect" href="https://quranenc.com">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" href="/css/book.css">
-<script>/* phones: keep the page plain until the phone layout is built, so the desktop layout never flashes */(function(){{try{{var q=location.search;if(window.innerWidth<=600&&!/[?&]old\b/.test(q)&&localStorage.getItem('lt_mob_trial')!=='0'){{var h=document.documentElement;h.classList.add('bk-pre');setTimeout(function(){{h.classList.remove('bk-pre');}},8000);}}}}catch(e){{}}}})();</script>
+<script>/* phones: keep the page plain until the phone layout is built, so the desktop layout never flashes */(function(){{try{{var q=location.search;if(!/[?&]old\b/.test(q)&&!/[?&]wide=0\b/.test(q)&&localStorage.getItem('lt_wide')!=='0'&&(localStorage.getItem('lt_mob_trial')!=='0'||localStorage.getItem('lt_mob_old2')!=='1')){{var h=document.documentElement;h.classList.add('bk-pre');setTimeout(function(){{h.classList.remove('bk-pre');}},8000);}}}}catch(e){{}}}})();</script>
 <style>body.bk{{ font-family:{body_font}; }} .bk-title{{ font-family:{head_font}; }}</style>
 </head>
 <body class="bk">

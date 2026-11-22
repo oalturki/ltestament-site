@@ -261,6 +261,8 @@
     if (/[?&]old\b/.test(location.search)) store('lt_mob_trial', '0');
     // asking for the new bars on a large screen (?wide=1) brings back the new design, even where ?old was once used
     if (/[?&]wide=1\b/.test(location.search)) store('lt_mob_trial', '1');
+    // the new design became everyone's on 2026-11-22: an ?old kept from before then no longer holds
+    if (load('lt_mob_trial') === '0' && load('lt_mob_old2') !== '1') { if (/[?&]old\b/.test(location.search)) store('lt_mob_old2', '1'); else store('lt_mob_trial', '1'); }
     return load('lt_mob_trial') !== '0';
   }
   // recitation settings: repeat each ayah, repeat a range (the page, or from one ayah to another)
@@ -751,10 +753,15 @@
     function mobileShell() {
       // the same shell on every screen (iPad, computer), once approved; until then on phones, and on larger screens
       // only when asked for (?wide=1, kept on the device; ?wide=0 to leave it) — to review it before everyone sees it
+      // now the default on every screen (approved 2026-11-22); ?wide=0 leaves it on this device, ?wide=1 brings it back
       var wide = /[?&]wide=([01])/.exec(location.search);
-      try { if (wide) localStorage.setItem('lt_wide', wide[1]); wide = localStorage.getItem('lt_wide') === '1'; } catch (e) { wide = !!(wide && wide[1] === '1'); }
+      try { if (wide) localStorage.setItem('lt_wide', wide[1]); wide = localStorage.getItem('lt_wide') !== '0'; } catch (e) { wide = !(wide && wide[1] === '0'); }
       var L = MOB[C.lang] || MOB.en, mq = window.matchMedia(wide ? 'all' : '(max-width:600px)');
-      if (wide) document.body.classList.add('bk-wide');
+      // the large-screen arrangement (bars always shown, lists dropping down under their buttons) above a phone's width
+      if (wide) {
+        var mqW = window.matchMedia('(min-width:601px)'), setW = function () { document.body.classList.toggle('bk-wide', mqW.matches); };
+        setW(); if (mqW.addEventListener) mqW.addEventListener('change', setW); else if (mqW.addListener) mqW.addListener(setW);
+      }
       var svg = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       var I = {
         index: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
