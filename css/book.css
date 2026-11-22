@@ -1386,3 +1386,14 @@ body.bk-mob .bk-mnav .bk-mplay, body.bk-mob .bk-mnav .bk-mmic, body.bk-mob .bk-m
 body.bk-mob.bk-ms .bk-mnav{ min-height:calc(70px + max(6px, env(safe-area-inset-bottom))) !important; }
 /* the Mushaf text a touch fuller (on screens the thin strokes of the print font look lighter than on paper) */
 body:not(.bk-tajweed) .bk-mushaf .ml:not(.ml-s){ -webkit-text-stroke:.022em currentColor; }
+
+/* the Mushaf text's weight (settings): thin (as printed), medium (default), bold */
+body.bk-fw0 .bk-mushaf .ml:not(.ml-s){ -webkit-text-stroke:0 !important; }
+body.bk-fw2:not(.bk-tajweed) .bk-mushaf .ml:not(.ml-s){ -webkit-text-stroke:.04em currentColor; }
+.bk-fwsel{ display:inline-flex; gap:4px; background:rgba(138,106,30,.08); border-radius:10px; padding:3px; }
+.bk-fwsel button{ border:0; background:none; border-radius:8px; padding:6px 10px; font:inherit; color:#6d5216; cursor:pointer; }
+.bk-fwsel button.on{ background:linear-gradient(160deg, #d4ae3c, #b8892e); color:#2a1f08; font-weight:700; }
+.bk-fwsel button[data-v="0"]{ font-weight:300; } .bk-fwsel button[data-v="2"]{ font-weight:800; }
+/* zoomed: the page moves under the finger, nothing else scrolls */
+body.bk-zoomed .bk-stage{ overflow:hidden; touch-action:none; }
+.bk-book{ will-change:auto; }

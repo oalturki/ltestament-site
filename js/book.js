@@ -723,6 +723,7 @@
     // a surah chosen from the index: recitation starts at its first ayah, even mid-page
     var goSurah = 0, goNext = 0;
     function show(p, dir, auto) {
+      if (window.__ltZoomReset) window.__ltZoomReset();
       p = norm(p);
       if (!auto) { goSurah = goNext; goNext = 0; }
       if (!auto) stopAudio();          // the reader turned the page: stop the recitation
@@ -1598,6 +1599,19 @@
       var moves = [];
       group(viewSec);
       if (q('frameSel')) moves.push([q('frameSel'), row(L.frame, q('frameSel'))]);
+      // the Mushaf text's weight: three steps (the print's own thin strokes, a little fuller, fuller still)
+      var FWL = { ar: ['سُمك الخط', 'رفيع', 'متوسط', 'عريض'], ur: ['خط کی موٹائی', 'باریک', 'درمیانہ', 'موٹا'], en: ['Text weight', 'Thin', 'Medium', 'Bold'],
+                  fr: ['Épaisseur du texte', 'Fin', 'Moyen', 'Épais'], es: ['Grosor del texto', 'Fino', 'Medio', 'Grueso'], ru: ['Толщина шрифта', 'Тонкий', 'Средний', 'Жирный'] }[C.lang] || ['Text weight', 'Thin', 'Medium', 'Bold'];
+      var fw = document.createElement('span'); fw.className = 'bk-fwsel';
+      var fwSet = function (v) {
+        document.body.classList.remove('bk-fw0', 'bk-fw1', 'bk-fw2'); document.body.classList.add('bk-fw' + v);
+        fw.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === String(v)); });
+        store('lt_mfw', String(v));
+      };
+      fw.innerHTML = [0, 1, 2].map(function (v) { return '<button type="button" data-v="' + v + '">' + esc(FWL[v + 1]) + '</button>'; }).join('');
+      fw.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { e.preventDefault(); fwSet(+b.dataset.v); } });
+      fwSet(['0', '1', '2'].indexOf(load('lt_mfw')) >= 0 ? +load('lt_mfw') : 1);
+      var fwRow = row(FWL[0], fw); if (fwRow) fwRow.appendChild(fw);   // (made here, so it lives in the sheet: no home to return to)
       if (q('tajSel')) moves.push([q('tajSel'), row((TJL[C.lang] || TJL.en).label, q('tajSel'))]);
       if (q('tajKey')) moves.push([q('tajKey'), row('', q('tajKey'))]);
       group(listenSec);
@@ -2155,6 +2169,48 @@
         if (e.key === 'ArrowLeft' || e.key === 'PageDown') { e.preventDefault(); go(1); }
         if (e.key === 'ArrowRight' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
       });
+      // Two-finger zoom on the page (the page itself grows — its fifteen lines stay as printed); one finger then moves
+      // it about; back to its size by pinching in, a double tap, or turning the page
+      var ZM = { s: 1, x: 0, y: 0, multi: false, d0: 0, s0: 1, m0: null, t0: null, p: null, last: 0 };
+      var zApply = function () {
+        if (ZM.s <= 1.02) { ZM.s = 1; ZM.x = ZM.y = 0; book.style.transform = ''; book.style.transformOrigin = ''; document.body.classList.remove('bk-zoomed'); return; }
+        var r = book.parentNode.getBoundingClientRect(), w = book.offsetWidth, h = book.offsetHeight;
+        // keep the page covering the view: no empty band beyond its edges
+        ZM.x = Math.min(0, Math.max(w - w * ZM.s, ZM.x)); ZM.y = Math.min(0, Math.max(h - h * ZM.s, ZM.y));
+        book.style.transformOrigin = '0 0'; book.style.transform = 'translate(' + ZM.x + 'px,' + ZM.y + 'px) scale(' + ZM.s + ')';
+        document.body.classList.add('bk-zoomed');
+      };
+      var zReset = function () { if (ZM.s !== 1) { ZM.s = 1; zApply(); } };
+      window.__ltZoomReset = zReset;
+      book.addEventListener('gesturestart', function (e) { e.preventDefault(); });   // Safari's own page zoom: ours instead
+      var mid = function (t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; };
+      var dist = function (t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); };
+      var base = function () { var r = book.getBoundingClientRect(); return { x: r.left - ZM.x, y: r.top - ZM.y }; };
+      book.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 2) {
+          ZM.multi = true; ZM.d0 = dist(e.touches); ZM.s0 = ZM.s; ZM.m0 = mid(e.touches); ZM.t0 = { x: ZM.x, y: ZM.y }; ZM.b = base();
+        } else if (e.touches.length === 1) {
+          var now = Date.now();
+          if (ZM.s > 1 && now - ZM.last < 300) { zReset(); ZM.last = 0; return; }   // double tap: back to size
+          ZM.last = now; ZM.multi = false;
+          ZM.p = { x: e.touches[0].clientX, y: e.touches[0].clientY, tx: ZM.x, ty: ZM.y };
+        }
+      }, { passive: true });
+      book.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 2 && ZM.m0) {
+          e.preventDefault();
+          var s = Math.max(1, Math.min(3, ZM.s0 * dist(e.touches) / ZM.d0)), m = mid(e.touches);
+          // the point under the fingers stays under them
+          var px = (ZM.m0.x - ZM.b.x - ZM.t0.x) / ZM.s0, py = (ZM.m0.y - ZM.b.y - ZM.t0.y) / ZM.s0;
+          ZM.s = s; ZM.x = m.x - ZM.b.x - px * s; ZM.y = m.y - ZM.b.y - py * s;
+          zApply();
+        } else if (e.touches.length === 1 && ZM.s > 1 && ZM.p) {
+          e.preventDefault();
+          ZM.x = ZM.p.tx + e.touches[0].clientX - ZM.p.x; ZM.y = ZM.p.ty + e.touches[0].clientY - ZM.p.y;
+          zApply();
+        }
+      }, { passive: false });
+      book.addEventListener('touchend', function (e) { if (e.touches.length < 2) ZM.m0 = null; }, { passive: true });
       // Swipe: finger moving to the right turns forward (as when lifting the left page of an Arabic book).
       var x0 = null, y0 = null;
       book.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
@@ -2162,6 +2218,7 @@
         if (x0 === null) return;
         var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
         x0 = null;
+        if (ZM.s > 1 || ZM.multi) { if (!e.touches.length) ZM.multi = false; return; }   // zoomed or pinching: no page turn
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx > 0 ? 1 : -1);
       }, { passive: true });
 
