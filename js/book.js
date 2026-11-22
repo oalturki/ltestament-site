@@ -3028,7 +3028,13 @@
         }, true);
       }
       // trial: the phone layout is on only for whoever opens the book once with ?new (and off again with ?old)
-      if (!embed && mobTrial()) mobileShell();
+      if (!embed && mobTrial()) {
+        mobileShell();
+        // the bars take their room after the first page was fitted (iPad, computer): fit again once they and the
+        // Mushaf fonts are in place, or the page keeps a size measured without them (its first and last lines cut off)
+        [300, 1200].forEach(function (t) { setTimeout(fitAll, t); });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { fitAll(); });
+      }
       // tap a word of the Mushaf: its meaning / the verse explained (wordSheet)
       root.addEventListener('click', function (e) {
         if (document.body.classList.contains('bk-mob')) return;   // phones: a long press (mobileShell); a tap shows the bars
