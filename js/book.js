@@ -729,7 +729,7 @@
     function backShow() {
       if (embed) return;
       if (!backEl) {
-        backEl = document.createElement('div'); backEl.className = 'bk-back';
+        backEl = document.createElement('div'); backEl.className = 'bk-goback';
         backEl.innerHTML = '<button type="button" class="bk-backgo"></button><button type="button" class="bk-backx" aria-label="×">×</button>';
         document.body.appendChild(backEl);
         backEl.querySelector('.bk-backgo').onclick = function (e) {
