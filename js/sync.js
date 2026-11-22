@@ -13,6 +13,8 @@
 (function () {
   if (window.LtSync) return;
   var KINDS = { reminders: 'lt_reminders', marks: 'lt_book_marks', plans: 'lt_plans' };
+  // kept on this device only, but each profile has its own: his recent places and the page he was on
+  var LOCAL = ['lt_book_recent', 'lt_book_page'];
   var load = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
   var store = function (k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} };
   var signedIn = function () { return !!load('sb-nikwwjswwlwcqekbnpzq-auth-token'); };
@@ -40,8 +42,7 @@
       if (was === 'me' && load('lt_kh_me') != null && load('lt_kh_' + now) == null) store('lt_kh_' + now, load('lt_kh_me'));
       var d = dirty(); Object.keys(KINDS).forEach(function (k) { if (load(KINDS[k]) != null) d[k] = 1; }); setDirty(d);
     } else {
-      Object.keys(KINDS).forEach(function (k) {
-        var key = KINDS[k];
+      Object.keys(KINDS).map(function (k) { return KINDS[k]; }).concat(LOCAL).forEach(function (key) {
         store(key + '@' + was, load(key));
         store(key, load(key + '@' + now));
         store(key + '@' + now, null);
@@ -50,6 +51,7 @@
     }
     store('lt_sync_owner', now);
     changed();
+    try { window.dispatchEvent(new CustomEvent('lt-switched', { detail: { from: was, to: now } })); } catch (e) {}
     if (window.LtPush && window.LtPush.sync) window.LtPush.sync();
     return pull();
   }

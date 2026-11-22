@@ -1573,3 +1573,5 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 .ma-kpis b{ font-size:1.2rem; color:#2f6b45; }
 .ma-kpis small{ color:#6b6250; font-size:.8rem; text-align:center; }
 .ma-back{ font-weight:700; }
+.ma-warn{ display:flex; flex-direction:column; gap:8px; padding:12px; border-radius:14px; background:#fff6e0; border:1px solid #e0c27a; }
+.ma-warn p{ margin:0; line-height:1.7; color:#6b4f12; }

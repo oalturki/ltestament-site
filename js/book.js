@@ -1668,6 +1668,8 @@
       // the account's copy of this profile's reminders and bookmarks (js/sync.js); when it brings changes, show them
       ltLoad(['/js/sync.js'], function () {});
       window.addEventListener('lt-sync', function () { fillPanes(); fillMenu(); });
+      // another reader on this device: the Mushaf opens where he stopped (his own last page)
+      window.addEventListener('lt-switched', function () { var pg = +(load('lt_book_page') || 0); if (pg >= 1 && pg <= TOTAL && pg !== cur) show(pg, 0); });
       window.addEventListener('lt-profile', function () { if (window.Khatma) window.Khatma.pull().then(function () { root.__strip(); }); fillMenu(); });
       ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () {
         root.__strip();
