@@ -1698,3 +1698,4 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12.5px !importan
 /* search and settings on the centres of the two curved ends (662 of 1080 units in from each edge → 23.3px of 38) */
 body.bk-hdr .bk-hdr2 .bk-h2s{ right:-26.7px; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:-26.7px; }
 body.bk-hdr .bk-hdr2 .bk-h2b{ padding:0; }
+body.bk-hdr .bk-hdr2 .bk-h2s svg{ transform:scaleX(-1); }   /* the lens's handle toward the middle of the band */
