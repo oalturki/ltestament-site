@@ -1394,6 +1394,7 @@
           if (!hd) return;
           var r = hd.getBoundingClientRect();
           hdr.style.top = Math.round(r.top) + 'px'; hdr.style.height = Math.round(r.height) + 'px';
+          document.body.style.setProperty('--hdrB', Math.round(r.bottom + 2) + 'px');     // the bar, when shown, comes below the head
           var hp = hd.querySelector('.hp'), hj = hd.querySelector('.hj');
           put(hPg, hp && hp.getBoundingClientRect()); put(hJz, hj && hj.getBoundingClientRect());
         };
