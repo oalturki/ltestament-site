@@ -1636,6 +1636,7 @@ body.bk-night.bk-hdr .bk-hdr2{ background:#1f3a33; border-color:#2f9a9a; box-sha
 body.bk-night .bk-hdr2 .bk-h2b{ color:#d9b45a; } body.bk-night .bk-hdr2 .bk-h2c{ color:#e8e0cc; }
 html body.bk-night.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ background:#1d2638 !important; color:#e8e0cc !important; }
 /* the full frame with the row: the row is the frame's top side */
-body.bk-hdr[data-frame="full"] .bk-mframe.sp-l, body.bk-hdr[data-frame="full"] .bk-mframe.sp-r{ border-top-width:0 !important; border-image-width:0 13px 13px 13px !important; }
-body.bk-hdr .bk-hdr2.bk-h2top{ border-radius:9px 9px 0 0; }
+body.bk-hdr[data-frame="full"] .bk-mframe.sp-l, body.bk-hdr[data-frame="full"] .bk-mframe.sp-r{ border-top-width:0 !important; border-image-width:0 13px 13px 13px !important;
+  box-shadow:0 -1.5px 0 #2f6b3a, inset 0 1px 0 rgba(47,107,58,.35); }   /* closed at the top by a thin line, the row above it */
+body.bk-hdr .bk-hdr2.bk-h2top{ border-radius:9px; }
 body.bk-hdr[data-frame="full"] .bk-mpage .bk-mhead{ margin-bottom:0 !important; }

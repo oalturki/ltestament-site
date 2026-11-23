@@ -1382,7 +1382,10 @@
         hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
         var hPg = overSel(pg), hJz = overSel(bar.querySelector('.bk-mjz') || pg);
         cPg.appendChild(hPg); cJz.appendChild(hJz);
-        cSu.onclick = function (e) { e.stopPropagation(); var h = bar.querySelector('.bk-hamb'); if (h) h.click(); };
+        // the surah: the phone's own list, as the juz and the page (not the full index)
+        var sSel2 = q('surahSel');
+        if (sSel2) { var hSu = overSel(sSel2); cSu.appendChild(hSu); }
+        else cSu.onclick = function (e) { e.stopPropagation(); var h = bar.querySelector('.bk-hamb'); if (h) h.click(); };
         document.body.appendChild(hdr);
         // the view and the mode buttons come from the top bar into the row (and go back when the row is not used)
         var mv = [bar.querySelector('.bk-viewbtn'), bar.querySelector('.bk-tmode')].filter(Boolean).map(function (el) {
@@ -1401,11 +1404,13 @@
           var W = window.innerWidth, hd = null;
           root.querySelectorAll('.bk-mpage .bk-mhead').forEach(function (h) { var r = h.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) hd = h; });
           if (hd) {                                        // over the head's room, as wide as the frame below it
-            var r = hd.getBoundingClientRect(), fr3 = hd.parentNode.querySelector('.bk-mframe'), fx3 = fr3 ? fr3.getBoundingClientRect() : r;
+            var r = hd.getBoundingClientRect(), pgE = hd.parentNode, fr3 = pgE.querySelector('.bk-mframe');
             if (root.getAttribute('data-frame') === 'full' && fr3) {
-              // the full frame: the row is the frame's top side — as wide as the frame, resting on it (its top border is not drawn)
-              hdr.style.top = Math.round(fx3.top - 17) + 'px';
-              hdr.style.left = Math.round(fx3.left) + 'px'; hdr.style.right = Math.round(W - fx3.right) + 'px';
+              // the full frame: the row rests on the frame (closed at its top by a thin line), as wide as it. Placed from
+              // the layout (not the page's turning picture), so it never moves or changes size while a page turns.
+              var bR = book.getBoundingClientRect(), fl = bR.left + pgE.offsetLeft + fr3.offsetLeft, ft = bR.top + pgE.offsetTop + fr3.offsetTop;
+              hdr.style.top = Math.round(ft - 20) + 'px';
+              hdr.style.left = Math.round(fl) + 'px'; hdr.style.right = Math.round(W - fl - fr3.offsetWidth) + 'px';
               hdr.classList.add('bk-h2top');
             } else {
               // the screen's width, whatever the frame (a narrow frame would crowd it)
