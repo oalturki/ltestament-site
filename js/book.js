@@ -86,6 +86,13 @@
       .replace(/[ىئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه').replace(/[^\u0621-\u064A\s]/g, '').trim();
   }
   var sheet = null;
+  // a tajweed chip: the rule's colour, then where it falls in the word («قلقلة الدال») — the note in Arabic; in other
+  // languages the rule's name first. With no note (its letter not found certainly), the rule's name alone.
+  function tjChip(C, r, note) {
+    var K = TJKEY[C.lang] || TJKEY.en, rtl = C.lang === 'ar' || C.lang === 'ur';
+    var txt = note ? (rtl ? esc(note) : esc(K.items[r]) + ' · <span lang="ar" dir="rtl">' + esc(note) + '</span>') : esc(K.items[r]);
+    return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + txt + '</span>';
+  }
   function wordSheet(C, loc) {
     var L = EXPL[C.lang] || EXPL.en, ar = (C.lang || 'ar') === 'ar', rtl = ar || C.lang === 'ur';
     var parts = loc.split(':'), s = +parts[0], a = +parts[1], word = WTXT[loc] || '';
@@ -122,17 +129,20 @@
       C.__tjAyah(s, a).then(function (list) {
         if (!list.length) { tj0.remove(); return; }
         var K = TJKEY[C.lang] || TJKEY.en;
+        void K;
         tj0.innerHTML = '<h4>' + esc(TJH[C.lang] || TJH.en) + '</h4>' + list.map(function (x) {
+          var nt = x[2] || {};
           return '<div class="tj-row"><span class="tj-w" lang="ar" translate="no">' + esc(WTXT[x[0]] || '') + '</span><span class="tj-rs">' +
-            x[1].map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('') + '</span></div>';
+            x[1].map(function (r) { return tjChip(C, r, nt[r]); }).join('') + '</span></div>';
         }).join('');
       });
     }
     if (C.__tjRules && !isEnd && parts[2] && document.body.classList.contains('bk-tajweed')) {
-      C.__tjRules(loc).then(function (rs) {
+      Promise.all([C.__tjRules(loc), C.__tjNotes ? C.__tjNotes(loc) : {}]).then(function (v) {
+        var rs = v[0], nt = v[1] || {};
         if (!rs.length) return;
-        var K = TJKEY[C.lang] || TJKEY.en, d = document.createElement('div'); d.className = 'bk-wstj';
-        d.innerHTML = rs.map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('');
+        var d = document.createElement('div'); d.className = 'bk-wstj';
+        d.innerHTML = rs.map(function (r) { return tjChip(C, r, nt[r]); }).join('');
         var wr = body.querySelector('.bk-wsr'); if (wr) wr.parentNode.insertBefore(d, wr.nextSibling);
       });
     }
@@ -1324,7 +1334,16 @@
           var o = ts.options[ts.selectedIndex];
           return o ? o.text.replace(/\s*\(.*\)$/, '') : 'المصحف';
         };
-        var vSync = function () { vb.innerHTML = '<span>' + esc(vName()) + '</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'; };
+        // a short name for the narrow head bar: التجويد، الميسر، المختصر، English…
+        var vShort = function () {
+          var ts = q('trSel'), o = ts && ts.options[ts.selectedIndex], v = o ? o.value : '';
+          if (!o || !v) return 'المصحف';
+          if (v === '__taj') return 'التجويد';
+          var t = o.text.replace(/\s*\(.*\)$/, '');
+          if (/ — /.test(t)) return t.split(' — ')[0];
+          return t.replace(/^التفسير\s+/, '').split(/\s+في\s+/)[0];
+        };
+        var vSync = function () { vb.innerHTML = '<span class="bk-vfull">' + esc(vName()) + '</span><span class="bk-vshort">' + esc(vShort()) + '</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'; };
         setTimeout(vSync, 0);
         if (q('trSel')) q('trSel').addEventListener('change', function () { setTimeout(vSync, 0); });
         vb.onclick = function (e) {
@@ -2564,26 +2583,40 @@
       if (!tjCache[p]) tjCache[p] = getJSON(BASE + '/data/tajweed/p' + p + '.json').catch(function () { delete tjCache[p]; return {}; });
       return tjCache[p];
     }
-    // an ayah's words that carry rules, in order: [[loc, [rules]], ...]
+    // where each rule falls in its word (tools/build_tajweed_letters.py): {"s:a:w": {"<rule>": "قلقلة الدال"}}
+    var tjNCache = {};
+    // under review (?tjn=1 on this device; ?tjn=0 leaves it): until approved the notes show only where asked for
+    var tjnQ = /[?&]tjn=([01])/.exec(location.search), tjnOn = false;
+    try { if (tjnQ) localStorage.setItem('lt_tjn', tjnQ[1]); tjnOn = localStorage.getItem('lt_tjn') === '1'; } catch (e) { tjnOn = !!(tjnQ && tjnQ[1] === '1'); }
+    function tjNotesPage(p) {
+      if (!tjnOn) return Promise.resolve({});
+      if (!tjNCache[p]) tjNCache[p] = getJSON(BASE + '/data/tajweed/n' + p + '.json').catch(function () { delete tjNCache[p]; return {}; });
+      return tjNCache[p];
+    }
+    C.__tjNotes = function (loc) {
+      var x = loc.split(':'); return tjNotesPage(pageOf(+x[0], +x[1])).then(function (m) { return m[loc] || {}; });
+    };
+    // an ayah's words that carry rules, in order: [[loc, [rules], {notes}], ...]
     C.__tjAyah = function (sN, aN) {
-      return tjPage(pageOf(sN, aN)).then(function (m) {
-        var pre = sN + ':' + aN + ':';
+      var pg0 = pageOf(sN, aN);
+      return Promise.all([tjPage(pg0), tjNotesPage(pg0)]).then(function (v) {
+        var m = v[0], nm = v[1] || {}, pre = sN + ':' + aN + ':';
         return Object.keys(m).filter(function (k) { return k.indexOf(pre) === 0; })
-          .sort(function (x, y) { return +x.split(':')[2] - +y.split(':')[2]; }).map(function (k) { return [k, m[k]]; });
+          .sort(function (x, y) { return +x.split(':')[2] - +y.split(':')[2]; }).map(function (k) { return [k, m[k], nm[k] || {}]; });
       });
     };
     C.__tjRules = function (loc) {
       var x = loc.split(':'); return tjPage(pageOf(+x[0], +x[1])).then(function (m) { return m[loc] || []; });
     };
     var tjCard = null, tjOff = false, tjT = null;
-    function tjChips(rs) {
-      var K = TJKEY[C.lang] || TJKEY.en;
-      return rs.map(function (r) { return '<span class="tj-chip"><i style="background:' + TJCOL[r] + '"></i>' + esc(K.items[r]) + '</span>'; }).join('');
+    function tjChips(rs, nt) {
+      return rs.map(function (r) { return tjChip(C, r, (nt || {})[r]); }).join('');
     }
     function tjShow(h) {
       if (tjOff || embed) return;
       var loc = h.s + ':' + h.a + ':' + h.w;
-      C.__tjRules(loc).then(function (rs) {
+      Promise.all([C.__tjRules(loc), C.__tjNotes(loc)]).then(function (v) {
+        var rs = v[0], nt = v[1];
         if (!playing || !hl || hl.w !== h.w || hl.a !== h.a) return;
         if (!rs.length) return;                          // a word with no rule: the card keeps the last one a moment
         if (!tjCard) {
@@ -2591,7 +2624,7 @@
           document.body.appendChild(tjCard);
           tjCard.addEventListener('click', function (e) { if (e.target.closest('.tj-x')) { tjOff = true; tjCard.classList.remove('on'); } });
         }
-        tjCard.innerHTML = '<span class="tj-w" lang="ar" translate="no">' + esc(WTXT[loc] || '') + '</span><span class="tj-rs">' + tjChips(rs) + '</span>' +
+        tjCard.innerHTML = '<span class="tj-w" lang="ar" translate="no">' + esc(WTXT[loc] || '') + '</span><span class="tj-rs">' + tjChips(rs, nt) + '</span>' +
           '<button type="button" class="tj-x" aria-label="×">×</button>';
         // beside the word: under it in the page's upper half, over it in the lower half; never over the word itself
         var we = null;

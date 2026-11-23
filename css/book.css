@@ -1769,3 +1769,6 @@ body.bk-night .bk-hdr2 .bk-h2pm{ background:#22382f; border-color:#c7a347; box-s
 @media (max-width:379px){ .bk-hdr2 .bk-h2pm{ width:auto; min-width:28px; height:24px; padding:0 5px; } }
 .bk-hdr2 .bk-h2pm{ box-shadow:none; border-width:1.2px; }   /* one line: the room is narrow */
 body.bk-night .bk-hdr2 .bk-h2pm{ box-shadow:none; }
+.bk-viewbtn .bk-vshort{ display:none; }
+body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vfull{ display:none !important; }
+body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vshort{ display:inline !important; }
