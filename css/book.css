@@ -1772,3 +1772,5 @@ body.bk-night .bk-hdr2 .bk-h2pm{ box-shadow:none; }
 .bk-viewbtn .bk-vshort{ display:none; }
 body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vfull{ display:none !important; }
 body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vshort{ display:inline !important; }
+/* the ۞ opening a quarter of a hizb: a little room between it and the word */
+.bk-mushaf .hzs{ margin-inline-end:.18em; }

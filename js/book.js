@@ -410,7 +410,10 @@
         else if (L[0] === 'b') html += '<div class="ml ml-c ml-b">' + BASMALA.map(function (g) { return '<span>' + g + '</span>'; }).join('') + '</div>';
         else html += '<div class="ml' + (L[1] ? ' ml-c' : '') + '">' + L[2].map(function (w) {
           if (w[2]) WTXT[w[1]] = w[2];
-          return '<span data-l="' + w[1] + '"' + (/^[\u0660-\u0669\u06F0-\u06F9]+$/.test(w[2] || '') ? ' class="ae"' : '') + '>' + w[0] + '</span>';
+          // a word opening a quarter of a hizb carries the ۞ as its first glyph: set apart from the word, as in print
+          var g0 = w[0];
+          if (/^۞/.test(w[2] || '') && g0.length > 1) g0 = '<span class="hzs">' + g0.charAt(0) + '</span>' + g0.slice(1);
+          return '<span data-l="' + w[1] + '"' + (/^[\u0660-\u0669\u06F0-\u06F9]+$/.test(w[2] || '') ? ' class="ae"' : '') + '>' + g0 + '</span>';
         }).join('') + '</div>';
       });
       el.setAttribute('dir', 'rtl'); el.setAttribute('lang', 'ar'); el.style.fontFamily = '';
