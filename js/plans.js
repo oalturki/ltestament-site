@@ -56,7 +56,7 @@
   var LINES = { q: 3.75, h: 7.5, p: 15 };
   function wirds(p) {
     if (p.list && p.list.length) return p.list.map(function (x) { return { a_from: x.a_from, a_to: x.a_to }; });
-    if (p.fit === 'end' && p.end) p.n = fitN(p);
+    if (p.fit === 'end' && p.end) { var fr = fitL(p); p.unit = fr[0]; p.n = fr[1]; }
     var r = rangeRefs(p), vs = P.walk(r[0], r[1], p.ord);
     if (p.unit !== 'hizb') return P.chunk(vs, 'line', LINES[p.unit] * Math.max(1, p.n || 1));
     // by hizb: the verses of n hizbs together (a hizb is cut where it starts)
@@ -83,10 +83,20 @@
     return out;
   }
   // the least amount that ends the plan by its end date
-  function fitN(p) {
+  // the amounts of a wird, from least to most: a quarter page, half a page, a page, 2…9 pages, then 1…10 hizbs
+  var LADDER = [['q', 1], ['h', 1]];
+  for (var lp = 1; lp <= 9; lp++) LADDER.push(['p', lp]);
+  for (var lh = 1; lh <= 10; lh++) LADDER.push(['hizb', lh]);
+  function rung(p) {
+    var lines = (p.unit === 'hizb' ? 150 : LINES[p.unit] || 7.5) * Math.max(1, p.n || 1), best = 0;
+    LADDER.forEach(function (r, i) { if ((r[0] === 'hizb' ? 150 : LINES[r[0]]) * r[1] <= lines + 0.01) best = i; });
+    return best;
+  }
+  // the least amount that ends the plan by its end date
+  function fitL(p) {
     var q = Object.assign({}, p, { fit: null });
-    for (var n = 1; n <= 40; n++) { q.n = n; var c = wirds(q).length, sl = slots(q, c); if (!sl.length || sl[sl.length - 1] <= p.end) return n; }
-    return 40;
+    for (var i = 0; i < LADDER.length; i++) { q.unit = LADDER[i][0]; q.n = LADDER[i][1]; var c = wirds(q).length, sl = slots(q, c); if (!sl.length || sl[sl.length - 1] <= p.end) return LADDER[i]; }
+    return LADDER[LADDER.length - 1];
   }
   function stat(p) {
     var ws = wirds(p), sl = slots(p, ws.length), t = ymd(new Date()), done = p.done || {};
@@ -128,7 +138,7 @@
       surah: 'سورة', juz: 'الجزء', hizb: 'الحزب', page: 'صفحة', ord: 'يبدأ من', ordO: ['أول النطاق', 'آخره (من الناس صعودًا)'],
       wird: 'الورد', units: ['ربع وجه', 'نصف وجه', 'وجه', 'حزب'], every: 'كل', freq: ['يوم', 'أسبوع'], rdays: 'أيام الورد', start: 'تبدأ',
       wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], count: 'عدد الأوراد', ends: 'تنتهي', create: 'إنشاء', saveB: 'حفظ', cancel: 'إلغاء', del: 'حذف', edit: 'تعديل',
-      delAsk: 'حذف هذه الخطة؟', nextW: 'الورد التالي', today: 'ورد اليوم', week: 'ورد الأسبوع', openB: 'افتح', doneB: 'تم ✓', undo: 'تراجع', behind: 'متأخر', onTime: 'على الموعد', ahead: 'أتممت وردك',
+      delAsk: 'حذف هذه الخطة؟', amount: 'المقدار', nextW: 'الورد التالي', today: 'ورد اليوم', week: 'ورد الأسبوع', openB: 'افتح', doneB: 'تم ✓', undo: 'تراجع', behind: 'متأخر', onTime: 'على الموعد', ahead: 'أتممت وردك',
       fit: ['بالمقدار', 'بتاريخ الانتهاء'], endBy: 'تنتهي قبل', offL: 'أيام الإجازة', offAdd: 'إضافة إجازة', offFrom: 'من', offTo: 'إلى', none0: 'لا إجازات',
       forL: 'لمن الخطة؟', setBy: 'وضعها', kids: 'خطط أولادي', kidsNone: 'لا خطط لأولادك بعد.', imp: 'خطة المدرسة أو الحلقة', impHow: 'انسخ الطلب وأرسله مع ملف الخطة إلى أحد برامج الذكاء الاصطناعي، ثم الصق الجدول الذي يعيده هنا.',
       impCopy: 'انسخ الطلب', impCopied: 'نُسخ الطلب.', impRead: 'اقرأ الجدول', impOk: 'قُرئ {n} بتواريخها.', impBad: 'أسطر لم تُقرأ:', impNone: 'لم يُقرأ شيء؛ تأكد من الجدول.',
@@ -139,7 +149,7 @@
       surah: 'Surah', juz: 'Juz', hizb: 'Hizb', page: 'Page', ord: 'Starts from', ordO: ['The start', 'The end (from an-Nas up)'],
       wird: 'Wird', units: ['¼ page', '½ page', 'Page', 'Hizb'], every: 'Every', freq: ['day', 'week'], rdays: 'Wird days', start: 'Starts',
       wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], count: 'Wirds', ends: 'Ends', create: 'Create', saveB: 'Save', cancel: 'Cancel', del: 'Delete', edit: 'Edit',
-      delAsk: 'Delete this plan?', nextW: 'Next wird', today: 'Today', week: 'This week', openB: 'Open', doneB: 'Done ✓', undo: 'Undo', behind: 'Behind', onTime: 'On time', ahead: 'Wird done',
+      delAsk: 'Delete this plan?', amount: 'Amount', nextW: 'Next wird', today: 'Today', week: 'This week', openB: 'Open', doneB: 'Done ✓', undo: 'Undo', behind: 'Behind', onTime: 'On time', ahead: 'Wird done',
       fit: ['By amount', 'By end date'], endBy: 'Ends by', offL: 'Days off', offAdd: 'Add days off', offFrom: 'From', offTo: 'To', none0: 'No days off',
       forL: 'Plan for', setBy: 'Set by', kids: 'My children’s plans', kidsNone: 'No plans for your children yet.', imp: 'School or circle plan', impHow: 'Copy the request and send it with the plan’s file to an AI assistant, then paste the table it returns here.',
       impCopy: 'Copy the request', impCopied: 'Request copied.', impRead: 'Read the table', impOk: 'Read: {n} with their dates.', impBad: 'Lines not read:', impNone: 'Nothing was read; check the table.',
@@ -308,9 +318,8 @@
           '<div class="kh-l">' + esc(l.range) + '</div>' + seg('pl-by', l.by, BY, p.by) +
           '<div class="kh-ft"><label>' + esc(l.from) + '<select class="pl-a"></select></label><label>' + esc(l.to) + '<select class="pl-b"></select></label></div>' +
           '<div class="kh-l">' + esc(l.ord) + '</div>' + seg('pl-ord', l.ordO, ['mushaf', 'reverse'], p.ord) +
-          '<div class="kh-l">' + esc(l.wird) + '</div>' + seg('pl-unit', l.units, UN, p.unit) +
-          seg('pl-fit', l.fit, ['amount', 'end'], p.fit === 'end' ? 'end' : 'amount') +
-          '<div class="kh-row pl-amt"><span>' + esc(l.wird) + '</span><span class="kh-step"><button type="button" data-n="1">+</button><b class="pl-n"></b><button type="button" data-n="-1">−</button></span></div>' +
+          '<div class="kh-l">' + esc(l.wird) + '</div>' + seg('pl-fit', l.fit, ['amount', 'end'], p.fit === 'end' ? 'end' : 'amount') +
+          '<div class="kh-row pl-amt"><span>' + esc(l.amount) + '</span><span class="kh-step"><button type="button" data-n="1">+</button><b class="pl-n"></b><button type="button" data-n="-1">−</button></span></div>' +
           '<div class="kh-row pl-endr"><span>' + esc(l.endBy) + '</span><input class="kh-start pl-end" type="date"></div>' +
           '<div class="kh-row"><span>' + esc(l.every) + '</span>' + seg('pl-freq', l.freq, ['day', 'week'], p.freq) + '</div>' +
           '<div class="kh-row kh-rdays pl-rd"><span>' + esc(l.rdays) + '</span><span class="kh-wd">' + l.wd.map(function (w, i) { return '<button type="button" data-w="' + i + '">' + esc(w) + '</button>'; }).join('') + '</span></div>' +
@@ -364,7 +373,7 @@
           b.onclick = function () { p[key] = b.dataset.v; el.querySelectorAll('.' + cls + ' button').forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); show(); };
         });
       };
-      segOn('pl-typ', 'type'); segOn('pl-ord', 'ord'); segOn('pl-freq', 'freq'); segOn('pl-unit', 'unit', function () { p.n = 1; }); segOn('pl-fit', 'fit');
+      segOn('pl-typ', 'type'); segOn('pl-ord', 'ord'); segOn('pl-freq', 'freq'); segOn('pl-fit', 'fit');
       segOn('pl-by', 'by', function () { p.a = 1; p.b = 1; fill(); });
       if (p.by === 'ayah') { el.querySelectorAll('.pl-by button').forEach(function (x) { x.classList.remove('on'); }); $('.kh-ft').innerHTML = '<b>' + esc(P.label(P.walk(p.from, p.to, p.ord), lang === 'ur' ? 'ar' : lang, function (x) { return num(x, lang); })) + '</b>'; }
       fill(); $('.pl-start').value = p.start;
@@ -374,7 +383,8 @@
       sa.onchange = function () { p.a = +sa.value; if (p.b < p.a) { p.b = p.a; sb.value = sa.value; } show(); };
       sb.onchange = function () { p.b = +sb.value; show(); };
       $('.kh-name').oninput = function () { named = !!$('.kh-name').value.trim(); };
-      el.querySelectorAll('[data-n]').forEach(function (b) { b.onclick = function () { p.n = Math.max(1, Math.min(40, (p.n || 1) + +b.dataset.n)); show(); }; });
+      // one step up or down the amounts: ¼ page, ½ page, a page, 2 pages … then hizbs
+      el.querySelectorAll('[data-n]').forEach(function (b) { b.onclick = function () { var r = LADDER[Math.max(0, Math.min(LADDER.length - 1, rung(p) + +b.dataset.n))]; p.unit = r[0]; p.n = r[1]; show(); }; });
       el.querySelectorAll('[data-w]').forEach(function (b) { b.onclick = function () { var nb = p.rdays ^ (1 << +b.dataset.w); if (nb) { p.rdays = nb; show(); } }; });
       $('.pl-start').onchange = function () { p.start = $('.pl-start').value || ymd(new Date()); show(); };
       $('.pl-end').onchange = function () { p.end = $('.pl-end').value || p.end; show(); };
@@ -416,7 +426,7 @@
       $('.kh-save').onclick = function () {
         var msg = $('.pl-msg'), btn = $('.kh-save');
         p.name = $('.kh-name').value.trim() || autoName();
-        if (p.fit === 'end') p.n = fitN(p);
+        if (p.fit === 'end') { var fr2 = fitL(p); p.unit = fr2[0]; p.n = fr2[1]; }
         // a changed range or division: the wirds are made again
         if (p0 && ['by', 'a', 'b', 'ord', 'unit', 'n', 'from', 'to'].some(function (k) { return p0[k] !== p[k]; }) || (p0 && JSON.stringify(p0.list || null) !== JSON.stringify(p.list || null))) p.done = {};
         if (kid && me) p.setBy = { id: me.id, name: me.name };

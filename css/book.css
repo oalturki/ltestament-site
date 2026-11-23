@@ -1577,3 +1577,6 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 .ma-warn p{ margin:0; line-height:1.7; color:#6b4f12; }
 .bk-msq.bk-msmark{ width:100%; justify-content:center; margin-bottom:10px; }
 .bk-msquick:has(> :only-child) > *{ flex:1; }
+.pl-offadd{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+.pl-offadd .pl-oadd{ grid-column:1 / -1; }
+.pl-offadd input{ width:100%; box-sizing:border-box; }
