@@ -1437,7 +1437,8 @@
           cPg.firstChild.textContent = uiNum(cur);
           if (C.lang === 'ar' || C.lang === 'ur') {
             // in Arabic: the juz and the surah in the Mushaf's own calligraphy (the QPC head fonts, as the printed head)
-            cJz.firstChild.className = 'bk-h2k hj'; cJz.firstChild.textContent = String.fromCharCode(0xE000 + jz0);
+            // «الجزء» in the Mushaf's calligraphy (the word taken from the juz head font) and the juz's number
+            cJz.firstChild.className = 'bk-h2jn'; cJz.firstChild.innerHTML = '<i class="bk-h2jw" aria-hidden="true"></i>' + arNum(jz0);
             cJz.setAttribute('aria-label', 'الجزء ' + arNum(jz0));
             if (first > 1) { cSu.firstChild.className = 'bk-h2k hs'; cSu.firstChild.textContent = String.fromCharCode(0xE000 + first); }
             else { cSu.firstChild.className = ''; cSu.firstChild.textContent = 'سورة ' + (C.arabicNames[0] || ''); }

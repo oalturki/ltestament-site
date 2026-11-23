@@ -1742,3 +1742,10 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ margin-inline-start:2px;
 body.bk-hdr .bk-hdr2{ gap:2px !important; justify-content:space-between; }
 @media (max-width:379px){ .bk-hdr2 .bk-h2k.hj{ font-size:16px; } .bk-hdr2 .bk-h2k.hs{ font-size:22px; }
   html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ display:none; } }
+/* «الجزء» drawn from the juz head font (img/juz-word.svg, as a mask so it takes the text colour), then its number */
+.bk-hdr2 .bk-h2jn{ display:flex; align-items:center; gap:4px; font-family:'Amiri','Noto Naskh Arabic',serif; font-weight:700; font-size:17px; line-height:1; color:#3d2f10; }
+.bk-hdr2 .bk-h2jw{ display:inline-block; width:34px; height:21px; background:currentColor; transform:translateY(-1px);
+  -webkit-mask:url(/img/juz-word.svg) center/contain no-repeat; mask:url(/img/juz-word.svg) center/contain no-repeat; }
+body.bk-night .bk-hdr2 .bk-h2jn{ color:#e8e0cc; }
+.bk-hdr2 .bk-h2k.hs{ font-size:27px; }
+@media (max-width:379px){ .bk-hdr2 .bk-h2k.hs{ font-size:24px; } }
