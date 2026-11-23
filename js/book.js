@@ -1435,8 +1435,8 @@
           }
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
           cPg.firstChild.textContent = uiNum(cur);
-          // the page number in the Mushaf's ayah-end medallion (U+06DD enclosing the digits, KFGQPC Hafs) — Arabic digits
-          if (C.lang === 'ar' || C.lang === 'ur') { cPg.firstChild.className = 'bk-h2pm'; cPg.firstChild.innerHTML = '<i aria-hidden="true">\u06DD</i><span>' + arNum(cur) + '</span>'; }
+          // the page number in a plain gold oval of two lines (not the ayah-end medallion: it must not read as an ayah's number)
+          if (C.lang === 'ar' || C.lang === 'ur') { cPg.firstChild.className = 'bk-h2pm'; cPg.firstChild.innerHTML = '<span>' + arNum(cur) + '</span>'; }
           if (C.lang === 'ar' || C.lang === 'ur') {
             // in Arabic: the juz and the surah in the Mushaf's own calligraphy (the QPC head fonts, as the printed head)
             // «الجزء» in the Mushaf's calligraphy (the word taken from the juz head font) and the juz's number
