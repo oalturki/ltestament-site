@@ -3114,9 +3114,8 @@
         audio.play(); startTick(); return;
       }
       if (rep.mode === 'hifz' && rep.hz && byLine() && !unitCache[rep.surah + ':' + rep.hz.a1 + '-' + rep.hz.a2 + ':done']) {
-        var hk = rep.surah + ':' + rep.hz.a1 + '-' + rep.hz.a2;          // the parts are worked out first (the pages' lines)
-        hifzUnits(rep.surah, rep.hz.a1, rep.hz.a2).then(function (u) { unitCache[hk + ':done'] = u; }, function () { unitCache[hk + ':done'] = []; })
-          .then(function () { if (playing) { repRun = null; startAudio(); } });
+        recState = null;                                  // the parts are worked out first (the pages' lines), then a fresh start
+        prepUnits(function () { if (playing) { recState = null; startAudio(); } });
         return;
       }
       var R1 = repStart();
@@ -3299,7 +3298,8 @@
           if (rep.to[0] * 1000 + rep.to[1] < rep.from[0] * 1000 + rep.from[1]) rep.to = rep.from.slice();
         }
         if (!embed) store('lt_rec_rep', JSON.stringify(rep));
-        fill(); repRun = null;
+        fill(); repRun = null; recState = null;           // the new settings start afresh (not resumed in the old place)
+        prepUnits();
         if (playing) { stopAudio(); recState = null; startAudio(); }   // start again with the new settings
       }
       panel.addEventListener('change', function (e) {
@@ -3411,6 +3411,14 @@
       return unitCache[key];
     }
     root.__hifzUnits = hifzUnits;
+    // worked out ahead, as soon as the passage is chosen, so the first start already has them
+    function prepUnits(then) {
+      if (!rep || rep.mode !== 'hifz' || !rep.hz || !byLine()) { if (then) then(); return; }
+      var hk = rep.surah + ':' + rep.hz.a1 + '-' + rep.hz.a2;
+      if (unitCache[hk + ':done']) { if (then) then(); return; }
+      hifzUnits(rep.surah, rep.hz.a1, rep.hz.a2).then(function (u) { unitCache[hk + ':done'] = u; }, function () { unitCache[hk + ':done'] = []; })
+        .then(function () { repRun = null; if (then) then(); });
+    }
     function byLine() { var r = rec(); return rep.hz && rep.hz.unit !== 'ayah' && r.kind === 'ayah' && r.timed && !r.meaningOnly && !r.then; }
     function repStart() {
       repFollowPage();
@@ -3423,7 +3431,8 @@
         var h = rep.hz, s0 = rep.surah, L2 = [], i, k;
         var bas = function (a) { return a === 1 && s0 !== 1 && s0 !== 9; };
         // the parts to learn: the ayahs, or (by the line) the ayahs cut into parts of about a line
-        var U = (byLine() && unitCache[s0 + ':' + h.a1 + '-' + h.a2 + ':done']) || [];
+        var hk2 = s0 + ':' + h.a1 + '-' + h.a2, U = (byLine() && unitCache[hk2 + ':done']) || [];
+        if (byLine() && !unitCache[hk2 + ':done']) prepUnits();
         if (!U.length) for (i = h.a1; i <= h.a2; i++) U.push([s0, i, 0, 0]);
         var it = function (u, first) { return [u[0], u[1], first && bas(u[1]) && (u[2] <= 1), u[2] ? { w0: u[2], w1: u[3] } : null]; };
         for (i = 0; i < U.length; i++) {
