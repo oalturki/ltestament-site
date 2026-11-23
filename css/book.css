@@ -1604,7 +1604,7 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 
 /* two pages on a screen held wide between 640 and 900 px (a foldable opened, a phone on its side): the spread as on a
    computer — both pages shown, the spine between them (must match TWO in js/book.js) */
-@media (min-width:640px) and (max-width:900px) and (min-aspect-ratio:1/1){
+@media (min-width:640px) and (max-width:900px) and (min-aspect-ratio:4/5){
   .bk-book.bk-spread::after{ display:block; }
   .bk-book.bk-spread[data-show] .bk-ar, .bk-book.bk-spread[data-show] .bk-tr{ display:flex; }
   .bk-book.bk-spread .bk-ar{ border-radius:3px 8px 8px 3px !important; }

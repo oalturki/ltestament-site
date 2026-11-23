@@ -338,8 +338,8 @@
     }
     function uiNum(n) { return C.arabicDigits ? arNum(n) : String(n); }
     // two pages side by side also on a screen held wide that is not a computer's: a foldable phone opened,
-    // a phone or small tablet turned on its side (wider than tall, 640–900 px) — as in a printed Mushaf opened
-    var TWO = '(min-width:640px) and (max-width:900px) and (min-aspect-ratio:1/1)';
+    // a phone or small tablet turned on its side (640–900 px, near square or wider: 4:5 at least — a foldable opened as an app, with no browser bars, is a little taller than wide) — as in a printed Mushaf opened
+    var TWO = '(min-width:640px) and (max-width:900px) and (min-aspect-ratio:4/5)';
     function narrow() { return window.matchMedia('(max-width:900px)').matches && !window.matchMedia(TWO).matches; }
     function step() { return mushaf && !narrow() ? 2 : 1; }
     function norm(p) { p = Math.max(1, Math.min(TOTAL, p | 0)); return step() === 2 && p % 2 === 0 ? p - 1 : p; }
