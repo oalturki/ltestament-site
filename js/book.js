@@ -2504,6 +2504,8 @@
       if (hl.w) root.querySelectorAll('[data-l="' + hl.s + ':' + hl.a + ':' + hl.w + '"]').forEach(function (e) { e.classList.add('hl', 'rv'); });
     }
     function setPlayUI() {
+      // the trial button in the recitation settings: play with the settings chosen, or stop
+      document.querySelectorAll('.bk-rplay').forEach(function (t) { t.classList.toggle('on', playing); t.innerHTML = playing ? t.dataset.stop : t.dataset.play; });
       var b = q('play');
       if (!b) return;
       b.classList.toggle('on', playing);
@@ -2891,7 +2893,7 @@
       var names = (C.uiNames || C.arabicNames || []);
       var sOpts = (q('surahSel') ? q('surahSel').innerHTML : names.map(function (n, i) { return '<option value="' + (i + 1) + '">' + esc(n) + '</option>'; }).join(''));
       var pt = function (k) { return '<span class="bk-rpt"><select class="bk-ctl" data-r="' + k + 's" aria-label="' + esc(R[k]) + '">' + sOpts + '</select>' +
-        '<input class="bk-ctl" data-r="' + k + 'a" type="number" inputmode="numeric" min="1" aria-label="' + esc(R.ayah) + '"></span>'; };
+        '<select class="bk-ctl bk-raya" data-r="' + k + 'a" aria-label="' + esc(R.ayah) + '"></select></span>'; };
       var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
       var RS = RSEC[C.lang] || RSEC.en, speeds = [0.75, 1, 1.25, 1.5, 2];
       // in groups, as in recitation apps: what is recited, repetition, speed
@@ -2900,8 +2902,8 @@
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
         '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="hifz">' + esc(R.hifz) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
         '<label class="bk-rrow bk-rsurah"><span>' + esc(R.surah) + '</span><select class="bk-ctl" data-r="surah">' + sOpts + '</select></label>' +
-        '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><input class="bk-ctl" data-r="ha1" type="number" inputmode="numeric" min="1"></label><p class="bk-rprev" data-pv="ha1" lang="ar" dir="rtl"></p>' +
-        '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><input class="bk-ctl" data-r="ha2" type="number" inputmode="numeric" min="1"></label><p class="bk-rprev" data-pv="ha2" lang="ar" dir="rtl"></p>' +
+        '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><select class="bk-ctl bk-raya" data-r="ha1"></select></label><p class="bk-rprev" data-pv="ha1" lang="ar" dir="rtl"></p>' +
+        '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><select class="bk-ctl bk-raya" data-r="ha2"></select></label><p class="bk-rprev" data-pv="ha2" lang="ar" dir="rtl"></p>' +
         '<div class="bk-rhx"><span class="bk-rhxh">' + esc(R.hx) + '</span><p class="bk-rnote">' + esc(R.hxNote) + '</p><div class="bk-rhxl"></div></div>' +
         '<label class="bk-rrow"><span>' + esc(R.linkHow) + '</span><select class="bk-ctl" data-r="hl"><option value="2">' + esc(R.lPrev) + '</option><option value="3">' + esc(R.l2) + '</option><option value="4">' + esc(R.l3) + '</option><option value="0">' + esc(R.lAll) + '</option></select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hy) + '</span><select class="bk-ctl" data-r="hy">' + hOpts([0, 1, 2, 3, 5, 7, 10]) + '</select></label>' +
@@ -2917,19 +2919,33 @@
         '<p class="bk-rnote bk-rtalq">' + esc(R.tNote) + '</p>' +
         '</section>' +
         '<section class="bk-rsec"><h4>' + esc(RS[2]) + '</h4><div class="bk-rspeed" role="group" aria-label="' + esc(RS[2]) + '">' +
-        speeds.map(function (v) { return '<button type="button" data-sp="' + v + '">' + (C.lang === 'ar' ? arNum(String(v)).replace('.', '٫') : String(v)) + '×</button>'; }).join('') + '</div></section>';
+        speeds.map(function (v) { return '<button type="button" data-sp="' + v + '">' + (C.lang === 'ar' ? arNum(String(v)).replace('.', '٫') : String(v)) + '×</button>'; }).join('') + '</div></section>' +
+        '<button type="button" class="bk-rplay"></button>';
+      var TRY = { ar: ['▶ تشغيل بهذه الإعدادات', '■ إيقاف'], ur: ['▶ ان ترتیبات سے چلائیں', '■ روکیں'], en: ['▶ Play with these settings', '■ Stop'],
+                  fr: ['▶ Lire avec ces réglages', '■ Arrêter'], es: ['▶ Reproducir con estos ajustes', '■ Detener'], ru: ['▶ Воспроизвести', '■ Стоп'] }[C.lang] || ['▶ Play', '■ Stop'];
       var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
+      var tryB = panel.querySelector('.bk-rplay'); tryB.dataset.play = esc(TRY[0]); tryB.dataset.stop = esc(TRY[1]); tryB.innerHTML = playing ? tryB.dataset.stop : tryB.dataset.play;
+      tryB.onclick = function () { if (playing) stopAudio(); else { recState = null; startAudio(); } };
+      // an ayah is picked from the surah's own ayahs (1 … its count), not typed
+      var ayaOpts = function (el, n) {
+        if (+el.dataset.n === n) return;
+        var o = ''; for (var i = 1; i <= n; i++) o += '<option value="' + i + '">' + uiNum(i) + '</option>';
+        el.innerHTML = o; el.dataset.n = n;
+      };
       function fill() {
+        var nv0 = function (sN) { return MAP ? MAP.verses[(sN || 1) - 1] : 286; };
+        ayaOpts(f('froma'), nv0(rep.from[0])); ayaOpts(f('toa'), nv0(rep.to[0]));
+        ayaOpts(f('ha1'), nv0(rep.surah)); ayaOpts(f('ha2'), nv0(rep.surah));
         f('talq').value = rep.talq || 'off'; panel.classList.toggle('talq', !!rep.talq && rep.talq !== 'off');
         f('mode').value = rep.mode; f('ayah').value = String(rep.ayah); f('range').value = String(rep.range);
-        f('froms').value = String(rep.from[0]); f('froma').value = rep.from[1]; f('tos').value = String(rep.to[0]); f('toa').value = rep.to[1];
+        f('froms').value = String(rep.from[0]); f('froma').value = String(rep.from[1]); f('tos').value = String(rep.to[0]); f('toa').value = String(rep.to[1]);
         f('froma').max = MAP ? MAP.verses[rep.from[0] - 1] : 286; f('toa').max = MAP ? MAP.verses[rep.to[0] - 1] : 286;
         f('surah').value = String(rep.surah || 1);
         panel.classList.toggle('custom', rep.mode === 'custom');
         panel.classList.toggle('surah', rep.mode === 'surah' || rep.mode === 'hifz');
         panel.classList.toggle('hifz', rep.mode === 'hifz');
         var hz = rep.hz || {};
-        f('ha1').value = hz.a1 || 1; f('ha2').value = hz.a2 || 1; f('ha1').max = f('ha2').max = MAP ? MAP.verses[(rep.surah || 1) - 1] : 286;
+        f('ha1').value = String(hz.a1 || 1); f('ha2').value = String(hz.a2 || 1); f('ha1').max = f('ha2').max = MAP ? MAP.verses[(rep.surah || 1) - 1] : 286;
         // one row per ayah of the passage: the first sets the count for the rest, any other can be set on its own
         var hl2 = panel.querySelector('.bk-rhxl'), rows = '';
         if (rep.mode === 'hifz') for (var ha = hz.a1 || 1; ha <= Math.min(hz.a2 || 1, (hz.a1 || 1) + 3); ha++)

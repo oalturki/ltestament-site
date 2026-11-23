@@ -1587,3 +1587,10 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 /* a little room between the range's fields and the next heading */
 .kh-form .kh-ft{ margin-bottom:6px; }
 .pl-ordn:empty{ display:none; }
+/* recitation settings: ayahs picked from a list; long labels wrap instead of pushing the list out; a trial button */
+.bk-rpt select.bk-ctl.bk-raya{ flex:none; width:76px; text-align:center; }
+.bk-rhifz select.bk-raya{ width:90px; text-align:center; }
+.bk-rrow > span:first-child{ flex:0 1 auto; min-width:0; line-height:1.4; }
+.bk-rrow .bk-ctl{ flex:none; }
+.bk-rplay{ display:block; width:100%; min-height:50px; margin:14px 0 6px; border:0; border-radius:16px; background:#2f6b45; color:#fff; font:inherit; font-size:1rem; font-weight:700; cursor:pointer; }
+.bk-rplay.on{ background:#8a3a2e; }
