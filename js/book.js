@@ -1339,6 +1339,14 @@
           var ts = q('trSel'), o = ts && ts.options[ts.selectedIndex], v = o ? o.value : '';
           if (!o || !v) return 'المصحف';
           if (v === '__taj') return 'التجويد';
+          // a translation: its language, not its book's name (الإسبانية، not «Noor International»)
+          var tr0 = C.translations.filter(function (x) { return x.key === v; })[0];
+          if (tr0 && !tr0.tafsir && tr0.lang) {
+            var LN = { ar: { en: 'الإنجليزية', fr: 'الفرنسية', es: 'الإسبانية', ru: 'الروسية', ur: 'الأردية' },
+                       ur: { en: 'انگریزی', fr: 'فرانسیسی', es: 'ہسپانوی', ru: 'روسی', ur: 'اردو' } }[C.lang];
+            if (LN && LN[tr0.lang]) return LN[tr0.lang];
+            if (tr0.label) return tr0.label.split(' — ')[0];
+          }
           var t = o.text.replace(/\s*\(.*\)$/, '');
           if (/ — /.test(t)) return t.split(' — ')[0];
           return t.replace(/^التفسير\s+/, '').split(/\s+في\s+/)[0];
