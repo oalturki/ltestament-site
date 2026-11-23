@@ -337,7 +337,10 @@
       return ok ? saved : C.defaultTranslation;
     }
     function uiNum(n) { return C.arabicDigits ? arNum(n) : String(n); }
-    function narrow() { return window.matchMedia('(max-width:900px)').matches; }
+    // two pages side by side also on a screen held wide that is not a computer's: a foldable phone opened,
+    // a phone or small tablet turned on its side (wider than tall, 640–900 px) — as in a printed Mushaf opened
+    var TWO = '(min-width:640px) and (max-width:900px) and (min-aspect-ratio:1/1)';
+    function narrow() { return window.matchMedia('(max-width:900px)').matches && !window.matchMedia(TWO).matches; }
     function step() { return mushaf && !narrow() ? 2 : 1; }
     function norm(p) { p = Math.max(1, Math.min(TOTAL, p | 0)); return step() === 2 && p % 2 === 0 ? p - 1 : p; }
 
@@ -840,7 +843,7 @@
       var L = MOB[C.lang] || MOB.en, mq = window.matchMedia(wide ? 'all' : '(max-width:600px)');
       // the large-screen arrangement (bars always shown, lists dropping down under their buttons) above a phone's width
       if (wide) {
-        var mqW = window.matchMedia('(min-width:601px)'), setW = function () { document.body.classList.toggle('bk-wide', mqW.matches); };
+        var mqW = window.matchMedia('(min-width:601px) and (min-height:501px)'), setW = function () { document.body.classList.toggle('bk-wide', mqW.matches); };
         setW(); if (mqW.addEventListener) mqW.addEventListener('change', setW); else if (mqW.addListener) mqW.addListener(setW);
       }
       var svg = function (d) { return '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
