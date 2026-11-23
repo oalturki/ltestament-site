@@ -3398,6 +3398,31 @@
                     es: ['Recitar', 'Parar', 'Permite al navegador usar el micrófono.', 'El servicio se está iniciando; inténtalo en un minuto.', 'No se pudo contactar el servicio.', 'Recita de memoria, desde cualquier punto de la página… las palabras aparecen mientras recitas.'],
                     ru: ['Читать', 'Стоп', 'Разрешите браузеру доступ к микрофону.', 'Сервис запускается; попробуйте через минуту.', 'Сервис недоступен.', 'Читайте по памяти, с любого места страницы… слова появляются по мере чтения.'] };
         var LV = LVL[C.lang] || LVL.en, live = null, liveTurning = false;
+        // the microphone refused: a browser asks only once (Chrome does not ask again after a refusal), so the reader
+        // is shown where to allow it on his own device — the steps for that browser, in his language
+        var micHelp = function () {
+          var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document),
+              andr = /Android/.test(ua), app = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+          var ar = C.lang === 'ar' || C.lang === 'ur';
+          var T = ar ? { h: 'الميكروفون غير مسموح', p: 'التسميع يحتاج إذن الميكروفون. اسمح به هكذا ثم أعد المحاولة:', ok: 'حسنًا',
+                         ios: ['اضغط «aA» أو أيقونة الإعدادات بجانب عنوان الموقع.', 'اختر «إعدادات الموقع» ← «الميكروفون» ← «سماح».', 'أو من إعدادات الآيفون: «Safari» ← «الميكروفون» ← «سماح».'],
+                         chrome: ['اضغط الأيقونة التي على يسار عنوان الموقع.', 'اختر «الأذونات» ← «الميكروفون» وفعّله.', 'ثم أعد تحميل الصفحة.'],
+                         app: ['اضغط مطولًا على أيقونة المصحف في الشاشة الرئيسية ← «معلومات التطبيق».', '«الأذونات» ← «الميكروفون» ← «السماح أثناء استخدام التطبيق».', 'وتأكد كذلك من إذن الميكروفون لـ Chrome في إعدادات الجوال ← التطبيقات.'],
+                         pc: ['اضغط أيقونة القفل أو الإعدادات بجانب عنوان الموقع.', 'اجعل «الميكروفون» مسموحًا.', 'ثم أعد تحميل الصفحة.'] }
+                     : { h: 'Microphone not allowed', p: 'Reciting needs the microphone. Allow it, then try again:', ok: 'OK',
+                         ios: ['Tap «aA» or the settings icon beside the address.', 'Website Settings → Microphone → Allow.', 'Or in iPhone Settings: Safari → Microphone → Allow.'],
+                         chrome: ['Tap the icon left of the address.', 'Permissions → Microphone: turn it on.', 'Then reload the page.'],
+                         app: ['Long-press the Mushaf icon on the home screen → App info.', 'Permissions → Microphone → Allow while using the app.', 'Also check Chrome\'s microphone permission in the phone\'s Settings → Apps.'],
+                         pc: ['Click the lock or settings icon beside the address.', 'Set Microphone to Allow.', 'Then reload the page.'] };
+          var steps = ios ? T.ios : andr ? (app ? T.app : T.chrome) : T.pc;
+          var ov = document.createElement('div'); ov.className = 'bk-micov';
+          ov.innerHTML = '<div class="bk-micbox" role="dialog" aria-modal="true"><h3>' + esc(T.h) + '</h3><p>' + esc(T.p) + '</p><ol>' +
+            steps.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ol><button type="button">' + esc(T.ok) + '</button></div>';
+          var shut = function () { ov.remove(); };
+          ov.onclick = function (e) { if (e.target === ov) shut(); };
+          ov.querySelector('button').onclick = shut;
+          document.body.appendChild(ov);
+        };
         var mic = document.createElement('button');
         mic.type = 'button'; mic.className = 'bk-livemic';
         mic.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span class="t">' + esc(LV[0]) + '</span>';
@@ -3568,7 +3593,7 @@
               if (st === 'stopped') famFlush(false);
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
               else if (st === 'stopped') liveSet(false);
-              else if (st === 'denied') { liveSet(false); toast(LV[2]); }
+              else if (st === 'denied') { liveSet(false); micHelp(); }
               else if (st === 'waking') toast(LV[3]);
               else if (st === 'error') toast(LV[4]);
             },

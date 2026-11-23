@@ -1640,3 +1640,12 @@ body.bk-hdr[data-frame="full"] .bk-mframe.sp-l, body.bk-hdr[data-frame="full"] .
   box-shadow:0 -1.5px 0 #2f6b3a, inset 0 1px 0 rgba(47,107,58,.35); }   /* closed at the top by a thin line, the row above it */
 body.bk-hdr .bk-hdr2.bk-h2top{ border-radius:9px; }
 body.bk-hdr[data-frame="full"] .bk-mpage .bk-mhead{ margin-bottom:0 !important; }
+
+/* the microphone refused: where to allow it on this device */
+.bk-micov{ position:fixed; inset:0; z-index:200; background:rgba(16,27,51,.45); display:flex; align-items:center; justify-content:center; padding:20px; }
+.bk-micbox{ background:#fbf8ef; color:#2a2a22; border-radius:14px; padding:18px 18px 14px; max-width:380px; width:100%; box-shadow:0 12px 40px rgba(0,0,0,.3); font-size:15px; line-height:1.6; }
+.bk-micbox h3{ margin:0 0 6px; color:#8a6a1f; font-size:17px; }
+.bk-micbox p{ margin:0 0 6px; }
+.bk-micbox ol{ margin:0 0 12px; padding-inline-start:22px; }
+.bk-micbox button{ display:block; margin-inline-start:auto; border:0; border-radius:8px; padding:8px 22px; background:#b8892e; color:#fff; font:inherit; font-weight:700; }
+body.bk-night .bk-micbox{ background:#1d2638; color:#e8e0cc; }
