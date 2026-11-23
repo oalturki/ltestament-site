@@ -1332,13 +1332,15 @@
           var ts = q('trSel'); if (!ts) return;
           var ov4 = document.createElement('div'); ov4.className = 'bk-msov on bk-viewov';
           var sec = '';
+          // each group folded under its name; the group of what is shown now is open (the Mushaf at first)
           ts.querySelectorAll('optgroup').forEach(function (g) {
-            sec += '<h3>' + esc(g.label) + '</h3><div class="bk-vlist">' + Array.prototype.map.call(g.children, function (o) {
+            var has = Array.prototype.some.call(g.children, function (o) { return o.value === ts.value; });
+            sec += '<details class="bk-vgrp"' + (has ? ' open' : '') + '><summary>' + esc(g.label) + '</summary><div class="bk-vlist">' + Array.prototype.map.call(g.children, function (o) {
               var t = C.translations.filter(function (x) { return x.key === o.value; })[0];
               var sub = VSUB[o.value] != null ? VSUB[o.value] : (t ? String(t.credit || '').replace(/<[^>]+>/g, '').split('·')[0].trim() : '');
               return '<button type="button" data-v="' + esc(o.value) + '"' + (o.value === ts.value ? ' class="on"' : '') + '><span><b>' + esc(o.text) + '</b>' +
                 (sub && sub !== o.text ? '<small>' + esc(sub) + '</small>' : '') + '</span><i>✓</i></button>';
-            }).join('') + '</div>';
+            }).join('') + '</div></details>';
           });
           ov4.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true"><div class="bk-msgrip"></div><div class="bk-mshead"><h2>اختيار المصحف أو التفسير أو الترجمة</h2>' +
             '<button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div><div class="bk-msbody">' + sec + '</div></section>';
@@ -1346,6 +1348,8 @@
           var close4 = function () { ov4.remove(); };
           ov4.addEventListener('click', function (ev) { if (ev.target === ov4) close4(); });
           ov4.querySelector('.bk-msx').onclick = close4;
+          var grps = ov4.querySelectorAll('.bk-vgrp');            // one group open at a time
+          grps.forEach(function (d) { d.addEventListener('toggle', function () { if (d.open) grps.forEach(function (o) { if (o !== d) o.open = false; }); }); });
           ov4.querySelectorAll('[data-v]').forEach(function (b) {
             b.onclick = function () { close4(); if (ts.value !== b.dataset.v) { ts.value = b.dataset.v; ts.dispatchEvent(new Event('change')); } };
           });

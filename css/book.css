@@ -1649,3 +1649,12 @@ body.bk-hdr[data-frame="full"] .bk-mpage .bk-mhead{ margin-bottom:0 !important; 
 .bk-micbox ol{ margin:0 0 12px; padding-inline-start:22px; }
 .bk-micbox button{ display:block; margin-inline-start:auto; border:0; border-radius:8px; padding:8px 22px; background:#b8892e; color:#fff; font:inherit; font-weight:700; }
 body.bk-night .bk-micbox{ background:#1d2638; color:#e8e0cc; }
+
+/* the view sheet: each group folded under its name */
+.bk-viewov .bk-vgrp{ border-bottom:1px solid rgba(138,106,31,.18); }
+.bk-viewov .bk-vgrp > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; padding:14px 4px; font-weight:700; font-size:18px; color:#4a3a14; }
+.bk-viewov .bk-vgrp > summary::-webkit-details-marker{ display:none; }
+.bk-viewov .bk-vgrp > summary::after{ content:''; width:9px; height:9px; border:solid #8a6a1f; border-width:0 2px 2px 0; transform:rotate(45deg); margin-inline-end:6px; transition:transform .2s; }
+.bk-viewov .bk-vgrp[open] > summary::after{ transform:rotate(-135deg); }
+.bk-viewov .bk-vgrp > .bk-vlist{ padding-bottom:8px; }
+body.bk-night .bk-viewov .bk-vgrp > summary{ color:#e8e0cc; }
