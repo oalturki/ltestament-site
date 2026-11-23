@@ -2565,6 +2565,12 @@
           raf = requestAnimationFrame(tick); return;
         }
       }
+      // the silence after an ayah's last word is not waited out: the next ayah follows (the files of these reciters
+      // end with a second or more of silence, which a faster speed shortens only in part)
+      if (st.kind === 'ayah' && st.phase === 'ayah' && st.words && st.words.length && !st.cut && !st.waiting) {
+        var lastEnd = st.words[st.words.length - 1][2];
+        if (lastEnd > 0 && t > lastEnd + 300 && audio.duration && audio.duration * 1000 - t > 300) { st.cut = true; audio.pause(); onEnded(); return; }
+      }
       if (st.kind === 'ayah' && st.phase === 'ayah' && st.words) {
         var w = 0;
         for (var i = 0; i < st.words.length; i++) if (st.words[i][1] <= t) w = st.words[i][0]; else break;
@@ -2672,7 +2678,15 @@
             var n2 = nextAyah(s, a); if (n2) warmAudio(srcOf(r, n2[0], n2[1]));
           }
         }
-        if (r.timed) wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
+        if (r.timed) wordTimes(r, s, a).then(function (w) {
+          var st0 = recState; if (!st0 || st0.s !== s || st0.a !== a) return;
+          st0.words = w;
+          // and the silence before its first word is skipped (a quarter second is kept, for the breath)
+          if (st0.phase === 'ayah' && w.length && w[0][1] > 450) {
+            var to = (w[0][1] - 250) / 1000, jump = function () { if (recState === st0 && st0.phase === 'ayah' && audio.currentTime < to) try { audio.currentTime = to; } catch (e) {} };
+            if (audio.readyState >= 1) jump(); else audio.addEventListener('loadedmetadata', jump, { once: true });
+          }
+        }, function () {});
       };
       if (visible().indexOf(pageOf(s, a)) >= 0) go1();          // same page: start at once (keeps the tap's permission to play)
       else ensureVisible(s, a).then(go1);
