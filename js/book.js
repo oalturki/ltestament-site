@@ -564,6 +564,7 @@
       c.scrollTop = 0;
     }
     function fitAll() {
+      if (root.__placeHdr) setTimeout(root.__placeHdr, 0);
       var spread = mushaf && step() === 2;
       book.classList.toggle('bk-spread', spread);
       book.style.maxWidth = '';          // full width again (e.g. after switching from the Mushaf to the Mushaf with the meaning)
@@ -1394,8 +1395,9 @@
         var hdrUse = function () { return document.body.classList.contains('bk-mob') && !document.body.classList.contains('bk-wide') && step() === 1; };
         var SNM = C.uiNames || C.arabicNames || [];
         root.__placeHdr = function () {
-          var on = hdrUse();
+          var on = hdrUse(), was = document.body.classList.contains('bk-hdr');
           document.body.classList.toggle('bk-hdr', on);
+          if (on !== was) requestAnimationFrame(fitAll);   // the head's room changed: the lines are fitted again
           mv.forEach(function (m, k) {
             var want = on ? (k === 0 ? slotV : slotM) : m[1].parentNode;
             if (m[0].parentNode !== want) { if (on) want.appendChild(m[0]); else m[1].parentNode.insertBefore(m[0], m[1]); }
@@ -1425,6 +1427,9 @@
           cSu.firstChild.textContent = SNM[first - 1] || '';
         };
         window.addEventListener('resize', function () { setTimeout(root.__placeHdr, 220); });
+        // at once on opening (not only after the first page turn), and again as the fonts and the frame settle
+        root.__placeHdr(); [0, 150, 500, 1200, 2500].forEach(function (ms) { setTimeout(root.__placeHdr, ms); });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { root.__placeHdr(); });
       }
 
       // iPad/computer: a tap outside the index panel closes it
