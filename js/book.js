@@ -1423,7 +1423,7 @@
               // the full frame: the row rests on the frame (closed at its top by a thin line), as wide as it. Placed from
               // the layout (not the page's turning picture), so it never moves or changes size while a page turns.
               var bR = book.getBoundingClientRect(), fl = bR.left + pgE.offsetLeft + fr3.offsetLeft, ft = bR.top + pgE.offsetTop + fr3.offsetTop;
-              hdr.style.top = Math.round(ft - 20) + 'px';
+              hdr.style.top = Math.round(ft - 23) + 'px';
               hdr.style.left = Math.round(fl) + 'px'; hdr.style.right = Math.round(W - fl - fr3.offsetWidth) + 'px';
               hdr.classList.add('bk-h2top');
             } else {

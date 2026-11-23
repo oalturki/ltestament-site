@@ -1677,3 +1677,21 @@ body.bk-night .bk-viewov .bk-vgrp > summary{ color:#e8e0cc; }
   html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12px !important; }
   .bk-hdr2 .bk-h2b{ flex-basis:26px; width:26px; }
 }
+
+/* the row drawn with the surah-name band's own ornament (its frame without the name and the two rosettes, taken from
+   the QPC surah-header font): the curved ends hold search and settings, the middle stretches */
+body.bk-hdr .bk-hdr2{ height:40px !important; background:none !important; box-shadow:none !important; border-radius:0 !important; padding:0 2px !important;
+  border-style:solid !important; border-color:transparent !important; border-width:0 42px !important;
+  border-image:url(/img/hdr-band.svg) 0 1080 fill / 0 42px stretch !important; }
+body.bk-hdr .bk-hdr2 .bk-h2b{ position:absolute; top:50%; transform:translateY(-50%); width:28px; height:28px; z-index:1; }
+body.bk-hdr .bk-hdr2 .bk-h2s{ right:-36px; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:-36px; }
+body.bk-hdr .bk-hdr2 .bk-h2b svg{ width:18px; height:18px; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ background:rgba(251,248,239,.7) !important; border-color:rgba(206,158,0,.45) !important; height:24px !important; }
+body.bk-night.bk-hdr .bk-hdr2{ filter:brightness(.8) saturate(.85); }
+body.bk-hdr .bk-hdr2{ border-width:0 38px !important; border-image-width:0 38px !important; gap:3px !important; }
+body.bk-hdr .bk-hdr2 .bk-h2b{ width:24px; height:24px; padding:3px; }
+body.bk-hdr .bk-hdr2 .bk-h2b svg{ width:16px; height:16px; }
+body.bk-hdr .bk-hdr2 .bk-h2s{ right:-31px; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:-31px; }
+body.bk-hdr .bk-hdr2 .bk-h2c{ font-size:13.5px; min-width:0; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ padding:0 6px !important; max-width:70px !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12.5px !important; }
