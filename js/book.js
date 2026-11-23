@@ -2973,6 +2973,11 @@
       var sOpts = (q('surahSel') ? q('surahSel').innerHTML : names.map(function (n, i) { return '<option value="' + (i + 1) + '">' + esc(n) + '</option>'; }).join(''));
       var pt = function (k) { return '<span class="bk-rpt"><select class="bk-ctl" data-r="' + k + 's" aria-label="' + esc(R[k]) + '">' + sOpts + '</select>' +
         '<select class="bk-ctl bk-raya" data-r="' + k + 'a" aria-label="' + esc(R.ayah) + '"></select></span>'; };
+      var SQL = { ar: ['اختصار الوقفات', 'يقصّر السكتات بين الآيات وداخلها، لتقرب التلاوة من الحدر'], en: ['Shorter pauses', 'Shortens the silences between and within the ayahs, nearer to a quick recitation'],
+                  fr: ['Pauses raccourcies', 'Raccourcit les silences entre et dans les versets'], es: ['Pausas más cortas', 'Acorta los silencios entre y dentro de las aleyas'],
+                  ru: ['Короче паузы', 'Сокращает паузы между аятами и внутри них'], ur: ['مختصر وقفے', 'آیات کے درمیان اور اندر خاموشی کم کرتا ہے'] }[C.lang] || ['Shorter pauses', ''];
+      var TRY = { ar: ['▶ تشغيل بهذه الإعدادات', '■ إيقاف'], ur: ['▶ ان ترتیبات سے چلائیں', '■ روکیں'], en: ['▶ Play with these settings', '■ Stop'],
+                  fr: ['▶ Lire avec ces réglages', '■ Arrêter'], es: ['▶ Reproducir con estos ajustes', '■ Detener'], ru: ['▶ Воспроизвести', '■ Стоп'] }[C.lang] || ['▶ Play', '■ Stop'];
       var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
       var RS = RSEC[C.lang] || RSEC.en, speeds = [0.75, 1, 1.25, 1.5, 2];
       // in groups, as in recitation apps: what is recited, repetition, speed
@@ -3001,11 +3006,6 @@
         speeds.map(function (v) { return '<button type="button" data-sp="' + v + '">' + (C.lang === 'ar' ? arNum(String(v)).replace('.', '٫') : String(v)) + '×</button>'; }).join('') + '</div></section>' +
         '<label class="bk-rrow bk-rsq"><span>' + esc(SQL[0]) + '<small>' + esc(SQL[1]) + '</small></span><input type="checkbox" class="bk-ctl" data-r="squeeze"></label>' +
         '<button type="button" class="bk-rplay"></button>';
-      var SQL = { ar: ['اختصار الوقفات', 'يقصّر السكتات بين الآيات وداخلها، لتقرب التلاوة من الحدر'], en: ['Shorter pauses', 'Shortens the silences between and within the ayahs, nearer to a quick recitation'],
-                  fr: ['Pauses raccourcies', 'Raccourcit les silences entre et dans les versets'], es: ['Pausas más cortas', 'Acorta los silencios entre y dentro de las aleyas'],
-                  ru: ['Короче паузы', 'Сокращает паузы между аятами и внутри них'], ur: ['مختصر وقفے', 'آیات کے درمیان اور اندر خاموشی کم کرتا ہے'] }[C.lang] || ['Shorter pauses', ''];
-      var TRY = { ar: ['▶ تشغيل بهذه الإعدادات', '■ إيقاف'], ur: ['▶ ان ترتیبات سے چلائیں', '■ روکیں'], en: ['▶ Play with these settings', '■ Stop'],
-                  fr: ['▶ Lire avec ces réglages', '■ Arrêter'], es: ['▶ Reproducir con estos ajustes', '■ Detener'], ru: ['▶ Воспроизвести', '■ Стоп'] }[C.lang] || ['▶ Play', '■ Stop'];
       var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
       var tryB = panel.querySelector('.bk-rplay'); tryB.dataset.play = esc(TRY[0]); tryB.dataset.stop = esc(TRY[1]); tryB.innerHTML = playing ? tryB.dataset.stop : tryB.dataset.play;
       tryB.onclick = function () { if (playing) stopAudio(); else { recState = null; startAudio(); } };
@@ -3925,7 +3925,7 @@
         var p1 = goHash();
         if (p1 && visible().indexOf(p1) < 0) show(p1, p1 > cur ? 1 : -1, true); else applyHl();
       });
-    }).catch(function () { showMsg(U.error, false); });
+    }).catch(function (e) { if (window.console) console.error(e); showMsg(U.error, false); });
   }
 
   /* ---------- start every book on the page ---------- */
