@@ -1400,7 +1400,11 @@
           if (!on || !MAP) return;
           var W = window.innerWidth, hd = null;
           root.querySelectorAll('.bk-mpage .bk-mhead').forEach(function (h) { var r = h.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) hd = h; });
-          if (hd) { var r = hd.getBoundingClientRect(); hdr.style.top = Math.round(r.top + r.height / 2) + 'px'; }
+          if (hd) {                                        // over the head's room, as wide as the frame below it
+            var r = hd.getBoundingClientRect(), fr3 = hd.parentNode.querySelector('.bk-mframe'), fx3 = fr3 ? fr3.getBoundingClientRect() : r;
+            hdr.style.top = Math.round(r.top + r.height / 2) + 'px';
+            hdr.style.left = Math.round(Math.max(2, fx3.left)) + 'px'; hdr.style.right = Math.round(Math.max(2, W - fx3.right)) + 'px';
+          }
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
           cJz.firstChild.textContent = (C.lang === 'ar' ? 'ج' : 'J') + uiNum(jz0);
           cPg.firstChild.textContent = uiNum(cur);
