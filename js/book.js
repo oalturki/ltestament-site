@@ -2709,6 +2709,9 @@
       raf = 0;
       if (!playing || !recState) return;
       var t = audio.currentTime * 1000, st = recState;
+      if (st.part && st.phase === 'ayah' && st.t1 && t >= st.t1 && !st.partDone) {      // the part's end
+        st.partDone = true; audio.pause(); onEnded(); return;
+      }
       if (st.kind === 'ayah' && st.phase === 'ayah' && st.words && st.words.length && !st.waiting && talqMode() === 'seg') {
         if (!st.segs) { st.segs = talqSegs(st.s, st.a, st.words); st.si = 0; }
         var nx = st.segs[st.si + 1];
@@ -2865,9 +2868,10 @@
     }
     var warmAu = null;
     function warmAudio(url) { try { if (warmAu && warmAu.src === url) return; warmAu = new Audio(); warmAu.preload = 'auto'; warmAu.muted = true; warmAu.src = url; warmAu.load(); } catch (e) {} }
-    function playAyah(s, a, skipBasmala) {
+    function playAyah(s, a, skipBasmala, part) {
       var r = rec();
       if (r.kind !== 'ayah') return playSurah(s, a);     // a continuous reciter: his surah file from that ayah
+      if (part && r.timed) return playPart(s, a, skipBasmala, part);
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
       if (q('surahSel')) q('surahSel').value = String(s); fitSel();
       var go1 = function () {
@@ -2910,6 +2914,33 @@
       if (visible().indexOf(pageOf(s, a)) >= 0) go1();          // same page: start at once (keeps the tap's permission to play)
       else ensureVisible(s, a).then(go1);
     }
+    // a part of an ayah (memorizing by the line): from just before its first word to the start of the word after its
+    // last (the reciter's own breath kept), then the list goes on (tick() ends it)
+    function playPart(s, a, skipBasmala, part) {
+      var r = rec();
+      if (part.w0 === 1 && a === 1 && s !== 1 && s !== 9 && !skipBasmala) {
+        recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'basmala', part: part, partBas: true };
+        setHl({ basmala: true }); playSrc(srcOf(r, 1, 1)); return;
+      }
+      var st = recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah', part: part };
+      if (q('surahSel')) q('surahSel').value = String(s); fitSel();
+      var go2 = function () {
+        if (!playing) return;
+        wordTimes(r, s, a).then(function (w) {
+          if (recState !== st || !playing) return;
+          st.words = w;
+          var a0 = w.filter(function (x) { return x[0] === part.w0; })[0], nx = w.filter(function (x) { return x[0] === part.w1 + 1; })[0];
+          st.t0 = a0 ? Math.max(0, a0[1] - 150) : 0;
+          st.t1 = nx ? nx[1] - 40 : 0;                     // 0: to the ayah's end
+          setHl({ s: s, a: a, w: part.w0 });
+          playSrc(srcOf(r, s, a));
+          var seek = function () { if (recState === st) try { audio.currentTime = st.t0 / 1000; } catch (e) {} };
+          if (st.t0 > 0) { if (audio.readyState >= 1) seek(); else audio.addEventListener('loadedmetadata', seek, { once: true }); }
+          var n4 = nextAyah(s, a); if (n4) warmAudio(srcOf(r, n4[0], n4[1]));
+        }, function () { if (recState === st && playing) { st.part = null; playSrc(srcOf(r, s, a)); } });
+      };
+      if (visible().indexOf(pageOf(s, a)) >= 0) go2(); else ensureVisible(s, a).then(go2);
+    }
     function playSurah(s, a) {
       var r = rec(), url = srcOf(r, s);
       recState = { kind: 'surah', s: s, a: a, times: null };
@@ -2930,8 +2961,9 @@
     function onEnded() {
       if (!playing || !recState) return;
       var st = recState;
-      if (st.kind === 'ayah' && st.phase === 'ayah' && !st.heard && !audio.muted) { st.heard = true; rsAyah(st.s, st.a, 'listen'); }   // heard to its end
-      if (st.kind === 'ayah' && !st.waited && (st.phase === 'ayah' || st.phase === 'basmala') && talqMode() !== 'off') {
+      if (st.partBas) return playPart(st.s, st.a, true, st.part);
+      if (st.kind === 'ayah' && st.phase === 'ayah' && !st.heard && !audio.muted && !st.part) { st.heard = true; rsAyah(st.s, st.a, 'listen'); }   // heard to its end
+      if (st.kind === 'ayah' && !st.waited && !st.part && (st.phase === 'ayah' || st.phase === 'basmala') && talqMode() !== 'off') {
         st.waited = true;                                // the learner's turn: the last part (or the whole ayah)
         var dur = (audio.duration || 0) * 1000, sg2 = st.phase === 'ayah' && st.segs && st.segs[st.si];
         var from = sg2 ? sg2.t0 : 0, w0 = st.phase === 'ayah' ? (sg2 ? sg2.w0 : 1) : 0;
@@ -2951,7 +2983,7 @@
           R0.i++;
           if (R0.i >= R0.list.length) { if (R0.loopFrom >= 0 && R0.loopFrom < R0.list.length) R0.i = R0.loopFrom; else { repRun = null; return stopAudio(); } }
           var e2 = R0.list[R0.i];
-          return playAyah(e2[0], e2[1], !e2[2]);
+          return playAyah(e2[0], e2[1], !e2[2], e2[3]);
         }
         if (rep.ayah === 0 || R0.ay < rep.ayah) { R0.ay++; return playAyah(st.s, st.a, true); }   // this ayah again
         R0.ay = 1;
@@ -3081,8 +3113,14 @@
       if (recState && lastRec === r.id && visible().indexOf(pageOf(recState.s, recState.a)) >= 0 && audio.currentTime > 0 && !audio.ended) {
         audio.play(); startTick(); return;
       }
+      if (rep.mode === 'hifz' && rep.hz && byLine() && !unitCache[rep.surah + ':' + rep.hz.a1 + '-' + rep.hz.a2 + ':done']) {
+        var hk = rep.surah + ':' + rep.hz.a1 + '-' + rep.hz.a2;          // the parts are worked out first (the pages' lines)
+        hifzUnits(rep.surah, rep.hz.a1, rep.hz.a2).then(function (u) { unitCache[hk + ':done'] = u; }, function () { unitCache[hk + ':done'] = []; })
+          .then(function () { if (playing) { repRun = null; startAudio(); } });
+        return;
+      }
       var R1 = repStart();
-      if (R1.list) { var e1 = R1.list[0]; if (e1) playAyah(e1[0], e1[1], !e1[2]); lastRec = r.id; return; }
+      if (R1.list) { var e1 = R1.list[0]; if (e1) playAyah(e1[0], e1[1], !e1[2], e1[3]); lastRec = r.id; return; }
       if (R1.from) first = [R1.from[0], R1.from[1]];
       else if (goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0) first = [goSurah, 1];
       if (r.kind === 'ayah') playAyah(first[0], first[1]);
@@ -3145,6 +3183,13 @@
                   fr: 'Ce récitateur est continu : la sourate est lue d’un trait depuis le verset choisi, sans répétition, ni souffle, ni pauses raccourcies. Pour ces options, choisissez un récitateur verset par verset.',
                   es: 'Este recitador es continuo: la sura suena de corrido desde la aleya elegida, sin repetición, apuntador ni pausas más cortas. Para ello, elija un recitador aleya por aleya.',
                   ru: 'Этот чтец читает непрерывно: сура звучит целиком с выбранного аята, без повторов, подсказки и сокращения пауз. Для них выберите чтеца по аятам.' }[C.lang] || '';
+      var HU = ({ ar: ['وحدة الحفظ', 'السطر (للآيات الطويلة)', 'الآية كاملة', 'الآية التي تزيد على سطر ونصف تُقسَّم مقاطع بطول السطر تقريبًا، تُكرَّر ويُربط بعضها ببعض؛ وما دونها يبقى آية كاملة.'],
+                  ur: ['حفظ کی اکائی', 'سطر (لمبی آیات کے لیے)', 'پوری آیت', 'ڈیڑھ سطر سے لمبی آیت تقریباً ایک ایک سطر کے حصوں میں بٹ جاتی ہے؛ چھوٹی آیت پوری رہتی ہے۔'],
+                  en: ['Unit to learn', 'The line (for long verses)', 'The whole verse', 'A verse longer than about a line and a half is cut into parts of about a line, repeated and linked; shorter verses stay whole.'],
+                  fr: ['Unité à apprendre', 'La ligne (versets longs)', 'Le verset entier', 'Un verset de plus d’une ligne et demie est découpé en parties d’environ une ligne ; les plus courts restent entiers.'],
+                  es: ['Unidad', 'La línea (versículos largos)', 'El versículo entero', 'Un versículo de más de línea y media se divide en partes de una línea aprox.; los más cortos quedan enteros.'],
+                  ru: ['Единица заучивания', 'Строка (для длинных аятов)', 'Аят целиком', 'Аят длиннее полутора строк делится на части примерно по строке; короткие остаются целыми.'] })[C.lang] || null;
+      if (!HU) HU = ['Unit to learn', 'The line (for long verses)', 'The whole verse', 'A verse longer than about a line and a half is cut into parts of about a line.'];
       panel.innerHTML = '<h3>' + esc(R.title) + '</h3><p class="bk-rnote bk-rcont">' + esc(CNT) + '</p>' +
         '<section class="bk-rsec"><h4>' + esc(RS[0]) + '</h4>' +
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
@@ -3152,6 +3197,8 @@
         '<label class="bk-rrow bk-rsurah"><span>' + esc(R.surah) + '</span><select class="bk-ctl" data-r="surah">' + sOpts + '</select></label>' +
         '<div class="bk-rhifz"><label class="bk-rrow"><span>' + esc(R.fromA) + '</span><select class="bk-ctl bk-raya" data-r="ha1"></select></label><p class="bk-rprev" data-pv="ha1" lang="ar" dir="rtl"></p>' +
         '<label class="bk-rrow"><span>' + esc(R.toA) + '</span><select class="bk-ctl bk-raya" data-r="ha2"></select></label><p class="bk-rprev" data-pv="ha2" lang="ar" dir="rtl"></p>' +
+        '<label class="bk-rrow"><span>' + esc(HU[0]) + '</span><select class="bk-ctl" data-r="hu"><option value="line">' + esc(HU[1]) + '</option><option value="ayah">' + esc(HU[2]) + '</option></select></label>' +
+        '<p class="bk-rnote">' + esc(HU[3]) + '</p>' +
         '<div class="bk-rhx"><span class="bk-rhxh">' + esc(R.hx) + '</span><p class="bk-rnote">' + esc(R.hxNote) + '</p><div class="bk-rhxl"></div></div>' +
         '<label class="bk-rrow"><span>' + esc(R.linkHow) + '</span><select class="bk-ctl" data-r="hl"><option value="2">' + esc(R.lPrev) + '</option><option value="3">' + esc(R.l2) + '</option><option value="4">' + esc(R.l3) + '</option><option value="0">' + esc(R.lAll) + '</option></select></label>' +
         '<label class="bk-rrow"><span>' + esc(R.hy) + '</span><select class="bk-ctl" data-r="hy">' + hOpts([0, 1, 2, 3, 5, 7, 10]) + '</select></label>' +
@@ -3202,6 +3249,7 @@
         hl2.innerHTML = rows;
         hl2.querySelectorAll('[data-hx]').forEach(function (s2) { var a3 = +s2.getAttribute('data-hx'); s2.value = String((hz.xs && hz.xs[a3]) || hz.x || 3); s2.classList.toggle('own', !!(hz.xs && hz.xs[a3])); });
         f('hl').value = String(linkN(hz.link));
+        f('hu').value = hz.unit === 'ayah' ? 'ayah' : 'line';
         f('hy').value = String(hz.y == null ? 2 : hz.y); f('hz').value = String(hz.z == null ? 3 : hz.z);
         panel.classList.toggle('cont', rep.mode === 'cont');
         panel.querySelectorAll('[data-sp]').forEach(function (b3) { b3.classList.toggle('on', +b3.getAttribute('data-sp') === (rep.speed || 1)); });
@@ -3237,10 +3285,10 @@
           var nv = MAP.verses[rep.surah - 1], pg0 = MAP.pages[cur - 1], pgL = MAP.pages[visible().slice(-1)[0] - 1];
           if (was !== 'hifz' || oldS !== rep.surah || !rep.hz) {     // start with the ayahs of this surah on the page being read
             var a1 = pg0[0] === rep.surah && rep.surah !== goSurah ? pg0[1] : 1, a2 = pgL[2] === rep.surah ? pgL[3] : nv;
-            rep.hz = { a1: a1, a2: Math.max(a1, a2), x: (rep.hz && rep.hz.x) || 3, xs: {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value };
+            rep.hz = { a1: a1, a2: Math.max(a1, a2), x: (rep.hz && rep.hz.x) || 3, xs: {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value, unit: f('hu').value };
           } else {
             var b1 = Math.max(1, Math.min(nv, +f('ha1').value || 1)), b2 = Math.max(b1, Math.min(nv, +f('ha2').value || b1));
-            rep.hz = { a1: b1, a2: b2, x: rep.hz.x || 3, xs: rep.hz.xs || {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value };
+            rep.hz = { a1: b1, a2: b2, x: rep.hz.x || 3, xs: rep.hz.xs || {}, link: +f('hl').value, y: +f('hy').value, z: +f('hz').value, unit: f('hu').value };
           }
         }
         if (rep.mode === 'custom' && was !== 'custom') {       // start from the page being read
@@ -3306,6 +3354,64 @@
       if (!embed) store('lt_rec_rep', JSON.stringify(rep));
       if (root.__repFill) try { root.__repFill(); } catch (e) {}
     }
+    // Memorizing by the line: an ayah of up to about a line and a half is one part; a longer one is cut into parts of
+    // about a line each — the part of it on each line of the Mushaf, a short remainder (under about half a line) joined
+    // to the part beside it, and each cut moved to a pause mark (ۖ ۗ ۚ ۘ) when one is within three words of it.
+    // -> [[s, a, w0, w1], ...] (w0/w1 0: the whole ayah). Needs a reciter with word timings.
+    var unitCache = {};
+    function hifzUnits(s, a1, a2) {
+      var key = s + ':' + a1 + '-' + a2;
+      if (unitCache[key]) return unitCache[key];
+      var pgs = [], p0 = pageOf(s, a1), p1 = pageOf(s, a2);
+      for (var p = p0; p <= p1; p++) pgs.push(p);
+      unitCache[key] = Promise.all(pgs.map(function (pg) { return getJSON(BASE + '/data/mushaf/p' + pg + '.json'); })).then(function (ds) {
+        var lines = [], TX = {};                          // [[loc, ...], ...] the Mushaf's lines of text, in order; the words' text
+        ds.forEach(function (d) { (d.l || []).forEach(function (L) { if (L[0] === 'a') L[2].forEach(function (w) { if (w[1]) TX[w[1]] = w[2] || ''; }); }); });
+        ds.forEach(function (d) { (d.l || []).forEach(function (L) { if (L[0] === 'a') lines.push(L[2].filter(function (w) { return w[1] && w[1].split(':').length === 3 && !/^[\u0660-\u0669]+$/.test(w[2] || ''); }).map(function (w) { return w[1]; })); }); });
+        var out = [];
+        for (var a = a1; a <= a2; a++) {
+          var pre = s + ':' + a + ':', parts = [];           // [[w0, w1, share of a line], ...]
+          lines.forEach(function (ln) {
+            var ws = ln.filter(function (l) { return l.indexOf(pre) === 0; }).map(function (l) { return +l.split(':')[2]; });
+            if (ws.length) parts.push([ws[0], ws[ws.length - 1], ws.length / Math.max(1, ln.length)]);
+          });
+          var total = parts.reduce(function (t, x) { return t + x[2]; }, 0);
+          if (parts.length < 2 || total <= 1.5) { out.push([s, a, 0, 0]); continue; }
+          // a short remainder joins its neighbour (the one before, unless that would pass a line and a half)
+          for (var i = 0; i < parts.length; i++) {
+            if (parts[i][2] >= 0.45 || parts.length < 2) continue;
+            var j = i > 0 && parts[i - 1][2] + parts[i][2] <= 1.5 ? i - 1 : (i + 1 < parts.length ? i + 1 : i - 1);
+            var lo = Math.min(i, j), hi = Math.max(i, j);
+            parts.splice(lo, 2, [parts[lo][0], parts[hi][1], parts[lo][2] + parts[hi][2]]);
+            i = -1;
+          }
+          // each cut moved to a pause mark close by
+          for (var k = 0; k + 1 < parts.length; k++) {
+            var cut = parts[k][1], best = null;
+            for (var d = -3; d <= 3; d++) {
+              var w = cut + d;
+              if (w < parts[k][0] + 1 || w >= parts[k + 1][1]) continue;
+              if (WAQF.test(TX[pre + w] || '') && (best === null || Math.abs(d) < Math.abs(best - cut))) best = w;
+            }
+            if (best !== null && best !== cut) { parts[k][1] = best; parts[k + 1][0] = best + 1; }
+          }
+          // a part left very short by the moves (three words or fewer) joins the shorter part beside it
+          for (var m = 0; m < parts.length && parts.length > 1; m++) {
+            if (parts[m][1] - parts[m][0] + 1 > 3) continue;
+            var nb = m === 0 ? 1 : m === parts.length - 1 ? m - 1 : ((parts[m - 1][1] - parts[m - 1][0]) <= (parts[m + 1][1] - parts[m + 1][0]) ? m - 1 : m + 1);
+            var lo2 = Math.min(m, nb);
+            parts.splice(lo2, 2, [parts[lo2][0], parts[lo2 + 1][1], 0]);
+            m = -1;
+          }
+          parts.forEach(function (x) { out.push([s, a, x[0], x[1]]); });
+        }
+        return out;
+      });
+      unitCache[key].catch(function () { delete unitCache[key]; });
+      return unitCache[key];
+    }
+    root.__hifzUnits = hifzUnits;
+    function byLine() { var r = rec(); return rep.hz && rep.hz.unit !== 'ayah' && r.kind === 'ayah' && r.timed && !r.meaningOnly && !r.then; }
     function repStart() {
       repFollowPage();
       if (rep.mode === 'page') {
@@ -3316,14 +3422,18 @@
         // the order to recite: each new ayah x times, then it with the one before it y times; at the end the whole passage z times
         var h = rep.hz, s0 = rep.surah, L2 = [], i, k;
         var bas = function (a) { return a === 1 && s0 !== 1 && s0 !== 9; };
-        for (i = h.a1; i <= h.a2; i++) {
-          var xi = (h.xs && h.xs[i]) || h.x || 1;
-          for (k = 0; k < xi; k++) L2.push([s0, i, bas(i) && L2.length === 0]);
-          // link: with the ayah before it, or with all the passage so far
-          if (i > h.a1) for (k = 0; k < h.y; k++) for (var j2 = (linkN(h.link) === 0 ? h.a1 : Math.max(h.a1, i - linkN(h.link) + 1)); j2 <= i; j2++) L2.push([s0, j2, false]);
+        // the parts to learn: the ayahs, or (by the line) the ayahs cut into parts of about a line
+        var U = (byLine() && unitCache[s0 + ':' + h.a1 + '-' + h.a2 + ':done']) || [];
+        if (!U.length) for (i = h.a1; i <= h.a2; i++) U.push([s0, i, 0, 0]);
+        var it = function (u, first) { return [u[0], u[1], first && bas(u[1]) && (u[2] <= 1), u[2] ? { w0: u[2], w1: u[3] } : null]; };
+        for (i = 0; i < U.length; i++) {
+          var xi = (h.xs && h.xs[U[i][1]]) || h.x || 1;
+          for (k = 0; k < xi; k++) L2.push(it(U[i], L2.length === 0));
+          // link: with the part before it, or with all the passage so far
+          if (i > 0) for (k = 0; k < h.y; k++) for (var j2 = (linkN(h.link) === 0 ? 0 : Math.max(0, i - linkN(h.link) + 1)); j2 <= i; j2++) L2.push(it(U[j2], false));
         }
         var whole = L2.length, zz = h.z === -1 ? 1 : h.z;
-        for (k = 0; k < zz; k++) for (i = h.a1; i <= h.a2; i++) L2.push([s0, i, bas(i)]);
+        for (k = 0; k < zz; k++) for (i = h.a1; i <= h.a2; i++) L2.push([s0, i, bas(i), null]);   // the whole passage: ayah by ayah
         repRun = { list: L2, i: 0, loopFrom: h.z === -1 ? whole : -1, from: [s0, h.a1], to: [s0, h.a2], ay: 1, rg: 1 };
         return repRun;
       }
