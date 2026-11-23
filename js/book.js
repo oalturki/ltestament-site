@@ -2654,6 +2654,58 @@
         var n = nextAyah(s, a); if (n) leadOffset(meaningUrl(r, n[0], n[1]));   // analyse the next one ahead
       } else playSrc(meaningUrl(r, s, a));
     }
+    // «اختصار الوقفات»: the ayah's file is decoded here, its silences found by their loudness (20 ms frames) and
+    // shortened — before the first word (where the echo of the cut lies), between phrases, and after the last word —
+    // then played as a new file, so the speed setting still keeps the reciter's pitch. The word times are moved with it
+    // (map: [start in the new file, start in the original, length], in ms). If the file cannot be read, it plays as is.
+    var sqCache = {}, sqOrder = [];
+    function squeezeOn() { return !!(rep && rep.squeeze); }
+    function squeeze(url) {
+      if (sqCache[url]) return sqCache[url];
+      var p = (window.fetch ? fetch(url) : Promise.reject()).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(function (buf) {
+        var Ctx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        if (!Ctx) throw 0;
+        if (!decoder) decoder = new Ctx(1, 1, 44100);
+        return new Promise(function (ok, bad) { var q2 = decoder.decodeAudioData(buf, ok, bad); if (q2 && q2.then) q2.then(ok, bad); });
+      }).then(function (ab) {
+        var sr = ab.sampleRate, d = ab.getChannelData(0), fr = Math.round(sr * 0.02), n = Math.floor(d.length / fr), env = new Float32Array(n), peak = 0;
+        for (var i = 0; i < n; i++) { var e = 0; for (var j = i * fr; j < (i + 1) * fr; j++) e += d[j] * d[j]; env[i] = Math.sqrt(e / fr); if (env[i] > peak) peak = env[i]; }
+        if (!peak) throw 0;
+        var quiet = Math.max(peak * 0.1, 0.003), voice = peak * 0.2;
+        // the voice starts where it is clearly heard (an echo of the ayah before is quieter), and ends after its last sound
+        var first = 0; while (first < n && env[first] < voice) first++;
+        var last = n - 1; while (last > first && env[last] < quiet) last--;
+        if (first >= n) throw 0;
+        var keep = [], a0 = Math.max(0, first - 4), k = a0, KEEP = 9;     // 4 frames (80 ms) before the voice; inner pauses kept to 180 ms
+        for (var t = a0; t <= last; t++) {
+          if (env[t] >= quiet) continue;
+          var u = t; while (u <= last && env[u] < quiet) u++;
+          if (u - t > KEEP + 4) { keep.push([k, t + Math.floor(KEEP / 2)]); k = u - Math.ceil(KEEP / 2); }
+          t = u;
+        }
+        keep.push([k, Math.min(n, last + 7)]);                               // 140 ms after the last sound
+        var len = 0; keep.forEach(function (r) { len += (r[1] - r[0]) * fr; });
+        var out = new Int16Array(len), o = 0, map = [];
+        keep.forEach(function (r) {
+          map.push([o / sr * 1000, r[0] * fr / sr * 1000, (r[1] - r[0]) * fr / sr * 1000]);
+          for (var x = r[0] * fr; x < r[1] * fr; x++) { var v = Math.max(-1, Math.min(1, d[x])); out[o++] = v < 0 ? v * 0x8000 : v * 0x7fff; }
+        });
+        // a plain WAV file of it
+        var hd = new DataView(new ArrayBuffer(44)), w = function (off, str) { for (var c = 0; c < str.length; c++) hd.setUint8(off + c, str.charCodeAt(c)); };
+        w(0, 'RIFF'); hd.setUint32(4, 36 + len * 2, true); w(8, 'WAVE'); w(12, 'fmt '); hd.setUint32(16, 16, true); hd.setUint16(20, 1, true); hd.setUint16(22, 1, true);
+        hd.setUint32(24, sr, true); hd.setUint32(28, sr * 2, true); hd.setUint16(32, 2, true); hd.setUint16(34, 16, true); w(36, 'data'); hd.setUint32(40, len * 2, true);
+        return { url: URL.createObjectURL(new Blob([hd.buffer, out.buffer], { type: 'audio/wav' })), map: map };
+      });
+      sqCache[url] = p; sqOrder.push(url);
+      if (sqOrder.length > 8) { var old = sqOrder.shift(); var po = sqCache[old]; delete sqCache[old]; po.then(function (x) { setTimeout(function () { URL.revokeObjectURL(x.url); }, 60000); }, function () {}); }
+      p.catch(function () { delete sqCache[url]; });
+      return p;
+    }
+    // a time in the original file → in the shortened one
+    function sqTime(map, ms) {
+      for (var i = map.length - 1; i >= 0; i--) if (ms >= map[i][1]) return map[i][0] + Math.min(ms - map[i][1], map[i][2]);
+      return 0;
+    }
     var warmAu = null;
     function warmAudio(url) { try { if (warmAu && warmAu.src === url) return; warmAu = new Audio(); warmAu.preload = 'auto'; warmAu.muted = true; warmAu.src = url; warmAu.load(); } catch (e) {} }
     function playAyah(s, a, skipBasmala) {
@@ -2671,6 +2723,14 @@
           if (r.trimLead) {
             playTrimmed(srcOf(r, s, a));
             var n = nextAyah(s, a); if (n) leadOffset(srcOf(r, n[0], n[1]));
+          } else if (squeezeOn()) {
+            var st1 = recState, src1 = srcOf(r, s, a), n3 = nextAyah(s, a);
+            squeeze(src1).then(function (sq) {
+              if (recState !== st1 || !playing) return;
+              st1.map = sq.map; if (st1.words) st1.words = st1.words.map(function (w) { return [w[0], sqTime(sq.map, w[1]), sqTime(sq.map, w[2])]; });
+              playSrc(sq.url);
+            }, function () { if (recState === st1 && playing) playSrc(src1); });
+            if (n3) squeeze(srcOf(r, n3[0], n3[1]));                                // the next one is prepared meanwhile
           } else {
             playSrc(srcOf(r, s, a));
             if (r.then && r.trimLead) leadOffset(meaningUrl(r, s, a));      // prepare the meaning while the ayah is recited
@@ -2680,7 +2740,8 @@
         }
         if (r.timed) wordTimes(r, s, a).then(function (w) {
           var st0 = recState; if (!st0 || st0.s !== s || st0.a !== a) return;
-          st0.words = w;
+          st0.words = st0.map ? w.map(function (x) { return [x[0], sqTime(st0.map, x[1]), sqTime(st0.map, x[2])]; }) : w;
+          if (st0.map) return;
           // and the silence before its first word is skipped (a quarter second is kept, for the breath)
           if (st0.phase === 'ayah' && w.length && w[0][1] > 450) {
             var to = (w[0][1] - 250) / 1000, jump = function () { if (recState === st0 && st0.phase === 'ayah' && audio.currentTime < to) try { audio.currentTime = to; } catch (e) {} };
@@ -2938,7 +2999,11 @@
         '</section>' +
         '<section class="bk-rsec"><h4>' + esc(RS[2]) + '</h4><div class="bk-rspeed" role="group" aria-label="' + esc(RS[2]) + '">' +
         speeds.map(function (v) { return '<button type="button" data-sp="' + v + '">' + (C.lang === 'ar' ? arNum(String(v)).replace('.', '٫') : String(v)) + '×</button>'; }).join('') + '</div></section>' +
+        '<label class="bk-rrow bk-rsq"><span>' + esc(SQL[0]) + '<small>' + esc(SQL[1]) + '</small></span><input type="checkbox" class="bk-ctl" data-r="squeeze"></label>' +
         '<button type="button" class="bk-rplay"></button>';
+      var SQL = { ar: ['اختصار الوقفات', 'يقصّر السكتات بين الآيات وداخلها، لتقرب التلاوة من الحدر'], en: ['Shorter pauses', 'Shortens the silences between and within the ayahs, nearer to a quick recitation'],
+                  fr: ['Pauses raccourcies', 'Raccourcit les silences entre et dans les versets'], es: ['Pausas más cortas', 'Acorta los silencios entre y dentro de las aleyas'],
+                  ru: ['Короче паузы', 'Сокращает паузы между аятами и внутри них'], ur: ['مختصر وقفے', 'آیات کے درمیان اور اندر خاموشی کم کرتا ہے'] }[C.lang] || ['Shorter pauses', ''];
       var TRY = { ar: ['▶ تشغيل بهذه الإعدادات', '■ إيقاف'], ur: ['▶ ان ترتیبات سے چلائیں', '■ روکیں'], en: ['▶ Play with these settings', '■ Stop'],
                   fr: ['▶ Lire avec ces réglages', '■ Arrêter'], es: ['▶ Reproducir con estos ajustes', '■ Detener'], ru: ['▶ Воспроизвести', '■ Стоп'] }[C.lang] || ['▶ Play', '■ Stop'];
       var f = function (k) { return panel.querySelector('[data-r="' + k + '"]'); };
@@ -2954,6 +3019,7 @@
         var nv0 = function (sN) { return MAP ? MAP.verses[(sN || 1) - 1] : 286; };
         ayaOpts(f('froma'), nv0(rep.from[0])); ayaOpts(f('toa'), nv0(rep.to[0]));
         ayaOpts(f('ha1'), nv0(rep.surah)); ayaOpts(f('ha2'), nv0(rep.surah));
+        f('squeeze').checked = !!rep.squeeze;
         f('talq').value = rep.talq || 'off'; panel.classList.toggle('talq', !!rep.talq && rep.talq !== 'off');
         f('mode').value = rep.mode; f('ayah').value = String(rep.ayah); f('range').value = String(rep.range);
         f('froms').value = String(rep.from[0]); f('froma').value = String(rep.from[1]); f('tos').value = String(rep.to[0]); f('toa').value = String(rep.to[1]);
@@ -2996,7 +3062,7 @@
         }
         var cl = function (s, a) { s = Math.max(1, Math.min(114, +s || 1)); a = Math.max(1, Math.min(MAP ? MAP.verses[s - 1] : 286, +a || 1)); return [s, a]; };
         var was = rep.mode;
-        rep.talq = f('talq').value;
+        rep.talq = f('talq').value; rep.squeeze = f('squeeze').checked;
         rep.mode = f('mode').value; rep.ayah = +f('ayah').value; rep.range = +f('range').value;
         if (rep.mode === 'surah' || rep.mode === 'hifz') {
           var oldS = rep.surah;
