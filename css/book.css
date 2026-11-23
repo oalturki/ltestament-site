@@ -1699,3 +1699,24 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12.5px !importan
 body.bk-hdr .bk-hdr2 .bk-h2s{ right:-26.7px; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:-26.7px; }
 body.bk-hdr .bk-hdr2 .bk-h2b{ padding:0; }
 body.bk-hdr .bk-hdr2 .bk-h2s svg{ transform:scaleX(-1); }   /* the lens's handle toward the middle of the band */
+/* the view and the mode: words in the band's gold with a small fold mark, no box */
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ background:transparent !important; border:0 !important; border-radius:0 !important; box-shadow:none !important;
+  padding:0 2px !important; max-width:78px !important; color:#8a6a1f !important; gap:3px !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:13.5px !important; font-weight:700; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ content:''; flex:0 0 auto; width:5px; height:5px; border:solid currentColor; border-width:0 1.6px 1.6px 0;
+  transform:translateY(-2px) rotate(45deg); margin-inline-start:4px; }
+.bk-hdr2 .bk-h2slot{ position:relative; padding:0 5px; }
+.bk-hdr2 .bk-h2slot::before, .bk-hdr2 .bk-h2p::before{ content:''; }
+/* search and settings larger, still inside the curved ends */
+body.bk-hdr .bk-hdr2 .bk-h2b{ width:26px; height:26px; }
+body.bk-hdr .bk-hdr2 .bk-h2b svg{ width:20px; height:20px; stroke-width:2.2; }
+body.bk-hdr .bk-hdr2 .bk-h2s{ right:-27.7px; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:-27.7px; }
+html body.bk-night.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ color:#d9b45a !important; background:transparent !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ flex-direction:row !important; flex-wrap:nowrap !important; white-space:nowrap; }
+@media (max-width:379px){
+  body.bk-hdr .bk-hdr2 .bk-h2c{ font-size:12.5px; }
+  html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12.5px !important; }
+  html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ margin-inline-start:2px; width:4px; height:4px; }
+  .bk-hdr2 .bk-h2slot{ padding:0 3px; }
+  body.bk-hdr .bk-hdr2{ gap:2px !important; }
+}
