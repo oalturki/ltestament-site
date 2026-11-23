@@ -1767,3 +1767,5 @@ body.bk-night .bk-hdr2 .bk-h2pm{ background:#22382f; border-color:#c7a347; box-s
 /* the page number's frame: a square with rounded corners, two gold lines */
 .bk-hdr2 .bk-h2pm{ width:auto; min-width:30px; height:26px; padding:0 6px; border-radius:7px; }
 @media (max-width:379px){ .bk-hdr2 .bk-h2pm{ width:auto; min-width:28px; height:24px; padding:0 5px; } }
+.bk-hdr2 .bk-h2pm{ box-shadow:none; border-width:1.2px; }   /* one line: the room is narrow */
+body.bk-night .bk-hdr2 .bk-h2pm{ box-shadow:none; }
