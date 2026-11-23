@@ -214,7 +214,13 @@
     function unitText(p, lg) {
       if (p.list && p.list.length) return l.impList.replace('{n}', l.wirdsN(p.list.length, lg));
       var n = Math.max(1, p.n || 1), u = ['q', 'h', 'p', 'hizb'].indexOf(p.unit);
-      var w = lg === 'ar' ? [arCount(n, 'ربع وجه', 'ربعا وجه', 'أرباع وجه', 'ربع وجه'), arCount(n, 'نصف وجه', 'نصفا وجه', 'أنصاف وجه', 'نصف وجه'), arCount(n, 'وجه واحد', 'وجهان', 'أوجه', 'وجهًا'), arCount(n, 'حزب واحد', 'حزبان', 'أحزاب', 'حزبًا')][u]
+      // the amount in the range's own words: a range of pages is divided in pages, a surah or a juz in «أوجه»
+      // (the word of memorizing), and a range of juz in juz where the hizbs make whole juz
+      var pg = p.by === 'page';
+      var w = lg === 'ar' ? [pg ? arCount(n, 'ربع صفحة', 'ربعا صفحة', 'أرباع صفحة', 'ربع صفحة') : arCount(n, 'ربع وجه', 'ربعا وجه', 'أرباع وجه', 'ربع وجه'),
+        pg ? arCount(n, 'نصف صفحة', 'نصفا صفحة', 'أنصاف صفحة', 'نصف صفحة') : arCount(n, 'نصف وجه', 'نصفا وجه', 'أنصاف وجه', 'نصف وجه'),
+        pg ? arCount(n, 'صفحة واحدة', 'صفحتان', 'صفحات', 'صفحة') : arCount(n, 'وجه واحد', 'وجهان', 'أوجه', 'وجهًا'),
+        p.by === 'juz' && n % 2 === 0 ? arCount(n / 2, 'جزء واحد', 'جزآن', 'أجزاء', 'جزءًا') : arCount(n, 'حزب واحد', 'حزبان', 'أحزاب', 'حزبًا')][u]
         : n + ' × ' + l.units[u];
       return w + ' / ' + l.freq[p.freq === 'week' ? 1 : 0];
     }
