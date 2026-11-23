@@ -1395,6 +1395,11 @@
           var r = hd.getBoundingClientRect();
           hdr.style.top = Math.round(r.top) + 'px'; hdr.style.height = Math.round(r.height) + 'px';
           document.body.style.setProperty('--hdrB', Math.round(r.bottom + 2) + 'px');     // the bar, when shown, comes below the head
+          // search and settings beside the frame: in the margin when the frame leaves one, else at the screen's edges
+          var fr2 = hd.parentNode && hd.parentNode.querySelector('.bk-mframe'), fx = fr2 ? fr2.getBoundingClientRect() : { left: 0, right: W };
+          var sB = hdr.querySelector('.bk-h2s'), gB = hdr.querySelector('.bk-h2g');
+          if (sB) { sB.style.right = Math.max(4, Math.round(W - fx.right - 34)) + 'px'; sB.style.left = 'auto'; }
+          if (gB) { gB.style.left = Math.max(4, Math.round(fx.left - 34)) + 'px'; gB.style.right = 'auto'; }
           var hp = hd.querySelector('.hp'), hj = hd.querySelector('.hj');
           put(hPg, hp && hp.getBoundingClientRect()); put(hJz, hj && hj.getBoundingClientRect());
         };
