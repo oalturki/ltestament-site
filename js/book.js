@@ -2433,6 +2433,15 @@
       return recPages[id].then(function (m) { return m[s + ':' + a] || []; });
     }
     function ayahTimes(r, s) {
+      if (r.times) {                                   // timings from the recording's own provider, one surah at a time
+        var k = r.id + '|' + s;
+        if (!recSurahs[k]) {
+          recSurahs[k] = fetch(r.times.replace('{n}', String(s))).then(function (x) { if (!x.ok) throw x.status; return x.json(); })
+            .then(function (j) { return (j || []).filter(function (t) { return t && t.ayah > 0; }).map(function (t) { return [t.ayah, t.start_time, t.end_time]; }); });
+          recSurahs[k].catch(function () { delete recSurahs[k]; });
+        }
+        return recSurahs[k];
+      }
       if (!recSurahs[r.id]) { recSurahs[r.id] = getJSON(BASE + '/data/rec/' + r.id + '.json'); recSurahs[r.id].catch(function () { delete recSurahs[r.id]; }); }
       return recSurahs[r.id].then(function (m) { return m[String(s)] || []; });
     }
@@ -2710,6 +2719,7 @@
     function warmAudio(url) { try { if (warmAu && warmAu.src === url) return; warmAu = new Audio(); warmAu.preload = 'auto'; warmAu.muted = true; warmAu.src = url; warmAu.load(); } catch (e) {} }
     function playAyah(s, a, skipBasmala) {
       var r = rec();
+      if (r.kind !== 'ayah') return playSurah(s, a);     // a continuous reciter: his surah file from that ayah
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
       if (q('surahSel')) q('surahSel').value = String(s); fitSel();
       var go1 = function () {
@@ -2981,7 +2991,13 @@
       var panel = document.createElement('div'); panel.className = 'bk-rset'; panel.setAttribute('aria-label', R.title);
       var RS = RSEC[C.lang] || RSEC.en, speeds = [0.75, 1, 1.25, 1.5, 2];
       // in groups, as in recitation apps: what is recited, repetition, speed
-      panel.innerHTML = '<h3>' + esc(R.title) + '</h3>' +
+      var CNT = { ar: 'هذا القارئ بتلاوة متصلة: تُشغَّل السورة كاملة من الآية المختارة، دون تكرار أو تلقين أو اختصار للوقفات. لهذه الخيارات اختر قارئًا «بالوقفات».',
+                  ur: 'یہ قاری مسلسل تلاوت کرتے ہیں: سورت منتخب آیت سے پوری چلتی ہے، تکرار، تلقین یا مختصر وقفوں کے بغیر۔ ان کے لیے آیت بہ آیت قاری منتخب کریں۔',
+                  en: 'This reciter is continuous: the surah plays through from the chosen ayah, without repetition, prompting or shorter pauses. For these, choose a reciter recited ayah by ayah.',
+                  fr: 'Ce récitateur est continu : la sourate est lue d’un trait depuis le verset choisi, sans répétition, ni souffle, ni pauses raccourcies. Pour ces options, choisissez un récitateur verset par verset.',
+                  es: 'Este recitador es continuo: la sura suena de corrido desde la aleya elegida, sin repetición, apuntador ni pausas más cortas. Para ello, elija un recitador aleya por aleya.',
+                  ru: 'Этот чтец читает непрерывно: сура звучит целиком с выбранного аята, без повторов, подсказки и сокращения пауз. Для них выберите чтеца по аятам.' }[C.lang] || '';
+      panel.innerHTML = '<h3>' + esc(R.title) + '</h3><p class="bk-rnote bk-rcont">' + esc(CNT) + '</p>' +
         '<section class="bk-rsec"><h4>' + esc(RS[0]) + '</h4>' +
         '<label class="bk-rrow"><span>' + esc(R.range) + '</span><select class="bk-ctl" data-r="mode"><option value="cont">' + esc(R.cont) + '</option>' +
         '<option value="page">' + esc(R.page) + '</option><option value="surah">' + esc(R.whole) + '</option><option value="hifz">' + esc(R.hifz) + '</option><option value="custom">' + esc(R.custom) + '</option></select></label>' +
@@ -3020,6 +3036,7 @@
         ayaOpts(f('froma'), nv0(rep.from[0])); ayaOpts(f('toa'), nv0(rep.to[0]));
         ayaOpts(f('ha1'), nv0(rep.surah)); ayaOpts(f('ha2'), nv0(rep.surah));
         f('squeeze').checked = !!rep.squeeze;
+        panel.classList.toggle('cont-rec', rec().kind !== 'ayah');
         f('talq').value = rep.talq || 'off'; panel.classList.toggle('talq', !!rep.talq && rep.talq !== 'off');
         f('mode').value = rep.mode; f('ayah').value = String(rep.ayah); f('range').value = String(rep.range);
         f('froms').value = String(rep.from[0]); f('froma').value = String(rep.from[1]); f('tos').value = String(rep.to[0]); f('toa').value = String(rep.to[1]);

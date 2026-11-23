@@ -1597,3 +1597,7 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 .bk-rsq{ align-items:flex-start; padding:10px 0; }
 .bk-rsq span small{ display:block; font-size:.78rem; color:#8a7f68; font-weight:400; margin-top:2px; }
 .bk-rsq input{ width:24px; height:24px; flex:none; margin-top:4px; }
+
+/* a continuous reciter: repetition and pauses do not apply — said once at the top of the recitation settings */
+.bk-rset .bk-rcont{ display:none; }
+.bk-rset.cont-rec .bk-rcont{ display:block; margin:0 0 10px; }

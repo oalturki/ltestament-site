@@ -47,6 +47,11 @@ RECITERS = [
          label=dict(ar='محمد صديق المنشاوي', en='Muhammad Siddiq al-Minshawi')),
     dict(id='maher', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/maherAlMuaiqly/{s}{a}.mp3', timed=True, langs=None,
          label=dict(ar='ماهر المعيقلي (بالوقفات)', en='Maher al-Muaiqly (with pauses)')),
+    # the mujawwad recording made at the King Fahd Complex: one file per surah, continuous; its ayah timings come
+    # from the same provider (mp3quran.net, read 133), fetched by the book surah by surah
+    dict(id='maher-mj', kind='surah', url='https://cdn.mp3quran.net/audio/maher-muaiqly/r3/{s}.mp3', timed=True, langs=None,
+         times='https://www.mp3quran.net/api/v3/ayat_timing?surah={n}&read=133',
+         label=dict(ar='ماهر المعيقلي (نسخة المجمع)', en='Maher al-Muaiqly (King Fahd Complex)')),
     # English pages: the same recitations, each ayah followed by its meaning read by Ibrahim Walk (Saheeh International,
     # one file per ayah from everyayah.com) — recitation and meaning stay in step because both are ayah by ayah.
     dict(id='abdulbasit-en', data='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=['en'],
@@ -63,7 +68,7 @@ RECITERS = [
 
 def reciters(lang):
     ln = 'ar' if lang in ('ar', 'ur') else 'en'
-    return [dict(id=r['id'], data=r.get('data', r['id']), kind=r['kind'], url=r['url'], timed=r['timed'], then=r.get('then'), meaningOnly=r.get('meaningOnly', False), trimLead=r.get('trimLead', False), label=r['label'][ln])
+    return [dict(id=r['id'], data=r.get('data', r['id']), kind=r['kind'], url=r['url'], timed=r['timed'], then=r.get('then'), meaningOnly=r.get('meaningOnly', False), trimLead=r.get('trimLead', False), times=r.get('times'), label=r['label'][ln])
             for r in RECITERS if r['langs'] is None or lang in r['langs']]
 
 UI_NAMES = {'ar': 'ar', 'ur': 'ar', 'en': 'en', 'fr': 'en', 'es': 'en', 'ru': 'ru'}
