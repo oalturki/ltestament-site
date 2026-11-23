@@ -1338,8 +1338,9 @@
             sec += '<details class="bk-vgrp"' + (has ? ' open' : '') + '><summary>' + esc(g.label) + '</summary><div class="bk-vlist">' + Array.prototype.map.call(g.children, function (o) {
               var t = C.translations.filter(function (x) { return x.key === o.value; })[0];
               var sub = VSUB[o.value] != null ? VSUB[o.value] : (t ? String(t.credit || '').replace(/<[^>]+>/g, '').split('·')[0].trim() : '');
+              void sub;                                       // names only: who made each one is said inside it, not in the list
               return '<button type="button" data-v="' + esc(o.value) + '"' + (o.value === ts.value ? ' class="on"' : '') + '><span><b>' + esc(o.text) + '</b>' +
-                (sub && sub !== o.text ? '<small>' + esc(sub) + '</small>' : '') + '</span><i>✓</i></button>';
+                '</span><i>✓</i></button>';
             }).join('') + '</div></details>';
           });
           ov4.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true"><div class="bk-msgrip"></div><div class="bk-mshead"><h2>اختيار المصحف أو التفسير أو الترجمة</h2>' +
