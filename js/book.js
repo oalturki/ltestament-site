@@ -1402,8 +1402,17 @@
           root.querySelectorAll('.bk-mpage .bk-mhead').forEach(function (h) { var r = h.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) hd = h; });
           if (hd) {                                        // over the head's room, as wide as the frame below it
             var r = hd.getBoundingClientRect(), fr3 = hd.parentNode.querySelector('.bk-mframe'), fx3 = fr3 ? fr3.getBoundingClientRect() : r;
-            hdr.style.top = Math.round(r.top + r.height / 2) + 'px';
-            hdr.style.left = Math.round(Math.max(2, fx3.left)) + 'px'; hdr.style.right = Math.round(Math.max(2, W - fx3.right)) + 'px';
+            if (root.getAttribute('data-frame') === 'full' && fr3) {
+              // the full frame: the row is the frame's top side — as wide as the frame, resting on it (its top border is not drawn)
+              hdr.style.top = Math.round(fx3.top - 17) + 'px';
+              hdr.style.left = Math.round(fx3.left) + 'px'; hdr.style.right = Math.round(W - fx3.right) + 'px';
+              hdr.classList.add('bk-h2top');
+            } else {
+              // the screen's width, whatever the frame (a narrow frame would crowd it)
+              hdr.style.top = Math.round(r.top + r.height / 2) + 'px';
+              hdr.style.left = '6px'; hdr.style.right = '6px';
+              hdr.classList.remove('bk-h2top');
+            }
           }
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
           cJz.firstChild.textContent = (C.lang === 'ar' ? 'ج' : 'J') + uiNum(jz0);
