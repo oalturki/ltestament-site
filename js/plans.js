@@ -135,7 +135,7 @@
   var T = {
     ar: { title: 'خططي', add: 'خطة جديدة', none: 'لا خطط بعد. ضع لنفسك خطة لحفظ سورة أو جزء أو لمراجعته، تُقسَّم أورادًا على الأيام أو الأسابيع، ويُتابَع تقدمك فيها.',
       type: ['حفظ', 'مراجعة'], name: 'اسم الخطة', range: 'النطاق', by: ['بالسور', 'بالأجزاء', 'بالأحزاب', 'بالصفحات'], from: 'من', to: 'إلى',
-      surah: 'سورة', juz: 'الجزء', hizb: 'الحزب', page: 'صفحة', ord: 'يبدأ من', ordO: ['أول النطاق', 'آخره (من الناس صعودًا)'],
+      surah: 'سورة', juz: 'الجزء', hizb: 'الحزب', page: 'صفحة', ord: 'يبدأ من', ordO: ['أول النطاق', 'آخره (من الناس صعودًا)'], ordUp: 'من آخر المصحف صعودًا: السورة الأخيرة أولًا، وكل سورة من أولها.',
       wird: 'الورد', units: ['ربع وجه', 'نصف وجه', 'وجه', 'حزب'], every: 'كل', freq: ['يوم', 'أسبوع'], rdays: 'أيام الورد', start: 'تبدأ',
       wd: ['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'], count: 'عدد الأوراد', ends: 'تنتهي', create: 'إنشاء', saveB: 'حفظ', cancel: 'إلغاء', del: 'حذف', edit: 'تعديل',
       delAsk: 'حذف هذه الخطة؟', amount: 'المقدار', nextW: 'الورد التالي', today: 'ورد اليوم', week: 'ورد الأسبوع', openB: 'افتح', doneB: 'تم ✓', undo: 'تراجع', behind: 'متأخر', onTime: 'على الموعد', ahead: 'أتممت وردك',
@@ -146,7 +146,7 @@
       fin: 'تمّت الخطة، بارك الله فيك.', p1: 'ص', note: 'يُحتسب الورد إذا سمّعته في المصحف، أو إذا ضغطت «تم».', auto: 'أحسنت! احتُسب ورد خطتك', wirdsN: function (n, l) { return l === 'ar' ? arCount(n, 'ورد واحد', 'وردان', 'أوراد', 'وردًا') : n + ' wirds'; } },
     en: { title: 'My plans', add: 'New plan', none: 'No plans yet. Set yourself a plan to memorize or review a surah or a juz, divided into daily or weekly wirds, and follow your progress.',
       type: ['Memorize', 'Review'], name: 'Plan name', range: 'Range', by: ['Surahs', 'Juz', 'Hizb', 'Pages'], from: 'From', to: 'To',
-      surah: 'Surah', juz: 'Juz', hizb: 'Hizb', page: 'Page', ord: 'Starts from', ordO: ['The start', 'The end (from an-Nas up)'],
+      surah: 'Surah', juz: 'Juz', hizb: 'Hizb', page: 'Page', ord: 'Starts from', ordO: ['The start', 'The end (from an-Nas up)'], ordUp: 'From the end upwards: the last surah first, each surah from its start.',
       wird: 'Wird', units: ['¼ page', '½ page', 'Page', 'Hizb'], every: 'Every', freq: ['day', 'week'], rdays: 'Wird days', start: 'Starts',
       wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], count: 'Wirds', ends: 'Ends', create: 'Create', saveB: 'Save', cancel: 'Cancel', del: 'Delete', edit: 'Edit',
       delAsk: 'Delete this plan?', amount: 'Amount', nextW: 'Next wird', today: 'Today', week: 'This week', openB: 'Open', doneB: 'Done ✓', undo: 'Undo', behind: 'Behind', onTime: 'On time', ahead: 'Wird done',
@@ -323,7 +323,7 @@
         '<div class="pl-calc">' +
           '<div class="kh-l">' + esc(l.range) + '</div>' + seg('pl-by', l.by, BY, p.by) +
           '<div class="kh-ft"><label>' + esc(l.from) + '<select class="pl-a"></select></label><label>' + esc(l.to) + '<select class="pl-b"></select></label></div>' +
-          '<div class="kh-l">' + esc(l.ord) + '</div>' + seg('pl-ord', l.ordO, ['mushaf', 'reverse'], p.ord) +
+          '<p class="kh-note pl-ordn"></p>' +
           '<div class="kh-l">' + esc(l.wird) + '</div>' + seg('pl-fit', l.fit, ['amount', 'end'], p.fit === 'end' ? 'end' : 'amount') +
           '<div class="kh-row pl-amt"><span>' + esc(l.amount) + '</span><span class="kh-step"><button type="button" data-n="1">+</button><b class="pl-n"></b><button type="button" data-n="-1">−</button></span></div>' +
           '<div class="kh-row pl-endr"><span>' + esc(l.endBy) + '</span><input class="kh-start pl-end" type="date"></div>' +
@@ -365,6 +365,7 @@
         var ws = wirds(p), sl = slots(p, ws.length);
         $('.pl-n').textContent = unitText(p, lang).split(' / ')[0];
         if (!named) $('.kh-name').value = autoName();
+        $('.pl-ordn').textContent = p.ord === 'reverse' && p.by !== 'ayah' ? l.ordUp : '';
         $('.pl-offs').innerHTML = offRanges().map(function (r) {
           return '<span class="pl-off">' + esc(hijri(r[0], lang)) + (r[1] !== r[0] ? ' – ' + esc(hijri(r[1], lang)) : '') + '<button type="button" data-of="' + r[0] + '|' + r[1] + '">×</button></span>';
         }).join('') || '<small class="kh-note">' + esc(l.none0) + '</small>';
@@ -379,15 +380,17 @@
           b.onclick = function () { p[key] = b.dataset.v; el.querySelectorAll('.' + cls + ' button').forEach(function (x) { x.classList.toggle('on', x === b); }); if (after) after(); show(); };
         });
       };
-      segOn('pl-typ', 'type'); segOn('pl-ord', 'ord'); segOn('pl-freq', 'freq'); segOn('pl-fit', 'fit');
+      segOn('pl-typ', 'type'); segOn('pl-freq', 'freq'); segOn('pl-fit', 'fit');
       segOn('pl-by', 'by', function () { p.a = 1; p.b = 1; fill(); });
       if (p.by === 'ayah') { el.querySelectorAll('.pl-by button').forEach(function (x) { x.classList.remove('on'); }); $('.kh-ft').innerHTML = '<b>' + esc(P.label(P.walk(p.from, p.to, p.ord), lang === 'ur' ? 'ar' : lang, function (x) { return num(x, lang); })) + '</b>'; }
       fill(); $('.pl-start').value = p.start;
       if (!p.end) { var e0 = parse(p.start); e0.setDate(e0.getDate() + 90); p.end = ymd(e0); }
       $('.pl-end').value = p.end;
       show();
-      sa.onchange = function () { p.a = +sa.value; if (p.b < p.a) { p.b = p.a; sb.value = sa.value; } show(); };
-      sb.onchange = function () { p.b = +sb.value; show(); };
+      // the direction is in «من … إلى …» itself: from an-Nas to an-Naba' is from the end upwards
+      var ordOf = function () { if (p.by !== 'ayah') p.ord = p.b < p.a ? 'reverse' : 'mushaf'; };
+      sa.onchange = function () { p.a = +sa.value; ordOf(); show(); };
+      sb.onchange = function () { p.b = +sb.value; ordOf(); show(); };
       $('.kh-name').oninput = function () { named = !!$('.kh-name').value.trim(); };
       // one step up or down the amounts: ¼ page, ½ page, a page, 2 pages … then hizbs
       el.querySelectorAll('[data-n]').forEach(function (b) { b.onclick = function () { var r = LADDER[Math.max(0, Math.min(LADDER.length - 1, rung(p) + +b.dataset.n))]; p.unit = r[0]; p.n = r[1]; show(); }; });

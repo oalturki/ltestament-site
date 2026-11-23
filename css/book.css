@@ -1586,3 +1586,4 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
 .pl-offadd input[type="date"]::-webkit-date-and-time-value{ text-align:center; }
 /* a little room between the range's fields and the next heading */
 .kh-form .kh-ft{ margin-bottom:6px; }
+.pl-ordn:empty{ display:none; }
