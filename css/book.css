@@ -1611,20 +1611,24 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
   .bk-book.bk-spread .bk-tr{ border-radius:8px 3px 3px 8px !important; }
 }
 
-/* phones held upright, trial (?hdr=1): the page's own head is the bar — search and settings at its two ends, the juz
-   and the page opening their lists (invisible lists laid over them), the surah the index */
+/* phones held upright, trial (?hdr=1): one row in the place of the printed head — search | juz | the view | page |
+   the mode | surah | settings; the printed head is kept for its room but not shown, the top bar is not used */
 .bk-hdr2{ display:none; }
-body.bk-hdr .bk-hdr2{ display:block; position:fixed; left:0; right:0; z-index:40; pointer-events:none; }
-.bk-hdr2 .bk-h2b{ position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; padding:4px; border:0; border-radius:50%;
-  background:transparent; color:#8a6a1f; pointer-events:auto; display:flex; align-items:center; justify-content:center; }
+body.bk-hdr .bk-hdr2{ display:flex; direction:rtl; align-items:center; gap:4px; position:fixed; left:4px; right:4px; height:32px; transform:translateY(-50%); z-index:40; }
+body.bk-hdr .bk-mhead{ visibility:hidden; }
+body.bk-hdr .bk-bar{ display:none !important; }
+.bk-hdr2 .bk-h2b{ flex:0 0 30px; width:30px; height:30px; padding:4px; border:0; border-radius:50%; background:transparent; color:#8a6a1f; display:flex; align-items:center; justify-content:center; }
 .bk-hdr2 .bk-h2b svg{ width:19px; height:19px; }
-.bk-hdr2 .bk-h2s{ right:4px; } .bk-hdr2 .bk-h2g{ left:4px; }
-.bk-hdr2 .bk-h2o{ position:fixed; opacity:0; pointer-events:auto; font-size:16px; -webkit-appearance:none; appearance:none; border:0; }
-body.bk-hdr .bk-mhead{ padding-inline:34px; }
-body.bk-hdr .bk-mhead .hp, body.bk-hdr .bk-mhead .hj, body.bk-hdr .bk-mhead .hs, body.bk-hdr .bk-mhead > b{ cursor:pointer; }
-body.bk-night .bk-hdr2 .bk-h2b{ color:#d9b45a; }
-/* the head being the bar: the top bar keeps only what the head has not (the mode, what is shown), under the head */
-body.bk-hdr .bk-bar > :not(.bk-tmode):not(.bk-viewbtn){ display:none !important; }
-body.bk-hdr .bk-bar{ top:var(--hdrB, 40px) !important; justify-content:center; gap:10px; background:transparent !important; box-shadow:none !important; border:0 !important; padding-top:0 !important; }
-html body.bk-mob.bk-hdr .bk-bar > .bk-tmode, html body.bk-mob.bk-hdr .bk-bar > .bk-viewbtn{ flex:0 0 140px !important; width:140px !important; max-width:140px !important; justify-content:center; color:#6b5420; height:40px; background:#f6efdf !important; border:1px solid rgba(200,155,60,.45) !important; border-radius:20px !important; box-shadow:0 3px 10px rgba(60,40,0,.2); }
-html body.bk-night.bk-mob.bk-hdr .bk-bar > .bk-tmode, html body.bk-night.bk-mob.bk-hdr .bk-bar > .bk-viewbtn{ color:#e8e0cc; background:#1d2638 !important; }
+.bk-hdr2 .bk-h2c{ position:relative; flex:0 0 auto; min-width:34px; height:30px; display:flex; align-items:center; justify-content:center; color:#4a3a14; font-size:14px; white-space:nowrap; cursor:pointer; }
+.bk-hdr2 .bk-h2c b{ font-weight:700; }
+.bk-hdr2 .bk-h2u{ flex:1 1 auto; justify-content:flex-end; overflow:hidden; } .bk-hdr2 .bk-h2u b{ overflow:hidden; text-overflow:ellipsis; }
+.bk-hdr2 .bk-h2j{ flex:1 1 auto; justify-content:flex-start; }
+.bk-hdr2 .bk-h2c select{ position:absolute; inset:0; width:100%; height:100%; opacity:0; font-size:16px; -webkit-appearance:none; appearance:none; border:0; }
+.bk-hdr2 .bk-h2slot{ flex:0 0 auto; display:flex; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative; height:28px !important; min-height:0 !important; width:auto !important; max-width:96px !important; padding:0 10px !important; margin:0 !important;
+  display:flex !important; align-items:center; justify-content:center; gap:0; font-size:13px !important; color:#6b5420 !important;
+  background:#f3ead6 !important; border:1px solid rgba(200,155,60,.45) !important; border-radius:14px !important; box-shadow:none !important; transform:none !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * svg{ display:none; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:13px !important; color:inherit !important; opacity:1 !important; font-weight:700; }
+body.bk-night .bk-hdr2 .bk-h2b{ color:#d9b45a; } body.bk-night .bk-hdr2 .bk-h2c{ color:#e8e0cc; }
+html body.bk-night.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ background:#1d2638 !important; color:#e8e0cc !important; }

@@ -1368,40 +1368,43 @@
       var hdrQ = /[?&]hdr=([01])/.exec(location.search), hdrOn = false;
       try { if (hdrQ) localStorage.setItem('lt_hdr', hdrQ[1]); hdrOn = localStorage.getItem('lt_hdr') === '1'; } catch (e) { hdrOn = !!(hdrQ && hdrQ[1] === '1'); }
       if (hdrOn && bar) {
+        // one row in the place of the printed head: search | juz | the view | page | the mode | surah | settings
         var hdr = document.createElement('div'); hdr.className = 'bk-hdr2';
         var hb2 = function (cls, icon, label, go) {
           var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-h2b ' + cls; b.title = label; b.setAttribute('aria-label', label);
           b.innerHTML = svg(icon); b.onclick = function (e) { e.stopPropagation(); go(); }; hdr.appendChild(b); return b;
         };
+        var hcell = function (cls) { var c = document.createElement('span'); c.className = 'bk-h2c ' + cls; c.innerHTML = '<b></b>'; hdr.appendChild(c); return c; };
         hb2('bk-h2s', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
+        var cJz = hcell('bk-h2j'), slotV = document.createElement('span'), cPg = hcell('bk-h2p'), slotM = document.createElement('span'), cSu = hcell('bk-h2u');
+        slotV.className = 'bk-h2slot'; slotM.className = 'bk-h2slot';
+        hdr.insertBefore(slotV, cPg); hdr.insertBefore(slotM, cSu);
         hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
-        var hPg = overSel(pg), hJz = overSel(q('mjz') || bar.querySelector('.bk-mjz') || pg);
-        hPg.classList.add('bk-h2o'); hJz.classList.add('bk-h2o');
-        hdr.appendChild(hPg); hdr.appendChild(hJz);
+        var hPg = overSel(pg), hJz = overSel(bar.querySelector('.bk-mjz') || pg);
+        cPg.appendChild(hPg); cJz.appendChild(hJz);
+        cSu.onclick = function (e) { e.stopPropagation(); var h = bar.querySelector('.bk-hamb'); if (h) h.click(); };
         document.body.appendChild(hdr);
+        // the view and the mode buttons come from the top bar into the row (and go back when the row is not used)
+        var mv = [bar.querySelector('.bk-viewbtn'), bar.querySelector('.bk-tmode')].filter(Boolean).map(function (el) {
+          var home = document.createComment(''); el.parentNode.insertBefore(home, el); return [el, home];
+        });
         var hdrUse = function () { return document.body.classList.contains('bk-mob') && !document.body.classList.contains('bk-wide') && step() === 1; };
-        var put = function (el, r) {
-          if (!r || !r.width) { el.style.display = 'none'; return; }
-          el.style.display = ''; el.style.left = Math.round(r.left - 6) + 'px'; el.style.top = Math.round(r.top - 6) + 'px';
-          el.style.width = Math.round(r.width + 12) + 'px'; el.style.height = Math.round(r.height + 12) + 'px';
-        };
+        var SNM = C.uiNames || C.arabicNames || [];
         root.__placeHdr = function () {
           var on = hdrUse();
           document.body.classList.toggle('bk-hdr', on);
-          if (!on) return;
+          mv.forEach(function (m, k) {
+            var want = on ? (k === 0 ? slotV : slotM) : m[1].parentNode;
+            if (m[0].parentNode !== want) { if (on) want.appendChild(m[0]); else m[1].parentNode.insertBefore(m[0], m[1]); }
+          });
+          if (!on || !MAP) return;
           var W = window.innerWidth, hd = null;
           root.querySelectorAll('.bk-mpage .bk-mhead').forEach(function (h) { var r = h.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) hd = h; });
-          if (!hd) return;
-          var r = hd.getBoundingClientRect();
-          hdr.style.top = Math.round(r.top) + 'px'; hdr.style.height = Math.round(r.height) + 'px';
-          document.body.style.setProperty('--hdrB', Math.round(r.bottom + 2) + 'px');     // the bar, when shown, comes below the head
-          // search and settings beside the frame: in the margin when the frame leaves one, else at the screen's edges
-          var fr2 = hd.parentNode && hd.parentNode.querySelector('.bk-mframe'), fx = fr2 ? fr2.getBoundingClientRect() : { left: 0, right: W };
-          var sB = hdr.querySelector('.bk-h2s'), gB = hdr.querySelector('.bk-h2g');
-          if (sB) { sB.style.right = Math.max(4, Math.round(W - fx.right - 34)) + 'px'; sB.style.left = 'auto'; }
-          if (gB) { gB.style.left = Math.max(4, Math.round(fx.left - 34)) + 'px'; gB.style.right = 'auto'; }
-          var hp = hd.querySelector('.hp'), hj = hd.querySelector('.hj');
-          put(hPg, hp && hp.getBoundingClientRect()); put(hJz, hj && hj.getBoundingClientRect());
+          if (hd) { var r = hd.getBoundingClientRect(); hdr.style.top = Math.round(r.top + r.height / 2) + 'px'; }
+          var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
+          cJz.firstChild.textContent = (C.lang === 'ar' ? 'ج' : 'J') + uiNum(jz0);
+          cPg.firstChild.textContent = uiNum(cur);
+          cSu.firstChild.textContent = SNM[first - 1] || '';
         };
         window.addEventListener('resize', function () { setTimeout(root.__placeHdr, 220); });
       }
