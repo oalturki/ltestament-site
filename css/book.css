@@ -1610,3 +1610,17 @@ body.bk-night .gd, body.bk-night .gd strong{ color:#e8e0c8; }
   .bk-book.bk-spread .bk-ar{ border-radius:3px 8px 8px 3px !important; }
   .bk-book.bk-spread .bk-tr{ border-radius:8px 3px 3px 8px !important; }
 }
+
+/* phones held upright, trial (?hdr=1): the page's own head is the bar — search and settings at its two ends, the juz
+   and the page opening their lists (invisible lists laid over them), the surah the index */
+.bk-hdr2{ display:none; }
+body.bk-hdr .bk-hdr2{ display:block; position:fixed; left:0; right:0; z-index:40; pointer-events:none; }
+body.bk-hdr:not(.bk-chrome-off) .bk-hdr2 .bk-h2b{ visibility:hidden; }      /* the full bar is shown over it */
+.bk-hdr2 .bk-h2b{ position:absolute; top:50%; transform:translateY(-50%); width:30px; height:30px; padding:4px; border:0; border-radius:50%;
+  background:transparent; color:#8a6a1f; pointer-events:auto; display:flex; align-items:center; justify-content:center; }
+.bk-hdr2 .bk-h2b svg{ width:19px; height:19px; }
+.bk-hdr2 .bk-h2s{ right:4px; } .bk-hdr2 .bk-h2g{ left:4px; }
+.bk-hdr2 .bk-h2o{ position:fixed; opacity:0; pointer-events:auto; font-size:16px; -webkit-appearance:none; appearance:none; border:0; }
+body.bk-hdr .bk-mhead{ padding-inline:34px; }
+body.bk-hdr .bk-mhead .hp, body.bk-hdr .bk-mhead .hj, body.bk-hdr .bk-mhead .hs, body.bk-hdr .bk-mhead > b{ cursor:pointer; }
+body.bk-night .bk-hdr2 .bk-h2b{ color:#d9b45a; }

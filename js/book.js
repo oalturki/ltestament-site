@@ -1362,6 +1362,44 @@
       }
       document.body.appendChild(nav);
 
+      // phones held upright (trial, ?hdr=1 kept on the device; ?hdr=0 leaves it): the page's own head — juz, page,
+      // surah — is the bar, always there: the surah opens the index, the juz and the page their lists, search and the
+      // settings at its two ends. Nothing needs a tap on the page to be reached, so a tap on a word opens the word.
+      var hdrQ = /[?&]hdr=([01])/.exec(location.search), hdrOn = false;
+      try { if (hdrQ) localStorage.setItem('lt_hdr', hdrQ[1]); hdrOn = localStorage.getItem('lt_hdr') === '1'; } catch (e) { hdrOn = !!(hdrQ && hdrQ[1] === '1'); }
+      if (hdrOn && bar) {
+        var hdr = document.createElement('div'); hdr.className = 'bk-hdr2';
+        var hb2 = function (cls, icon, label, go) {
+          var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-h2b ' + cls; b.title = label; b.setAttribute('aria-label', label);
+          b.innerHTML = svg(icon); b.onclick = function (e) { e.stopPropagation(); go(); }; hdr.appendChild(b); return b;
+        };
+        hb2('bk-h2s', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
+        hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
+        var hPg = overSel(pg), hJz = overSel(q('mjz') || bar.querySelector('.bk-mjz') || pg);
+        hPg.classList.add('bk-h2o'); hJz.classList.add('bk-h2o');
+        hdr.appendChild(hPg); hdr.appendChild(hJz);
+        document.body.appendChild(hdr);
+        var hdrUse = function () { return document.body.classList.contains('bk-mob') && !document.body.classList.contains('bk-wide') && step() === 1; };
+        var put = function (el, r) {
+          if (!r || !r.width) { el.style.display = 'none'; return; }
+          el.style.display = ''; el.style.left = Math.round(r.left - 6) + 'px'; el.style.top = Math.round(r.top - 6) + 'px';
+          el.style.width = Math.round(r.width + 12) + 'px'; el.style.height = Math.round(r.height + 12) + 'px';
+        };
+        root.__placeHdr = function () {
+          var on = hdrUse();
+          document.body.classList.toggle('bk-hdr', on);
+          if (!on) return;
+          var W = window.innerWidth, hd = null;
+          root.querySelectorAll('.bk-mpage .bk-mhead').forEach(function (h) { var r = h.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) hd = h; });
+          if (!hd) return;
+          var r = hd.getBoundingClientRect();
+          hdr.style.top = Math.round(r.top) + 'px'; hdr.style.height = Math.round(r.height) + 'px';
+          var hp = hd.querySelector('.hp'), hj = hd.querySelector('.hj');
+          put(hPg, hp && hp.getBoundingClientRect()); put(hJz, hj && hj.getBoundingClientRect());
+        };
+        window.addEventListener('resize', function () { setTimeout(root.__placeHdr, 220); });
+      }
+
       // iPad/computer: a tap outside the index panel closes it
       document.addEventListener('click', function (e) {
         if (!document.body.classList.contains('bk-wide')) return;
@@ -1834,6 +1872,7 @@
       shw.onclick = function (e) { e.stopPropagation(); chrome(true); };
       document.body.appendChild(shw);
       function placeShow() {
+        if (root.__placeHdr) root.__placeHdr();
         var fr = null, W = window.innerWidth;
         root.querySelectorAll('.bk-mpage .bk-mframe').forEach(function (f) {
           var r = f.getBoundingClientRect(); if (r.width && r.left > -5 && r.right < W + 5) fr = f;
@@ -2060,6 +2099,12 @@
         // colour Mushaf: a tap on an ayah's number lists the ayah's tajweed rules
         var ae = document.body.classList.contains('bk-tajweed') && e.target.closest('.bk-mpage .ae[data-l]');
         if (ae) { wordSheet(C, ae.getAttribute('data-l')); return; }
+        // the head as the bar (bk-hdr): a tap on a word opens it (its meaning, its sound), not the bars
+        var wd = document.body.classList.contains('bk-hdr') && !root.classList.contains('bk-memo') && !playing && e.target.closest('.bk-mpage [data-l]');
+        if (wd) {
+          root.querySelectorAll('.bk-wsel').forEach(function (x) { x.classList.remove('bk-wsel'); });
+          wd.classList.add('bk-wsel'); wordSheet(C, wd.getAttribute('data-l')); return;
+        }
         if (root.__playerTap && root.__playerTap()) return;
         chrome(document.body.classList.contains('bk-chrome-off'));
       });
