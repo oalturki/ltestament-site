@@ -1720,3 +1720,11 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ flex-direction:row !important; 
   .bk-hdr2 .bk-h2slot{ padding:0 3px; }
   body.bk-hdr .bk-hdr2{ gap:2px !important; }
 }
+/* the juz and the surah in the head fonts' calligraphy */
+.bk-hdr2 .bk-h2k{ font-weight:400; line-height:1; color:#3d2f10; }
+.bk-hdr2 .bk-h2k.hs{ font-family:'QPC Head Surah'; font-size:27px; }
+.bk-hdr2 .bk-h2k.hj{ font-family:'QPC Head Juz'; font-size:27px; }
+body.bk-night .bk-hdr2 .bk-h2k{ color:#e8e0cc; }
+@media (max-width:379px){ .bk-hdr2 .bk-h2k.hs, .bk-hdr2 .bk-h2k.hj{ font-size:24px; } }
+.bk-hdr2 .bk-h2u:has(.bk-h2k){ overflow:visible; }
+.bk-hdr2 .bk-h2u b.bk-h2k{ overflow:visible; text-overflow:clip; padding:0 2px; }

@@ -1434,9 +1434,17 @@
             }
           }
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
-          cJz.firstChild.textContent = (C.lang === 'ar' ? 'الجزء ' : 'Juz ') + uiNum(jz0);
           cPg.firstChild.textContent = uiNum(cur);
-          cSu.firstChild.textContent = (C.lang === 'ar' ? 'سورة ' : '') + (SNM[first - 1] || '');
+          if (C.lang === 'ar' || C.lang === 'ur') {
+            // in Arabic: the juz and the surah in the Mushaf's own calligraphy (the QPC head fonts, as the printed head)
+            cJz.firstChild.className = ''; cJz.firstChild.textContent = 'الجزء ' + uiNum(jz0);     // the juz's written name is too long for the row
+            if (first > 1) { cSu.firstChild.className = 'bk-h2k hs'; cSu.firstChild.textContent = String.fromCharCode(0xE000 + first); }
+            else { cSu.firstChild.className = ''; cSu.firstChild.textContent = 'سورة ' + (C.arabicNames[0] || ''); }
+            cSu.setAttribute('aria-label', 'سورة ' + (C.arabicNames[first - 1] || ''));
+          } else {
+            cJz.firstChild.className = ''; cJz.firstChild.textContent = 'Juz ' + uiNum(jz0);
+            cSu.firstChild.className = ''; cSu.firstChild.textContent = SNM[first - 1] || '';
+          }
         };
         window.addEventListener('resize', function () { setTimeout(root.__placeHdr, 220); });
         // at once on opening (not only after the first page turn), and again as the fonts and the frame settle
