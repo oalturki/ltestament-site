@@ -1658,3 +1658,15 @@ body.bk-night .bk-micbox{ background:#1d2638; color:#e8e0cc; }
 .bk-viewov .bk-vgrp[open] > summary::after{ transform:rotate(-135deg); }
 .bk-viewov .bk-vgrp > .bk-vlist{ padding-bottom:8px; }
 body.bk-night .bk-viewov .bk-vgrp > summary{ color:#e8e0cc; }
+
+/* the head as the bar: the view list drops from its button, narrow */
+.bk-msov.bk-vpop{ background:rgba(16,27,51,.12) !important; }
+.bk-msov.bk-vpop .bk-msheet{ position:fixed !important; right:auto !important; bottom:auto !important; max-height:62vh; overflow:auto; border-radius:12px !important;
+  transform:none !important; animation:none !important; padding:4px 10px 8px !important; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+.bk-msov.bk-vpop .bk-msgrip, .bk-msov.bk-vpop .bk-mshead{ display:none !important; }
+.bk-msov.bk-vpop .bk-msbody{ padding:0 !important; }
+.bk-msov.bk-vpop .bk-vgrp > summary{ font-size:15px !important; padding:9px 2px !important; }
+.bk-msov.bk-vpop .bk-vlist button{ padding:7px 6px !important; min-height:0 !important; }
+.bk-msov.bk-vpop .bk-vlist b{ font-size:14px !important; }
+.bk-msov.bk-vpop .bk-vlist small{ font-size:11.5px !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.bk-msov.bk-vpop .bk-vlist span{ min-width:0; }

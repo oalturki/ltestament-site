@@ -1345,6 +1345,13 @@
           ov4.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true"><div class="bk-msgrip"></div><div class="bk-mshead"><h2>اختيار المصحف أو التفسير أو الترجمة</h2>' +
             '<button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div><div class="bk-msbody">' + sec + '</div></section>';
           document.body.appendChild(ov4);
+          // with the head as the bar: a small list dropping from the button, not a sheet across the screen
+          if (document.body.classList.contains('bk-hdr')) {
+            ov4.classList.add('bk-vpop');
+            var vr = vb.getBoundingClientRect(), shW = Math.min(300, window.innerWidth - 16), sh4 = ov4.querySelector('.bk-msheet');
+            var lx = Math.max(8, Math.min(window.innerWidth - shW - 8, vr.left + vr.width / 2 - shW / 2));
+            sh4.style.left = Math.round(lx) + 'px'; sh4.style.top = Math.round(vr.bottom + 8) + 'px'; sh4.style.width = shW + 'px';
+          }
           var close4 = function () { ov4.remove(); };
           ov4.addEventListener('click', function (ev) { if (ev.target === ov4) close4(); });
           ov4.querySelector('.bk-msx').onclick = close4;
