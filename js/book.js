@@ -2340,9 +2340,9 @@
         var opt = function (t) { return '<option value="' + t.key + '">' + esc(t.label) + '</option>'; };
         if (optTr && C.lang === 'ar') {
           root.classList.add('bk-viewsel');
-          ts.innerHTML = '<optgroup label="المصحف"><option value="">المصحف</option><option value="__taj">مصحف التجويد (ملوّن)</option></optgroup>' +
-            '<optgroup label="التفسير">' + C.translations.filter(function (t) { return t.tafsir; }).map(opt).join('') + '</optgroup>' +
-            '<optgroup label="الترجمة">' + C.translations.filter(function (t) { return !t.tafsir; }).map(opt).join('') + '</optgroup>';
+          ts.innerHTML = '<optgroup label="المصاحف"><option value="">المصحف</option><option value="__taj">مصحف التجويد (ملوّن)</option></optgroup>' +
+            '<optgroup label="التفاسير">' + C.translations.filter(function (t) { return t.tafsir; }).map(opt).join('') + '</optgroup>' +
+            '<optgroup label="الترجمات">' + C.translations.filter(function (t) { return !t.tafsir; }).map(opt).join('') + '</optgroup>';
           ts.setAttribute('aria-label', 'العرض'); ts.title = 'العرض';
         } else {
           ts.innerHTML = (optTr ? '<option value="">' + esc(U.noTr) + '</option>' : '') + C.translations.map(opt).join('');
