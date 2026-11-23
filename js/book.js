@@ -2648,6 +2648,8 @@
         var n = nextAyah(s, a); if (n) leadOffset(meaningUrl(r, n[0], n[1]));   // analyse the next one ahead
       } else playSrc(meaningUrl(r, s, a));
     }
+    var warmAu = null;
+    function warmAudio(url) { try { if (warmAu && warmAu.src === url) return; warmAu = new Audio(); warmAu.preload = 'auto'; warmAu.muted = true; warmAu.src = url; warmAu.load(); } catch (e) {} }
     function playAyah(s, a, skipBasmala) {
       var r = rec();
       recState = { kind: 'ayah', s: s, a: a, words: null, phase: 'ayah' };
@@ -2666,6 +2668,8 @@
           } else {
             playSrc(srcOf(r, s, a));
             if (r.then && r.trimLead) leadOffset(meaningUrl(r, s, a));      // prepare the meaning while the ayah is recited
+            // the next ayah's file loads while this one is recited, so no wait between ayahs (at any speed)
+            var n2 = nextAyah(s, a); if (n2) warmAudio(srcOf(r, n2[0], n2[1]));
           }
         }
         if (r.timed) wordTimes(r, s, a).then(function (w) { if (recState && recState.s === s && recState.a === a) recState.words = w; }, function () {});
