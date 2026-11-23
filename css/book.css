@@ -1749,3 +1749,13 @@ body.bk-hdr .bk-hdr2{ gap:2px !important; justify-content:space-between; }
 body.bk-night .bk-hdr2 .bk-h2jn{ color:#e8e0cc; }
 .bk-hdr2 .bk-h2k.hs{ font-size:27px; }
 @media (max-width:379px){ .bk-hdr2 .bk-h2k.hs{ font-size:24px; } }
+/* the page number inside the ayah-end medallion: the font's medallion alone, widened, the digits laid over it */
+.bk-hdr2 .bk-h2pm{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:44px; height:32px; color:#3d2f10; }
+.bk-hdr2 .bk-h2pm i{ position:absolute; left:50%; top:50%; font-family:'KFGQPC Hafs'; font-style:normal; font-weight:400; font-size:34px; line-height:1;
+  transform:translate(-50%,-46%) scaleX(1.55); color:#8a6a1f; }
+.bk-hdr2 .bk-h2pm span{ position:relative; font-family:'Amiri','Noto Naskh Arabic',serif; font-weight:700; font-size:14px; line-height:1; }
+body.bk-night .bk-hdr2 .bk-h2pm{ color:#e8e0cc; } body.bk-night .bk-hdr2 .bk-h2pm i{ color:#d9b45a; }
+.bk-hdr2 .bk-h2pm i{ font-size:27px; transform:translate(-50%,-58%) scaleX(1.5); }
+.bk-hdr2 .bk-h2pm span{ font-size:13px; transform:translateY(0px); }
+@media (max-width:379px){ .bk-hdr2 .bk-h2pm{ width:38px; } .bk-hdr2 .bk-h2pm i{ font-size:24px; } .bk-hdr2 .bk-h2pm span{ font-size:12px; }
+  .bk-hdr2 .bk-h2k.hs{ font-size:22px; } .bk-hdr2 .bk-h2jw{ width:30px; height:19px; } .bk-hdr2 .bk-h2jn{ font-size:15px; } }
