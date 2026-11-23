@@ -1434,9 +1434,9 @@
             }
           }
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
-          cJz.firstChild.textContent = (C.lang === 'ar' ? 'ج' : 'J') + uiNum(jz0);
+          cJz.firstChild.textContent = (C.lang === 'ar' ? 'الجزء ' : 'Juz ') + uiNum(jz0);
           cPg.firstChild.textContent = uiNum(cur);
-          cSu.firstChild.textContent = SNM[first - 1] || '';
+          cSu.firstChild.textContent = (C.lang === 'ar' ? 'سورة ' : '') + (SNM[first - 1] || '');
         };
         window.addEventListener('resize', function () { setTimeout(root.__placeHdr, 220); });
         // at once on opening (not only after the first page turn), and again as the fonts and the frame settle
