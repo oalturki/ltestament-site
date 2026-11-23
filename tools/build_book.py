@@ -46,7 +46,7 @@ RECITERS = [
     dict(id='minshawi', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/minshawyMurattal/{s}{a}.mp3', timed=True, langs=None,
          label=dict(ar='محمد صديق المنشاوي', en='Muhammad Siddiq al-Minshawi')),
     dict(id='maher', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/maherAlMuaiqly/{s}{a}.mp3', timed=True, langs=None,
-         label=dict(ar='ماهر المعيقلي', en='Maher al-Muaiqly')),
+         label=dict(ar='ماهر المعيقلي (بالوقفات)', en='Maher al-Muaiqly (with pauses)')),
     # English pages: the same recitations, each ayah followed by its meaning read by Ibrahim Walk (Saheeh International,
     # one file per ayah from everyayah.com) — recitation and meaning stay in step because both are ayah by ayah.
     dict(id='abdulbasit-en', data='abdulbasit', kind='ayah', url='https://audio-cdn.tarteel.ai/quran/abdulBasitMurattal/{s}{a}.mp3', timed=True, langs=['en'],
