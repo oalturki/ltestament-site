@@ -2029,8 +2029,8 @@ html:has(body.bk-mob.bk-fixbar:not(.bk-wide)){ background:#f8f3e6; }
 body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mnav{ margin:0 !important; left:0 !important; right:0 !important; bottom:0 !important; border-radius:18px 18px 0 0 !important; }
 
 /* the screen below the bar (outside the page on the iPhone home-screen app): the page's colour in the top half, the bar's from the middle down */
-html:has(body.bk-mob.bk-fixbar:not(.bk-wide)){ background:#f8f3e6 linear-gradient(#FBF7EC, #FBF7EC) no-repeat top / 100% 50% !important; }
-html:has(body.bk-mob.bk-fixbar.bk-night:not(.bk-wide)){ background:#1e1b15 linear-gradient(#17150f, #17150f) no-repeat top / 100% 50% !important; }
+html:has(body.bk-mob.bk-fixbar:not(.bk-wide)){ background:#f8f3e6 !important; }   /* the whole canvas the bar's colour (the page's own is a shade lighter): iOS may make the page taller than the screen */
+html:has(body.bk-mob.bk-fixbar.bk-night:not(.bk-wide)){ background:#1e1b15 !important; }
 
 /* night: the new bars dark, as the old ones were */
 html body.bk-mob.bk-night.bk-night.bk-night.bk-night.bk-fixbar:not(.bk-wide) .bk-mnav{ background:#1e1b15 !important; box-shadow:0 -3px 14px rgba(0,0,0,.45) !important; }
@@ -2046,3 +2046,7 @@ html body.bk-mob.bk-night.bk-night.bk-night.bk-night .pc-mi span{ color:#efe3c4 
 html body.bk-mob.bk-night.bk-night.bk-night.bk-night .pc-mdd button{ color:#efe3c4 !important; } html body.bk-mob.bk-night.bk-night.bk-night.bk-night .pc-mdd button.on{ background:rgba(212,174,60,.2) !important; }
 html body.bk-mob.bk-night.bk-night.bk-night.bk-night.bk-living .bk-mlive{ background:#1e1b15 !important; color:#e0d3b0 !important; }
 html body.bk-mob.bk-night.bk-night.bk-night.bk-night.bk-living .bk-mlive button:not(.lv-stop){ background:rgba(212,174,60,.14) !important; color:#e0d3b0 !important; }
+/* the area under the bar on the home-screen app is the page's own body (iOS makes it taller than the screen's
+   visible part): the body takes the bar's colour, a shade darker than before, so the bar reaches the screen's edge */
+html body.bk-mob.bk-fixbar:not(.bk-wide){ background:#f8f3e6 !important; }
+html body.bk-mob.bk-fixbar.bk-night:not(.bk-wide){ background:#1e1b15 !important; }
