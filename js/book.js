@@ -2156,10 +2156,11 @@
       var pcEye = document.createElement('button'); pcEye.type = 'button'; pcEye.className = 'pc-eye'; pc.appendChild(pcEye);
       pcEye.onclick = function (e) { e.stopPropagation(); eyeBtn.click(); setTimeout(pFill, 60); };
       // the computer: in reading and memorizing, the player IS the bottom bar — always there, before playing and after
-      var docked = function () { var m = curMode(); return document.body.classList.contains('bk-wide') && (m === 'read' || m === 'hifz'); };
+      var docked = function () { var m = curMode(); return (document.body.classList.contains('bk-wide') || mq.matches) && (m === 'read' || m === 'hifz'); };
       root.__dock = function () {
+        document.body.classList.toggle('bk-dock', docked());
         if (docked()) { pOn = true; if (!document.body.classList.contains('bk-pcon')) cardShow(true); else pFill(); }
-        else if (pOn && document.body.classList.contains('bk-wide')) { pOn = false; cardShow(false); }
+        else if (pOn) { pOn = false; cardShow(false); }
       };
       var cardShow = function (on) {
         document.body.classList.toggle('bk-pcon', on && pOn);
@@ -2255,6 +2256,7 @@
       $p('.pc-rp').onclick = function (e) { e.stopPropagation(); replay(true); };
       pc.addEventListener('click', function (e) { e.stopPropagation(); });
       setTimeout(function () { root.__dock(); }, 0);
+      window.addEventListener('resize', function () { setTimeout(root.__dock, 150); });
       root.__playerTap = function () { if (!pOn || docked()) return false; cardShow(!document.body.classList.contains('bk-pcon')); return true; };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;

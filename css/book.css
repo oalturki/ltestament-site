@@ -1911,3 +1911,39 @@ body.bk-wide.bk-pcon .bk-pcard .pc-spd{ height:16px; line-height:16px; }
 body.bk-wide.bk-pcon .bk-pcard .pc-b{ line-height:16px; }
 body.bk-wide.bk-pcon .bk-pcard .pc-rs small{ font-size:.6rem; }
 body.bk-wide.bk-pcon .bk-pcard .pc-set, body.bk-wide.bk-pcon .bk-pcard .pc-clk, body.bk-wide.bk-pcon .bk-pcard .pc-eye:not([hidden]){ height:46px !important; }
+
+/* ===== phones (one page): in reading and memorizing the player IS the bottom bar — always there, two lines =====
+   line 1: surah:ayah · [speed — the progress line — time left] · the reciter (+ hide when memorizing, + recitation options)
+   line 2: page arrow · ↻ phrase · ⏩ · ▶ · ⏪ · ↻ ayah · page arrow (the arrows are the bar's own, at its two ends) */
+body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav{ height:calc(96px + max(6px, env(safe-area-inset-bottom))) !important; align-items:flex-end !important;
+  padding-bottom:calc(max(6px, env(safe-area-inset-bottom)) + 6px) !important; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav > :not(.bk-marrow){ visibility:hidden !important; }
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard{ display:grid !important; position:fixed; z-index:35; left:0 !important; right:0 !important; bottom:0 !important; top:auto !important;
+  height:calc(96px + max(6px, env(safe-area-inset-bottom))); box-sizing:border-box; margin:0 !important; padding:6px 10px calc(max(6px, env(safe-area-inset-bottom)) + 4px) !important;
+  background:none !important; border:0 !important; box-shadow:none !important; border-radius:0 !important; pointer-events:none;
+  direction:rtl; align-content:space-between; column-gap:8px; row-gap:4px;
+  grid-template-columns:auto minmax(0,1fr) minmax(110px,1.3fr) minmax(0,1fr) auto auto; grid-template-areas:"eye w top r set x" "ctl ctl ctl ctl ctl ctl"; 
+  transition:transform .25s ease, opacity .25s ease; }
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard > *, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard button{ pointer-events:auto; }
+body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard{ transform:translateY(160px); opacity:0; }
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-top, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-bar,
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-t{ display:contents; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-x, body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-clk{ display:none !important; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-w{ grid-area:w; justify-self:end; align-self:center; font-size:.82rem; font-weight:800; color:inherit; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-r{ grid-area:r; justify-self:start; align-self:center; font-size:.82rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-spd{ grid-area:top; justify-self:start; align-self:center; font-size:.7rem; height:16px; line-height:16px; padding:0 4px; min-width:0; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-bar > i{ grid-area:top; justify-self:center; align-self:center; width:calc(100% - 80px); margin:0; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-b{ grid-area:top; justify-self:end; align-self:center; font-size:.66rem; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl{ grid-area:ctl; justify-content:center; padding:0; gap:2px; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl button{ height:40px; min-width:38px; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-pp{ width:46px !important; height:46px !important; flex:0 0 46px !important; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set{ grid-area:set; width:28px !important; height:28px !important; align-self:center; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set svg{ width:16px; height:16px; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye:not([hidden]){ grid-area:eye; display:flex !important; align-items:center; border:0; background:none; color:#8a6a1f; padding:0; align-self:center; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye span{ display:none; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye svg{ width:20px; height:20px; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav{ background:#f8f3e6 !important; }      /* solid: the page's last line does not show through */
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl{ justify-self:center; width:calc(100vw - 128px); justify-content:space-between; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-pp{ border-radius:50%; background:linear-gradient(160deg, #d4ae3c, #b8892e) !important; color:#2a1f08 !important; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-pp svg{ width:20px; height:20px; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl svg{ max-width:24px; max-height:24px; }
