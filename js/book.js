@@ -2184,7 +2184,6 @@
         var rw = function (k, label, val, act) { return '<button type="button" class="pc-mi" data-k="' + k + '"' + (act ? '' : ' disabled') + '><span>' + esc(label) + '</span><b>' + val + '</b></button>'; };
         var r = rec(), clk = timeEl.querySelector('b');
         pcMenu.innerHTML = rw('r', MO[1], esc(recShort(r)) + ' <i>▾</i>', true) +
-          rw('w', MO[2], esc((C.uiNames && $p('.pc-w').dataset.full) || $p('.pc-w').textContent), false) +
           (clk ? rw('t', MO[3], esc(clk.textContent), false) : '') +
           (curMode() === 'hifz' ? rw('e', eyeBtn.textContent.trim(), '', true) : '') +
           rw('s', MO[4], '', true);
