@@ -2110,7 +2110,10 @@
         $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
       };
       var cardShow = function (on) {
+        var was = document.body.classList.contains('bk-pcon');
         document.body.classList.toggle('bk-pcon', on && pOn);
+        // computer: the card sits above the bottom bar and the pages shrink to leave it room
+        if (was !== (on && pOn) && document.body.classList.contains('bk-wide')) setTimeout(fitAll, 30);
         clearInterval(pT); pT = null;
         if (on && pOn) { pFill(); pT = setInterval(pFill, 300); }
         if (root.__placeShow) setTimeout(root.__placeShow, 50);
