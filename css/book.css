@@ -1174,7 +1174,7 @@ body.bk-wide.bk-pcon.bk-memo:not(.bk-mt):not(.bk-ms) .bk-pcard{ grid-template-co
   grid-template-areas:". clk w top r eye set" ". clk w ctl r eye set"; }
 body.bk-wide.bk-pcon .bk-pcard .pc-top, body.bk-wide.bk-pcon .bk-pcard .pc-bar, body.bk-wide.bk-pcon .bk-pcard .pc-t{ display:contents; }
 body.bk-wide.bk-pcon .bk-pcard .pc-clk{ grid-area:clk; }
-body.bk-wide.bk-pcon .bk-pcard .pc-w{ grid-area:w; justify-self:end; font-size:1rem; font-weight:800; color:#8a6a1e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+body.bk-wide.bk-pcon .bk-pcard .pc-w{ grid-area:w; justify-self:end; font-size:.98rem; font-weight:800; color:inherit;   /* the same as the reciter opposite */ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 body.bk-wide.bk-pcon .bk-pcard .pc-r{ grid-area:r; justify-self:start; font-size:.98rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 body.bk-wide.bk-pcon .bk-pcard .pc-spd{ grid-area:top; justify-self:start; font-size:.78rem; padding:0 6px; height:20px; min-width:0; }
 body.bk-wide.bk-pcon .bk-pcard .pc-bar > i{ grid-area:top; justify-self:center; width:calc(100% - 104px); margin:0; }
