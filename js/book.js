@@ -2116,9 +2116,15 @@
       document.body.appendChild(pc);
       var $p = function (c) { return pc.querySelector(c); };
       var mmss = function (t) { t = Math.max(0, Math.round(t)); return Math.floor(t / 60) + ':' + ('0' + t % 60).slice(-2); };
+      // the reciter by his family name in the bar and the «more» list (the full names stay in the reciters' list)
+      var RSH = { ar: { abdulbasit: 'عبد الباسط', minshawi: 'المنشاوي', maher: 'المعيقلي (بالوقفات)', 'maher-mj': 'المعيقلي (المجمع)',
+                        'abdulbasit-en': 'عبد الباسط + الإنجليزية', 'minshawi-en': 'المنشاوي + الإنجليزية', 'maher-en': 'المعيقلي + الإنجليزية' },
+                  en: { abdulbasit: 'Abdul Basit', minshawi: 'al-Minshawi', maher: 'al-Muaiqly (pauses)', 'maher-mj': 'al-Muaiqly (Complex)',
+                        'abdulbasit-en': 'Abdul Basit + English', 'minshawi-en': 'al-Minshawi + English', 'maher-en': 'al-Muaiqly + English' } };
+      var recShort = function (r) { var m = RSH[C.lang === 'ar' || C.lang === 'ur' ? 'ar' : 'en']; return r ? (m[r.id] || r.label) : ''; };
       var pFill = function () {
         var r = rec(), st = recState;
-        $p('.pc-r').innerHTML = r ? esc(r.label) + ' <i aria-hidden="true">▾</i>' : '';
+        $p('.pc-r').innerHTML = r ? esc(recShort(r)) + ' <i aria-hidden="true">▾</i>' : '';
         var v0 = MAP && MAP.pages[(visible()[0] || cur) - 1];
         $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? C.uiNames[goSurah - 1] + ': ' + uiNum(1) :
           v0 ? C.uiNames[v0[0] - 1] + ': ' + uiNum(v0[1]) : '';
@@ -2177,7 +2183,7 @@
         if (!pcMenu.hidden) return menuShut();
         var rw = function (k, label, val, act) { return '<button type="button" class="pc-mi" data-k="' + k + '"' + (act ? '' : ' disabled') + '><span>' + esc(label) + '</span><b>' + val + '</b></button>'; };
         var r = rec(), clk = timeEl.querySelector('b');
-        pcMenu.innerHTML = rw('r', MO[1], esc(r ? r.label : '') + ' <i>▾</i>', true) +
+        pcMenu.innerHTML = rw('r', MO[1], esc(recShort(r)) + ' <i>▾</i>', true) +
           rw('w', MO[2], esc((C.uiNames && $p('.pc-w').dataset.full) || $p('.pc-w').textContent), false) +
           (clk ? rw('t', MO[3], esc(clk.textContent), false) : '') +
           (curMode() === 'hifz' ? rw('e', eyeBtn.textContent.trim(), '', true) : '') +
