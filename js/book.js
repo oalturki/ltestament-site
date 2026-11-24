@@ -2811,6 +2811,10 @@
     function playSrc(url, muted) {
       audio.muted = !!muted;
       if (audio.getAttribute('src') !== url) audio.src = url;
+      else {     // the same file again (the ayah replayed, repeated): from its start — or its #t= mark — not where it was
+        var m0 = /#t=([\d.]+)/.exec(url);
+        try { audio.currentTime = m0 ? +m0[1] : 0; } catch (e0) {}
+      }
       audio.defaultPlaybackRate = audio.playbackRate = (rep && rep.speed) || 1;     // the speed chosen in the settings
       var pr = audio.play();
       if (pr && pr.catch) pr.catch(function () { stopAudio(); });
