@@ -1774,3 +1774,82 @@ body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vfull{ display:none !important; }
 body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vshort{ display:inline !important; }
 /* the ۞ opening a quarter of a hizb: a little room between it and the word */
 .bk-mushaf .hzs{ margin-inline-end:.18em; }
+
+/* ===== the live circle (js/halaqa.js) ===== */
+.hq h4{ margin:14px 0 8px; font-size:15px; color:var(--gold); }
+.hq h5{ margin:8px 0; font-size:14px; }
+.hq-row{ display:flex; gap:8px; }
+.hq-in, .hq-code{ font:inherit; font-size:16px; padding:8px 10px; border:1px solid rgba(140,110,40,.35); border-radius:10px; background:#fffdf7; color:#2a2418; min-width:0; }
+.hq-code{ flex:1; letter-spacing:4px; text-align:center; }
+.hq-b, .hq-b2{ font:inherit; font-size:14px; padding:8px 14px; border-radius:10px; cursor:pointer; border:1px solid var(--gold); white-space:nowrap; }
+.hq-b{ background:var(--gold); color:#fff; }
+.hq-b2{ background:transparent; color:inherit; }
+.hq-note{ font-size:13px; opacity:.75; margin:6px 0; line-height:1.6; }
+.hq-cls{ border:1px solid rgba(140,110,40,.25); border-radius:12px; padding:10px; margin:8px 0; }
+.hq-ch{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; }
+.hq-ch small{ opacity:.7; }
+.hq-acts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.hq-new, .hq-pst, .hq-reg, .hq-disp{ margin-top:10px; }
+.hq-new summary, .hq-pst summary, .hq-reg summary, .hq-disp summary, .hq-rp summary{ cursor:pointer; color:var(--gold); font-size:14px; padding:4px 0; }
+.hq-new .hq-in{ display:block; width:100%; box-sizing:border-box; margin:6px 0; }
+.hq-f4{ display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.hq-f4 .hq-b{ grid-column:1 / -1; }
+.hq-ta{ width:100%; box-sizing:border-box; margin:6px 0; }
+.hq-sl{ margin:8px 0; padding-inline-start:22px; font-size:14px; }
+.hq-sl li{ display:flex; justify-content:space-between; align-items:center; padding:2px 0; }
+.hq-sl small{ opacity:.6; margin-inline-start:6px; }
+.hq-x{ border:0; background:none; font-size:18px; cursor:pointer; color:#a33; padding:0 6px; }
+.hq-tb{ width:100%; border-collapse:collapse; font-size:13px; margin:6px 0; }
+.hq-tb th, .hq-tb td{ padding:4px; border-bottom:1px solid rgba(140,110,40,.18); text-align:start; }
+
+/* the teacher's panel */
+.hq-panel{ position:fixed; z-index:70; bottom:12px; inset-inline-start:12px; width:min(340px, calc(100vw - 24px)); max-height:72vh; display:flex; flex-direction:column;
+  background:#fffdf7; color:#2a2418; border:1px solid var(--gold); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,.25); font-size:14px; }
+.hq-ph{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(140,110,40,.25); }
+.hq-cd{ font-size:20px; letter-spacing:2px; color:var(--gold); }
+.hq-pt{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hq-min{ border:0; background:none; font-size:18px; cursor:pointer; color:inherit; }
+.hq-closed .hq-pb{ display:none; }
+.hq-closed .hq-min{ transform:rotate(180deg); }
+.hq-pb{ overflow:auto; padding:10px 12px; }
+.hq-lk{ display:flex; gap:6px; align-items:center; font-size:12px; margin-bottom:8px; }
+.hq-lk span{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; opacity:.8; }
+.hq-tg{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; }
+.hq-tg label{ display:flex; gap:5px; align-items:center; cursor:pointer; }
+.hq-sum{ font-size:12px; opacity:.8; margin:8px 0 4px; }
+.hq-rl{ list-style:none; margin:0; padding:0; }
+.hq-s{ display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid rgba(140,110,40,.12); }
+.hq-s i{ width:12px; height:12px; border-radius:50%; flex:none; background:#bbb; }
+.hq-s span{ flex:1; }
+.hq-s small{ opacity:.75; font-size:12px; }
+.hq-g i{ background:#2e9d4a; } .hq-y i{ background:#e0a800; } .hq-r i{ background:#d23c3c; } .hq-n i{ background:#c9c4b8; }
+.hq-r{ background:rgba(210,60,60,.07); } .hq-n span{ opacity:.55; }
+.hq-end{ width:100%; margin-top:12px; background:#a33; border-color:#a33; }
+
+/* a student's bar */
+.hq-bar{ position:fixed; z-index:65; top:calc(env(safe-area-inset-top) + 6px); left:50%; transform:translateX(-50%); display:flex; gap:10px; align-items:center;
+  max-width:calc(100vw - 16px); padding:6px 8px 6px 14px; border-radius:20px; background:rgba(30,26,18,.88); color:#fff; font-size:13px; box-shadow:0 3px 12px rgba(0,0,0,.25); }
+.hq-bar span{ opacity:.8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hq-bar button{ font:inherit; border:0; border-radius:14px; padding:4px 10px; background:rgba(255,255,255,.18); color:#fff; cursor:pointer; }
+.hq-bar.hq-disp{ opacity:.35; } .hq-bar.hq-disp:hover{ opacity:1; }
+@media (max-width:600px){ .hq-bar span{ display:none; } }
+
+/* who are you */
+.hq-ov{ position:fixed; inset:0; z-index:80; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; padding:16px; }
+.hq-box{ background:#fffdf7; color:#2a2418; border-radius:16px; padding:16px; width:min(420px, 100%); max-height:88vh; overflow:auto; }
+.hq-box h3{ margin:0 0 4px; color:var(--gold); } .hq-box h4{ margin:4px 0 10px; font-weight:normal; }
+.hq-box .hq-q{ width:100%; box-sizing:border-box; }
+.hq-pick{ list-style:none; padding:0; margin:8px 0; max-height:40vh; overflow:auto; }
+.hq-pick button{ font:inherit; width:100%; text-align:start; padding:10px; margin:3px 0; border:1px solid rgba(140,110,40,.25); border-radius:10px; background:#fff; cursor:pointer; color:inherit; }
+.hq-sh{ display:flex; gap:6px; align-items:center; font-size:13px; margin:12px 0; }
+
+/* focus on an ayah */
+.bk-mpage .hq-fx{ background:rgba(224,168,0,.28); border-radius:4px; }
+.hq-fc{ position:fixed; z-index:64; bottom:12px; inset-inline-end:12px; width:min(340px, calc(100vw - 24px)); max-height:40vh; overflow:auto;
+  background:#fffdf7; color:#2a2418; border:1px solid var(--gold); border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.2); padding:10px 12px; }
+.hq-teaching .hq-fc{ bottom:auto; top:70px; }
+.hq-fch{ display:flex; justify-content:space-between; align-items:center; color:var(--gold); }
+.hq-fcx{ border:0; background:none; font-size:20px; cursor:pointer; color:inherit; }
+.hq-fc h4{ margin:8px 0 6px; font-size:13px; opacity:.8; }
+.hq-fc .tj-row{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; padding:3px 0; }
+.hq-fc .tj-w{ font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif; font-size:22px; }

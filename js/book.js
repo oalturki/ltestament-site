@@ -715,7 +715,19 @@
       sessEl.style.top = Math.round(Math.min(r.bottom + 6, window.innerHeight - 22)) + 'px';
       sessEl.style.left = Math.round(r.left + 2) + 'px';
     };
+    // the live circle (js/halaqa.js): what it needs of the book
+    window.__ltBook = {
+      lang: C.lang, cur: function () { return cur; }, visible: function () { return visible(); },
+      show: function (p) { return show(p, 0); }, uiNum: uiNum, arNum: arNum,
+      hide: function (on) { if (root.__hideSet) root.__hideSet(!!on); },
+      words: function (s, a) { var out = [], pre = s + ':' + a + ':'; for (var w = 1; w < 200; w++) { var t = WTXT[pre + w]; if (t == null) break; out.push(t); } return out; },
+      tjAyah: function (s, a) { return C.__tjAyah ? C.__tjAyah(s, a) : Promise.resolve([]); },
+      tjChip: function (r, note) { return tjChip(C, r, note); },
+      surahName: function (s) { return (C.lang === 'ar' || C.lang === 'ur' ? C.arabicNames : (C.uiNames || C.arabicNames))[s - 1]; },
+      pageOf: function (s, a) { return pageOf(s, a); }
+    };
     function updateControls() {
+      if (window.LtHalaqa) try { window.LtHalaqa.page(cur); } catch (e) {}
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
       if (window.Fam && window.Fam.current()) window.Fam.lastPage(cur);
@@ -1587,6 +1599,7 @@
         subs: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.6.1 4.7 1.9 5.5 4.8"/>',
         guide: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/>',
         plans: '<rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 2v4M16 2v4M4 10h16M8 14h3M8 17h6"/>',
+        halaqa: '<circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="4" r="1.8"/><circle cx="12" cy="20" r="1.8"/><circle cx="4.5" cy="8" r="1.8"/><circle cx="19.5" cy="8" r="1.8"/><circle cx="4.5" cy="16" r="1.8"/><circle cx="19.5" cy="16" r="1.8"/>',
         account: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/><circle cx="18.5" cy="5.5" r="2.5" fill="currentColor" stroke="none"/>',
         lang: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/>',
         back: '<path d="M9 6l6 6-6 6"/>'
@@ -1617,6 +1630,7 @@
         if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
           window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
         });
+        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=1'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -1653,6 +1667,8 @@
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
       var PLL = { ar: 'خططي', ur: 'میرے منصوبے', en: 'My plans', fr: 'Mes plans', es: 'Mis planes', ru: 'Мои планы' };
       var plSec = section('plans', PLL[C.lang] || PLL.en, 'plans');
+      var HQL = { ar: 'الحلقة المباشرة', ur: 'براہِ راست حلقہ', en: 'Live circle', fr: 'Cercle en direct', es: 'Círculo en vivo', ru: 'Живой круг' };
+      var hqSec = section('halaqa', HQL[C.lang] || HQL.en, 'halaqa');
       var RML = { ar: 'التذكيرات', ur: 'یاد دہانیاں', en: 'Reminders', fr: 'Rappels', es: 'Recordatorios', ru: 'Напоминания' };
       var remSec = section('remind', RML[C.lang] || RML.en, 'remind');
       var fb0 = document.querySelector('.bk-fambtn');
@@ -1854,6 +1870,9 @@
         var sq = /[?&]s=(plans|account|remind|khatma)\b/.exec(location.search); if (sq) { open(); goSec(sq[1]); }
         // a reminder of memorizing or reviewing opens the Mushaf in that mode
         var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
+        // a live circle's link (?live=123456): join it (&display=1: the teacher's projector, following only)
+        var rl = /[?&]live=(\d{6})\b/.exec(location.search);
+        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=1'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
@@ -3576,6 +3595,7 @@
           hb.setAttribute('aria-label', on ? HL.show : HL.hide); hb.title = HL.hint;
         };
         hset(false);
+        root.__hideSet = hset;
         hb.onclick = function () {
           var on = !root.classList.contains('bk-hide');
           hset(on);
