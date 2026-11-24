@@ -1157,7 +1157,15 @@ body.bk-mob .bk-bar .bk-tbtn svg, body.bk-mob .bk-bar .bk-hamb svg{ width:17px; 
 body.bk-wide .bk-title{ display:none; }
 body.bk-wide .bk-bar{ padding-inline:max(12px, calc((100vw - 820px) / 2)) !important; gap:8px !important; justify-content:center !important; }
 body.bk-wide .bk-mnav{ padding-inline:max(12px, calc((100vw - 560px) / 2)) !important; }
-body.bk-wide.bk-pcon .bk-pcard{ left:max(12px, calc((100vw - 860px) / 2)) !important; right:max(12px, calc((100vw - 860px) / 2)) !important; }   /* the player over the pages, as wide as the spread */
+body.bk-wide.bk-pcon .bk-pcard{ left:max(12px, calc((100vw - 520px) / 2)) !important; right:max(12px, calc((100vw - 520px) / 2)) !important; padding:8px 12px 4px !important; bottom:14px !important; }   /* computer: a compact player, centred under the pages */
+body.bk-wide .pc-x, body.bk-wide .pc-set{ width:30px; height:30px; }
+body.bk-wide .pc-x svg{ width:15px; height:15px; } body.bk-wide .pc-set svg{ width:16px; height:16px; }
+body.bk-wide .pc-r{ font-size:.98rem; } body.bk-wide .pc-w{ font-size:.78rem; }
+body.bk-wide .pc-bar{ margin:4px 2px 2px; }
+body.bk-wide .pc-ctl button{ height:38px; min-width:38px; }
+body.bk-wide .pc-pp svg{ width:28px; height:28px; }
+body.bk-wide .pc-ctl svg{ max-width:28px; max-height:28px; }
+body.bk-wide .pc-rs svg{ width:18px; height:18px; }
 body.bk-wide .bk-bar .bk-hamb, body.bk-wide .bk-bar .bk-tbtn, body.bk-wide .bk-bar .bk-viewbtn, body.bk-wide .bk-bar .bk-mbtn.bk-tmode,
 body.bk-wide .bk-bar select.bk-mpg, body.bk-wide .bk-bar .bk-mjz{ height:36px !important; font-size:.95rem !important; }
 body.bk-wide .bk-bar .bk-hamb, body.bk-wide .bk-bar .bk-tbtn{ width:auto !important; padding:0 12px !important; gap:6px; }
