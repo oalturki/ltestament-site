@@ -2189,8 +2189,28 @@
           rw('s', MO[4], '', true);
         pcMenu.querySelectorAll('.pc-mi[data-k]').forEach(function (b) {
           b.onclick = function (e2) {
-            e2.stopPropagation(); var k = b.getAttribute('data-k'); menuShut();
-            if (k === 'r') $p('.pc-r').click(); else if (k === 's') $p('.pc-set').click(); else if (k === 'e') eyeBtn.click();
+            e2.stopPropagation(); var k = b.getAttribute('data-k');
+            if (k === 'r') {                     // the reciters drop down under the row, in the list itself
+              var dd = pcMenu.querySelector('.pc-mdd'); if (dd) { dd.remove(); b.classList.remove('open'); return; }
+              var sel = q('reciter'); if (!sel) return;
+              dd = document.createElement('div'); dd.className = 'pc-mdd';
+              [].forEach.call(sel.options, function (o) {
+                if (o.disabled || o.hidden) return;
+                var b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = o.text; if (o.value === sel.value) b2.className = 'on';
+                b2.onclick = function (ev) {
+                  ev.stopPropagation(); menuShut();
+                  if (sel.value === o.value) return;
+                  var was = playing; sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true }));
+                  if (was && !playing) { var pb = q('play'); if (pb) pb.click(); }
+                  setTimeout(pFill, 80);
+                };
+                dd.appendChild(b2);
+              });
+              b.parentNode.insertBefore(dd, b.nextSibling); b.classList.add('open');
+              return;
+            }
+            menuShut();
+            if (k === 's') $p('.pc-set').click(); else if (k === 'e') eyeBtn.click();
           };
         });
         pcMenu.hidden = false; pcMore.classList.add('on');
