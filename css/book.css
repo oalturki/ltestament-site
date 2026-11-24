@@ -1961,3 +1961,18 @@ body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-menu:not([hidden]){ display:bloc
 .pc-mdd button.on{ color:#6d5216; background:#efe3bf; }   /* only the one chosen is marked */ .pc-mdd button.on::before{ content:'✓ '; }
 .pc-mdd button + button{ border-top:1px solid rgba(140,110,40,.1); }
 .pc-mi.open b i{ display:inline-block; transform:rotate(180deg); }
+
+/* the recitation (microphone) bar: the same bar as the others — light, low, the same place — only the stop button red */
+body.bk-mob.bk-living .bk-mlive{ left:0 !important; right:0 !important; bottom:0 !important; border-radius:18px 18px 0 0 !important; border:0 !important;
+  height:calc(50px + env(safe-area-inset-bottom)); box-sizing:border-box; padding:4px 12px env(safe-area-inset-bottom) !important;
+  background:#f8f3e6 !important; box-shadow:0 -3px 10px rgba(80,60,20,.08) !important; color:#2a2418 !important; }
+body.bk-wide.bk-living .bk-mlive{ left:max(0px, calc(50vw - 420px)) !important; right:max(0px, calc(50vw - 420px)) !important; }
+body.bk-mob.bk-living .bk-mlive button{ border:0 !important; background:#efe6cc !important; color:#6d5216 !important; }
+body.bk-mob.bk-living .bk-mlive .lv-eye{ width:48px; height:38px; border-radius:11px !important; }
+body.bk-mob.bk-living .bk-mlive .lv-eye.on{ background:#c9a227 !important; color:#1b2a3a !important; }
+body.bk-mob.bk-living .bk-mlive .lv-err{ height:38px; border-radius:11px !important; padding:0 12px; font-weight:700; }
+body.bk-mob.bk-living .bk-mlive .lv-err b{ background:rgba(109,82,22,.15); color:#6d5216; }
+body.bk-mob.bk-living .bk-mlive .lv-err.has b{ background:#C8463C; color:#fff; }
+body.bk-mob.bk-living .bk-mlive .lv-time{ color:#6d5216; font-weight:700; }
+body.bk-mob.bk-living .bk-mlive .lv-stop{ width:44px !important; height:44px !important; margin-top:0 !important; background:#C8463C !important; box-shadow:none !important; }
+body.bk-mob.bk-living .bk-mlive .lv-stop i{ width:15px; height:15px; }
