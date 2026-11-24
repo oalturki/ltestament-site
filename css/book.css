@@ -1163,9 +1163,15 @@ body.bk-wide.bk-pcon .bk-mnav > :not(.bk-marrow){ visibility:hidden; }
 body.bk-wide.bk-pcon .bk-pcard{ display:flex !important; align-items:center; gap:18px; z-index:35 !important; bottom:0 !important; top:auto !important;
   left:max(70px, calc(50vw - 430px)) !important; right:max(70px, calc(50vw - 430px)) !important; height:var(--mnav-h, 62px);
   padding:0 !important; margin:0 !important; background:none !important; border:0 !important; box-shadow:none !important; border-radius:0 !important; }
-body.bk-wide.bk-pcon .bk-pcard .pc-top{ order:1; flex:0 0 250px; gap:6px; }
+/* the row, right to left: the reciter and ayah · the controls · progress, time left, speed · settings, close */
+body.bk-wide.bk-pcon .bk-pcard .pc-top, body.bk-wide.bk-pcon .bk-pcard .pc-bar{ display:contents; }
+body.bk-wide.bk-pcon .bk-pcard .pc-t{ order:1; flex:0 0 calc(50% - 143px);   /* the controls centred, under the spine */ display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; min-width:0; text-align:start; }
 body.bk-wide.bk-pcon .bk-pcard .pc-ctl{ order:2; flex:0 0 250px; padding:0; }
-body.bk-wide.bk-pcon .bk-pcard .pc-bar{ order:3; flex:1 1 auto; margin:0; min-width:0; }
+body.bk-wide.bk-pcon .bk-pcard .pc-bar > i{ order:3; flex:1 1 auto; min-width:60px; }
+body.bk-wide.bk-pcon .bk-pcard .pc-b{ order:4; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-spd{ order:5; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-set{ order:6; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-x{ order:7; flex:none; }
 body.bk-wide .pc-x, body.bk-wide .pc-set{ width:30px; height:30px; }
 body.bk-wide .pc-x svg{ width:15px; height:15px; } body.bk-wide .pc-set svg{ width:16px; height:16px; }
 body.bk-wide .pc-r{ font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; } body.bk-wide .pc-w{ font-size:.76rem; }
