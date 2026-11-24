@@ -2190,7 +2190,17 @@
         pcMenu.innerHTML = rw('r', MO[1], esc(recShort(r)) + ' <i>▾</i>', true) +
           (clk ? rw('t', MO[3], esc(clk.textContent), false) : '') +
           (curMode() === 'hifz' ? rw('e', eyeBtn.textContent.trim(), '', true) : '') +
-          rw('s', MO[4], '', true);
+          rw('s', MO[4], '', true) +
+          // a temporary measure for the iPhone home-screen app (the space under the bar): the sizes the page is given
+          ((navigator.standalone || (window.matchMedia && matchMedia('(display-mode: standalone)').matches)) ? (function () {
+            var t = document.createElement('div'); t.style.cssText = 'position:fixed;left:0;width:1px;height:100dvh;top:0;visibility:hidden'; document.body.appendChild(t);
+            var e = document.createElement('div'); e.style.cssText = 'position:fixed;left:0;width:1px;top:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)'; document.body.appendChild(e);
+            var cs = getComputedStyle(e), mn = root.querySelector('.bk-mnav'), mr = mn ? mn.getBoundingClientRect() : { top: 0, bottom: 0 };
+            var v = 'iH ' + innerHeight + ' · vv ' + Math.round(window.visualViewport ? visualViewport.height : 0) + ' · sH ' + screen.height + ' · dvh ' + t.offsetHeight +
+              ' · body ' + Math.round(document.body.getBoundingClientRect().height) + ' · sa ' + parseInt(cs.paddingTop) + '/' + parseInt(cs.paddingBottom) + ' · bar ' + Math.round(mr.top) + '-' + Math.round(mr.bottom);
+            t.remove(); e.remove();
+            return '<div class="pc-mi" dir="ltr" style="font-size:.7rem;color:#888">' + v + '</div>';
+          })() : '');
         pcMenu.querySelectorAll('.pc-mi[data-k]').forEach(function (b) {
           b.onclick = function (e2) {
             e2.stopPropagation(); var k = b.getAttribute('data-k');
