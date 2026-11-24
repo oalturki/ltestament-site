@@ -143,7 +143,7 @@ def page(lang):
 <html lang="{lang}" dir="{fb['dir']}">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{u.get('docTitle') or u['title'] + ' — ' + fb['site']}</title>
 <meta name="description" content="{u['sub']}">
 <link rel="canonical" href="https://ltestament.com{book_path(lang)}">
@@ -153,7 +153,7 @@ def page(lang):
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="العهد الأخير">
 <meta property="og:title" content="{u.get('docTitle') or u['title'] + ' — ' + fb['site']}">
 <meta property="og:description" content="{u['sub']}">
