@@ -1897,3 +1897,17 @@ body.bk-hdr .bk-hdr2 .bk-viewbtn .bk-vshort{ display:inline !important; }
 .hq-fc h4{ margin:8px 0 6px; font-size:13px; opacity:.8; }
 .hq-fc .tj-row{ display:flex; gap:8px; align-items:baseline; flex-wrap:wrap; padding:3px 0; }
 .hq-fc .tj-w{ font-family:'KFGQPC Uthmanic Script HAFS', 'Amiri Quran', serif; font-size:22px; }
+
+/* two pages side by side: the page arrows beside the pages, at their middle (the bottom bar keeps only its own tools) */
+body.bk-wide .bk-mnav .bk-marrow{ position:fixed; top:var(--bk-mid, 50vh); transform:translateY(-50%); z-index:30; visibility:visible !important; }
+body.bk-wide .bk-mnav .bk-marr-r{ left:calc(var(--bk-r, 90vw) + 14px); }
+body.bk-wide .bk-mnav .bk-marr-l{ left:calc(var(--bk-l, 10vw) - 58px); }
+body.bk-wide .bk-mnav .bk-marrow .bk-nav{ width:44px; height:44px; box-shadow:0 2px 8px rgba(80,60,20,.12); }
+body.bk-wide.bk-pcon .bk-mnav{ padding-inline:max(12px, calc((100vw - 1060px) / 2)) !important; }
+/* the docked row fits the bar's height: a slimmer progress line and controls */
+body.bk-wide.bk-pcon .bk-pcard .pc-ctl button{ height:34px; }
+body.bk-wide.bk-pcon .bk-pcard .pc-pp{ width:40px !important; height:40px !important; flex:0 0 40px !important; }
+body.bk-wide.bk-pcon .bk-pcard .pc-spd{ height:16px; line-height:16px; }
+body.bk-wide.bk-pcon .bk-pcard .pc-b{ line-height:16px; }
+body.bk-wide.bk-pcon .bk-pcard .pc-rs small{ font-size:.6rem; }
+body.bk-wide.bk-pcon .bk-pcard .pc-set, body.bk-wide.bk-pcon .bk-pcard .pc-clk, body.bk-wide.bk-pcon .bk-pcard .pc-eye:not([hidden]){ height:46px !important; }

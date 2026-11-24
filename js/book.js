@@ -729,6 +729,7 @@
     function updateControls() {
       if (window.LtHalaqa) try { window.LtHalaqa.page(cur); } catch (e) {}
       if (root.__placeShow) setTimeout(root.__placeShow, 380);
+      if (root.__arrPlace) setTimeout(root.__arrPlace, 400);
       if (root.__liveFollow) setTimeout(root.__liveFollow, 500);
       if (window.Fam && window.Fam.current()) window.Fam.lastPage(cur);
       readWatch();
@@ -1993,6 +1994,16 @@
         var sp = document.createElement('span'), sn = document.createElement('span');
         sp.className = sn.className = 'bk-marrow'; nav.insertBefore(sp, nav.firstChild); nav.appendChild(sn);   // at the bottom bar's two ends
         moves.push([q('prev'), sp], [q('next'), sn]);
+        sp.classList.add('bk-marr-r'); sn.classList.add('bk-marr-l');
+        // two pages side by side (computer, tablet): the arrows beside the pages, at their middle — they turn the pages
+        root.__arrPlace = function () {
+          var bk = root.querySelector('.bk-book'); if (!bk || !document.body.classList.contains('bk-wide')) return;
+          var r = bk.getBoundingClientRect(); if (!r.width) return;
+          var st = document.body.style;
+          st.setProperty('--bk-l', Math.round(r.left) + 'px'); st.setProperty('--bk-r', Math.round(r.right) + 'px'); st.setProperty('--bk-mid', Math.round((r.top + r.bottom) / 2) + 'px');
+        };
+        window.addEventListener('resize', function () { setTimeout(root.__arrPlace, 120); });
+        [300, 1200, 3000].forEach(function (t) { setTimeout(root.__arrPlace, t); });
       }
       var homes = moves.map(function (m) { var c = document.createComment(''); m[0].parentNode.insertBefore(c, m[0]); return c; });
       function apply() {
