@@ -2006,3 +2006,6 @@ body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic{ width:44px 
   padding:0 !important; aspect-ratio:1; border-radius:50% !important; display:flex !important; align-items:center; justify-content:center; }
 body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic span, body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic small{ display:none !important; }
 body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic svg{ width:18px; height:18px; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil{ width:44px !important; height:44px !important; min-width:44px !important; max-width:44px !important; flex:0 0 44px !important;
+  padding:0 !important; aspect-ratio:1; border-radius:50% !important; display:flex !important; align-items:center; justify-content:center; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil small, body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil span{ display:none !important; }
