@@ -2112,6 +2112,8 @@
         $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? C.uiNames[goSurah - 1] + ': ' + uiNum(1) :
           v0 ? C.uiNames[v0[0] - 1] + ': ' + uiNum(v0[1]) : '';
         // the computer's docked row: the reading clock and (memorizing) the hide button, mirrored from the bar's own
+        // the computer's row: «سورة يوسف: ٩٦»
+        if (C.lang === 'ar' && document.body.classList.contains('bk-wide')) { var pw0 = $p('.pc-w'); if (pw0.textContent && pw0.textContent.indexOf('سورة ') !== 0) pw0.textContent = 'سورة ' + pw0.textContent; }
         pcClk.innerHTML = timeEl.innerHTML; pcEye.innerHTML = eyeBtn.innerHTML; pcEye.hidden = curMode() !== 'hifz';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
