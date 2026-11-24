@@ -2094,7 +2094,7 @@
       var ic = function (d, f) { return '<svg viewBox="0 0 24 24" width="26" height="26" fill="' + (f ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>'; };
       pc.innerHTML = '<div class="pc-top"><button type="button" class="pc-x" aria-label="' + esc(PL[0]) + '">' + ic('<path d="M6 6l12 12M18 6L6 18"/>') + '</button>' +
         '<div class="pc-t"><button type="button" class="pc-r"></button><small class="pc-w"></small></div><button type="button" class="pc-set" aria-label="' + esc(PL[3]) + '">' + ic('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>') +
-          '<small class="pc-setl">' + esc(({ ar: 'ضبط التلاوة', ur: 'تلاوت کی ترتیب', en: 'Audio options', fr: 'Options audio', es: 'Opciones de audio', ru: 'Настройки звука' })[C.lang] || 'Audio options') + '</small></button></div>' +
+          '<small class="pc-setl">' + esc(({ ar: 'خيارات التلاوة', ur: 'تلاوت کے اختیارات', en: 'Recitation options', fr: 'Options de récitation', es: 'Opciones de recitación', ru: 'Настройки чтения' })[C.lang] || 'Audio options') + '</small></button></div>' +
         '<div class="pc-bar"><span class="pc-b">-0:00</span><i><b></b></i><button type="button" class="pc-spd" aria-label="' + esc(PL[4]) + '">1×</button></div>' +   // time left (left), the speed (right), at hand
         '<div class="pc-ctl">' +   // (the speed: in the settings)
         '<button type="button" class="pc-rs pc-ra" aria-label="' + esc(PL[8]) + '">' + ic('<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/>') + '<small>' + esc(PL[6]) + '</small></button>' +
