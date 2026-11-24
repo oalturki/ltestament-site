@@ -1912,21 +1912,30 @@ body.bk-wide.bk-pcon .bk-pcard .pc-b{ line-height:16px; }
 body.bk-wide.bk-pcon .bk-pcard .pc-rs small{ font-size:.6rem; }
 body.bk-wide.bk-pcon .bk-pcard .pc-set, body.bk-wide.bk-pcon .bk-pcard .pc-clk, body.bk-wide.bk-pcon .bk-pcard .pc-eye:not([hidden]){ height:46px !important; }
 
-/* ===== phones (one page): in reading and memorizing the player IS the bottom bar — always there, two lines =====
-   line 1 (small text): the ayah · the reading clock · the reciter (+ hide, memorizing)
-   line 2: [speed] · ↻ phrase · ⏩ · ▶ · ⏪ · ↻ ayah · [recitation options] — the play button at the middle of the screen.
-   No page arrows (the page is swiped), no progress line (the words light up as they are recited). */
-body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav{ height:calc(80px + max(6px, env(safe-area-inset-bottom))) !important; background:#f8f3e6 !important; }
+/* ===== phones (one page): the bottom bar holds the working tools and stays (the page is fitted above it);
+   the setting-up tools — the top bar, and the line of the ayah, the reading clock, the reciter and the recitation
+   options — show and hide with a tap on the page.
+   Reading and memorizing: [speed] · ↻ phrase · ⏩ · ▶ · ⏪ · ↻ ayah · [hide, memorizing] — the play button at the middle. */
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-stage{ padding-bottom:calc(60px + max(4px, env(safe-area-inset-bottom))) !important; }
+body.bk-mob.bk-fixbar.bk-chrome-off:not(.bk-wide) .bk-mnav{ transform:none !important; opacity:1 !important; pointer-events:auto !important; }
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mshow{ display:none !important; }
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mnav{ min-height:calc(60px + max(4px, env(safe-area-inset-bottom))) !important; box-sizing:border-box; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav{ height:calc(60px + max(4px, env(safe-area-inset-bottom))) !important; background:#f8f3e6 !important; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-mnav > *{ visibility:hidden !important; }
 body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard{ display:grid !important; position:fixed; z-index:35; left:0 !important; right:0 !important; bottom:0 !important; top:auto !important;
-  height:calc(80px + max(6px, env(safe-area-inset-bottom))); box-sizing:border-box; margin:0 !important; padding:5px 14px calc(max(6px, env(safe-area-inset-bottom)) + 3px) !important;
+  height:calc(90px + max(4px, env(safe-area-inset-bottom))); box-sizing:border-box; margin:0 !important; padding:4px 14px max(4px, env(safe-area-inset-bottom)) !important;
   background:none !important; border:0 !important; box-shadow:none !important; border-radius:0 !important; pointer-events:none;
-  direction:rtl; align-content:space-between; align-items:center; column-gap:6px; row-gap:2px;
-  grid-template-columns:58px minmax(0,1fr) auto minmax(0,1fr) 58px; grid-template-areas:"w w clk r r" "spd ctl ctl ctl set";
-  transition:transform .25s ease, opacity .25s ease; }
-body.bk-mob.bk-dock.bk-pcon.bk-memo:not(.bk-wide):not(.bk-mt):not(.bk-ms) .bk-pcard{ grid-template-areas:"w w clk r eye" "spd ctl ctl ctl set"; }
+  direction:rtl; align-items:center; column-gap:6px; row-gap:0; grid-template-rows:26px 1fr;
+  grid-template-columns:58px minmax(0,1fr) auto minmax(0,1fr) 58px; grid-template-areas:"w w clk r set" "spd ctl ctl ctl eye"; }
+/* the line above the bar: its own band, shown with the other setting-up tools */
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard::before{ content:''; position:absolute; z-index:-1; left:0; right:0; top:0; height:30px; background:#f8f3e6;
+  border-radius:14px 14px 0 0; box-shadow:0 -3px 10px rgba(80,60,20,.08); transition:opacity .25s ease; }
+body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard::before,
+body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard .pc-w, body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard .pc-r,
+body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard .pc-clk, body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard .pc-set{ opacity:0; pointer-events:none !important; }
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-w, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-r,
+body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-clk, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-set{ transition:opacity .25s ease; }
 body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard > *, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard button{ pointer-events:auto; }
-body.bk-mob.bk-dock.bk-chrome-off:not(.bk-wide) .bk-pcard{ transform:translateY(160px); opacity:0; }
 body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-top, body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-bar,
 body.bk-mob.bk-dock.bk-pcon:not(.bk-wide) .bk-pcard .pc-t{ display:contents; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-x, body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-bar > i, body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-b{ display:none !important; }
@@ -1934,18 +1943,15 @@ body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-w{ grid-area:w; justify-self:sta
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-r{ grid-area:r; justify-self:end; font-size:.78rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-clk:not(:empty){ grid-area:clk; display:flex !important; flex-direction:row; gap:4px; align-items:baseline; color:#6d5216; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-clk b{ font-size:.78rem; font-variant-numeric:tabular-nums; } body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-clk small{ font-size:.66rem; color:#97835a; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set{ grid-area:set; justify-self:end; width:28px !important; height:24px !important; border-radius:8px !important; background:#efe6cc !important; border:0; display:flex !important; align-items:center; justify-content:center; padding:0 !important; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set svg{ width:15px; height:15px; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl{ grid-area:ctl; justify-self:stretch; justify-content:space-around; padding:0; gap:0; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl button{ height:44px; min-width:36px; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-ctl svg{ max-width:24px; max-height:24px; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-pp{ width:48px !important; height:48px !important; flex:0 0 48px !important; border-radius:50%; background:linear-gradient(160deg, #d4ae3c, #b8892e) !important; color:#2a1f08 !important; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-pp svg{ width:20px; height:20px; }
-/* the two boxes either side: speed and the recitation options */
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-spd, body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set{ width:56px !important; height:44px !important; border-radius:12px !important; background:#efe6cc !important;
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-spd, body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye:not([hidden]){ width:54px !important; height:42px !important; border-radius:12px !important; background:#efe6cc !important;
   border:0; display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:1px; padding:2px !important; color:#6d5216; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-spd{ grid-area:spd; font-size:.95rem; font-weight:800; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set{ grid-area:set; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-set svg{ width:17px; height:17px; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-setl{ display:block; font-size:.55rem; color:#8a6a1e; white-space:nowrap; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye:not([hidden]){ grid-area:eye; justify-self:end; display:flex !important; align-items:center; border:0; background:none; color:#8a6a1f; padding:0; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye span{ display:none; }
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye{ grid-area:eye; font-size:.62rem; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-eye svg{ width:18px; height:18px; }

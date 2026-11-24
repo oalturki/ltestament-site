@@ -2164,6 +2164,9 @@
       var docked = function () { var m = curMode(); return (document.body.classList.contains('bk-wide') || mq.matches) && (m === 'read' || m === 'hifz'); };
       root.__dock = function () {
         document.body.classList.toggle('bk-dock', docked());
+        // phones (one page): the bottom bar's working tools stay put and the page keeps clear of them
+        var fx = mq.matches && !document.body.classList.contains('bk-wide');
+        if (document.body.classList.contains('bk-fixbar') !== fx) { document.body.classList.toggle('bk-fixbar', fx); requestAnimationFrame(fitAll); }
         if (docked()) { pOn = true; if (!document.body.classList.contains('bk-pcon')) cardShow(true); else pFill(); }
         else if (pOn) { pOn = false; cardShow(false); }
       };
