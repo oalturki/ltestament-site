@@ -2020,3 +2020,8 @@ html body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav{ padding-left:14
 html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-mtime, html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-meye,
 html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-mspd, html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msnd{ width:48px !important; min-width:48px !important; max-width:48px !important; height:38px !important; flex:0 0 48px !important; }
 html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide):not(.bk-dock) .bk-mnav .bk-mmic:not(.x), html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide):not(.bk-dock) .bk-mnav .bk-msil:not(.x){ width:42px !important; height:42px !important; min-height:42px !important; max-height:42px !important; }
+
+/* iPhone home-screen app: below the bottom bar (the home indicator's strip, which iOS may leave outside the page)
+   the bar's own colour carries on to the screen's edge — no pale band under it */
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mnav::after{ content:''; position:absolute; left:0; right:0; top:100%; height:240px; background:#f8f3e6; pointer-events:none; }
+html:has(body.bk-mob.bk-fixbar:not(.bk-wide)){ background:#f8f3e6; }
