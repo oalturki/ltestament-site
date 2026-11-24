@@ -2082,7 +2082,7 @@
       // phones, as in Mushaf apps: once listening starts, a player card (reciter, where he is, the ayah's progress,
       // repeat, previous / play-pause / next ayah, speed, close). A tap on the page shows or hides the card instead of
       // the bars; pausing keeps it; its × stops the recitation and brings the ordinary page back (a tap: the bars).
-      var PL = { ar: ['إغلاق', 'الآية السابقة', 'الآية التالية', 'إعدادات الصوت', 'السرعة', 'المقطع', 'الآية', 'أعد المقطع', 'أعد الآية'],
+      var PL = { ar: ['إغلاق', 'الآية السابقة', 'الآية التالية', 'خيارات التلاوة', 'السرعة', 'المقطع', 'الآية', 'أعد المقطع', 'أعد الآية'],
                  ur: ['بند کریں', 'پچھلی آیت', 'اگلی آیت', 'آواز کی ترتیبات', 'رفتار', 'حصہ', 'آیت', 'حصہ دوبارہ', 'آیت دوبارہ'],
                  en: ['Close', 'Previous verse', 'Next verse', 'Audio settings', 'Speed', 'Phrase', 'Verse', 'Replay the phrase', 'Replay the verse'],
                  fr: ['Fermer', 'Verset précédent', 'Verset suivant', 'Réglages audio', 'Vitesse', 'Passage', 'Verset', 'Rejouer le passage', 'Rejouer le verset'],
@@ -2114,7 +2114,15 @@
         // the computer's docked row: the reading clock and (memorizing) the hide button, mirrored from the bar's own
         // the computer's row: «سورة يوسف: ٩٦»
         if (C.lang === 'ar' && document.body.classList.contains('bk-wide')) { var pw0 = $p('.pc-w'); if (pw0.textContent && pw0.textContent.indexOf('سورة ') !== 0) pw0.textContent = 'سورة ' + pw0.textContent; }
-        pcClk.innerHTML = timeEl.innerHTML; pcEye.innerHTML = eyeBtn.innerHTML; pcEye.hidden = curMode() !== 'hifz';
+        pcClk.innerHTML = timeEl.innerHTML;
+        // a mouse over a button names what it does (its accessible name, which follows play/pause)
+        if (document.body.classList.contains('bk-wide')) {
+          $p('.pc-r').title = C.lang === 'ar' ? 'اختر القارئ' : L.reciter; pcClk.title = C.lang === 'ar' ? 'وقت القراءة' : ((timeEl.querySelector('small') || {}).textContent || '');
+          pcEye.setAttribute('aria-label', eyeBtn.textContent.trim());
+          [pc, root.querySelector('.bk-mnav')].forEach(function (box) {
+            if (box) box.querySelectorAll('button[aria-label]').forEach(function (b) { var t = b.getAttribute('aria-label'); if (b.title !== t) b.title = t; });
+          });
+        } pcEye.innerHTML = eyeBtn.innerHTML; pcEye.hidden = curMode() !== 'hifz';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
         $p('.pc-spd').textContent = ((rep && rep.speed) || 1) + '×';     // Latin digits: «١×» reads like «ا×»
