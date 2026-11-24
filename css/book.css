@@ -1976,3 +1976,28 @@ body.bk-mob.bk-living .bk-mlive .lv-err.has b{ background:#C8463C; color:#fff; }
 body.bk-mob.bk-living .bk-mlive .lv-time{ color:#6d5216; font-weight:700; }
 body.bk-mob.bk-living .bk-mlive .lv-stop{ width:44px !important; height:44px !important; margin-top:0 !important; background:#C8463C !important; box-shadow:none !important; }
 body.bk-mob.bk-living .bk-mlive .lv-stop i{ width:15px; height:15px; }
+
+/* phones: the recitation-check and silent bars like the reading one — as low, boxes at the two ends, the main button at the middle */
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav{ height:calc(50px + env(safe-area-inset-bottom)) !important; min-height:0 !important;
+  padding:4px 12px env(safe-area-inset-bottom) !important; justify-content:space-between !important; align-items:center !important; gap:0 !important; background:#f8f3e6 !important; }
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-stage{ padding-bottom:calc(50px + env(safe-area-inset-bottom)) !important; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-marrow{ display:none !important; }      /* pages are swiped */
+/* the two end boxes */
+body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-mtime,
+body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-meye,
+body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-mspd,
+body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msnd{ width:52px !important; height:38px !important; flex:0 0 52px !important; border-radius:11px !important; background:#efe6cc !important;
+  border:0 !important; display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:0; padding:0 !important; margin:0 !important; color:#6d5216; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mtime b{ font-size:.82rem; } 
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav small, body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-meye span{ font-size:.58rem; line-height:1.1; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-meye svg, body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msnd svg{ width:18px; height:18px; }
+/* the main button: a gold circle, as in reading */
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic:not(.on),
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil{ width:42px !important; height:42px !important; flex:0 0 42px !important; border-radius:50% !important; margin:0 !important;
+  background:linear-gradient(160deg, #d4ae3c, #b8892e) !important; color:#2a1f08 !important; border:0 !important; box-shadow:none !important; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic{ width:42px !important; height:42px !important; flex:0 0 42px !important; margin:0 !important; }
+/* silent: the steps lighter; its clock (under the play button) goes — the bar stays one line */
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msk:not(.bk-msnd){ width:44px !important; height:40px !important; flex:0 0 44px !important; background:none !important; border:0 !important; padding:0 !important; }
+body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msk svg{ width:20px; height:20px; }
+body.bk-mob.bk-fixbar.bk-ms:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mtime{ display:none !important; }
+body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-meye{ display:none !important; }
