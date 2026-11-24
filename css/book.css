@@ -2009,3 +2009,14 @@ body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-mmic svg{ width:1
 body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msil{ width:44px !important; height:44px !important; min-width:44px !important; max-width:44px !important; flex:0 0 44px !important;
   padding:0 !important; aspect-ratio:1; border-radius:50% !important; display:flex !important; align-items:center; justify-content:center; }
 body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil small, body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav .bk-msil span{ display:none !important; }
+/* every mode's bar the reading bar's sizes: end boxes 48×38, the middle circle 42 — nothing moves when the mode changes */
+body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-mtime, body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-meye,
+body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-mspd, body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msnd{ width:48px !important; height:38px !important; flex:0 0 48px !important; }
+body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-mmic, body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msil,
+body.bk-mob.bk-living .bk-mlive .lv-stop{ width:42px !important; height:42px !important; min-width:42px !important; max-width:42px !important; flex:0 0 42px !important; }
+body.bk-mob.bk-living .bk-mlive{ padding-left:12px !important; padding-right:12px !important; }
+body.bk-mob.bk-living .bk-mlive .lv-eye{ width:48px !important; height:38px !important; }
+html body.bk-mob.bk-fixbar:not(.bk-dock):not(.bk-wide) .bk-mnav{ padding-left:14px !important; padding-right:12px !important; }
+html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-mtime, html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide) .bk-mnav .bk-meye,
+html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-mspd, html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide) .bk-mnav .bk-msnd{ width:48px !important; min-width:48px !important; max-width:48px !important; height:38px !important; flex:0 0 48px !important; }
+html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide):not(.bk-dock) .bk-mnav .bk-mmic:not(.x), html body.bk-mob.bk-fixbar.bk-ms:not(.bk-wide):not(.bk-dock) .bk-mnav .bk-msil:not(.x){ width:42px !important; height:42px !important; min-height:42px !important; max-height:42px !important; }
