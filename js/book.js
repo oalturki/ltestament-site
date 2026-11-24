@@ -2125,6 +2125,11 @@
         // the computer's docked row: the reading clock and (memorizing) the hide button, mirrored from the bar's own
         // the computer's row: «سورة يوسف: ٩٦»
         if (C.lang === 'ar' && document.body.classList.contains('bk-wide')) { var pw0 = $p('.pc-w'); if (pw0.textContent && pw0.textContent.indexOf('سورة ') !== 0) pw0.textContent = 'سورة ' + pw0.textContent; }
+        // phones (one page): the ayah alone — its surah is at the page's head, and it is lit on the page
+        if (mq.matches && !document.body.classList.contains('bk-wide') && document.body.classList.contains('bk-dock')) {
+          var ay0 = st ? st.a : (goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? 1 : (v0 ? v0[1] : 0));
+          $p('.pc-w').textContent = ay0 ? PL[6] + ' ' + uiNum(ay0) : '';
+        }
         pcClk.innerHTML = timeEl.innerHTML;
         // a mouse over a button names what it does (its accessible name, which follows play/pause)
         if (document.body.classList.contains('bk-wide')) {
