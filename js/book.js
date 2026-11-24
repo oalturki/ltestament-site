@@ -2181,7 +2181,7 @@
           rw('w', MO[2], esc((C.uiNames && $p('.pc-w').dataset.full) || $p('.pc-w').textContent), false) +
           (clk ? rw('t', MO[3], esc(clk.textContent), false) : '') +
           (curMode() === 'hifz' ? rw('e', eyeBtn.textContent.trim(), '', true) : '') +
-          rw('s', MO[4], '‹', true);
+          rw('s', MO[4], '', true);
         pcMenu.querySelectorAll('.pc-mi[data-k]').forEach(function (b) {
           b.onclick = function (e2) {
             e2.stopPropagation(); var k = b.getAttribute('data-k'); menuShut();

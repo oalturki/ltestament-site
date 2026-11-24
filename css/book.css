@@ -1946,9 +1946,11 @@ body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-more{ grid-area:more; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-more svg{ width:18px; height:18px; fill:currentColor; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-more small{ font-size:.56rem; color:#8a6a1e; line-height:1; }
 body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-more.on{ background:#e2d3a6 !important; }
-body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-menu:not([hidden]){ display:block; position:absolute; bottom:calc(100% - env(safe-area-inset-bottom) + 4px); left:10px; width:min(300px, calc(100vw - 20px));
+body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-menu:not([hidden]){ display:block; position:absolute; bottom:calc(100% - env(safe-area-inset-bottom) + 4px); left:10px; width:min(230px, calc(100vw - 20px));
   background:#fffdf7; border:1px solid rgba(140,110,40,.25); border-radius:14px; box-shadow:0 -6px 24px rgba(0,0,0,.18); padding:4px 0; z-index:5; }
-.pc-mi{ display:flex; width:100%; justify-content:space-between; align-items:center; gap:10px; padding:11px 14px; border:0; background:none; font:inherit; color:#2a2418; text-align:start; cursor:pointer; }
-.pc-mi + .pc-mi{ border-top:1px solid rgba(140,110,40,.12); }
-.pc-mi span{ font-size:.85rem; color:#7a6a4a; } .pc-mi b{ font-size:.9rem; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* a list: each item's name clear and dark (some read with weak sight), what it holds under it */
+.pc-mi{ display:flex; flex-direction:column; align-items:flex-start; width:100%; gap:2px; padding:10px 14px; border:0; background:none; font:inherit; color:#1f1a10; text-align:start; cursor:pointer; }
+.pc-mi + .pc-mi{ border-top:1px solid rgba(140,110,40,.15); }
+.pc-mi span{ font-size:1rem; font-weight:800; color:#1f1a10; } .pc-mi b{ font-size:.86rem; font-weight:700; color:#8a6a1e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+.pc-mi b:empty{ display:none; }
 .pc-mi b i{ font-style:normal; font-size:.7rem; color:#8a6a1e; } .pc-mi:disabled{ cursor:default; opacity:1; }
