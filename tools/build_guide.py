@@ -12,5 +12,6 @@ for src in sorted((ROOT / 'tools/data/guide').glob('*.md')):
         head, body = p.split('</h2>', 1)
         out += '<details class="gd-s"><summary>' + head + '</summary>' + body + '</details>'
     dst = ROOT / 'data/guide' / (src.stem + '.html')
-    dst.write_text(out, encoding='utf-8')
+    # the page is a fragment set into the settings; its encoding stated, so it reads right opened alone too
+    dst.write_text('<meta charset="utf-8">\n' + out, encoding='utf-8')
     print(dst.relative_to(ROOT), len(out))

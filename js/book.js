@@ -1842,6 +1842,9 @@
         bar.appendChild(gear);
       }
       root.__modeMenu = function () { if (ov.classList.contains('on')) fillMenu(); };
+      // a link to a settings page: ?open=guide (the user guide), or any section's key
+      var openQ = /[?&]open=([a-z]+)/.exec(location.search);
+      if (openQ) setTimeout(function () { open(); goSec(openQ[1]); }, 900);
       root.__openListen = function () { open(); openMode(curMode() === 'tasmee' ? 'read' : curMode()); };
       // the mode's line of choices on the page, above the bars: a tap opens them in the settings
       var strip = document.createElement('button'); strip.type = 'button'; strip.className = 'bk-mstrip'; document.body.appendChild(strip);
