@@ -3109,6 +3109,8 @@
         var g = ws[k + 1][1] - ws[k][2], mk = marks.indexOf(ws[k][0]) >= 0;
         brk.push(silent ? (g >= 900 && mk) || g >= 1700 : mk);
       }
+      // a reciter who reads the ayah on without a long stop: the pause marks alone divide it (else the phrase is the whole ayah)
+      if (silent && !brk.some(Boolean)) for (k = 0; k + 1 < n; k++) brk[k] = marks.indexOf(ws[k][0]) >= 0;
       var up = function (j) { while (j > 0 && !brk[j - 1]) j--; return j; }, dn = function (j) { while (j < n - 1 && !brk[j]) j++; return j; };
       var a = up(i), b = dn(i);
       // a lone word at the ayah's start or end (a long madd taken for a stop) joins the phrase beside it
