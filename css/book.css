@@ -2025,3 +2025,5 @@ html body.bk-mob.bk-fixbar.bk-mt:not(.bk-wide):not(.bk-dock) .bk-mnav .bk-mmic:n
    the bar's own colour carries on to the screen's edge — no pale band under it */
 body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mnav::after{ content:''; position:absolute; left:0; right:0; top:100%; height:240px; background:#f8f3e6; pointer-events:none; }
 html:has(body.bk-mob.bk-fixbar:not(.bk-wide)){ background:#f8f3e6; }
+/* …and the bar itself sits on the screen's edge: the old floating bar's bottom margin (the home indicator's height) goes */
+body.bk-mob.bk-fixbar:not(.bk-wide) .bk-mnav{ margin:0 !important; left:0 !important; right:0 !important; bottom:0 !important; border-radius:18px 18px 0 0 !important; }
