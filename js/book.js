@@ -2128,6 +2128,7 @@
         // phones (one page): the ayah alone — its surah is at the page's head, and it is lit on the page
         if (mq.matches && !document.body.classList.contains('bk-wide') && document.body.classList.contains('bk-dock')) {
           var ay0 = st ? st.a : (goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? 1 : (v0 ? v0[1] : 0));
+          $p('.pc-w').dataset.full = $p('.pc-w').textContent;
           $p('.pc-w').textContent = ay0 ? PL[6] + ' ' + uiNum(ay0) : '';
         }
         pcClk.innerHTML = timeEl.innerHTML;
@@ -2161,6 +2162,35 @@
       var pcEye = document.createElement('button'); pcEye.type = 'button'; pcEye.className = 'pc-eye'; pc.appendChild(pcEye);
       pcEye.onclick = function (e) { e.stopPropagation(); eyeBtn.click(); setTimeout(pFill, 60); };
       // the computer: in reading and memorizing, the player IS the bottom bar — always there, before playing and after
+      // phones: «more» — what is set up rather than worked with, in a list that opens upward from the bar
+      var MOL = { ar: ['المزيد', 'القارئ', 'الآية', 'وقت القراءة', 'خيارات التلاوة'], ur: ['مزید', 'قاری', 'آیت', 'پڑھنے کا وقت', 'تلاوت کے اختیارات'],
+                  en: ['More', 'Reciter', 'Verse', 'Reading time', 'Recitation options'], fr: ['Plus', 'Récitant', 'Verset', 'Temps de lecture', 'Options de récitation'],
+                  es: ['Más', 'Recitador', 'Aleya', 'Tiempo de lectura', 'Opciones de recitación'], ru: ['Ещё', 'Чтец', 'Аят', 'Время чтения', 'Настройки чтения'] };
+      var MO = MOL[C.lang] || MOL.en;
+      var pcMore = document.createElement('button'); pcMore.type = 'button'; pcMore.className = 'pc-more'; pcMore.setAttribute('aria-label', MO[0]); pcMore.title = MO[0];
+      pcMore.innerHTML = ic('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>') + '<small>' + esc(MO[0]) + '</small>';
+      pc.appendChild(pcMore);
+      var pcMenu = document.createElement('div'); pcMenu.className = 'pc-menu'; pcMenu.hidden = true; pc.appendChild(pcMenu);
+      var menuShut = function () { pcMenu.hidden = true; pcMore.classList.remove('on'); };
+      pcMore.onclick = function (e) {
+        e.stopPropagation();
+        if (!pcMenu.hidden) return menuShut();
+        var rw = function (k, label, val, act) { return '<button type="button" class="pc-mi" data-k="' + k + '"' + (act ? '' : ' disabled') + '><span>' + esc(label) + '</span><b>' + val + '</b></button>'; };
+        var r = rec(), clk = timeEl.querySelector('b');
+        pcMenu.innerHTML = rw('r', MO[1], esc(r ? r.label : '') + ' <i>▾</i>', true) +
+          rw('w', MO[2], esc((C.uiNames && $p('.pc-w').dataset.full) || $p('.pc-w').textContent), false) +
+          (clk ? rw('t', MO[3], esc(clk.textContent), false) : '') +
+          (curMode() === 'hifz' ? rw('e', eyeBtn.textContent.trim(), '', true) : '') +
+          rw('s', MO[4], '‹', true);
+        pcMenu.querySelectorAll('.pc-mi[data-k]').forEach(function (b) {
+          b.onclick = function (e2) {
+            e2.stopPropagation(); var k = b.getAttribute('data-k'); menuShut();
+            if (k === 'r') $p('.pc-r').click(); else if (k === 's') $p('.pc-set').click(); else if (k === 'e') eyeBtn.click();
+          };
+        });
+        pcMenu.hidden = false; pcMore.classList.add('on');
+      };
+      document.addEventListener('click', function (e) { if (!pcMenu.hidden && !pcMenu.contains(e.target)) menuShut(); }, true);
       var docked = function () { var m = curMode(); return (document.body.classList.contains('bk-wide') || mq.matches) && (m === 'read' || m === 'hifz'); };
       root.__dock = function () {
         document.body.classList.toggle('bk-dock', docked());
