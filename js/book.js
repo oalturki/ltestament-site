@@ -1140,7 +1140,7 @@
           if (root.__fam) root.__fam.flush(true);
           if (cur + step() > TOTAL) { silStop(); return; }
           SIL.seq = null;
-          show(cur + step(), 1).then(function () { setTimeout(function () { if (SIL.on) silBuild().then(function (q) { SIL.seq = q; SIL.i = 0; silTick(); }); }, 700); });
+          show(cur + step(), 1).then(function () { setTimeout(function () { if (SIL.on) silBuild().then(function (q) { SIL.seq = q; SIL.i = 0; SIL.pages = visible().join(','); silTick(); }); }, 700); });
           return;
         }
         if (SIL.sound) return silAudioGo();
@@ -1189,10 +1189,11 @@
           SIL.i = j;
           if (SIL.on) SIL.t = setTimeout(silTick, dir < 0 ? 700 : 300);
         };
+        if (SIL.seq && SIL.pages !== visible().join(',')) SIL.seq = null;
         if (SIL.seq) return go();
         if (!hideNow() && hideBtn()) hideBtn().click();
         silBuild().then(function (q) {
-          SIL.seq = q; SIL.i = 0;
+          SIL.seq = q; SIL.i = 0; SIL.pages = visible().join(',');
           while (SIL.i < q.length && els(q[SIL.i].loc)[0] && els(q[SIL.i].loc)[0].classList.contains('rv')) SIL.i++;
           go();
         });
@@ -1238,13 +1239,33 @@
       var silStart = function () {
         if (!hideNow() && hideBtn()) hideBtn().click();
         SIL.on = true; silIcon();
+        if (SIL.seq && SIL.pages !== visible().join(',')) SIL.seq = null;     // another page now: start on it, not where it stopped
         if (SIL.seq && SIL.i < SIL.seq.length) return silTick();
         silBuild().then(function (q) {
-          // start after what is already shown on the page (a reader picking up where he stopped)
-          SIL.seq = q; SIL.i = 0;
+          // start after what is already shown on the page (a reader picking up where he stopped); a page all shown
+          // already (one gone back to): hidden again, from its top
+          SIL.seq = q; SIL.i = 0; SIL.pages = visible().join(',');
           while (SIL.i < q.length && els(q[SIL.i].loc)[0] && els(q[SIL.i].loc)[0].classList.contains('rv')) SIL.i++;
+          if (SIL.i >= q.length && q.length) { q.forEach(silHide); SIL.i = 0; }
           silTick();
         });
+      };
+      // a tap on an ayah's number: the recitation starts from that ayah — it and what follows on the page hidden again
+      var SLF = { ar: 'التسميع من الآية ', ur: 'آیت سے: ', en: 'Reciting from verse ', fr: 'Récitation depuis le verset ', es: 'Recitando desde el versículo ', ru: 'Чтение с аята ' };
+      var silFrom = function (sN, aN) {
+        var go = function (q) {
+          var j = -1;
+          for (var n = 0; n < q.length; n++) if (q[n].s === sN && q[n].a === aN) { j = n; break; }
+          if (j < 0) return;
+          clearTimeout(SIL.t); silAudioStop();
+          for (var m = j; m < q.length; m++) silHide(q[m]);
+          SIL.i = j;
+          var tt = document.createElement('div'); tt.className = 'bk-toast'; tt.textContent = (SLF[C.lang] || SLF.en) + uiNum(aN); document.body.appendChild(tt); setTimeout(function () { tt.remove(); }, 2200);
+          if (SIL.on) SIL.t = setTimeout(silTick, 600);
+        };
+        if (!hideNow() && hideBtn()) hideBtn().click();
+        if (SIL.seq && SIL.pages === visible().join(',')) return go(SIL.seq);
+        silBuild().then(function (q) { SIL.seq = q; SIL.i = 0; SIL.pages = visible().join(','); go(q); });
       };
       var silStop = function (leave) {
         clearTimeout(SIL.t); silAudioStop(); SIL.on = false; silIcon();
@@ -1309,6 +1330,8 @@
       // look at it — which counts as missed too (the reader did not have it)
       root.addEventListener('click', function (e) {
         if (!root.classList.contains('bk-ms')) return;
+        var ae = e.target.closest && e.target.closest('.bk-mpage .ae[data-l]');
+        if (ae) { var y = ae.getAttribute('data-l').split(':').map(Number); silFrom(y[0], y[1]); e.stopPropagation(); e.preventDefault(); return; }
         var w = e.target.closest && e.target.closest('.bk-mpage [data-l]:not(.ae)');
         if (!w) return;
         var l = w.getAttribute('data-l'), x = l.split(':').map(Number), on = w.classList.contains('sl-err');
