@@ -806,6 +806,7 @@
       });
     }
     function show(p, dir, auto, back) {
+      if (typeof tjCard !== 'undefined' && tjCard) tjCard.classList.remove('on');
       if (window.__ltZoomReset) window.__ltZoomReset();
       p = norm(p);
       if (shownOnce && !auto && !back && Math.abs(p - cur) > step()) { backStack.push(cur); if (backStack.length > 10) backStack.shift(); }
@@ -2761,7 +2762,7 @@
     var tjNCache = {};
     // under review (?tjn=1 on this device; ?tjn=0 leaves it): until approved the notes show only where asked for
     var tjnQ = /[?&]tjn=([01])/.exec(location.search), tjnOn = false;
-    try { if (tjnQ) localStorage.setItem('lt_tjn', tjnQ[1]); tjnOn = localStorage.getItem('lt_tjn') === '1'; } catch (e) { tjnOn = !!(tjnQ && tjnQ[1] === '1'); }
+    try { if (tjnQ) localStorage.setItem('lt_tjn', tjnQ[1]); tjnOn = localStorage.getItem('lt_tjn') !== '0'; /* approved: everyone's (?tjn=0 leaves it on a device) */ } catch (e) { tjnOn = !(tjnQ && tjnQ[1] === '0'); }
     function tjNotesPage(p) {
       if (!tjnOn) return Promise.resolve({});
       if (!tjNCache[p]) tjNCache[p] = getJSON(BASE + '/data/tajweed/n' + p + '.json').catch(function () { delete tjNCache[p]; return {}; });
@@ -2833,7 +2834,8 @@
       b.title = playing ? U.pause : U.listen;
       var t = b.querySelector('.t'); if (t) t.textContent = playing ? U.pause : U.listen;
       if (root.__player) root.__player(playing); else if (root.__focus) root.__focus('play', playing);
-      if (!playing && tjCard) tjCard.classList.remove('on');
+      // paused: the tajweed card stays, without its timer (one pauses to read the rule); it goes with ×, a turn of page, or playing on
+      if (!playing && tjCard) clearTimeout(tjT);
     }
     // Talqeen: the reciter reads a part, then is silent for about as long, so the learner repeats after him.
     // 'ayah': a pause after each ayah; 'seg': also within the ayah, at the Mushaf's pause marks (ۖ ۗ ۚ ۘ),
