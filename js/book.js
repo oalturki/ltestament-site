@@ -1084,6 +1084,7 @@
         if (playing && m === 'tasmee') stopAudio();
         modeSync(); syncEye();
         if (root.__modeMenu) root.__modeMenu();
+        if (root.__dock) root.__dock();
       };
       var modeSync = function () {
         var m = curMode(), i = MODES.indexOf(m);
@@ -2104,7 +2105,11 @@
       var pFill = function () {
         var r = rec(), st = recState;
         $p('.pc-r').innerHTML = r ? esc(r.label) + ' <i aria-hidden="true">▾</i>' : '';
-        $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? C.uiNames[goSurah - 1] + ': ' + uiNum(1) : '';
+        var v0 = MAP && MAP.pages[(visible()[0] || cur) - 1];
+        $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? C.uiNames[goSurah - 1] + ': ' + uiNum(1) :
+          v0 ? C.uiNames[v0[0] - 1] + ': ' + uiNum(v0[1]) : '';
+        // the computer's docked row: the reading clock and (memorizing) the hide button, mirrored from the bar's own
+        pcClk.innerHTML = timeEl.innerHTML; pcEye.innerHTML = eyeBtn.innerHTML; pcEye.hidden = curMode() !== 'hifz';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
         $p('.pc-spd').textContent = ((rep && rep.speed) || 1) + '×';     // Latin digits: «١×» reads like «ا×»
@@ -2123,6 +2128,15 @@
         $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
       };
       root.__pcFill = function () { if (document.body.classList.contains('bk-pcon')) pFill(); };
+      var pcClk = document.createElement('div'); pcClk.className = 'pc-clk'; pc.appendChild(pcClk);
+      var pcEye = document.createElement('button'); pcEye.type = 'button'; pcEye.className = 'pc-eye'; pc.appendChild(pcEye);
+      pcEye.onclick = function (e) { e.stopPropagation(); eyeBtn.click(); setTimeout(pFill, 60); };
+      // the computer: in reading and memorizing, the player IS the bottom bar — always there, before playing and after
+      var docked = function () { var m = curMode(); return document.body.classList.contains('bk-wide') && (m === 'read' || m === 'hifz'); };
+      root.__dock = function () {
+        if (docked()) { pOn = true; if (!document.body.classList.contains('bk-pcon')) cardShow(true); else pFill(); }
+        else if (pOn && document.body.classList.contains('bk-wide')) { pOn = false; cardShow(false); }
+      };
       var cardShow = function (on) {
         document.body.classList.toggle('bk-pcon', on && pOn);
         // computer: the player takes the bottom bar's row, as tall as the bar
@@ -2216,7 +2230,8 @@
       $p('.pc-ra').onclick = function (e) { e.stopPropagation(); replay(false); };
       $p('.pc-rp').onclick = function (e) { e.stopPropagation(); replay(true); };
       pc.addEventListener('click', function (e) { e.stopPropagation(); });
-      root.__playerTap = function () { if (!pOn) return false; cardShow(!document.body.classList.contains('bk-pcon')); return true; };
+      setTimeout(function () { root.__dock(); }, 0);
+      root.__playerTap = function () { if (!pOn || docked()) return false; cardShow(!document.body.classList.contains('bk-pcon')); return true; };
       // phones, as in Mushaf apps: a tap anywhere on the page shows or hides the bars; a long press on a word gives its meaning
       var lpT = 0, lpX = 0, lpY = 0, lpDone = false;
       book.addEventListener('touchstart', function (e) {

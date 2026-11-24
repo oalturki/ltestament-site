@@ -1158,20 +1158,27 @@ body.bk-wide .bk-title{ display:none; }
 body.bk-wide .bk-bar{ padding-inline:max(12px, calc((100vw - 820px) / 2)) !important; gap:8px !important; justify-content:center !important; }
 body.bk-wide .bk-mnav{ padding-inline:max(12px, calc((100vw - 560px) / 2)) !important; }
 /* computer: the player is the bottom bar itself — its row between the two page arrows, the bar's own play button and clock set aside */
-body.bk-wide.bk-pcon .bk-mnav{ padding-inline:max(12px, calc((100vw - 1000px) / 2)) !important; }
+body.bk-wide.bk-pcon .bk-mnav{ padding-inline:max(12px, calc((100vw - 1080px) / 2)) !important; }
 body.bk-wide.bk-pcon .bk-mnav > :not(.bk-marrow){ visibility:hidden; }
-body.bk-wide.bk-pcon .bk-pcard{ display:flex !important; align-items:center; gap:18px; z-index:35 !important; bottom:0 !important; top:auto !important;
-  left:max(70px, calc(50vw - 430px)) !important; right:max(70px, calc(50vw - 430px)) !important; height:var(--mnav-h, 62px);
+body.bk-wide.bk-pcon .bk-pcard{ display:flex !important; align-items:center; gap:10px; z-index:35 !important; bottom:0 !important; top:auto !important;
+  left:max(70px, calc(50vw - 470px)) !important; right:max(70px, calc(50vw - 470px)) !important; height:var(--mnav-h, 62px);
   padding:0 !important; margin:0 !important; background:none !important; border:0 !important; box-shadow:none !important; border-radius:0 !important; }
 /* the row, right to left: the reciter and ayah · the controls · progress, time left, speed · settings, close */
 body.bk-wide.bk-pcon .bk-pcard .pc-top, body.bk-wide.bk-pcon .bk-pcard .pc-bar{ display:contents; }
-body.bk-wide.bk-pcon .bk-pcard .pc-t{ order:1; flex:0 0 calc(50% - 143px);   /* the controls centred, under the spine */ display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; min-width:0; text-align:start; }
+body.bk-wide.bk-pcon .bk-pcard .pc-t{ order:1; flex:0 0 calc(50% - 135px);   /* the controls centred, under the spine */ display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; min-width:0; text-align:start; }
 body.bk-wide.bk-pcon .bk-pcard .pc-ctl{ order:2; flex:0 0 250px; padding:0; }
 body.bk-wide.bk-pcon .bk-pcard .pc-bar > i{ order:3; flex:1 1 auto; min-width:60px; }
 body.bk-wide.bk-pcon .bk-pcard .pc-b{ order:4; flex:none; }
-body.bk-wide.bk-pcon .bk-pcard .pc-spd{ order:5; flex:none; }
-body.bk-wide.bk-pcon .bk-pcard .pc-set{ order:6; flex:none; }
-body.bk-wide.bk-pcon .bk-pcard .pc-x{ order:7; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-clk{ order:5; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-spd{ order:6; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-eye{ order:7; flex:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-set{ order:8; flex:none; }
+body.bk-wide .bk-pcard .pc-x{ display:none; }      /* docked: no closing — the mode decides the bar */
+.pc-clk, .pc-eye{ display:none; }
+body.bk-wide.bk-pcon .bk-pcard .pc-clk:not(:empty){ display:flex; flex-direction:column; align-items:center; line-height:1.1; color:#6d5216; min-width:44px; }
+body.bk-wide .pc-clk b{ font-size:.9rem; font-variant-numeric:tabular-nums; } body.bk-wide .pc-clk small{ font-size:.66rem; color:#97835a; }
+body.bk-wide.bk-pcon .bk-pcard .pc-eye:not([hidden]){ display:flex; flex-direction:column; align-items:center; gap:1px; border:0; background:none; color:#8a6a1f; cursor:pointer; font:inherit; font-size:.7rem; padding:0 4px; }
+body.bk-wide .pc-eye svg{ width:20px; height:20px; }
 body.bk-wide .pc-x, body.bk-wide .pc-set{ width:30px; height:30px; }
 body.bk-wide .pc-x svg{ width:15px; height:15px; } body.bk-wide .pc-set svg{ width:16px; height:16px; }
 body.bk-wide .pc-r{ font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; } body.bk-wide .pc-w{ font-size:.76rem; }
