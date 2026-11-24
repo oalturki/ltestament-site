@@ -2050,3 +2050,10 @@ html body.bk-mob.bk-night.bk-night.bk-night.bk-night.bk-living .bk-mlive button:
    visible part): the body takes the bar's colour, a shade darker than before, so the bar reaches the screen's edge */
 html body.bk-mob.bk-fixbar:not(.bk-wide){ background:#f8f3e6 !important; }
 html body.bk-mob.bk-fixbar.bk-night:not(.bk-wide){ background:#1e1b15 !important; }
+
+/* iOS 26 home-screen app (bk-short): the page already stops above the home indicator, so the bar keeps no room for it —
+   its buttons come down to the page's bottom, and the page gains that room (its proportions unchanged: it is fitted, not stretched) */
+html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-stage{ padding-bottom:50px !important; }
+html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-mnav{ height:50px !important; min-height:0 !important; padding-bottom:0 !important; }
+html body.bk-mob.bk-dock.bk-short.bk-pcon:not(.bk-wide) .bk-pcard{ height:50px !important; padding-bottom:2px !important; }
+html body.bk-mob.bk-short.bk-living .bk-mlive{ height:50px !important; padding-bottom:0 !important; }
