@@ -791,6 +791,17 @@
       backEl.querySelector('.bk-backgo').innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14l-5-5 5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg>' + esc(BKL + uiNum(b));
       backEl.classList.add('on');
     }
+    // the reader picked a surah (the index, the surah menu): the page it starts on, and the recitation starts with it —
+    // not resumed at the ayah it was on, even when that ayah is still on the screen; if it was playing, it plays on
+    function pickSurah(sN, page) {
+      var was = playing;
+      goNext = sN; repPicked = false;
+      return show(page, 0).then(function () {
+        goNext = 0; recState = null; lastRec = null;
+        if (was && !playing) startAudio();
+        else if (root.__pcFill) root.__pcFill();
+      });
+    }
     function show(p, dir, auto, back) {
       if (window.__ltZoomReset) window.__ltZoomReset();
       p = norm(p);
@@ -961,7 +972,9 @@
             ov.querySelector('.bk-ixtabs').onclick = function (e) { var b = e.target.closest('button'); if (b) { idxTab = b.dataset.t; fill(); } };
             listEl.onclick = function (e) {
               var b = e.target.closest('.bk-ixrow'); if (!b) return;
-              shut(); repPicked = false; var to = +b.dataset.go; if (to && to !== cur) show(to, 0);
+              shut(); repPicked = false; var to = +b.dataset.go;
+              if (idxTab === 'surah' && to) pickSurah(+b.dataset.no, to);
+              else if (to && to !== cur) show(to, 0);
             };
             fill(); requestAnimationFrame(function () { ov.classList.add('on'); fill(); });
           });
@@ -2091,7 +2104,7 @@
       var pFill = function () {
         var r = rec(), st = recState;
         $p('.pc-r').innerHTML = r ? esc(r.label) + ' <i aria-hidden="true">▾</i>' : '';
-        $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : '';
+        $p('.pc-w').textContent = st ? (C.uiNames[st.s - 1] + ': ' + uiNum(st.a)) : goSurah && visible().indexOf(surahStart[goSurah - 1]) >= 0 ? C.uiNames[goSurah - 1] + ': ' + uiNum(1) : '';
         $p('.pc-pp').innerHTML = playing ? ic('<path d="M7 4h4v16H7zM13 4h4v16h-4z"/>', true) : ic('<path d="M7 4l13 8-13 8z"/>', true);
         $p('.pc-pp').setAttribute('aria-label', playing ? U.pause : U.listen);
         $p('.pc-spd').textContent = ((rep && rep.speed) || 1) + '×';     // Latin digits: «١×» reads like «ا×»
@@ -2109,6 +2122,7 @@
         $p('.pc-b').textContent = '-' + mmss(len - el);
         $p('.pc-bar b').style.width = Math.min(100, el * 100 / len) + '%';
       };
+      root.__pcFill = function () { if (document.body.classList.contains('bk-pcon')) pFill(); };
       var cardShow = function (on) {
         document.body.classList.toggle('bk-pcon', on && pOn);
         // computer: the player takes the bottom bar's row, as tall as the bar
@@ -2420,7 +2434,7 @@
         // the surah's number and name (on phones without the dot, to save room)
         var narrow = window.matchMedia && window.matchMedia('(max-width:600px)').matches;
         sel.innerHTML = C.uiNames.map(function (n, i) { return '<option value="' + (i + 1) + '">' + uiNum(i + 1) + (narrow ? ' ' : '. ') + esc(n) + '</option>'; }).join('');
-        sel.onchange = function () { goNext = +sel.value; repPicked = false; show(surahStart[+sel.value - 1], 0); goNext = 0; fitSel(); };
+        sel.onchange = function () { pickSurah(+sel.value, surahStart[+sel.value - 1]); fitSel(); };
       }
       var ts = q('trSel');
       if (ts) {
