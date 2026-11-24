@@ -1461,7 +1461,7 @@
       // surah — is the bar, always there: the surah opens the index, the juz and the page their lists, search and the
       // settings at its two ends. Nothing needs a tap on the page to be reached, so a tap on a word opens the word.
       var hdrQ = /[?&]hdr=([01])/.exec(location.search), hdrOn = false;
-      try { if (hdrQ) localStorage.setItem('lt_hdr', hdrQ[1]); hdrOn = localStorage.getItem('lt_hdr') === '1'; } catch (e) { hdrOn = !!(hdrQ && hdrQ[1] === '1'); }
+      try { if (hdrQ) localStorage.setItem('lt_hdr', hdrQ[1]); hdrOn = localStorage.getItem('lt_hdr') !== '0'; /* the new head bar: everyone's now (?hdr=0 turns it off on a device) */ } catch (e) { hdrOn = !(hdrQ && hdrQ[1] === '0'); }
       if (hdrOn && bar) {
         // one row in the place of the printed head: search | juz | the view | page | the mode | surah | settings
         var hdr = document.createElement('div'); hdr.className = 'bk-hdr2';
