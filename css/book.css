@@ -1956,8 +1956,8 @@ body.bk-mob.bk-dock:not(.bk-wide) .bk-pcard .pc-menu:not([hidden]){ display:bloc
 .pc-mi b i{ font-style:normal; font-size:.7rem; color:#8a6a1e; } .pc-mi:disabled{ cursor:default; opacity:1; }
 
 /* «more»: the reciters drop down under their row */
-.pc-mdd{ display:flex; flex-direction:column; background:#f6efdc; border-top:1px solid rgba(140,110,40,.15); max-height:45vh; overflow:auto; }
+.pc-mdd{ display:flex; flex-direction:column; background:none; border-top:1px solid rgba(140,110,40,.15); max-height:45vh; overflow:auto; }
 .pc-mdd button{ border:0; background:none; font:inherit; font-size:.92rem; font-weight:700; color:#2a2418; text-align:start; padding:9px 22px; cursor:pointer; }
-.pc-mdd button.on{ color:#8a6a1e; } .pc-mdd button.on::before{ content:'✓ '; }
+.pc-mdd button.on{ color:#6d5216; background:#efe3bf; }   /* only the one chosen is marked */ .pc-mdd button.on::before{ content:'✓ '; }
 .pc-mdd button + button{ border-top:1px solid rgba(140,110,40,.1); }
 .pc-mi.open b i{ display:inline-block; transform:rotate(180deg); }
