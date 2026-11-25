@@ -41,6 +41,7 @@
       notYet: 'لم يدخل', since: 'منذ', sec: 'ث', min: 'د', tapAyah: 'المس رقم آية ليركّز عليها الطلاب.', display: 'شاشة العرض: افتح هذا الرابط على حاسب جهاز العرض',
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
+      mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
       repH: 'تقارير الجلسات', repNone: 'لا جلسات بعد.', csv: 'تصدير Excel', inT: 'حضور', outT: 'خروج', times: 'مرات', joined: 'دخل',
       summary: function (g, y, r, n) { return 'في المصحف ' + g + ' · صفحة أخرى ' + y + ' · خارج ' + r + ' · لم يدخل ' + n; }
@@ -58,6 +59,7 @@
       notYet: 'Not joined', since: 'for', sec: 's', min: 'm', tapAyah: 'Tap a verse number to focus the students on it.', display: 'Projector: open this link on the projector’s computer',
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
+      mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
       repH: 'Session reports', repNone: 'No sessions yet.', csv: 'Export to Excel', inT: 'In', outT: 'Out', times: 'times', joined: 'Joined',
       summary: function (g, y, r, n) { return 'In the Mushaf ' + g + ' · other page ' + y + ' · out ' + r + ' · not joined ' + n; }
@@ -195,6 +197,52 @@
     };
     go();
   }
+  /* A minimised panel or bar becomes a small round button the user drags anywhere (its place is remembered per
+     role); a tap without a drag opens it again. B_ = {el, show(html), hide(), remove()} */
+  function bubble(key, onOpen) {
+    var l = L(), el = document.createElement('button');
+    el.type = 'button'; el.className = 'hq-bub'; el.title = l.drag; el.setAttribute('aria-label', l.open); el.hidden = true;
+    document.body.appendChild(el);
+    var place = function (x, y) {
+      var w = el.offsetWidth || 56, h = el.offsetHeight || 56;
+      x = Math.max(6, Math.min(innerWidth - w - 6, x)); y = Math.max(6, Math.min(innerHeight - h - 6, y));
+      el.style.left = x + 'px'; el.style.top = y + 'px'; return [x, y];
+    };
+    var put = function () {
+      var p = null; try { p = JSON.parse(load('lt_hq_pos_' + key)); } catch (e) {}
+      if (p) place(p[0] * innerWidth, p[1] * innerHeight); else place(12, innerHeight - 150);
+    };
+    var d = null;
+    el.addEventListener('pointerdown', function (e) {
+      d = { x: e.clientX, y: e.clientY, l: el.offsetLeft, t: el.offsetTop, moved: false };
+      try { el.setPointerCapture(e.pointerId); } catch (x) {}
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!d) return;
+      var dx = e.clientX - d.x, dy = e.clientY - d.y;
+      if (!d.moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      d.moved = true; el.classList.add('hq-drag');
+      place(d.l + dx, d.t + dy);
+    });
+    var up = function () {
+      if (!d) return;
+      var moved = d.moved; d = null; el.classList.remove('hq-drag');
+      if (moved) store('lt_hq_pos_' + key, JSON.stringify([el.offsetLeft / innerWidth, el.offsetTop / innerHeight]));
+      else onOpen();
+    };
+    el.addEventListener('pointerup', up); el.addEventListener('pointercancel', function () { d = null; el.classList.remove('hq-drag'); });
+    var onResize = function () { if (!el.hidden) place(el.offsetLeft, el.offsetTop); };
+    window.addEventListener('resize', onResize);
+    return {
+      el: el,
+      show: function (html) { if (html != null) el.innerHTML = html; el.hidden = false; put(); store('lt_hq_min_' + key, '1'); },
+      set: function (html) { el.innerHTML = html; },
+      hide: function () { el.hidden = true; store('lt_hq_min_' + key, null); },
+      remove: function () { window.removeEventListener('resize', onResize); el.remove(); },
+      wasMin: function () { return load('lt_hq_min_' + key) === '1'; }
+    };
+  }
+
   // one live channel that reopens itself: on an error or timeout, and when ensure() finds it not joined
   function wire(c, name, key, setup, onJoin) {
     var W = { ch: null, t: null, done: false };
@@ -293,13 +341,13 @@
     S.focus = S.focus && S.focus[0] === x[0] && S.focus[1] === x[1] ? null : [x[0], x[1]];
     S.send(); focusShow(S.focus); drawPanel();
   }
-  var P = null;
+  var P = null, BT = null;
   function panel() {
     var l = L();
     P = document.createElement('div'); P.className = 'hq-panel';
     var link = location.origin + location.pathname + '?live=' + S.code;
     P.innerHTML = '<div class="hq-ph"><b class="hq-cd" dir="ltr">' + esc(S.code.slice(0, 3) + ' ' + S.code.slice(3)) + '</b><span class="hq-pt">' + esc(S.ses.title) + '</span>' +
-      '<button type="button" class="hq-min" aria-label="' + esc(l.present) + '">▾</button></div><div class="hq-pb">' +
+      '<button type="button" class="hq-min" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button></div><div class="hq-pb">' +
       '<div class="hq-lk"><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
       '<div class="hq-tg"><label><input type="checkbox" class="hq-lock"> ' + esc(l.lock) + '</label><label><input type="checkbox" class="hq-hide"> ' + esc(l.hide) + '</label>' +
       '<button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div><p class="hq-note hq-tip">' + esc(l.tapAyah) + '</p>' +
@@ -310,7 +358,9 @@
     var cp = function (t, b) { (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = l.copied; }, function () {}); };
     P.querySelector('.hq-cp').onclick = function () { cp(link, this); };
     P.querySelector('.hq-cp2').onclick = function () { cp(link + '&display=1', this); };
-    P.querySelector('.hq-min').onclick = function () { P.classList.toggle('hq-closed'); };
+    var bt = BT = S.bub = bubble('t', function () { bt.hide(); if (P) P.hidden = false; });
+    P.querySelector('.hq-min').onclick = function () { P.hidden = true; bt.show(); drawPanel(); };
+    if (bt.wasMin()) { P.hidden = true; bt.show(); }
     P.querySelector('.hq-lock').onchange = function () { S.lock = this.checked; S.send(); };
     P.querySelector('.hq-hide').onchange = function () { S.hide = this.checked; B().hide(S.hide); S.send(); };
     P.querySelector('.hq-uf').onclick = function () { S.focus = null; S.send(); focusShow(null); drawPanel(); };
@@ -328,6 +378,9 @@
       return '<li class="hq-s hq-' + r.st + '"><i></i><span>' + esc(r.name) + '</span><small>' + esc(lab) + '</small></li>';
     }).join('');
     P.querySelector('.hq-sum').textContent = l.summary(num(cnt.g), num(cnt.y), num(cnt.r), num(cnt.n));
+    // the minimised button: how many are in (green), elsewhere (yellow) and out (red)
+    if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
+      '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
     P.querySelector('.hq-uf').hidden = !S.focus;
   }
   function endSession() {
@@ -343,6 +396,7 @@
     var W = S.W; setTimeout(function () { W.close(); }, 600); S = null;
     document.removeEventListener('click', ayahTap, true);
     if (P) { P.remove(); P = null; } document.body.classList.remove('hq-teaching');
+    if (BT) { BT.remove(); BT = null; }
     focusShow(null); B().hide(false);
     toast(L().ended);
   }
@@ -411,9 +465,14 @@
     window.addEventListener('online', S.vis);
     // the bar: which circle, that the teacher sees presence, leave
     var bar = S.bar = document.createElement('div'); bar.className = 'hq-bar' + (role === 'display' ? ' hq-disp' : '');
-    bar.innerHTML = '<b>' + esc(l.bar) + ': ' + esc(info.title || '') + '</b>' + (me ? '<span>' + esc(me.name) + ' · ' + esc(l.watch) + '</span>' : '') + '<button type="button">' + esc(l.leave) + '</button>';
-    bar.querySelector('button').onclick = function () { leave(false); };
+    bar.innerHTML = '<b>' + esc(l.bar) + ': ' + esc(info.title || '') + '</b>' + (me ? '<span>' + esc(me.name) + ' · ' + esc(l.watch) + '</span>' : '') +
+      '<button type="button" class="hq-lv">' + esc(l.leave) + '</button><button type="button" class="hq-bmin" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button>';
+    bar.querySelector('.hq-lv').onclick = function () { leave(false); };
     document.body.appendChild(bar); document.body.classList.add('hq-on');
+    var bs = S.bub = bubble(role === 'display' ? 'd' : 's', function () { bs.hide(); bar.hidden = false; });
+    bs.el.innerHTML = '<span class="hq-bc hq-g"><i></i>' + esc(l.bar) + '</span>';
+    bar.querySelector('.hq-bmin').onclick = function () { bar.hidden = true; bs.show(); };
+    if (bs.wasMin()) { bar.hidden = true; bs.show(); }
   }
   // the student's colour: out of the Mushaf (the page hidden) red; another page than the teacher's yellow; else green
   // presence carries it on every change (and after each rejoin); the 'me' broadcast carries it always — it reaches
@@ -445,6 +504,7 @@
     window.removeEventListener('pagehide', S.vis);
     window.removeEventListener('online', S.vis);
     if (S.bar) S.bar.remove();
+    if (S.bub) S.bub.remove();
     document.body.classList.remove('hq-on', 'hq-locked');
     focusShow(null); if (S.t && S.t.hide) B().hide(false);
     S = null;

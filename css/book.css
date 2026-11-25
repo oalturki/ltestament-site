@@ -2059,3 +2059,15 @@ html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-stage{ padding-bottom:66px
 html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-mnav{ height:66px !important; min-height:0 !important; padding-bottom:16px !important; }
 html body.bk-mob.bk-dock.bk-short.bk-pcon:not(.bk-wide) .bk-pcard{ height:66px !important; padding-bottom:16px !important; }
 html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-bottom:16px !important; }
+
+/* the live circle minimised: a round button dragged anywhere, a tap opens it */
+.hq-bub{ position:fixed; z-index:72; width:60px; height:60px; border-radius:50%; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  background:#fffdf7; color:#2a2418; border:2px solid var(--gold); box-shadow:0 4px 16px rgba(0,0,0,.28); font:600 12px/1.15 inherit; cursor:grab;
+  touch-action:none; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent; }
+.hq-bub[hidden]{ display:none; }
+.hq-bub.hq-drag{ cursor:grabbing; box-shadow:0 8px 24px rgba(0,0,0,.35); transform:scale(1.06); }
+.hq-bc{ display:flex; align-items:center; gap:3px; background:none !important; }
+.hq-bc i{ width:8px; height:8px; border-radius:50%; display:inline-block; }
+.hq-bar .hq-bmin{ padding:4px 9px; font-weight:700; }
+.hq-panel[hidden], .hq-bar[hidden]{ display:none !important; }
+.bk-night .hq-bub{ background:#22201a; color:#efe6d0; }
