@@ -556,7 +556,7 @@
     var f0 = was.focus ? was.focus.join(':') : '', f1 = t.focus ? t.focus.join(':') : '';
     if (f0 !== f1) focusShow(t.focus);
     if (t.au !== was.au || t.v !== was.v) auMode();
-    if (t.v === 'i' && was.v !== 'i' && B().follow) B().follow(null);
+    if (t.v === 'i' && was.v !== 'i') { if (B().follow) B().follow(null); if (B().tjHide) B().tjHide(); }
     if (t.md && B().mode && B().mode() !== t.md) B().setMode(t.md);       // the mode the teacher set
     report();
   }
@@ -569,7 +569,10 @@
     if (!S || S.role === 'teacher') return;
     m._at = Date.now(); S.au = m; S.auRecv = m._at;
     if (S.t && S.t.v === 'i') { if (S.mA) S.mA.pause(); return; }        // individual: nothing follows
-    if (B().follow) B().follow(m.h);
+    // the teacher stopped or paused: his last word stays lit and its tajweed card stays open (he may explain it),
+    // until the student closes it, he leaves, or the circle ends
+    if (m.stop || m.p) { if (B().tjHold) B().tjHold(); }
+    else if (B().follow) B().follow(m.h);
     if (remote()) mirror(m);
     else if (S.mA) S.mA.pause();
   }
@@ -620,6 +623,7 @@
     clearInterval(S.hb);
     if (S.mA) { try { S.mA.pause(); } catch (e) {} }
     if (B().follow) B().follow(null);
+    if (B().tjHide) B().tjHide();
     try { if (S.ch) S.ch.untrack(); } catch (e) {}
     S.W.close();
     document.removeEventListener('visibilitychange', S.vis);
