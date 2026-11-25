@@ -387,7 +387,7 @@
     P = document.createElement('div'); P.className = 'hq-panel';
     var link = location.origin + location.pathname + '?live=' + S.code;
     P.innerHTML = '<div class="hq-ph"><b class="hq-cd" dir="ltr">' + esc(S.code.slice(0, 3) + ' ' + S.code.slice(3)) + '</b><span class="hq-pt">' + esc(S.ses.title) + '</span>' +
-      '<button type="button" class="hq-min" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button></div><div class="hq-pb">' +
+      '<button type="button" class="hq-min" title="' + esc(l.mini) + '">' + esc(l.mini) + '</button></div><div class="hq-pb">' +
       '<div class="hq-lk"><b class="hq-lkt">' + esc(l.link) + ':</b><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
       // each setting on one line: its title, a «?» that opens its explanation, and its choices side by side
       opt('hq-view', l.viewH, l.viewHelp, 'hqv', [['g', l.viewG], ['i', l.viewI]]) +
@@ -527,7 +527,7 @@
     var bar = S.bar = document.createElement('div'); bar.className = 'hq-bar' + (role === 'display' ? ' hq-disp' : '');
     bar.innerHTML = '<b>' + esc(l.bar) + ': ' + esc(info.title || '') + '</b>' + (me ? '<span>' + esc(me.name) + ' · ' + esc(l.watch) + '</span>' : '') +
       '<button type="button" class="hq-un" hidden>' + esc(l.unlock) + '</button>' +
-      '<button type="button" class="hq-lv">' + esc(l.leave) + '</button><button type="button" class="hq-bmin" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button>';
+      '<button type="button" class="hq-lv">' + esc(l.leave) + '</button><button type="button" class="hq-bmin" title="' + esc(l.mini) + '">' + esc(l.mini) + '</button>';
     bar.querySelector('.hq-un').onclick = unlock;
     bar.querySelector('.hq-lv').onclick = function () { leave(false); };
     document.body.appendChild(bar); document.body.classList.add('hq-on');
