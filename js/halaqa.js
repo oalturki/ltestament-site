@@ -10,6 +10,9 @@
    - broadcast 'hello' (a student or display arriving) → the teacher sends 'st' at once
    - broadcast 'end' (teacher) → students leave
    - presence (students): {id, name, st: 'g' on the teacher's page | 'y' another page | 'r' out of the Mushaf, p, ts}
+   - broadcast 'au' (teacher → all): the recitation now {u: file, t: time, p: paused, r: speed, m: muted, h: highlight}
+     on every change and every 2 s while it plays; st.au chooses how students take it: 'c' in class (no sound, they follow
+     the highlight; the teacher's device is heard) or 'r' remote (each student's device plays the same file in step)
    - broadcast 'me' (student → teacher): the same record, on every change and every 4 s as a heartbeat
    A student whose phone leaves the Mushaf sends 'r' at once (by REST if the socket is down). A student the teacher
    has not heard from for 12 s counts as out (a phone in the background freezes and sends nothing). Both sides
@@ -42,6 +45,8 @@
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
+      auH: 'صوت التلاوة', auC: 'في الفصل: يُسمع من جهازي، والطلاب يتابعون التظليل', auR: 'عن بُعد: يُسمع عند كل طالب',
+      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
       repH: 'تقارير الجلسات', repNone: 'لا جلسات بعد.', csv: 'تصدير Excel', inT: 'حضور', outT: 'خروج', times: 'مرات', joined: 'دخل',
       summary: function (g, y, r, n) { return 'في المصحف ' + g + ' · صفحة أخرى ' + y + ' · خارج ' + r + ' · لم يدخل ' + n; }
@@ -60,6 +65,8 @@
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
+      auH: 'Recitation sound', auC: 'In class: heard from my device; students follow the highlight', auR: 'Remote: heard on each student’s device',
+      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
       repH: 'Session reports', repNone: 'No sessions yet.', csv: 'Export to Excel', inT: 'In', outT: 'Out', times: 'times', joined: 'Joined',
       summary: function (g, y, r, n) { return 'In the Mushaf ' + g + ' · other page ' + y + ' · out ' + r + ' · not joined ' + n; }
@@ -271,19 +278,20 @@
   var quiet = function (f) { try { var r = f(); if (r && r.catch) r.catch(function () {}); } catch (e) {} };
   function teach(c, ses) {
     var l = L(), now = Date.now();
-    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, t0: now, pages: {}, st: {}, c: c };
+    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, au: 'c', t0: now, pages: {}, st: {}, c: c };
     // the students' running record: {id: {name, sid, joined, st, since, in, out, outs, p}}
     ses.roster.forEach(function (x) { S.st[x.id] = { name: x.name, sid: x.sid, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 }; });
     var sendSt = function () { if (S && S.ch) quiet(function () { return S.ch.send({ type: 'broadcast', event: 'st', payload: state() }); }); };
     S.send = sendSt;
     S.W = wire(c, 'hq-' + ses.code, 'teacher', function (ch) {
       S.ch = ch;
-      ch.on('broadcast', { event: 'hello' }, sendSt);
+      ch.on('broadcast', { event: 'hello' }, function () { sendSt(); S.auK = null; auWatch(); });
       ch.on('broadcast', { event: 'me' }, function (m) { heard(m.payload || {}); drawPanel(); });
       ch.on('presence', { event: 'sync' }, function () { if (S && S.ch === ch) presenceSync(ch.presenceState()); });
     }, sendSt);
     S.beat = setInterval(sendSt, 5000);
     S.tk = setInterval(function () { stale(); drawPanel(); }, 1000);
+    S.aw = setInterval(auWatch, 250);
     // back from the background: rejoin, resend, and give the students a moment before judging their silence
     S.vis = function () { if (document.visibilityState !== 'visible' || !S) return; S.grace = Date.now() + 6000; S.W.ensure(); sendSt(); };
     document.addEventListener('visibilitychange', S.vis); window.addEventListener('online', S.vis);
@@ -291,7 +299,17 @@
     panel();
     document.addEventListener('click', ayahTap, true);
   }
-  function state() { return { p: S.page || B().cur(), lock: S.lock, hide: S.hide, focus: S.focus, title: S.ses.title, t: Date.now() }; }
+  function state() { return { p: S.page || B().cur(), lock: S.lock, hide: S.hide, focus: S.focus, title: S.ses.title, au: S.au, t: Date.now() }; }
+  // the teacher's recitation, watched four times a second and sent when it changes (and every 2 s while it plays)
+  function auWatch() {
+    if (!S || S.role !== 'teacher' || !S.ch) return;
+    var x = B().audioNow ? B().audioNow() : null, h = B().hlNow ? B().hlNow() : null, now = Date.now();
+    var m = x ? { u: x.u, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null } : { stop: true, h: null };
+    var k = x ? [x.u, x.p, x.r, x.m, JSON.stringify(h)].join('|') : 'stop';
+    if (k === S.auK && (!x || x.p || now - S.auAt < 2000)) return;
+    S.auK = k; S.auAt = now; S.auLast = m;
+    quiet(function () { return S.ch.send({ type: 'broadcast', event: 'au', payload: m }); });
+  }
   // presence → each student's colour, and the time it has held
   function presenceSync(ps) {
     var now = Date.now(), seen = {};
@@ -351,6 +369,8 @@
       '<div class="hq-lk"><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
       '<div class="hq-tg"><label><input type="checkbox" class="hq-lock"> ' + esc(l.lock) + '</label><label><input type="checkbox" class="hq-hide"> ' + esc(l.hide) + '</label>' +
       '<button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div><p class="hq-note hq-tip">' + esc(l.tapAyah) + '</p>' +
+      '<div class="hq-au"><b>' + esc(l.auH) + ':</b><label><input type="radio" name="hqau" value="c" checked> ' + esc(l.auC) + '</label>' +
+      '<label><input type="radio" name="hqau" value="r"> ' + esc(l.auR) + '</label><p class="hq-note">' + esc(l.auTip) + '</p></div>' +
       '<div class="hq-sum"></div><ul class="hq-rl"></ul>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
@@ -363,6 +383,7 @@
     if (bt.wasMin()) { P.hidden = true; bt.show(); }
     P.querySelector('.hq-lock').onchange = function () { S.lock = this.checked; S.send(); };
     P.querySelector('.hq-hide').onchange = function () { S.hide = this.checked; B().hide(S.hide); S.send(); };
+    P.querySelectorAll('input[name=hqau]').forEach(function (r) { r.onchange = function () { if (this.checked) { S.au = this.value; S.send(); S.auK = null; auWatch(); } }; });
     P.querySelector('.hq-uf').onclick = function () { S.focus = null; S.send(); focusShow(null); drawPanel(); };
     P.querySelector('.hq-end').onclick = function () { if (confirm(l.endQ)) endSession(); };
     drawPanel();
@@ -391,7 +412,8 @@
     }) };
     try { S.ch.send({ type: 'broadcast', event: 'end', payload: {} }); } catch (e) {}
     c.from('live_sessions').update({ ended_at: new Date(now).toISOString(), report: rep }).eq('id', ses.id).then(function () {});
-    clearInterval(S.beat); clearInterval(S.tk);
+    clearInterval(S.beat); clearInterval(S.tk); clearInterval(S.aw);
+    try { S.ch.send({ type: 'broadcast', event: 'au', payload: { stop: true, h: null } }); } catch (e) {}
     document.removeEventListener('visibilitychange', S.vis); window.removeEventListener('online', S.vis);
     var W = S.W; setTimeout(function () { W.close(); }, 600); S = null;
     document.removeEventListener('click', ayahTap, true);
@@ -448,6 +470,7 @@
     S.W = wire(c, 'hq-' + code, me ? me.id : 'display', function (ch) {
       S.ch = ch;
       ch.on('broadcast', { event: 'st' }, function (m) { applyState(m.payload || {}); });
+      ch.on('broadcast', { event: 'au' }, function (m) { hearAu(m.payload || {}); });
       ch.on('broadcast', { event: 'end' }, function () { leave(true); });
     }, function (ch) {
       ch.send({ type: 'broadcast', event: 'hello', payload: {} });
@@ -466,7 +489,9 @@
     // the bar: which circle, that the teacher sees presence, leave
     var bar = S.bar = document.createElement('div'); bar.className = 'hq-bar' + (role === 'display' ? ' hq-disp' : '');
     bar.innerHTML = '<b>' + esc(l.bar) + ': ' + esc(info.title || '') + '</b>' + (me ? '<span>' + esc(me.name) + ' · ' + esc(l.watch) + '</span>' : '') +
+      '<button type="button" class="hq-un" hidden>' + esc(l.unlock) + '</button>' +
       '<button type="button" class="hq-lv">' + esc(l.leave) + '</button><button type="button" class="hq-bmin" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button>';
+    bar.querySelector('.hq-un').onclick = unlock;
     bar.querySelector('.hq-lv').onclick = function () { leave(false); };
     document.body.appendChild(bar); document.body.classList.add('hq-on');
     var bs = S.bub = bubble(role === 'display' ? 'd' : 's', function () { bs.hide(); bar.hidden = false; });
@@ -493,11 +518,56 @@
     if (!!t.hide !== !!was.hide) B().hide(!!t.hide);
     var f0 = was.focus ? was.focus.join(':') : '', f1 = t.focus ? t.focus.join(':') : '';
     if (f0 !== f1) focusShow(t.focus);
+    if (t.au !== was.au) auMode();
     report();
+  }
+  /* ---------- the teacher's recitation on a student's (or the projector's) Mushaf ---------- */
+  // the highlight follows in both ways; in 'r' (remote) a student's device also plays the same file, kept within
+  // about half a second of the teacher's (a phone needs one tap first: «turn on the sound»)
+  var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  function remote() { return S && S.role === 'student' && S.t && S.t.au === 'r'; }
+  function hearAu(m) {
+    if (!S || S.role === 'teacher') return;
+    S.au = m; S.auRecv = Date.now();
+    if (B().follow) B().follow(m.h);
+    if (remote()) mirror(m);
+    else if (S.mA) S.mA.pause();
+  }
+  function auMode() {
+    if (!S || !S.bar) return;
+    var un = S.bar.querySelector('.hq-un'), need = remote() && !S.unlocked;
+    if (un) un.hidden = !need;
+    if (need && S.bar.hidden) { S.bar.hidden = false; if (S.bub) S.bub.hide(); }
+    if (!remote() && S.mA) S.mA.pause();
+    else if (remote() && S.unlocked && S.au) mirror(S.au);
+  }
+  function unlock() {
+    if (!S) return;
+    var A = S.mA || (S.mA = new Audio());
+    S.unlocked = true;
+    var un = S.bar && S.bar.querySelector('.hq-un'); if (un) un.hidden = true;
+    if (S.au && S.au.u && !S.au.stop) return mirror(S.au);                 // play now, inside the tap
+    A.src = SILENT; var pr = A.play(); if (pr && pr.then) pr.then(function () { A.pause(); }, function () {});
+  }
+  function mirror(m) {
+    var A = S.mA || (S.mA = new Audio());
+    if (m.stop || !m.u) { A.pause(); return; }
+    if (!S.unlocked) return auMode();
+    if (B().playing && B().playing()) B().stopAudio();                  // his own recitation gives way to the teacher's
+    var rate = m.r || 1, late = function () { return (Date.now() - S.auRecv) / 1000 * rate + (m.p ? 0 : 0.15 * rate); };
+    A.defaultPlaybackRate = A.playbackRate = rate; A.muted = !!m.m;
+    if (A.getAttribute('src') !== m.u) {
+      A.src = m.u;
+      A.addEventListener('loadedmetadata', function () { if (A.getAttribute('src') === m.u) try { A.currentTime = m.t + late(); } catch (e) {} }, { once: true });
+    } else if (Math.abs(A.currentTime - (m.t + late())) > 0.6) { try { A.currentTime = m.t + late(); } catch (e) {} }
+    if (m.p) A.pause();
+    else { var pr = A.play(); if (pr && pr.catch) pr.catch(function () { S.unlocked = false; auMode(); }); }
   }
   function leave(ended) {
     if (!S) return;
     clearInterval(S.hb);
+    if (S.mA) { try { S.mA.pause(); } catch (e) {} }
+    if (B().follow) B().follow(null);
     try { if (S.ch) S.ch.untrack(); } catch (e) {}
     S.W.close();
     document.removeEventListener('visibilitychange', S.vis);
