@@ -47,7 +47,7 @@
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
-      colName: 'الطالب', colState: 'الحالة', count: 'العدد',
+      colName: 'الطالب', total: 'المجموع',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
@@ -71,7 +71,7 @@
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
-      colName: 'Student', colState: 'Status', count: 'Count',
+      colName: 'Student', total: 'Total',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
@@ -376,6 +376,7 @@
     S.send(); focusShow(S.focus); drawPanel();
   }
   var P = null, BT = null;
+  function stName(l, k) { return k === 'g' ? l.inMushaf : k === 'y' ? l.other : k === 'r' ? l.out : l.notYet; }
   function opt(cls, title, help, name, items) {
     return '<div class="hq-opt ' + cls + '"><div class="hq-or"><span class="hq-ot"><b>' + esc(title) + '</b><button type="button" class="hq-qm" aria-label="?" aria-expanded="false">?</button></span>' +
       '<span class="hq-seg">' + items.map(function (x, i) { return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"' + (i ? '' : ' checked') + '><span>' + esc(x[1]) + '</span></label>'; }).join('') + '</span></div>' +
@@ -392,8 +393,11 @@
       opt('hq-view', l.viewH, l.viewHelp, 'hqv', [['g', l.viewG], ['i', l.viewI]]) +
       opt('hq-snd', l.auH, l.auHelp, 'hqau', [['c', l.auC], ['r', l.auR]]) +
       '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div>' +
-      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th>' + esc(l.colState) + '</th></tr>' +
-      '<tr class="hq-tot"><td colspan="2"><b>' + esc(l.count) + ':</b> <span class="hq-totc"></span></td></tr></thead><tbody class="hq-rl"></tbody></table>' +
+      // the students: a column for each status, a mark where each one is now, and the total under each column
+      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th>' + ['g', 'y', 'r', 'n'].map(function (k) {
+        return '<th class="hq-c hq-' + k + '"><i></i>' + esc(stName(l, k)) + '</th>'; }).join('') + '</tr></thead>' +
+      '<tbody class="hq-rl"></tbody><tfoot><tr class="hq-tot"><td>' + esc(l.total) + '</td>' + ['g', 'y', 'r', 'n'].map(function (k) {
+        return '<td class="hq-c hq-' + k + '" data-k="' + k + '"></td>'; }).join('') + '</tr></tfoot></table>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
@@ -422,13 +426,14 @@
     ids.sort(function (a, b) { var x = S.st[a], y = S.st[b]; return (order[x.st] - order[y.st]) || x.name.localeCompare(y.name, 'ar'); });
     P.querySelector('.hq-rl').innerHTML = ids.map(function (id) {
       var r = S.st[id]; cnt[r.st]++;
-      var lab = r.st === 'g' ? l.inMushaf : r.st === 'y' ? l.other + (r.p ? ' ' + num(r.p) : '') : r.st === 'r' ? l.out + ' ' + l.since + ' ' + dur(now - r.since) : l.notYet;
-      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td><td><span class="hq-stc"><i></i>' + esc(lab) + '</span></td></tr>';
+      // in its column: a dot, with the page (another page) or how long (out)
+      var sub = r.st === 'y' && r.p ? num(r.p) : r.st === 'r' ? dur(now - r.since) : '';
+      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td>' + ['g', 'y', 'r', 'n'].map(function (k) {
+        return '<td class="hq-c hq-' + k + '">' + (k === r.st ? '<i></i>' + (sub ? '<small>' + esc(sub) + '</small>' : '') : '') + '</td>';
+      }).join('') + '</tr>';
     }).join('');
     // the count of each status, in the table under its header
-    P.querySelector('.hq-totc').innerHTML = [['g', l.inMushaf], ['y', l.other], ['r', l.out], ['n', l.notYet]].map(function (x) {
-      return '<span class="hq-stc hq-' + x[0] + '"><i></i>' + esc(x[1]) + ' ' + num(cnt[x[0]]) + '</span>';
-    }).join('');
+    P.querySelectorAll('.hq-tot [data-k]').forEach(function (td) { td.textContent = num(cnt[td.getAttribute('data-k')]); });
     // the minimised button: how many are in (green), elsewhere (yellow) and out (red)
     if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
       '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
