@@ -567,7 +567,7 @@
   function remote() { return S && S.role === 'student' && S.t && S.t.au === 'r' && S.t.v !== 'i'; }
   function hearAu(m) {
     if (!S || S.role === 'teacher') return;
-    S.au = m; S.auRecv = Date.now();
+    m._at = Date.now(); S.au = m; S.auRecv = m._at;
     if (S.t && S.t.v === 'i') { if (S.mA) S.mA.pause(); return; }        // individual: nothing follows
     if (B().follow) B().follow(m.h);
     if (remote()) mirror(m);
@@ -594,12 +594,24 @@
     if (m.stop || !m.u) { A.pause(); return; }
     if (!S.unlocked) return auMode();
     if (B().playing && B().playing()) B().stopAudio();                  // his own recitation gives way to the teacher's
-    var rate = m.r || 1, late = function () { return (Date.now() - S.auRecv) / 1000 * rate + (m.p ? 0 : 0.15 * rate); };
-    A.defaultPlaybackRate = A.playbackRate = rate; A.muted = !!m.m;
+    // where the teacher's recitation is now, by the message's own time of arrival (and a little for the way here)
+    var rate = m.r || 1, at = function (x) { return x.t + (Date.now() - (x._at || Date.now())) / 1000 * rate + (x.p ? 0 : 0.12 * rate); };
+    A.defaultPlaybackRate = rate; A.muted = !!m.m;
     if (A.getAttribute('src') !== m.u) {
+      A.playbackRate = rate;
       A.src = m.u;
-      A.addEventListener('loadedmetadata', function () { if (A.getAttribute('src') === m.u) try { A.currentTime = m.t + late(); } catch (e) {} }, { once: true });
-    } else if (Math.abs(A.currentTime - (m.t + late())) > 0.6) { try { A.currentTime = m.t + late(); } catch (e) {} }
+      A.addEventListener('loadedmetadata', function () {
+        var x = S && S.au && S.au.u === m.u ? S.au : m;                  // the newest word of the teacher's, not the first
+        if (A.getAttribute('src') === m.u) try { A.currentTime = at(x); } catch (e) {}
+      }, { once: true });
+    } else if (A.readyState >= 1) {
+      // a small gap is closed by playing a little faster or slower (never by jumping back, which repeats words);
+      // only a large one (a seek of the teacher's, or a stall) is jumped over
+      var d = A.currentTime - at(m);
+      if (Math.abs(d) > 1.5) { try { A.currentTime = at(m); } catch (e) {} A.playbackRate = rate; }
+      else if (!m.p && Math.abs(d) > 0.25) A.playbackRate = rate * (d > 0 ? 0.9 : 1.1);
+      else A.playbackRate = rate;
+    }
     if (m.p) A.pause();
     else { var pr = A.play(); if (pr && pr.catch) pr.catch(function () { S.unlocked = false; auMode(); }); }
   }
