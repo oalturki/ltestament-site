@@ -2077,3 +2077,5 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 .hq-au input{ margin-top:2px; accent-color:var(--gold); }
 .hq-bar .hq-un{ background:#d9a514; color:#1e1a12; font-weight:700; }
 .hq-bar .hq-un[hidden]{ display:none; }
+.hq-md{ margin:10px 0 0; font-size:13px; } .hq-md label{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.hq-md select{ font:inherit; padding:4px 8px; border-radius:8px; border:1px solid rgba(140,110,40,.4); background:#fff; color:inherit; }

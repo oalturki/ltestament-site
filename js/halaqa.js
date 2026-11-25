@@ -13,6 +13,8 @@
    - broadcast 'au' (teacher → all): the recitation now {u: file, t: time, p: paused, r: speed, m: muted, h: highlight}
      on every change and every 2 s while it plays; st.au chooses how students take it: 'c' in class (no sound, they follow
      the highlight; the teacher's device is heard) or 'r' remote (each student's device plays the same file in step)
+   - st.md: the Mushaf mode the teacher sets for the students ('read' | 'hifz' | 'tasmee' | 'silent'), or null (theirs to choose);
+     applied on every 'st', so a student who changes it is brought back within seconds
    - broadcast 'me' (student → teacher): the same record, on every change and every 4 s as a heartbeat
    A student whose phone leaves the Mushaf sends 'r' at once (by REST if the socket is down). A student the teacher
    has not heard from for 12 s counts as out (a phone in the background freezes and sends nothing). Both sides
@@ -47,6 +49,7 @@
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
       auH: 'صوت التلاوة', auC: 'في الفصل: يُسمع من جهازي، والطلاب يتابعون التظليل', auR: 'عن بُعد: يُسمع عند كل طالب',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
+      mdH: 'وضع مصاحف الطلاب', md: { free: 'يختاره الطالب', read: 'تلاوة', hifz: 'تحفيظ', tasmee: 'تسميع', silent: 'تسميع صامت' },
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
       repH: 'تقارير الجلسات', repNone: 'لا جلسات بعد.', csv: 'تصدير Excel', inT: 'حضور', outT: 'خروج', times: 'مرات', joined: 'دخل',
       summary: function (g, y, r, n) { return 'في المصحف ' + g + ' · صفحة أخرى ' + y + ' · خارج ' + r + ' · لم يدخل ' + n; }
@@ -67,6 +70,7 @@
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
       auH: 'Recitation sound', auC: 'In class: heard from my device; students follow the highlight', auR: 'Remote: heard on each student’s device',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
+      mdH: 'Students’ Mushaf mode', md: { free: 'The student chooses', read: 'Reading', hifz: 'Memorizing', tasmee: 'Reciting', silent: 'Silent reciting' },
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
       repH: 'Session reports', repNone: 'No sessions yet.', csv: 'Export to Excel', inT: 'In', outT: 'Out', times: 'times', joined: 'Joined',
       summary: function (g, y, r, n) { return 'In the Mushaf ' + g + ' · other page ' + y + ' · out ' + r + ' · not joined ' + n; }
@@ -299,7 +303,7 @@
     panel();
     document.addEventListener('click', ayahTap, true);
   }
-  function state() { return { p: S.page || B().cur(), lock: S.lock, hide: S.hide, focus: S.focus, title: S.ses.title, au: S.au, t: Date.now() }; }
+  function state() { return { p: S.page || B().cur(), lock: S.lock, hide: S.hide, focus: S.focus, title: S.ses.title, au: S.au, md: S.md || null, t: Date.now() }; }
   // the teacher's recitation, watched four times a second and sent when it changes (and every 2 s while it plays)
   function auWatch() {
     if (!S || S.role !== 'teacher' || !S.ch) return;
@@ -369,6 +373,8 @@
       '<div class="hq-lk"><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
       '<div class="hq-tg"><label><input type="checkbox" class="hq-lock"> ' + esc(l.lock) + '</label><label><input type="checkbox" class="hq-hide"> ' + esc(l.hide) + '</label>' +
       '<button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div><p class="hq-note hq-tip">' + esc(l.tapAyah) + '</p>' +
+      '<div class="hq-md"><label><b>' + esc(l.mdH) + ':</b> <select class="hq-mds">' + ['free', 'read', 'hifz', 'tasmee', 'silent'].map(function (m) {
+        return '<option value="' + m + '">' + esc(l.md[m]) + '</option>'; }).join('') + '</select></label></div>' +
       '<div class="hq-au"><b>' + esc(l.auH) + ':</b><label><input type="radio" name="hqau" value="c" checked> ' + esc(l.auC) + '</label>' +
       '<label><input type="radio" name="hqau" value="r"> ' + esc(l.auR) + '</label><p class="hq-note">' + esc(l.auTip) + '</p></div>' +
       '<div class="hq-sum"></div><ul class="hq-rl"></ul>' +
@@ -383,6 +389,7 @@
     if (bt.wasMin()) { P.hidden = true; bt.show(); }
     P.querySelector('.hq-lock').onchange = function () { S.lock = this.checked; S.send(); };
     P.querySelector('.hq-hide').onchange = function () { S.hide = this.checked; B().hide(S.hide); S.send(); };
+    P.querySelector('.hq-mds').onchange = function () { S.md = this.value === 'free' ? null : this.value; S.send(); };
     P.querySelectorAll('input[name=hqau]').forEach(function (r) { r.onchange = function () { if (this.checked) { S.au = this.value; S.send(); S.auK = null; auWatch(); } }; });
     P.querySelector('.hq-uf').onclick = function () { S.focus = null; S.send(); focusShow(null); drawPanel(); };
     P.querySelector('.hq-end').onclick = function () { if (confirm(l.endQ)) endSession(); };
@@ -519,6 +526,7 @@
     var f0 = was.focus ? was.focus.join(':') : '', f1 = t.focus ? t.focus.join(':') : '';
     if (f0 !== f1) focusShow(t.focus);
     if (t.au !== was.au) auMode();
+    if (t.md && B().mode && B().mode() !== t.md) B().setMode(t.md);       // the mode the teacher set
     report();
   }
   /* ---------- the teacher's recitation on a student's (or the projector's) Mushaf ---------- */
