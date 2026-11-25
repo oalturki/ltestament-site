@@ -35,7 +35,13 @@
   var T = {
     ar: {
       title: 'الحلقة المباشرة', joinH: 'دخول حلقة', code: 'رمز الحلقة', join: 'دخول', badCode: 'لا توجد حلقة مفتوحة بهذا الرمز.',
-      teacherH: 'حلقاتي وفصولي', signIn: 'لفتح حلقة سجّل الدخول من «حسابي».', newClass: 'حلقة أو فصل جديد', name: 'الاسم أو الرقم',
+      teacherH: 'الحلقات الدائمة', signIn: 'لفتح حلقة سجّل الدخول من «حسابي».',
+      tempH: 'حلقة مؤقتة', tempBtn: 'ابدأ حلقة مؤقتة', tempHint: 'لدرس في مسجد أو اجتماع أسرة: يدخل المشاركون بالاسم الأول، ولا يُحفظ شيء بعد انتهائها.',
+      permHint: 'للحلقات والفصول المنتظمة: لكل حلقة رمز ثابت، وكشف طلاب، وتقرير لكل جلسة.',
+      codeL: 'الرمز', newCode: 'تغيير الرمز', newCodeQ: 'تغيير الرمز يعطّل الرابط القديم، فترسل للطلاب الرابط الجديد. هل تريد المتابعة؟',
+      admit: 'قبول الطلاب', admitAuto: 'تلقائي', admitAsk: 'بموافقتي', admitHelp: 'تلقائي: من يختار اسمه من الكشف يدخل مباشرة. بموافقتي: يحتاج موافقتك أول مرة على كل جهاز. ومن يسجّل اسمه بنفسه يحتاج موافقتك دائمًا.',
+      pendingL: 'بانتظار الموافقة', accept: 'قبول', reject: 'رفض', knocks: 'طلبات الدخول',
+      waitMsg: 'بانتظار موافقة المعلم…', denied: 'لم يقبل المعلم طلب الدخول.', firstName: 'اسمك الأول', enter: 'دخول', newClass: 'حلقة أو فصل جديد', name: 'الاسم أو الرقم',
       kind: 'النوع', kinds: { halaqa: 'حلقة', 'class': 'فصل', section: 'شعبة' }, level: 'المستوى (اختياري)', save: 'حفظ', cancel: 'إلغاء',
       start: 'ابدأ جلسة', students: 'الطلاب', reports: 'التقارير', del: 'حذف', none: 'لا حلقات بعد.', noStudents: 'لا طلاب بعد. أضفهم هنا، أو يسجّلون أنفسهم حين يدخلون.',
       f1: 'الاسم الأول', f2: 'الثاني', f3: 'الثالث', f4: 'العائلة', sid: 'الرقم (اختياري)', add: 'إضافة', paste: 'لصق كشف',
@@ -59,7 +65,13 @@
     },
     en: {
       title: 'Live circle', joinH: 'Join a circle', code: 'Circle code', join: 'Join', badCode: 'No open circle has this code.',
-      teacherH: 'My circles and classes', signIn: 'To open a circle, sign in from «My account».', newClass: 'New circle or class', name: 'Name or number',
+      teacherH: 'Permanent circles', signIn: 'To open a circle, sign in from «My account».',
+      tempH: 'Temporary circle', tempBtn: 'Start a temporary circle', tempHint: 'For a lesson in a mosque or a family gathering: participants join with a first name; nothing is kept after it ends.',
+      permHint: 'For regular circles and classes: each has a fixed code, a student list and a report for each session.',
+      codeL: 'Code', newCode: 'Change the code', newCodeQ: 'Changing the code disables the old link; send the students the new one. Continue?',
+      admit: 'Admitting students', admitAuto: 'Automatic', admitAsk: 'With my approval', admitHelp: 'Automatic: a student who picks his name from the list joins at once. With my approval: he needs your approval the first time on each device. A student who registers himself always needs your approval.',
+      pendingL: 'Awaiting approval', accept: 'Accept', reject: 'Decline', knocks: 'Requests to join',
+      waitMsg: 'Waiting for the teacher’s approval…', denied: 'The teacher did not accept the request.', firstName: 'Your first name', enter: 'Join', newClass: 'New circle or class', name: 'Name or number',
       kind: 'Type', kinds: { halaqa: 'Circle', 'class': 'Class', section: 'Section' }, level: 'Level (optional)', save: 'Save', cancel: 'Cancel',
       start: 'Start a session', students: 'Students', reports: 'Reports', del: 'Delete', none: 'No circles yet.', noStudents: 'No students yet. Add them here, or they register when they join.',
       f1: 'First name', f2: 'Second', f3: 'Third', f4: 'Family', sid: 'ID (optional)', add: 'Add', paste: 'Paste a list',
@@ -96,7 +108,7 @@
     var l = L();
     var box = document.createElement('div'); box.className = 'hq';
     box.innerHTML = '<h4>' + esc(l.joinH) + '</h4><div class="hq-row"><input class="hq-code" inputmode="numeric" maxlength="6" placeholder="' + esc(l.code) + '" dir="ltr"><button type="button" class="hq-b hq-go">' + esc(l.join) + '</button></div>' +
-      '<h4>' + esc(l.teacherH) + '</h4><div class="hq-t"></div>';
+      '<div class="hq-t"></div>';
     sec.appendChild(box);
     box.querySelector('.hq-go').onclick = function () {
       var c = (box.querySelector('.hq-code').value || '').replace(/\D/g, '');
@@ -111,13 +123,16 @@
     if (!window.Fam.signedIn()) { el.innerHTML = '<p class="hq-note">' + esc(l.signIn) + '</p>'; return; }
     el.innerHTML = '…';
     client().then(function (c) {
-      return c.from('live_classes').select('id,name,kind,level').order('created_at').then(function (r) {
+      return c.from('live_classes').select('id,name,kind,level,code,admit').order('created_at').then(function (r) {
         if (r.error) throw r.error;
         var list = r.data || [];
-        el.innerHTML = (list.length ? '' : '<p class="hq-note">' + esc(l.none) + '</p>') + list.map(function (k) {
-          return '<div class="hq-cls" data-id="' + k.id + '"><div class="hq-ch"><b>' + esc(k.name) + '</b><small>' + esc(l.kinds[k.kind] || '') + (k.level ? ' · ' + esc(k.level) : '') + '</small></div>' +
+        el.innerHTML = '<h4>' + esc(l.tempH) + '</h4><p class="hq-note">' + esc(l.tempHint) + '</p><button type="button" class="hq-b hq-temp">' + esc(l.tempBtn) + '</button>' +
+          '<h4>' + esc(l.teacherH) + '</h4><p class="hq-note">' + esc(l.permHint) + '</p>' +
+          (list.length ? '' : '<p class="hq-note">' + esc(l.none) + '</p>') + list.map(function (k) {
+          return '<div class="hq-cls" data-id="' + k.id + '"><div class="hq-ch"><b>' + esc(k.name) + '</b><small>' + esc(l.kinds[k.kind] || '') + (k.level ? ' · ' + esc(k.level) : '') +
+            ' · ' + esc(l.codeL) + ' <span dir="ltr">' + esc(k.code) + '</span></small></div>' +
             '<div class="hq-acts"><button type="button" class="hq-b hq-start">' + esc(l.start) + '</button><button type="button" class="hq-b2 hq-stu">' + esc(l.students) + '</button>' +
-            '<button type="button" class="hq-b2 hq-rep">' + esc(l.reports) + '</button></div><div class="hq-more"></div></div>';
+            '<button type="button" class="hq-b2 hq-rep">' + esc(l.reports) + '</button><button type="button" class="hq-b2 hq-set">⚙︎</button></div><div class="hq-more"></div></div>';
         }).join('') + '<details class="hq-new"><summary>' + esc(l.newClass) + '</summary><input class="hq-in hq-nm" placeholder="' + esc(l.name) + '">' +
           '<select class="hq-in hq-kd"><option value="halaqa">' + esc(l.kinds.halaqa) + '</option><option value="class">' + esc(l.kinds['class']) + '</option><option value="section">' + esc(l.kinds.section) + '</option></select>' +
           '<input class="hq-in hq-lv" placeholder="' + esc(l.level) + '"><button type="button" class="hq-b hq-mk">' + esc(l.save) + '</button></details>';
@@ -127,8 +142,10 @@
             if (r2.error) return toast(r2.error.message); teacher(el, o);
           });
         };
+        el.querySelector('.hq-temp').onclick = function () { if (o && o.close) o.close(); startTemp(c); };
         el.querySelectorAll('.hq-cls').forEach(function (d) {
           var id = d.getAttribute('data-id'), k = list.filter(function (x) { return x.id === id; })[0], more = d.querySelector('.hq-more');
+          d.querySelector('.hq-set').onclick = function () { if (more.dataset.v === 'c') { more.innerHTML = ''; more.dataset.v = ''; return; } more.dataset.v = 'c'; classSet(c, k, more, function () { teacher(el, o); }); };
           d.querySelector('.hq-start').onclick = function () { if (o && o.close) o.close(); startSession(c, k); };
           d.querySelector('.hq-stu').onclick = function () { if (more.dataset.v === 's') { more.innerHTML = ''; more.dataset.v = ''; return; } more.dataset.v = 's'; roster(c, k, more); };
           d.querySelector('.hq-rep').onclick = function () { if (more.dataset.v === 'r') { more.innerHTML = ''; more.dataset.v = ''; return; } more.dataset.v = 'r'; reports(c, k, more); };
@@ -136,18 +153,53 @@
       });
     }).catch(function (e) { el.innerHTML = '<p class="hq-note">' + esc(e && e.message || e) + '</p>'; });
   }
+  // a permanent circle's settings: how students are admitted, and a new code
+  function classSet(c, k, el, done) {
+    var l = L();
+    el.innerHTML = '<div class="hq-opt"><div class="hq-or"><span class="hq-ot"><b>' + esc(l.admit) + '</b><button type="button" class="hq-qm" aria-label="?">?</button></span><span class="hq-seg">' +
+      [['auto', l.admitAuto], ['approve', l.admitAsk]].map(function (x) { return '<label><input type="radio" name="hqad' + k.id + '" value="' + x[0] + '"' + (k.admit === x[0] ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>'; }).join('') +
+      '</span></div><p class="hq-help" hidden>' + esc(l.admitHelp) + '</p></div>' +
+      '<p class="hq-note">' + esc(l.codeL) + ': <b dir="ltr">' + esc(k.code) + '</b> <button type="button" class="hq-b2 hq-nc">' + esc(l.newCode) + '</button></p>';
+    el.querySelector('.hq-qm').onclick = function () { var h = el.querySelector('.hq-help'); h.hidden = !h.hidden; this.classList.toggle('on', !h.hidden); };
+    el.querySelectorAll('input[type=radio]').forEach(function (r) { r.onchange = function () {
+      c.from('live_classes').update({ admit: this.value }).eq('id', k.id).then(function (r2) { if (r2.error) return toast(r2.error.message); k.admit = r.value; });
+    }; });
+    el.querySelector('.hq-nc').onclick = function () {
+      if (!confirm(l.newCodeQ)) return;
+      c.rpc('live_free_code').then(function (r) {
+        if (r.error) return toast(r.error.message);
+        return c.from('live_classes').update({ code: r.data }).eq('id', k.id).then(function (r2) { if (r2.error) return toast(r2.error.message); done(); });
+      });
+    };
+  }
+  // a temporary circle: a fresh code, no class, nothing kept after it
+  function startTemp(c) {
+    var l = L();
+    c.rpc('live_free_code').then(function (r) {
+      if (r.error) return toast(r.error.message);
+      return c.from('live_sessions').insert({ code: r.data, title: l.tempH, kind: 'temp' }).select('id').single().then(function (r2) {
+        if (r2.error) return toast(r2.error.message);
+        teach(c, { id: r2.data.id, code: r.data, title: l.tempH, temp: true, roster: [] });
+      });
+    });
+  }
   // a class's students: the list, one by one, a pasted list
   function roster(c, k, el) {
     var l = L();
     c.from('live_students').select('*').eq('class_id', k.id).order('first').then(function (r) {
       var list = r.data || [];
       el.innerHTML = (list.length ? '<ol class="hq-sl">' + list.map(function (x) {
-        return '<li data-id="' + x.id + '"><span>' + esc(fullName(x)) + (x.sid ? ' <small dir="ltr">' + esc(x.sid) + '</small>' : '') + '</span><button type="button" class="hq-x" aria-label="' + esc(l.del) + '">×</button></li>';
+        return '<li data-id="' + x.id + '"><span>' + esc(fullName(x)) + (x.sid ? ' <small dir="ltr">' + esc(x.sid) + '</small>' : '') +
+          (x.status === 'pending' ? ' <small class="hq-pend">' + esc(l.pendingL) + '</small> <button type="button" class="hq-b2 hq-ok1">' + esc(l.accept) + '</button>' : '') +
+          '</span><button type="button" class="hq-x" aria-label="' + esc(l.del) + '">×</button></li>';
       }).join('') + '</ol>' : '<p class="hq-note">' + esc(l.noStudents) + '</p>') +
         '<div class="hq-f4"><input class="hq-in" data-f="first" placeholder="' + esc(l.f1) + '"><input class="hq-in" data-f="second" placeholder="' + esc(l.f2) + '"><input class="hq-in" data-f="third" placeholder="' + esc(l.f3) + '"><input class="hq-in" data-f="family" placeholder="' + esc(l.f4) + '"><input class="hq-in" data-f="sid" placeholder="' + esc(l.sid) + '" dir="ltr"><button type="button" class="hq-b hq-add1">' + esc(l.add) + '</button></div>' +
         '<details class="hq-pst"><summary>' + esc(l.paste) + '</summary><p class="hq-note">' + esc(l.pasteHint) + '</p><textarea class="hq-in hq-ta" rows="6"></textarea><button type="button" class="hq-b hq-addn">' + esc(l.pasteDo) + '</button></details>';
       el.querySelectorAll('.hq-x').forEach(function (b) {
         b.onclick = function () { var id = b.parentNode.getAttribute('data-id'); c.from('live_students').delete().eq('id', id).then(function () { roster(c, k, el); }); };
+      });
+      el.querySelectorAll('.hq-ok1').forEach(function (b) {
+        b.onclick = function () { var id = b.closest('li').getAttribute('data-id'); c.from('live_students').update({ status: 'ok' }).eq('id', id).then(function () { roster(c, k, el); }); };
       });
       el.querySelector('.hq-add1').onclick = function () {
         var o = { class_id: k.id }; el.querySelectorAll('.hq-f4 [data-f]').forEach(function (i) { o[i.getAttribute('data-f')] = i.value.trim() || null; });
@@ -201,13 +253,15 @@
 
   /* ================= the teacher's session ================= */
   var S = null;        // {role: 'teacher'|'student'|'display', code, ch, ...}
+  // a permanent circle's session: under the circle's own code (a session of it left open is closed first)
   function startSession(c, k) {
-    var tries = 0;
+    var code = k.code;
     var go = function () {
-      var code = String(Math.floor(100000 + Math.random() * 900000));
-      c.from('live_sessions').insert({ class_id: k.id, code: code, title: k.name }).select('id').single().then(function (r) {
-        if (r.error) { if (++tries < 5) return go(); return toast(r.error.message); }
-        c.from('live_students').select('id,first,second,third,family,sid').eq('class_id', k.id).then(function (r2) {
+      c.from('live_sessions').update({ ended_at: new Date().toISOString() }).eq('class_id', k.id).is('ended_at', null).then(function () {
+        return c.from('live_sessions').insert({ class_id: k.id, code: code, title: k.name, kind: 'perm' }).select('id').single();
+      }).then(function (r) {
+        if (r.error) return toast(r.error.message);
+        c.from('live_students').select('id,first,second,third,family,sid').eq('class_id', k.id).eq('status', 'ok').then(function (r2) {
           teach(c, { id: r.data.id, code: code, title: k.name, cls: k, roster: (r2.data || []).map(function (x) { return { id: x.id, name: fullName(x), sid: x.sid }; }) });
         });
       });
@@ -288,7 +342,7 @@
   var quiet = function (f) { try { var r = f(); if (r && r.catch) r.catch(function () {}); } catch (e) {} };
   function teach(c, ses) {
     var l = L(), now = Date.now();
-    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, au: 'c', view: 'g', t0: now, pages: {}, st: {}, c: c };
+    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, au: 'c', view: 'g', temp: !!ses.temp, knocks: {}, t0: now, pages: {}, st: {}, c: c };
     // the students' running record: {id: {name, sid, joined, st, since, in, out, outs, p}}
     ses.roster.forEach(function (x) { S.st[x.id] = { name: x.name, sid: x.sid, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 }; });
     var sendSt = function () { if (S && S.ch) quiet(function () { return S.ch.send({ type: 'broadcast', event: 'st', payload: state() }); }); };
@@ -297,6 +351,7 @@
       S.ch = ch;
       ch.on('broadcast', { event: 'hello' }, function () { sendSt(); S.auK = null; auWatch(); });
       ch.on('broadcast', { event: 'me' }, function (m) { heard(m.payload || {}); drawPanel(); });
+      ch.on('broadcast', { event: 'knock' }, function (m) { var x = m.payload || {}; if (x.id && !(S.st[x.id] && S.st[x.id].joined)) { S.knocks[x.id] = x; drawPanel(); } });
       ch.on('presence', { event: 'sync' }, function () { if (S && S.ch === ch) presenceSync(ch.presenceState()); });
     }, sendSt);
     S.beat = setInterval(sendSt, 5000);
@@ -396,7 +451,7 @@
       // the students: a column for each status, a mark where each one is now, and the total under each column
       // the students: present (green: in the Mushaf · red: out of it, or not come) and following (green: on the teacher's
       // page · red: another page); the totals under them
-      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th class="hq-c">' + esc(l.present) + '</th><th class="hq-c">' + esc(l.following) + '</th></tr></thead>' +
+      '<div class="hq-kn" hidden></div><table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th class="hq-c">' + esc(l.present) + '</th><th class="hq-c">' + esc(l.following) + '</th></tr></thead>' +
       '<tbody class="hq-rl"></tbody><tfoot><tr class="hq-tot"><td>' + esc(l.total) + '</td><td class="hq-c" data-k="in"></td><td class="hq-c" data-k="fo"></td></tr></tfoot></table>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
@@ -440,6 +495,27 @@
     if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
       '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
     P.querySelector('.hq-uf').hidden = !S.focus;
+    // requests to join (a self-registered student, or one needing approval): accept or decline
+    var kn = P.querySelector('.hq-kn'), ks = Object.keys(S.knocks);
+    kn.hidden = !ks.length;
+    var sig = ks.join(',');
+    if (kn.dataset.sig !== sig) {
+      kn.dataset.sig = sig;
+      kn.innerHTML = '<b>' + esc(l.knocks) + ' (' + num(ks.length) + ')</b>' + ks.map(function (id) {
+        return '<div class="hq-kr" data-id="' + esc(id) + '"><span>' + esc(S.knocks[id].name) + '</span><button type="button" class="hq-b hq-ka">' + esc(l.accept) + '</button><button type="button" class="hq-b2 hq-kd">' + esc(l.reject) + '</button></div>';
+      }).join('');
+      kn.querySelectorAll('.hq-kr').forEach(function (row) {
+        var id = row.getAttribute('data-id'), x = S.knocks[id];
+        row.querySelector('.hq-ka').onclick = function () {
+          var send = function () { quiet(function () { return S.ch.send({ type: 'broadcast', event: 'admit', payload: { id: id } }); }); delete S.knocks[id]; drawPanel(); };
+          if (x.self) S.c.from('live_students').update({ status: 'ok' }).eq('id', id).then(send); else send();
+        };
+        row.querySelector('.hq-kd').onclick = function () {
+          var send = function () { quiet(function () { return S.ch.send({ type: 'broadcast', event: 'deny', payload: { id: id } }); }); delete S.knocks[id]; drawPanel(); };
+          if (x.self) S.c.from('live_students').delete().eq('id', id).then(send); else send();
+        };
+      });
+    }
   }
   function endSession() {
     var now = Date.now(), c = S.c, ses = S.ses;
@@ -448,7 +524,7 @@
       var r = S.st[id]; return { id: id, name: r.name, sid: r.sid || null, joined: r.joined || null, in: Math.round(r.in), out: Math.round(r.out), outs: r.outs };
     }) };
     try { S.ch.send({ type: 'broadcast', event: 'end', payload: {} }); } catch (e) {}
-    c.from('live_sessions').update({ ended_at: new Date(now).toISOString(), report: rep }).eq('id', ses.id).then(function () {});
+    c.from('live_sessions').update(S.temp ? { ended_at: new Date(now).toISOString() } : { ended_at: new Date(now).toISOString(), report: rep }).eq('id', ses.id).then(function () {});
     clearInterval(S.beat); clearInterval(S.tk); clearInterval(S.aw);
     try { S.ch.send({ type: 'broadcast', event: 'au', payload: { stop: true, h: null } }); } catch (e) {}
     document.removeEventListener('visibilitychange', S.vis); window.removeEventListener('online', S.vis);
@@ -469,13 +545,30 @@
           if (r.error || !r.data) return toast(L().badCode);
           var info = r.data;
           if (o.display) return follow(c, code, info, null, 'display');
+          if (info.temp) return firstName(info, function (m) { follow(c, code, info, m, 'student'); });
           var key = 'lt_hq_me_' + info['class'], me = null;
           try { me = JSON.parse(load(key) || 'null'); } catch (e) {}
           if (me && me.id) return follow(c, code, info, me, 'student');
-          who(c, code, info, function (m, shared) { if (!shared) store(key, JSON.stringify(m)); follow(c, code, info, m, 'student'); });
+          who(c, code, info, function (m, shared) { m.key = shared ? null : key; if (m.key) store(key, JSON.stringify(m)); follow(c, code, info, m, 'student'); });
         });
       }).catch(function () { toast(L().badCode); });
     });
+  }
+  // a temporary circle: the first name only (remembered on this device for the next temporary circle)
+  function firstName(info, done) {
+    var l = L(), ov = document.createElement('div'); ov.className = 'hq-ov';
+    ov.innerHTML = '<div class="hq-box"><h3>' + esc(info.title || l.tempH) + '</h3><h4>' + esc(l.firstName) + '</h4>' +
+      '<input class="hq-in hq-fn" maxlength="40" autocomplete="given-name" value="' + esc(load('lt_hq_first') || '') + '">' +
+      '<div class="hq-row"><button type="button" class="hq-b hq-go">' + esc(l.enter) + '</button><button type="button" class="hq-b2 hq-cx">' + esc(l.cancel) + '</button></div></div>';
+    document.body.appendChild(ov);
+    var go = function () {
+      var n = ov.querySelector('.hq-fn').value.trim(); if (!n) return;
+      store('lt_hq_first', n); ov.remove();
+      done({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: n });
+    };
+    ov.querySelector('.hq-go').onclick = go;
+    ov.querySelector('.hq-fn').onkeydown = function (e) { if (e.key === 'Enter') go(); };
+    ov.querySelector('.hq-cx').onclick = function () { ov.remove(); };
   }
   // who are you: the roster to pick from, or a form to register
   function who(c, code, info, done) {
@@ -492,12 +585,12 @@
     var q = ov.querySelector('.hq-q');
     if (q) q.oninput = function () { var v = q.value.trim(); ov.querySelectorAll('.hq-pick li').forEach(function (li) { li.hidden = v && li.textContent.indexOf(v) < 0; }); };
     ov.querySelectorAll('.hq-pick button').forEach(function (b) {
-      b.onclick = function () { var id = b.getAttribute('data-id'), x = ro.filter(function (y) { return y.id === id; })[0]; ov.remove(); done({ id: id, name: x.name, sid: x.sid }, shared()); };
+      b.onclick = function () { var id = b.getAttribute('data-id'), x = ro.filter(function (y) { return y.id === id; })[0]; ov.remove(); done({ id: id, name: x.name, sid: x.sid, pending: info.admit === 'approve' }, shared()); };
     });
     ov.querySelector('.hq-rg').onclick = function () {
       var a = { p_code: code }; ov.querySelectorAll('.hq-reg [data-f]').forEach(function (i) { a[i.getAttribute('data-f')] = i.value.trim(); });
       if (!a.p_first || !a.p_family) return toast(l.need);
-      c.rpc('live_register', a).then(function (r) { if (r.error) return toast(r.error.message); ov.remove(); done({ id: r.data.id, name: r.data.name, sid: a.p_sid || null }, shared()); });
+      c.rpc('live_register', a).then(function (r) { if (r.error) return toast(r.error.message); ov.remove(); done({ id: r.data.id, name: r.data.name, sid: a.p_sid || null, pending: true, self: r.data.status === 'pending' }, shared()); });
     };
     ov.querySelector('.hq-cx').onclick = function () { ov.remove(); };
   }
@@ -509,10 +602,13 @@
       ch.on('broadcast', { event: 'st' }, function (m) { applyState(m.payload || {}); });
       ch.on('broadcast', { event: 'au' }, function (m) { hearAu(m.payload || {}); });
       ch.on('broadcast', { event: 'end' }, function () { leave(true); });
+      ch.on('broadcast', { event: 'admit' }, function (m) { if (me && me.pending && (m.payload || {}).id === me.id) admitted(); });
+      ch.on('broadcast', { event: 'deny' }, function (m) { if (me && me.pending && (m.payload || {}).id === me.id) { if (me.key) store(me.key, null); leave(false); toast(l.denied); } });
     }, function (ch) {
       ch.send({ type: 'broadcast', event: 'hello', payload: {} });
-      if (me) report(true);
+      if (me && me.pending) knock(); else if (me) report(true);
     });
+    if (me && me.pending) waitShow();
     // the heartbeat, and back from the background: rejoin at once and report
     S.hb = setInterval(function () { if (document.visibilityState === 'visible') report(); }, 4000);
     S.vis = function () {
@@ -537,17 +633,37 @@
     if (bs.wasMin()) { bar.hidden = true; bs.show(); }
   }
   // the student's colour: out of the Mushaf (the page hidden) red; another page than the teacher's yellow; else green
+  // waiting for the teacher's approval: the request again every 4 s (he may open his panel later)
+  function knock() {
+    if (!S || !S.me || !S.me.pending || !S.ch) return;
+    quiet(function () { return S.ch.send({ type: 'broadcast', event: 'knock', payload: { id: S.me.id, name: S.me.name, self: !!S.me.self } }); });
+  }
+  function waitShow() {
+    var l = L(), ov = S.wait = document.createElement('div'); ov.className = 'hq-ov';
+    ov.innerHTML = '<div class="hq-box"><h3>' + esc(S.info.title || l.title) + '</h3><p>' + esc(S.me.name) + '</p><p class="hq-note">' + esc(l.waitMsg) + '</p>' +
+      '<button type="button" class="hq-b2 hq-cx">' + esc(l.cancel) + '</button></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('.hq-cx').onclick = function () { leave(false); };
+    S.kt = setInterval(knock, 4000);
+  }
+  function admitted() {
+    S.me.pending = false; S.me.self = false;
+    if (S.me.key) store(S.me.key, JSON.stringify(S.me));
+    clearInterval(S.kt); if (S.wait) { S.wait.remove(); S.wait = null; }
+    quiet(function () { return S.ch.send({ type: 'broadcast', event: 'hello', payload: {} }); });   // the teacher's state, now
+    report(true);
+  }
   // presence carries it on every change (and after each rejoin); the 'me' broadcast carries it always — it reaches
   // the teacher at once, and by REST when the socket is down
   function report(force) {
-    if (!S || S.role !== 'student' || !S.ch) return;
+    if (!S || S.role !== 'student' || !S.ch || S.me.pending) return;
     var p = B().cur(), st = document.visibilityState === 'hidden' ? 'r' : (S.t && S.t.p && B().visible().indexOf(S.t.p) < 0 ? 'y' : 'g');
     var m = { id: S.me.id, name: S.me.name, sid: S.me.sid || null, st: st, p: p, ts: Date.now() }, k = st + ':' + p;
     quiet(function () { return S.ch.send({ type: 'broadcast', event: 'me', payload: m }); });
     if (force === true || k !== S.last) { S.last = k; quiet(function () { return S.ch.track(m); }); }
   }
   function applyState(t) {
-    if (!S || S.role === 'teacher') return;
+    if (!S || S.role === 'teacher' || (S.me && S.me.pending)) return;     // (not before the teacher admits him)
     var was = S.t || {}; S.t = t;
     var vis = B().visible();
     if (t.v !== 'i' && t.p && (vis.indexOf(t.p) < 0) && (!was.p || was.p !== t.p || t.lock)) B().show(t.p);   // together: the teacher's page
@@ -566,7 +682,7 @@
   var SILENT = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
   function remote() { return S && S.role === 'student' && S.t && S.t.au === 'r' && S.t.v !== 'i'; }
   function hearAu(m) {
-    if (!S || S.role === 'teacher') return;
+    if (!S || S.role === 'teacher' || (S.me && S.me.pending)) return;
     m._at = Date.now(); S.au = m; S.auRecv = m._at;
     if (S.t && S.t.v === 'i') { if (S.mA) S.mA.pause(); return; }        // individual: nothing follows
     // the teacher stopped or paused: his last word stays lit and its tajweed card stays open (he may explain it),
@@ -620,7 +736,7 @@
   }
   function leave(ended) {
     if (!S) return;
-    clearInterval(S.hb);
+    clearInterval(S.hb); clearInterval(S.kt); if (S.wait) { S.wait.remove(); S.wait = null; }
     if (S.mA) { try { S.mA.pause(); } catch (e) {} }
     if (B().follow) B().follow(null);
     if (B().tjHide) B().tjHide();

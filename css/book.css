@@ -2163,3 +2163,10 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 /* «تصغير» in words, not a dash */
 .hq-min{ font-family:inherit; font-weight:600; font-size:13px; line-height:1; padding:6px 12px; border:1px solid var(--gold); border-radius:10px; color:#7a5b1e; background:#fff; }
 .hq-bar .hq-bmin{ font-weight:600; padding:4px 10px; }
+/* requests to join, in the teacher's panel */
+.hq-kn{ margin:8px 0; padding:8px 10px; border:1.5px solid #d9a514; border-radius:10px; background:rgba(217,165,20,.1); font-size:13px; }
+.hq-kn[hidden]{ display:none; }
+.hq-kr{ display:flex; align-items:center; gap:6px; margin-top:6px; } .hq-kr span{ flex:1; font-weight:600; }
+.hq-kr button{ padding:4px 10px; font-size:12.5px; }
+.hq-pend{ color:#a07400; font-weight:700; }
+.hq-temp{ margin:4px 0 10px; }
