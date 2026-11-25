@@ -43,13 +43,15 @@
       pasteDo: 'أضف الكشف', added: function (n) { return 'أُضيف ' + n; },
       live: 'الجلسة', link: 'رابط الحلقة', copy: 'نسخ', copied: 'نُسخ', lock: 'قفل التنقل', hide: 'إخفاء الآيات', unfocus: 'إلغاء التركيز',
       present: 'وضع العرض', end: 'إنهاء الجلسة', endQ: 'إنهاء الجلسة وحفظ تقريرها؟', inMushaf: 'في المصحف', other: 'صفحة أخرى', out: 'خارج',
-      notYet: 'لم يدخل', since: 'منذ', sec: 'ث', min: 'د', tapAyah: 'المس رقم آية ليركّز عليها الطلاب.', display: 'شاشة العرض: افتح هذا الرابط على حاسب جهاز العرض',
+      notYet: 'لم يدخل', since: 'منذ', sec: 'ث', min: 'د', tapAyah: 'المس رقم آية ليركّز عليها الطلاب.', display: 'رابط شاشة العرض', displayHelp: 'افتح هذا الرابط على حاسب جهاز العرض، فيعرض الصفحة التي أنت عليها دون أسماء الطلاب.',
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
-      auH: 'صوت التلاوة', auC: 'في الفصل: يُسمع من جهازي، والطلاب يتابعون التظليل', auR: 'عن بُعد: يُسمع عند كل طالب',
+      auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
+      auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
-      viewH: 'العرض', viewG: 'جماعي: وفق جهازي (الصفحة، والوضع، وإخفاء الآيات، والتلاوة)', viewI: 'فردي: كل طالب يتصفح مصحفه بحرية',
+      viewH: 'العرض', viewG: 'جماعي', viewI: 'فردي',
+      viewHelp: 'جماعي: مصاحف الطلاب وفق جهازك في الصفحة، والوضع، وإخفاء الآيات، والتلاوة. فردي: كل طالب يتصفح مصحفه بحرية. وفي الحالين: المس رقم آية ليركّز عليها الطلاب وتظهر لهم أحكامها.',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
       repH: 'تقارير الجلسات', repNone: 'لا جلسات بعد.', csv: 'تصدير Excel', inT: 'حضور', outT: 'خروج', times: 'مرات', joined: 'دخل',
       summary: function (g, y, r, n) { return 'في المصحف ' + g + ' · صفحة أخرى ' + y + ' · خارج ' + r + ' · لم يدخل ' + n; }
@@ -64,13 +66,15 @@
       pasteDo: 'Add the list', added: function (n) { return n + ' added'; },
       live: 'Session', link: 'Circle link', copy: 'Copy', copied: 'Copied', lock: 'Lock navigation', hide: 'Hide the verses', unfocus: 'Clear focus',
       present: 'Present', end: 'End session', endQ: 'End the session and save its report?', inMushaf: 'In the Mushaf', other: 'Another page', out: 'Out',
-      notYet: 'Not joined', since: 'for', sec: 's', min: 'm', tapAyah: 'Tap a verse number to focus the students on it.', display: 'Projector: open this link on the projector’s computer',
+      notYet: 'Not joined', since: 'for', sec: 's', min: 'm', tapAyah: 'Tap a verse number to focus the students on it.', display: 'Projector link', displayHelp: 'Open this link on the projector’s computer: it shows your page, without the students’ names.',
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
-      auH: 'Recitation sound', auC: 'In class: heard from my device; students follow the highlight', auR: 'Remote: heard on each student’s device',
+      auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
+      auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
-      viewH: 'View', viewG: 'Together: as on my device (page, mode, hidden verses, recitation)', viewI: 'Individual: each student browses freely',
+      viewH: 'View', viewG: 'Together', viewI: 'Individual',
+      viewHelp: 'Together: the students’ Mushafs follow your device — page, mode, hidden verses and recitation. Individual: each student browses freely. Either way, tap a verse number to focus the students on it and show its tajweed rules.',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
       repH: 'Session reports', repNone: 'No sessions yet.', csv: 'Export to Excel', inT: 'In', outT: 'Out', times: 'times', joined: 'Joined',
       summary: function (g, y, r, n) { return 'In the Mushaf ' + g + ' · other page ' + y + ' · out ' + r + ' · not joined ' + n; }
@@ -370,6 +374,11 @@
     S.send(); focusShow(S.focus); drawPanel();
   }
   var P = null, BT = null;
+  function opt(cls, title, help, name, items) {
+    return '<div class="hq-opt ' + cls + '"><div class="hq-or"><b>' + esc(title) + ':</b><button type="button" class="hq-qm" aria-label="?" aria-expanded="false">?</button>' +
+      '<span class="hq-seg">' + items.map(function (x, i) { return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"' + (i ? '' : ' checked') + '><span>' + esc(x[1]) + '</span></label>'; }).join('') + '</span></div>' +
+      '<p class="hq-help" hidden>' + esc(help) + '</p></div>';
+  }
   function panel() {
     var l = L();
     P = document.createElement('div'); P.className = 'hq-panel';
@@ -377,13 +386,12 @@
     P.innerHTML = '<div class="hq-ph"><b class="hq-cd" dir="ltr">' + esc(S.code.slice(0, 3) + ' ' + S.code.slice(3)) + '</b><span class="hq-pt">' + esc(S.ses.title) + '</span>' +
       '<button type="button" class="hq-min" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button></div><div class="hq-pb">' +
       '<div class="hq-lk"><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
-      '<div class="hq-au hq-view"><b>' + esc(l.viewH) + ':</b><label><input type="radio" name="hqv" value="g" checked> ' + esc(l.viewG) + '</label>' +
-      '<label><input type="radio" name="hqv" value="i"> ' + esc(l.viewI) + '</label></div>' +
-      '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div><p class="hq-note hq-tip">' + esc(l.tapAyah) + '</p>' +
-      '<div class="hq-au hq-snd"><b>' + esc(l.auH) + ':</b><label><input type="radio" name="hqau" value="c" checked> ' + esc(l.auC) + '</label>' +
-      '<label><input type="radio" name="hqau" value="r"> ' + esc(l.auR) + '</label><p class="hq-note">' + esc(l.auTip) + '</p></div>' +
+      // each setting on one line: its title, a «?» that opens its explanation, and its choices side by side
+      opt('hq-view', l.viewH, l.viewHelp, 'hqv', [['g', l.viewG], ['i', l.viewI]]) +
+      opt('hq-snd', l.auH, l.auHelp, 'hqau', [['c', l.auC], ['r', l.auR]]) +
+      '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div>' +
       '<div class="hq-sum"></div><ul class="hq-rl"></ul>' +
-      '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
+      '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
     var cp = function (t, b) { (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { b.textContent = l.copied; }, function () {}); };
@@ -392,6 +400,9 @@
     var bt = BT = S.bub = bubble('t', function () { bt.hide(); if (P) P.hidden = false; });
     P.querySelector('.hq-min').onclick = function () { P.hidden = true; bt.show(); drawPanel(); };
     if (bt.wasMin()) { P.hidden = true; bt.show(); }
+    P.querySelectorAll('.hq-qm').forEach(function (b) { b.onclick = function () {
+      var h = b.closest('.hq-opt').querySelector('.hq-help'); h.hidden = !h.hidden; b.setAttribute('aria-expanded', String(!h.hidden)); b.classList.toggle('on', !h.hidden);
+    }; });
     P.querySelectorAll('input[name=hqv]').forEach(function (r) { r.onchange = function () {
       if (!this.checked) return;
       S.view = this.value; P.querySelector('.hq-snd').hidden = S.view !== 'g'; S.send(); S.auK = null; auWatch();
