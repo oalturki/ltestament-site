@@ -728,7 +728,7 @@
       // the recitation, for the live circle: what plays now (the teacher sends it), the highlight, and following it
       audioNow: function () { return audio && playing ? { u: audio.getAttribute('src') || '', t: audio.currentTime, p: audio.paused, r: audio.playbackRate || 1, m: audio.muted } : null; },
       hlNow: function () { return hl; },
-      follow: function (h) { if (!playing) setHl(h || null); },
+      follow: function (h) { if (!playing) { hlFollow = !!h; setHl(h || null); } },
       stopAudio: function () { stopAudio(); },
       playing: function () { return playing; },
       // the Mushaf's mode (read, hifz, tasmee, silent): the teacher may set it for his students
@@ -2804,12 +2804,13 @@
     function tjChips(rs, nt) {
       return rs.map(function (r) { return tjChip(C, r, (nt || {})[r]); }).join('');
     }
+    var hlFollow = false;     // the highlight comes from the live circle's teacher (js/halaqa.js), not this player
     function tjShow(h) {
       if (tjOff || embed) return;
       var loc = h.s + ':' + h.a + ':' + h.w;
       Promise.all([C.__tjRules(loc), C.__tjNotes(loc)]).then(function (v) {
         var rs = v[0], nt = v[1];
-        if (!playing || !hl || hl.w !== h.w || hl.a !== h.a) return;
+        if ((!playing && !hlFollow) || !hl || hl.w !== h.w || hl.a !== h.a) return;   // (or the teacher's recitation, followed)
         if (!rs.length) return;                          // a word with no rule: the card keeps the last one a moment
         if (!tjCard) {
           tjCard = document.createElement('div'); tjCard.className = 'bk-tjcard'; tjCard.setAttribute('aria-live', 'polite');
