@@ -4,7 +4,10 @@
    Each profile records under a consent the account holder gives for it (a guardian's, for a child), kept in
    rec_consents with the consent text's version; clips go to rec_clips and the private bucket "recitations" as
    16 kHz mono WAV, recorded with the same microphone settings as the live check (js/live.js).
-   Withdrawing a profile's consent deletes its files and rows. Tables: supabase/migrations/recitation_testset.sql */
+   Withdrawing a profile's consent deletes its files and rows. Tables: supabase/migrations/recitation_testset.sql
+   Invites (supabase/migrations/rec_invites.sql): the holder makes a link /record/?i=<token> for a reader from outside
+   the family; that page (S.guest) works with no account — consent, recording and withdrawal go through the
+   rec_invite_* functions, audio under recitations/inv/<token>/. */
 (function () {
   var CONSENT_V = 'rec-v1';
   var RATE = 16000, MAX_S = 300;
@@ -22,7 +25,8 @@
   var AGE = { child: 'طفل (أقل من ١٣ سنة)', teen: 'يافع (١٣–١٧)', adult: 'بالغ (١٨ فأكثر)' };
   var LEVEL = { beginner: 'مبتدئ', middle: 'متوسط', hafiz: 'حافظ متقن' };
 
-  var S = { c: null, uid: null, profiles: [], prof: null, consent: null, data: null, done: {}, task: null };
+  var S = { c: null, uid: null, profiles: [], prof: null, consent: null, data: null, done: {}, task: null, guest: null };
+  var GUEST = (location.search.match(/[?&]i=([A-Za-z0-9_-]{16,40})/) || [])[1] || null;
 
   function consentText(age) {
     return '<p>أوافق على أن تُحفظ تسجيلات التلاوة التي تُسجَّل في هذه الصفحة لهذا الملف، وأن تُستخدم فقط لاختبار نظام التسميع في موقع «العهد الأخير» وتحسينه، ومن ذلك تدريب نماذج التعرف على التلاوة الخاصة بالمشروع.</p>' +
@@ -43,6 +47,7 @@
   /* ---------- start ---------- */
   function start() {
     h('<p class="rc-muted">جارٍ التحميل…</p>');
+    if (GUEST) return startGuest();
     Promise.all([Fam.ready(), fetch('/data/testset/tasks.json').then(function (r) { return r.json(); })]).then(function (r) {
       S.c = r[0]; S.data = r[1];
       if (!S.c) {
@@ -57,12 +62,119 @@
     }).catch(fail);
   }
 
+  /* ---------- a guest by an invite link ---------- */
+  function startGuest() {
+    S.guest = GUEST;
+    Promise.all([Fam.client(), fetch('/data/testset/tasks.json').then(function (r) { return r.json(); })]).then(function (r) {
+      S.c = r[0]; S.data = r[1];
+      return guestInfo();
+    }).then(function (i) {
+      if (i.state !== 'ok') {
+        h('<div class="rc-card"><p>' + (i.state === 'none' ? 'هذا الرابط غير صحيح. تأكد أنك نسخته كاملًا.' : 'انتهت مدة هذا الرابط أو أُلغي. اطلب من صاحب الدعوة رابطًا جديدًا.') + '</p></div>');
+        return;
+      }
+      S.prof = { name: i.label };
+      if (!S.consent) return guestWelcome();
+      taskList();
+    }).catch(fail);
+  }
+  function guestInfo() {
+    return S.c.rpc('rec_invite_info', { p_token: S.guest }).then(function (r) {
+      if (r.error) throw r.error;
+      var i = r.data || {};
+      S.consent = i.consent && i.consent.text_version === CONSENT_V ? i.consent : null;
+      S.clips = i.clips || []; S.done = {};
+      S.clips.forEach(function (x) { S.done[x.task] = (S.done[x.task] || 0) + 1; });
+      return i;
+    });
+  }
+  function guestWelcome() {
+    h('<div class="rc-card"><h2 class="rc-h">أهلًا بك</h2>' +
+      '<p>دُعيت إلى تسجيل تلاوات قصيرة نختبر بها نظام التسميع في مصحف «العهد الأخير» ونحسّنه. لا تحتاج إلى حساب.</p>' +
+      '<p>اقرأ من حفظك كما تُسمّع لشيخك. وإذا أخطأت فلا تُعد التسجيل؛ الخطأ الطبيعي يفيدنا.</p>' +
+      '<p class="rc-muted">إن كان القارئ دون ١٨ سنة فليقرأ وليّ أمره صفحة الموافقة التالية ويوافق عليها.</p>' +
+      '<button class="fb-submit" id="rcGo">متابعة</button></div>');
+    $('#rcGo').onclick = consentForm;
+  }
+
+  /* ---------- the holder's invites ---------- */
+  function invitesHtml() {
+    return '<div class="rc-card rc-inv"><h2 class="rc-h">دعوة قارئ من خارج الأسرة</h2>' +
+      '<p class="rc-muted">رابط يسجّل به قارئ على جواله دون حساب، مثل طالب في حلقة. يوافق وليّ أمره في الصفحة نفسها، وتُحفظ تسجيلاته مع مجموعة الاختبار.</p>' +
+      '<label class="fb-label" for="rcInvL">اسم يميّز الدعوة (يظهر في صفحة القارئ)</label>' +
+      '<input id="rcInvL" maxlength="40" placeholder="مثل: طالب الحلقة ١">' +
+      '<label class="fb-label">مدة الرابط</label><div class="rc-opts">' +
+      '<label class="rc-opt"><input type="radio" name="invd" value="7"> أسبوع</label>' +
+      '<label class="rc-opt"><input type="radio" name="invd" value="30" checked> شهر</label></div>' +
+      '<button class="fb-submit" id="rcInvNew">أنشئ رابط الدعوة</button>' +
+      '<ul class="rc-invl" id="rcInvList"><li class="rc-muted">جارٍ التحميل…</li></ul></div>';
+  }
+  function invLink(t) { return location.origin + '/record/?i=' + t; }
+  function loadInvites() {
+    var ul = document.getElementById('rcInvList'); if (!ul) return;
+    Promise.all([
+      S.c.from('rec_invites').select('id,token,label,expires_at,revoked,created_at').eq('account_id', S.uid).order('created_at', { ascending: false }),
+      S.c.from('rec_clips').select('invite_id,path').not('invite_id', 'is', null)
+    ]).then(function (r) {
+      if (r[0].error) throw r[0].error;
+      var cnt = {}, paths = {};
+      (r[1].data || []).forEach(function (x) { cnt[x.invite_id] = (cnt[x.invite_id] || 0) + 1; (paths[x.invite_id] = paths[x.invite_id] || []).push(x.path); });
+      var list = r[0].data || [], now = Date.now();
+      if (!list.length) { ul.innerHTML = '<li class="rc-muted">لا توجد دعوات بعد.</li>'; return; }
+      ul.innerHTML = list.map(function (v) {
+        var exp = new Date(v.expires_at), live = !v.revoked && exp.getTime() > now;
+        var st = v.revoked ? 'ملغى' : live ? 'ساري حتى ' + exp.toLocaleDateString('ar-SA-u-nu-latn', { day: 'numeric', month: 'long' }) : 'انتهت مدته';
+        return '<li data-id="' + v.id + '"><div class="rc-invh"><b>' + esc(v.label) + '</b><small>' + esc(st) + ' · التسجيلات: ' + num(cnt[v.id] || 0) + '</small></div>' +
+          '<div class="rc-inva">' + (live ? '<button class="rc-link" data-a="copy">نسخ الرابط</button>' + (navigator.share ? ' · <button class="rc-link" data-a="share">مشاركة</button>' : '') +
+          ' · <button class="rc-link" data-a="revoke">إلغاء الرابط</button> · ' : '') +
+          '<button class="rc-link rc-danger" data-a="del">حذف الدعوة وتسجيلاتها</button></div></li>';
+      }).join('');
+      ul.querySelectorAll('button[data-a]').forEach(function (b) {
+        var li = b.closest('li'), v = list.filter(function (x) { return x.id === li.dataset.id; })[0], a = b.dataset.a;
+        b.onclick = function () {
+          if (a === 'copy') (navigator.clipboard ? navigator.clipboard.writeText(invLink(v.token)) : Promise.reject()).then(function () { b.textContent = 'نُسخ ✓'; }, function () { prompt('انسخ الرابط:', invLink(v.token)); });
+          else if (a === 'share') navigator.share({ title: 'تسجيلات الاختبار', text: 'رابط تسجيل التلاوة لاختبار نظام التسميع:', url: invLink(v.token) }).catch(function () {});
+          else if (a === 'revoke') { if (!confirm('إلغاء الرابط يمنع التسجيل به، وتبقى التسجيلات المحفوظة. هل تريد المتابعة؟')) return;
+            S.c.from('rec_invites').update({ revoked: true }).eq('id', v.id).then(function (r) { if (r.error) return fail(r.error); loadInvites(); }); }
+          else if (a === 'del') {
+            var ps = paths[v.id] || [];
+            if (!confirm('حذف دعوة «' + v.label + '» يحذف ' + num(ps.length) + ' تسجيلًا حذفًا نهائيًا لا يمكن التراجع عنه. هل تريد المتابعة؟')) return;
+            removeFiles(ps).then(function () { return S.c.from('rec_invites').delete().eq('id', v.id); })
+              .then(function (r) { if (r.error) throw r.error; loadInvites(); }).catch(fail);
+          }
+        };
+      });
+    }).catch(function (e) { console.error(e); ul.innerHTML = '<li class="rc-muted">تعذّر تحميل الدعوات.</li>'; });
+  }
+  function bindInvites() {
+    $('#rcInvNew').onclick = function () {
+      var lab = $('#rcInvL').value.trim(), d = +((app.querySelector('input[name=invd]:checked') || {}).value || 30), btn = this;
+      if (!lab) { $('#rcInvL').focus(); return; }
+      btn.disabled = true;
+      S.c.from('rec_invites').insert({ label: lab, expires_at: new Date(Date.now() + d * 864e5).toISOString() }).select().then(function (r) {
+        btn.disabled = false;
+        if (r.error) throw r.error;
+        $('#rcInvL').value = '';
+        loadInvites();
+      }).catch(function (e) { btn.disabled = false; fail(e); });
+    };
+    loadInvites();
+  }
+  function removeFiles(paths) {
+    var chunks = [];
+    for (var i = 0; i < paths.length; i += 100) chunks.push(paths.slice(i, i + 100));
+    return chunks.reduce(function (p, ch) {
+      return p.then(function () { return S.c.storage.from('recitations').remove(ch).then(function (r) { if (r.error) throw r.error; }); });
+    }, Promise.resolve());
+  }
+
   function pickProfile() {
     var cur = Fam.current();
     h('<div class="rc-card"><h2 class="rc-h">من سيسجّل؟</h2><div class="rc-profs">' +
       S.profiles.map(function (p) {
         return '<button class="rc-prof' + (cur && cur.id === p.id ? ' on' : '') + '" data-id="' + p.id + '">' + esc(p.name) + '</button>';
-      }).join('') + '</div><p class="rc-muted">لإضافة ابن أو بنت: <a href="/book/?s=account">حسابي</a>.</p></div>');
+      }).join('') + '</div><p class="rc-muted">لإضافة ابن أو بنت: <a href="/book/?s=account">حسابي</a>.</p></div>' + invitesHtml());
+    bindInvites();
     app.querySelectorAll('.rc-prof').forEach(function (b) {
       b.onclick = function () {
         S.prof = S.profiles.filter(function (p) { return p.id === b.dataset.id; })[0];
@@ -82,6 +194,7 @@
   }
 
   function loadDone() {
+    if (S.guest) return guestInfo();
     return S.c.from('rec_clips').select('id,task,path,created_at').eq('profile_id', S.prof.id).then(function (r) {
       if (r.error) throw r.error;
       S.done = {}; S.clips = r.data || [];
@@ -103,7 +216,7 @@
       '<div id="rcGuard" hidden><label class="fb-label">اسم وليّ الأمر</label><input id="rcGName" maxlength="60" autocomplete="name"></div>' +
       '<div class="rc-consent" id="rcCText">' + consentText() + '</div>' +
       '<label class="fb-consent"><input type="checkbox" id="rcAgree"> <span>قرأت ما سبق وأوافق عليه.</span></label>' +
-      '<button class="fb-submit" id="rcGo" disabled>أوافق وأبدأ</button> <button class="rc-link" id="rcBack">رجوع</button></div>');
+      '<button class="fb-submit" id="rcGo" disabled>أوافق وأبدأ</button>' + (S.guest ? '' : ' <button class="rc-link" id="rcBack">رجوع</button>') + '</div>');
     var val = function (n) { var x = app.querySelector('input[name=' + n + ']:checked'); return x && x.value; };
     var check = function () {
       var age = val('age');
@@ -113,10 +226,18 @@
       $('#rcGo').disabled = !(age && val('sex') && val('level') && g && $('#rcAgree').checked);
     };
     app.addEventListener('input', check); app.addEventListener('change', check);
-    $('#rcBack').onclick = pickProfile;
+    if (!S.guest) $('#rcBack').onclick = pickProfile;
     $('#rcGo').onclick = function () {
       var age = val('age');
       this.disabled = true;
+      if (S.guest) {
+        S.c.rpc('rec_invite_consent', { p_token: S.guest, p_age: age, p_sex: val('sex'), p_level: val('level'),
+          p_guardian: age !== 'adult' ? $('#rcGName').value.trim() : null, p_version: CONSENT_V }).then(function (r) {
+          if (r.error) throw r.error;
+          return guestInfo().then(taskList);
+        }).catch(function (e) { fail(e); check(); });
+        return;
+      }
       S.c.from('rec_consents').insert({
         profile_id: S.prof.id, age_band: age, sex: val('sex'), level: val('level'), text_version: CONSENT_V,
         guardian_name: age !== 'adult' ? $('#rcGName').value.trim() : null
@@ -157,13 +278,13 @@
           return '<button class="rc-t' + (S.done[t.id] ? ' done' : '') + '" data-id="' + t.id + '">' + (S.done[t.id] ? '✓ ' : '') + KIND[t.kind] + '</button>';
         }).join('') + '</div></div>';
       }).join('') + '</div>' +
-      '<div class="rc-foot"><button class="rc-link" id="rcOther">تغيير الملف</button> · ' +
-      '<button class="rc-link rc-danger" id="rcWithdraw">سحب الموافقة وحذف تسجيلات هذا الملف</button></div></div>');
+      '<div class="rc-foot">' + (S.guest ? '' : '<button class="rc-link" id="rcOther">تغيير الملف</button> · ') +
+      '<button class="rc-link rc-danger" id="rcWithdraw">سحب الموافقة وحذف ' + (S.guest ? 'تسجيلاتي' : 'تسجيلات هذا الملف') + '</button></div></div>');
     if (nx) $('#rcNext').onclick = function () { openTask(nx); };
     app.querySelectorAll('.rc-t').forEach(function (b) {
       b.onclick = function () { openTask(ts.filter(function (t) { return t.id === b.dataset.id; })[0]); };
     });
-    $('#rcOther').onclick = pickProfile;
+    if (!S.guest) $('#rcOther').onclick = pickProfile;
     $('#rcWithdraw').onclick = withdraw;
   }
 
@@ -291,10 +412,15 @@
     $('#rcAgain').onclick = function () { URL.revokeObjectURL(url); recIdle(); };
     $('#rcSave').onclick = function () {
       var btn = this; btn.disabled = true; btn.textContent = 'جارٍ الحفظ…';
-      var id = uuid(), path = S.uid + '/' + S.prof.id + '/' + id + '.wav', P = S.data.passages[t.p];
+      var id = uuid(), path = S.guest ? 'inv/' + S.guest + '/' + id + '.wav' : S.uid + '/' + S.prof.id + '/' + id + '.wav', P = S.data.passages[t.p];
       var asked = err ? (app.querySelector('input[name=asked]:checked') || {}).value === '1' : null;
       S.c.storage.from('recitations').upload(path, wav, { contentType: 'audio/wav' }).then(function (r) {
         if (r.error) throw r.error;
+        if (S.guest) return S.c.rpc('rec_invite_clip', {
+          p_token: S.guest, p_id: id, p_task: t.id, p_surah: P.surah, p_ayah: P.from, p_ayah_to: P.to, p_kind: t.kind,
+          p_target: t.target || null, p_asked: asked, p_note: $('#rcNote').value.trim() || null,
+          p_seconds: Math.round(secs * 10) / 10, p_device: navigator.userAgent.slice(0, 200)
+        });
         return S.c.from('rec_clips').insert({
           id: id, profile_id: S.prof.id, consent_id: S.consent.id, task: t.id, surah: P.surah, ayah: P.from, ayah_to: P.to,
           kind: t.kind, target: t.target || null, done_as_asked: asked, note: $('#rcNote').value.trim() || null,
@@ -315,17 +441,14 @@
   function withdraw() {
     var n = S.clips.length;
     if (!confirm('سحب الموافقة لملف «' + S.prof.name + '» يحذف ' + num(n) + ' تسجيلًا حذفًا نهائيًا لا يمكن التراجع عنه. هل تريد المتابعة؟')) return;
-    var paths = S.clips.map(function (x) { return x.path; }), chunks = [];
-    for (var i = 0; i < paths.length; i += 100) chunks.push(paths.slice(i, i + 100));
-    chunks.reduce(function (p, ch) {
-      return p.then(function () { return S.c.storage.from('recitations').remove(ch).then(function (r) { if (r.error) throw r.error; }); });
-    }, Promise.resolve()).then(function () {
-      return S.c.from('rec_consents').delete().eq('profile_id', S.prof.id);
+    var paths = S.clips.map(function (x) { return x.path; });
+    removeFiles(paths).then(function () {
+      return S.guest ? S.c.rpc('rec_invite_withdraw', { p_token: S.guest }) : S.c.from('rec_consents').delete().eq('profile_id', S.prof.id);
     }).then(function (r) {
       if (r.error) throw r.error;
       S.consent = null; S.clips = []; S.done = {};
       alert('سُحبت الموافقة وحُذفت التسجيلات.');
-      pickProfile();
+      if (S.guest) guestWelcome(); else pickProfile();
     }).catch(fail);
   }
 
