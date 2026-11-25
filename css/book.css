@@ -2151,3 +2151,10 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 .hq-tbl tr.hq-s td.hq-c{ background:none; color:#8d877a; }
 .hq-tbl tr.hq-r, .hq-tbl tr.hq-n{ background:rgba(210,60,60,.06); }
 .hq-tbl tfoot td.hq-c{ color:#2a2418; font-size:12.5px; white-space:nowrap; }
+/* the two settings line up: the same title width, the same width for each choice */
+.hq-or{ display:grid; grid-template-columns:40% 1fr 1fr; }
+.hq-or .hq-seg{ display:contents; }
+.hq-or .hq-seg label{ display:flex; min-width:0; }
+.hq-or .hq-seg label span{ border-inline-start:1px solid var(--gold); }
+.hq-ot{ justify-content:flex-start; min-width:0; }
+.hq-or .hq-seg label:first-child span{ border-inline-start:0; }
