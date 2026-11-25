@@ -375,7 +375,7 @@
   }
   var P = null, BT = null;
   function opt(cls, title, help, name, items) {
-    return '<div class="hq-opt ' + cls + '"><div class="hq-or"><b>' + esc(title) + ':</b><button type="button" class="hq-qm" aria-label="?" aria-expanded="false">?</button>' +
+    return '<div class="hq-opt ' + cls + '"><div class="hq-or"><span class="hq-ot"><b>' + esc(title) + '</b><button type="button" class="hq-qm" aria-label="?" aria-expanded="false">?</button></span>' +
       '<span class="hq-seg">' + items.map(function (x, i) { return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"' + (i ? '' : ' checked') + '><span>' + esc(x[1]) + '</span></label>'; }).join('') + '</span></div>' +
       '<p class="hq-help" hidden>' + esc(help) + '</p></div>';
   }
