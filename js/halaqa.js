@@ -9,9 +9,11 @@
    - broadcast 'st' (teacher → all): {p: page, lock, hide, focus: [s, a] | null, title}; again every 10 s and on 'hello'
    - broadcast 'hello' (a student or display arriving) → the teacher sends 'st' at once
    - broadcast 'end' (teacher) → students leave
-   - presence (students): {id, name, st: 'g' on the teacher's page | 'y' another page | 'r' out of the Mushaf, p}
-   A student whose phone leaves the Mushaf sends 'r' at once; if the phone then drops the connection (iPhones do,
-   in the background) his presence goes, which the teacher counts as out too. The report: time in, time out and
+   - presence (students): {id, name, st: 'g' on the teacher's page | 'y' another page | 'r' out of the Mushaf, p, ts}
+   - broadcast 'me' (student → teacher): the same record, on every change and every 4 s as a heartbeat
+   A student whose phone leaves the Mushaf sends 'r' at once (by REST if the socket is down). A student the teacher
+   has not heard from for 12 s counts as out (a phone in the background freezes and sends nothing). Both sides
+   rejoin the channel as soon as the page shows again or the channel errors (wire()), and the student re-reports. The report: time in, time out and
    how often, per student, saved in live_sessions.report when the session ends.
 
    LtHalaqa.ui(section, {close})   the settings page: join by code; for a signed-in teacher, his classes
@@ -193,19 +195,50 @@
     };
     go();
   }
+  // one live channel that reopens itself: on an error or timeout, and when ensure() finds it not joined
+  function wire(c, name, key, setup, onJoin) {
+    var W = { ch: null, t: null, done: false };
+    W.open = function () {
+      clearTimeout(W.t);
+      if (W.ch) { var o = W.ch; W.ch = null; try { c.removeChannel(o); } catch (e) {} }
+      var ch = W.ch = c.channel(name, { config: { broadcast: { self: false }, presence: { key: key } } });
+      setup(ch);
+      ch.subscribe(function (st) {
+        if (W.done || W.ch !== ch) return;
+        if (st === 'SUBSCRIBED') onJoin(ch);
+        else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') { clearTimeout(W.t); W.t = setTimeout(function () { if (!W.done && W.ch === ch) W.open(); }, 1500); }
+      });
+    };
+    W.ensure = function () {
+      if (W.done) return;
+      try { if (c.realtime && c.realtime.isConnected && !c.realtime.isConnected()) c.realtime.connect(); } catch (e) {}
+      if (!W.ch || (W.ch.state !== 'joined' && W.ch.state !== 'joining')) W.open();
+    };
+    W.close = function () { W.done = true; clearTimeout(W.t); if (W.ch) { var o = W.ch; W.ch = null; try { c.removeChannel(o); } catch (e) {} } };
+    W.open();
+    return W;
+  }
+  var STALE = 12000;
+  // a send or track that fails while the channel rejoins is not an error worth a console line
+  var quiet = function (f) { try { var r = f(); if (r && r.catch) r.catch(function () {}); } catch (e) {} };
   function teach(c, ses) {
     var l = L(), now = Date.now();
     S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, t0: now, pages: {}, st: {}, c: c };
     // the students' running record: {id: {name, sid, joined, st, since, in, out, outs, p}}
     ses.roster.forEach(function (x) { S.st[x.id] = { name: x.name, sid: x.sid, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 }; });
-    var ch = S.ch = c.channel('hq-' + ses.code, { config: { broadcast: { self: false }, presence: { key: 'teacher' } } });
-    var sendSt = function () { if (S && S.ch === ch) ch.send({ type: 'broadcast', event: 'st', payload: state() }); };
+    var sendSt = function () { if (S && S.ch) quiet(function () { return S.ch.send({ type: 'broadcast', event: 'st', payload: state() }); }); };
     S.send = sendSt;
-    ch.on('broadcast', { event: 'hello' }, sendSt);
-    ch.on('presence', { event: 'sync' }, function () { presenceSync(ch.presenceState()); });
-    ch.subscribe(function (s) { if (s === 'SUBSCRIBED') sendSt(); });
-    S.beat = setInterval(function () { sendSt(); tick(); }, 10000);
-    S.tk = setInterval(drawPanel, 1000);
+    S.W = wire(c, 'hq-' + ses.code, 'teacher', function (ch) {
+      S.ch = ch;
+      ch.on('broadcast', { event: 'hello' }, sendSt);
+      ch.on('broadcast', { event: 'me' }, function (m) { heard(m.payload || {}); drawPanel(); });
+      ch.on('presence', { event: 'sync' }, function () { if (S && S.ch === ch) presenceSync(ch.presenceState()); });
+    }, sendSt);
+    S.beat = setInterval(sendSt, 5000);
+    S.tk = setInterval(function () { stale(); drawPanel(); }, 1000);
+    // back from the background: rejoin, resend, and give the students a moment before judging their silence
+    S.vis = function () { if (document.visibilityState !== 'visible' || !S) return; S.grace = Date.now() + 6000; S.W.ensure(); sendSt(); };
+    document.addEventListener('visibilitychange', S.vis); window.addEventListener('online', S.vis);
     S.pages[B().cur()] = 1;
     panel();
     document.addEventListener('click', ayahTap, true);
@@ -216,15 +249,33 @@
     var now = Date.now(), seen = {};
     Object.keys(ps).forEach(function (key) {
       if (key === 'teacher' || key === 'display') return;
-      var m = ps[key][ps[key].length - 1] || {}, id = m.id || key;
-      seen[id] = 1;
-      var r = S.st[id];
-      if (!r) r = S.st[id] = { name: m.name || '?', sid: m.sid || null, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 };
-      if (!r.joined) r.joined = now;
-      setSt(r, m.st || 'g', now); r.p = m.p;
+      var m = ps[key][ps[key].length - 1] || {};
+      seen[m.id || key] = 1;
+      heard(m, key, true);
     });
-    Object.keys(S.st).forEach(function (id) { var r = S.st[id]; if (!seen[id] && r.joined && r.st !== 'r') setSt(r, 'r', now); });   // gone: out
+    // gone from presence and not heard otherwise lately: out
+    Object.keys(S.st).forEach(function (id) { var r = S.st[id]; if (!seen[id] && r.joined && r.st !== 'r' && now - (r.seen || 0) > 5000) setSt(r, 'r', now); });
     drawPanel();
+  }
+  // a student's record (from presence or his 'me' broadcast): the newer one wins
+  // (a presence sync repeats every student's last record, so only a newer one counts as hearing from him)
+  function heard(m, key, fromPresence) {
+    var now = Date.now(), id = m.id || key;
+    if (!id || !S || S.role !== 'teacher') return;
+    var r = S.st[id];
+    if (!r) r = S.st[id] = { name: m.name || '?', sid: m.sid || null, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 };
+    if (!r.joined) { r.joined = now; r.seen = now; }
+    if (!fromPresence || !r.ts || (m.ts && m.ts > r.ts)) r.seen = now;
+    if (m.ts && r.ts && m.ts <= r.ts && fromPresence) return;
+    if (m.ts && r.ts && m.ts < r.ts) return;
+    if (m.ts) r.ts = m.ts;
+    setSt(r, m.st || 'g', now); r.p = m.p;
+  }
+  // silence: a phone in the background sends nothing, so not heard for STALE ms → out
+  function stale() {
+    var now = Date.now();
+    if (S.grace && now < S.grace) return;
+    Object.keys(S.st).forEach(function (id) { var r = S.st[id]; if (r.joined && (r.st === 'g' || r.st === 'y') && now - (r.seen || 0) > STALE) setSt(r, 'r', now); });
   }
   function setSt(r, st, now) {
     if (r.st === st) return;
@@ -233,7 +284,6 @@
     r.st = st; r.since = now;
   }
   function acc(r, now) { var d = now - r.since; if (r.st === 'g' || r.st === 'y') r.in += d; else if (r.st === 'r') r.out += d; r.since = now; }
-  function tick() {}
   function ayahTap(e) {
     if (!S || S.role !== 'teacher') return;
     var ae = e.target.closest && e.target.closest('.bk-mpage .ae[data-l]');
@@ -289,7 +339,8 @@
     try { S.ch.send({ type: 'broadcast', event: 'end', payload: {} }); } catch (e) {}
     c.from('live_sessions').update({ ended_at: new Date(now).toISOString(), report: rep }).eq('id', ses.id).then(function () {});
     clearInterval(S.beat); clearInterval(S.tk);
-    setTimeout(function () { try { c.removeChannel(S.ch); } catch (e) {} S = null; }, 600);
+    document.removeEventListener('visibilitychange', S.vis); window.removeEventListener('online', S.vis);
+    var W = S.W; setTimeout(function () { W.close(); }, 600); S = null;
     document.removeEventListener('click', ayahTap, true);
     if (P) { P.remove(); P = null; } document.body.classList.remove('hq-teaching');
     focusShow(null); B().hide(false);
@@ -340,16 +391,24 @@
   function follow(c, code, info, me, role) {
     var l = L();
     S = { role: role, code: code, me: me, info: info, t: null, c: c };
-    var ch = S.ch = c.channel('hq-' + code, { config: { broadcast: { self: false }, presence: { key: me ? me.id : 'display' } } });
-    ch.on('broadcast', { event: 'st' }, function (m) { applyState(m.payload || {}); });
-    ch.on('broadcast', { event: 'end' }, function () { leave(true); });
-    ch.subscribe(function (s) {
-      if (s !== 'SUBSCRIBED') return;
+    S.W = wire(c, 'hq-' + code, me ? me.id : 'display', function (ch) {
+      S.ch = ch;
+      ch.on('broadcast', { event: 'st' }, function (m) { applyState(m.payload || {}); });
+      ch.on('broadcast', { event: 'end' }, function () { leave(true); });
+    }, function (ch) {
       ch.send({ type: 'broadcast', event: 'hello', payload: {} });
-      if (me) report();
+      if (me) report(true);
     });
-    document.addEventListener('visibilitychange', report);
-    window.addEventListener('pagehide', report);
+    // the heartbeat, and back from the background: rejoin at once and report
+    S.hb = setInterval(function () { if (document.visibilityState === 'visible') report(); }, 4000);
+    S.vis = function () {
+      if (!S) return;
+      if (document.visibilityState === 'visible') { S.W.ensure(); report(true); if (S.ch) S.ch.send({ type: 'broadcast', event: 'hello', payload: {} }); }
+      else report();
+    };
+    document.addEventListener('visibilitychange', S.vis);
+    window.addEventListener('pagehide', S.vis);
+    window.addEventListener('online', S.vis);
     // the bar: which circle, that the teacher sees presence, leave
     var bar = S.bar = document.createElement('div'); bar.className = 'hq-bar' + (role === 'display' ? ' hq-disp' : '');
     bar.innerHTML = '<b>' + esc(l.bar) + ': ' + esc(info.title || '') + '</b>' + (me ? '<span>' + esc(me.name) + ' · ' + esc(l.watch) + '</span>' : '') + '<button type="button">' + esc(l.leave) + '</button>';
@@ -357,10 +416,14 @@
     document.body.appendChild(bar); document.body.classList.add('hq-on');
   }
   // the student's colour: out of the Mushaf (the page hidden) red; another page than the teacher's yellow; else green
-  function report() {
+  // presence carries it on every change (and after each rejoin); the 'me' broadcast carries it always — it reaches
+  // the teacher at once, and by REST when the socket is down
+  function report(force) {
     if (!S || S.role !== 'student' || !S.ch) return;
     var p = B().cur(), st = document.visibilityState === 'hidden' ? 'r' : (S.t && S.t.p && B().visible().indexOf(S.t.p) < 0 ? 'y' : 'g');
-    S.ch.track({ id: S.me.id, name: S.me.name, sid: S.me.sid || null, st: st, p: p });
+    var m = { id: S.me.id, name: S.me.name, sid: S.me.sid || null, st: st, p: p, ts: Date.now() }, k = st + ':' + p;
+    quiet(function () { return S.ch.send({ type: 'broadcast', event: 'me', payload: m }); });
+    if (force === true || k !== S.last) { S.last = k; quiet(function () { return S.ch.track(m); }); }
   }
   function applyState(t) {
     if (!S || S.role === 'teacher') return;
@@ -375,9 +438,12 @@
   }
   function leave(ended) {
     if (!S) return;
-    try { S.ch.untrack(); S.c.removeChannel(S.ch); } catch (e) {}
-    document.removeEventListener('visibilitychange', report);
-    window.removeEventListener('pagehide', report);
+    clearInterval(S.hb);
+    try { if (S.ch) S.ch.untrack(); } catch (e) {}
+    S.W.close();
+    document.removeEventListener('visibilitychange', S.vis);
+    window.removeEventListener('pagehide', S.vis);
+    window.removeEventListener('online', S.vis);
     if (S.bar) S.bar.remove();
     document.body.classList.remove('hq-on', 'hq-locked');
     focusShow(null); if (S.t && S.t.hide) B().hide(false);
