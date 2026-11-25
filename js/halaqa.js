@@ -47,7 +47,7 @@
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
-      colName: 'الطالب', colState: 'الحالة',
+      colName: 'الطالب', colState: 'الحالة', count: 'العدد',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
@@ -71,7 +71,7 @@
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
-      colName: 'Student', colState: 'Status',
+      colName: 'Student', colState: 'Status', count: 'Count',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
@@ -392,7 +392,8 @@
       opt('hq-view', l.viewH, l.viewHelp, 'hqv', [['g', l.viewG], ['i', l.viewI]]) +
       opt('hq-snd', l.auH, l.auHelp, 'hqau', [['c', l.auC], ['r', l.auR]]) +
       '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div>' +
-      '<div class="hq-sum"></div><table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th>' + esc(l.colState) + '</th></tr></thead><tbody class="hq-rl"></tbody></table>' +
+      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th>' + esc(l.colState) + '</th></tr>' +
+      '<tr class="hq-tot"><td colspan="2"><b>' + esc(l.count) + ':</b> <span class="hq-totc"></span></td></tr></thead><tbody class="hq-rl"></tbody></table>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
@@ -424,7 +425,10 @@
       var lab = r.st === 'g' ? l.inMushaf : r.st === 'y' ? l.other + (r.p ? ' ' + num(r.p) : '') : r.st === 'r' ? l.out + ' ' + l.since + ' ' + dur(now - r.since) : l.notYet;
       return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td><td><span class="hq-stc"><i></i>' + esc(lab) + '</span></td></tr>';
     }).join('');
-    P.querySelector('.hq-sum').textContent = l.summary(num(cnt.g), num(cnt.y), num(cnt.r), num(cnt.n));
+    // the count of each status, in the table under its header
+    P.querySelector('.hq-totc').innerHTML = [['g', l.inMushaf], ['y', l.other], ['r', l.out], ['n', l.notYet]].map(function (x) {
+      return '<span class="hq-stc hq-' + x[0] + '"><i></i>' + esc(x[1]) + ' ' + num(cnt[x[0]]) + '</span>';
+    }).join('');
     // the minimised button: how many are in (green), elsewhere (yellow) and out (red)
     if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
       '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
