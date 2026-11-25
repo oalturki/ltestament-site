@@ -2144,3 +2144,10 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 .hq-tbl tfoot td{ font-weight:700; font-size:13px; background:rgba(200,155,60,.12); border-top:1px solid rgba(140,110,40,.35); border-bottom:0; }
 .hq-tbl td:last-child, .hq-tbl th:last-child{ white-space:normal; }
 .hq-tbl tfoot td.hq-c.hq-r{ background:rgba(200,155,60,.12); }
+/* present · following: a green or red dot per student */
+.hq-tbl th.hq-c{ font-size:12.5px; min-width:56px; vertical-align:middle; }
+.hq-tbl td.hq-c i.ok{ background:#2e9d4a; } .hq-tbl td.hq-c i.no{ background:#d23c3c; }
+.hq-tbl td.hq-c small{ color:#8d6f2a; }
+.hq-tbl tr.hq-s td.hq-c{ background:none; color:#8d877a; }
+.hq-tbl tr.hq-r, .hq-tbl tr.hq-n{ background:rgba(210,60,60,.06); }
+.hq-tbl tfoot td.hq-c{ color:#2a2418; font-size:12.5px; white-space:nowrap; }

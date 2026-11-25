@@ -47,7 +47,7 @@
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
-      colName: 'الطالب', total: 'المجموع',
+      colName: 'الطالب', total: 'المجموع', present: 'الحضور', following: 'المتابعة', of: 'من', pageW: 'ص',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
@@ -71,7 +71,7 @@
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
-      colName: 'Student', total: 'Total',
+      colName: 'Student', total: 'Total', present: 'Present', following: 'Following', of: 'of', pageW: 'p.',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
@@ -394,10 +394,10 @@
       opt('hq-snd', l.auH, l.auHelp, 'hqau', [['c', l.auC], ['r', l.auR]]) +
       '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div>' +
       // the students: a column for each status, a mark where each one is now, and the total under each column
-      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th>' + ['g', 'y', 'r', 'n'].map(function (k) {
-        return '<th class="hq-c hq-' + k + '"><i></i>' + esc(stName(l, k)) + '</th>'; }).join('') + '</tr></thead>' +
-      '<tbody class="hq-rl"></tbody><tfoot><tr class="hq-tot"><td>' + esc(l.total) + '</td>' + ['g', 'y', 'r', 'n'].map(function (k) {
-        return '<td class="hq-c hq-' + k + '" data-k="' + k + '"></td>'; }).join('') + '</tr></tfoot></table>' +
+      // the students: present (green: in the Mushaf · red: out of it, or not come) and following (green: on the teacher's
+      // page · red: another page); the totals under them
+      '<table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th class="hq-c">' + esc(l.present) + '</th><th class="hq-c">' + esc(l.following) + '</th></tr></thead>' +
+      '<tbody class="hq-rl"></tbody><tfoot><tr class="hq-tot"><td>' + esc(l.total) + '</td><td class="hq-c" data-k="in"></td><td class="hq-c" data-k="fo"></td></tr></tfoot></table>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
@@ -426,14 +426,16 @@
     ids.sort(function (a, b) { var x = S.st[a], y = S.st[b]; return (order[x.st] - order[y.st]) || x.name.localeCompare(y.name, 'ar'); });
     P.querySelector('.hq-rl').innerHTML = ids.map(function (id) {
       var r = S.st[id]; cnt[r.st]++;
-      // in its column: a dot, with the page (another page) or how long (out)
-      var sub = r.st === 'y' && r.p ? num(r.p) : r.st === 'r' ? dur(now - r.since) : '';
-      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td>' + ['g', 'y', 'r', 'n'].map(function (k) {
-        return '<td class="hq-c hq-' + k + '">' + (k === r.st ? '<i></i>' + (sub ? '<small>' + esc(sub) + '</small>' : '') : '') + '</td>';
-      }).join('') + '</tr>';
+      var here = r.st === 'g' || r.st === 'y';
+      var dot = function (ok, sub, t) { return '<td class="hq-c"><i class="' + (ok ? 'ok' : 'no') + '" title="' + esc(t) + '"></i>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</td>'; };
+      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td>' +
+        dot(here, r.st === 'r' ? dur(now - r.since) : r.st === 'n' ? l.notYet : '', stName(l, r.st)) +
+        (here ? dot(r.st === 'g', r.st === 'y' && r.p ? l.pageW + ' ' + num(r.p) : '', stName(l, r.st)) : '<td class="hq-c">–</td>') + '</tr>';
     }).join('');
     // the count of each status, in the table under its header
-    P.querySelectorAll('.hq-tot [data-k]').forEach(function (td) { td.textContent = num(cnt[td.getAttribute('data-k')]); });
+    var tot = ids.length, inN = cnt.g + cnt.y;
+    P.querySelector('.hq-tot [data-k=in]').textContent = num(inN) + ' ' + l.of + ' ' + num(tot);
+    P.querySelector('.hq-tot [data-k=fo]').textContent = num(cnt.g) + ' ' + l.of + ' ' + num(inN);
     // the minimised button: how many are in (green), elsewhere (yellow) and out (red)
     if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
       '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
