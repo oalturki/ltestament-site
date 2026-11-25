@@ -47,6 +47,7 @@
       who: 'من أنت؟', search: 'ابحث عن اسمك', notListed: 'لست في القائمة؟ سجّل اسمك', register: 'سجّل وادخل', shared: 'جهاز مشترك (معمل): لا تتذكر اسمي',
       need: 'اكتب الاسم الأول واسم العائلة على الأقل.', bar: 'حلقة', watch: 'المعلم يرى حضورك في المصحف', leave: 'خروج', ended: 'انتهت الحلقة.',
       mini: 'تصغير', open: 'فتح لوحة الحلقة', drag: 'اسحبه إلى أي مكان، والمسه للفتح',
+      colName: 'الطالب', colState: 'الحالة',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
@@ -70,6 +71,7 @@
       who: 'Who are you?', search: 'Find your name', notListed: 'Not on the list? Register', register: 'Register and join', shared: 'Shared device (lab): don’t remember me',
       need: 'Write at least the first and family names.', bar: 'Circle', watch: 'The teacher sees whether you are in the Mushaf', leave: 'Leave', ended: 'The circle has ended.',
       mini: 'Minimise', open: 'Open the circle panel', drag: 'Drag it anywhere; tap to open',
+      colName: 'Student', colState: 'Status',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
@@ -385,12 +387,12 @@
     var link = location.origin + location.pathname + '?live=' + S.code;
     P.innerHTML = '<div class="hq-ph"><b class="hq-cd" dir="ltr">' + esc(S.code.slice(0, 3) + ' ' + S.code.slice(3)) + '</b><span class="hq-pt">' + esc(S.ses.title) + '</span>' +
       '<button type="button" class="hq-min" title="' + esc(l.mini) + '" aria-label="' + esc(l.mini) + '">–</button></div><div class="hq-pb">' +
-      '<div class="hq-lk"><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
+      '<div class="hq-lk"><b class="hq-lkt">' + esc(l.link) + ':</b><span dir="ltr">' + esc(link.replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp">' + esc(l.copy) + '</button></div>' +
       // each setting on one line: its title, a «?» that opens its explanation, and its choices side by side
       opt('hq-view', l.viewH, l.viewHelp, 'hqv', [['g', l.viewG], ['i', l.viewI]]) +
       opt('hq-snd', l.auH, l.auHelp, 'hqau', [['c', l.auC], ['r', l.auR]]) +
       '<div class="hq-tg"><button type="button" class="hq-b2 hq-uf" hidden>' + esc(l.unfocus) + '</button></div>' +
-      '<div class="hq-sum"></div><ul class="hq-rl"></ul>' +
+      '<div class="hq-sum"></div><table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th>' + esc(l.colState) + '</th></tr></thead><tbody class="hq-rl"></tbody></table>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
@@ -420,7 +422,7 @@
     P.querySelector('.hq-rl').innerHTML = ids.map(function (id) {
       var r = S.st[id]; cnt[r.st]++;
       var lab = r.st === 'g' ? l.inMushaf : r.st === 'y' ? l.other + (r.p ? ' ' + num(r.p) : '') : r.st === 'r' ? l.out + ' ' + l.since + ' ' + dur(now - r.since) : l.notYet;
-      return '<li class="hq-s hq-' + r.st + '"><i></i><span>' + esc(r.name) + '</span><small>' + esc(lab) + '</small></li>';
+      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td><td><span class="hq-stc"><i></i>' + esc(lab) + '</span></td></tr>';
     }).join('');
     P.querySelector('.hq-sum').textContent = l.summary(num(cnt.g), num(cnt.y), num(cnt.r), num(cnt.n));
     // the minimised button: how many are in (green), elsewhere (yellow) and out (red)

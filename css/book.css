@@ -2101,3 +2101,26 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 .hq-or .hq-seg label{ flex:1; display:flex; }
 .hq-or .hq-seg span{ flex:1; display:flex; align-items:center; justify-content:center; text-align:center; padding:8px 6px; font-size:14px; }
 .hq-or .hq-seg label + label span{ border-inline-start:1.5px solid var(--gold); }
+/* half the height: the setting rectangles */
+.hq-opt{ margin:6px 0 2px; }
+.hq-or{ border-width:1px; border-radius:8px; }
+.hq-ot{ padding:3px 8px; gap:5px; border-inline-end-width:1px; }
+.hq-ot b{ font-size:13px; }
+.hq-ot .hq-qm{ width:16px; height:16px; font-size:10px; border-width:1px; }
+.hq-or .hq-seg span{ padding:3px 6px; font-size:13px; }
+.hq-or .hq-seg label + label span{ border-inline-start-width:1px; }
+/* the link with its title */
+.hq-lkt{ flex:none; font-size:13px; }
+/* the students: a table, each with his status */
+.hq-tbl{ width:100%; border-collapse:collapse; margin:4px 0 6px; font-size:13.5px; }
+.hq-tbl th{ text-align:start; font-size:12.5px; font-weight:700; padding:6px 8px; background:rgba(200,155,60,.16); border-bottom:1px solid rgba(140,110,40,.35); }
+.hq-tbl td{ padding:7px 8px; border-bottom:1px solid rgba(140,110,40,.15); vertical-align:middle; }
+.hq-tbl td:first-child{ font-weight:600; line-height:1.4; }
+.hq-tbl td:last-child, .hq-tbl th:last-child{ white-space:nowrap; width:1%; }
+.hq-tbl tr.hq-s{ display:table-row; padding:0; }
+.hq-stc{ display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; }
+.hq-stc i{ width:10px; height:10px; border-radius:50%; flex:none; background:#c9c4b8; }
+.hq-g .hq-stc{ color:#2e7d42; } .hq-g .hq-stc i{ background:#2e9d4a; }
+.hq-y .hq-stc{ color:#a07400; } .hq-y .hq-stc i{ background:#e0a800; }
+.hq-r .hq-stc{ color:#b03030; } .hq-r .hq-stc i{ background:#d23c3c; }
+.hq-n .hq-stc{ color:#8d877a; font-weight:500; } .hq-n td:first-child{ opacity:.6; }
