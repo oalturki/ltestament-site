@@ -2158,3 +2158,5 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-b
 .hq-or .hq-seg label span{ border-inline-start:1px solid var(--gold); }
 .hq-ot{ justify-content:flex-start; min-width:0; }
 .hq-or .hq-seg label:first-child span{ border-inline-start:0; }
+/* a setting that does not apply now: greyed in place (the panel keeps its size) */
+.hq-opt.hq-off{ opacity:.4; } .hq-opt.hq-off .hq-seg{ pointer-events:none; }

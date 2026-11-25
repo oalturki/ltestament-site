@@ -412,7 +412,7 @@
     }; });
     P.querySelectorAll('input[name=hqv]').forEach(function (r) { r.onchange = function () {
       if (!this.checked) return;
-      S.view = this.value; P.querySelector('.hq-snd').hidden = S.view !== 'g'; S.send(); S.auK = null; auWatch();
+      S.view = this.value; var sn = P.querySelector('.hq-snd'); sn.classList.toggle('hq-off', S.view !== 'g'); sn.querySelectorAll('input').forEach(function (x) { x.disabled = S.view !== 'g'; });   // kept in place (greyed), so the panel does not change size S.send(); S.auK = null; auWatch();
     }; });
     P.querySelectorAll('input[name=hqau]').forEach(function (r) { r.onchange = function () { if (this.checked) { S.au = this.value; S.send(); S.auK = null; auWatch(); } }; });
     P.querySelector('.hq-uf').onclick = function () { S.focus = null; S.send(); focusShow(null); drawPanel(); };
