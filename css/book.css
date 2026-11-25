@@ -2054,11 +2054,11 @@ html body.bk-mob.bk-fixbar.bk-night:not(.bk-wide){ background:#1e1b15 !important
 /* iOS 26 home-screen app (bk-short): the page already stops above the home indicator, so the bar keeps no room for it —
    its buttons come down to the page's bottom, and the page gains that room (its proportions unchanged: it is fitted, not stretched) */
 /* the page starts under the status bar (no viewport-fit=cover, status bar «default» — as the family site): it reaches the
-   screen's bottom, and the bar keeps a fixed 16px over the home indicator, the safe-area inset being 0 without «cover» */
-html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-stage{ padding-bottom:66px !important; }
-html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-mnav{ height:66px !important; min-height:0 !important; padding-bottom:16px !important; }
-html body.bk-mob.bk-dock.bk-short.bk-pcon:not(.bk-wide) .bk-pcard{ height:66px !important; padding-bottom:16px !important; }
-html body.bk-mob.bk-short.bk-living .bk-mlive{ height:66px !important; padding-bottom:16px !important; }
+   screen's bottom, and the bar keeps a fixed 26px under its buttons (above the 34pt swipe zone), the safe-area inset being 0 without «cover» */
+html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-stage{ padding-bottom:76px !important; }
+html body.bk-mob.bk-fixbar.bk-short:not(.bk-wide) .bk-mnav{ height:76px !important; min-height:0 !important; padding-bottom:26px !important; }
+html body.bk-mob.bk-dock.bk-short.bk-pcon:not(.bk-wide) .bk-pcard{ height:76px !important; padding-bottom:26px !important; }
+html body.bk-mob.bk-short.bk-living .bk-mlive{ height:76px !important; padding-bottom:26px !important; }
 
 /* the live circle minimised: a round button dragged anywhere, a tap opens it */
 .hq-bub{ position:fixed; z-index:72; width:60px; height:60px; border-radius:50%; padding:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
