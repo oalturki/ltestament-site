@@ -12,7 +12,7 @@
 
   var LANG = (document.documentElement.lang || 'ar').slice(0, 2);
   var T = {
-    ar: { site: 'في الموقع', inQuran: 'في القرآن الكريم', tabAr: 'في النص', tabTr: '', phTr: '', btn: 'بحث', ph: 'ابحث في القرآن الكريم… مثل: الصراط المستقيم', hint: 'اكتب كلمتين أو أكثر من الآية، بتشكيل أو بدونه.', none: 'لا توجد نتائج.', count: 'عدد النتائج:', more: 'عرض المزيد', close: 'إغلاق', loading: 'جارٍ التحميل…', err: 'تعذّر تحميل البحث، أعد المحاولة.', surah: 'سورة', arOnly: '' },
+    ar: { site: 'في الموقع', inQuran: 'في القرآن الكريم', tabAr: 'في النص', tabTr: '', phTr: '', btn: 'بحث', ph: 'ابحث في القرآن الكريم… مثل: الصراط المستقيم', hint: '• اكتب رقمًا للانتقال إلى صفحة، مثل: ٢٥٥.\n• اكتب اسم سورة أو جزءًا منه، مثل: كهف.\n• اكتب السورة ثم نقطتين ثم رقم الآية للانتقال إليها، مثل: البقرة:٢٥٥.\n• أو اكتب كلمتين أو أكثر من الآية، بتشكيل أو بدونه.', none: 'لا توجد نتائج.', count: 'عدد النتائج:', more: 'عرض المزيد', close: 'إغلاق', loading: 'جارٍ التحميل…', err: 'تعذّر تحميل البحث، أعد المحاولة.', surah: 'سورة', arOnly: '' },
     en: { site: 'On this site', inQuran: 'In the Quran', hintTr: 'Type a word or a phrase from the English meaning.', tabAr: 'Arabic text', tabTr: 'Meaning (English)', phTr: 'Search the meaning… e.g. mercy, Moses, patience', btn: 'Search', ph: 'Search the Quran in Arabic… e.g. الصراط المستقيم', hint: 'Type Arabic words from the verse, with or without diacritics.', none: 'No results.', count: 'Results:', more: 'Show more', close: 'Close', loading: 'Loading…', err: 'Search could not load. Please try again.', surah: '', arOnly: '' },
     ur: { site: 'ویب سائٹ میں', inQuran: 'قرآن مجید میں', hintTr: 'اردو ترجمے کا کوئی لفظ یا جملہ لکھیں۔', tabAr: 'عربی متن', tabTr: 'ترجمہ (اردو)', phTr: 'ترجمے میں تلاش کریں… مثلاً رحمت، موسیٰ، صبر', btn: 'تلاش', ph: 'قرآن کے عربی متن میں تلاش کریں… مثلاً الصراط المستقیم', hint: 'آیت کے عربی الفاظ لکھیں، اعراب کے ساتھ یا بغیر۔', none: 'کوئی نتیجہ نہیں۔', count: 'نتائج:', more: 'مزید دکھائیں', close: 'بند کریں', loading: 'لوڈ ہو رہا ہے…', err: 'تلاش لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔', surah: 'سورۃ', arOnly: '' },
     fr: { site: 'Sur le site', inQuran: 'Dans le Coran', hintTr: 'Tapez un mot ou une expression du sens en français.', tabAr: 'Texte arabe', tabTr: 'Sens (français)', phTr: 'Rechercher dans le sens… ex. miséricorde, Moïse, patience', btn: 'Rechercher', ph: 'Rechercher dans le Coran en arabe… ex. الصراط المستقيم', hint: 'Tapez des mots arabes du verset, avec ou sans voyelles.', none: 'Aucun résultat.', count: 'Résultats :', more: 'Afficher plus', close: 'Fermer', loading: 'Chargement…', err: 'La recherche n’a pas pu se charger. Réessayez.', surah: '', arOnly: '' },
@@ -102,13 +102,72 @@
     });
     return box;
   }
-  // results shown: the site's first, then the Quran's
+  /* ---------- going straight to a place: a page number, a surah by name or number, a surah:ayah ---------- */
+  var GO = {
+    ar: { go: 'انتقال مباشر', page: 'الصفحة', surah: 'سورة', ayah: 'الآية' },
+    en: { go: 'Go to', page: 'Page', surah: 'Surah', ayah: 'Ayah' }
+  }[LANG === 'ar' ? 'ar' : 'en'];
+  var latinDigits = function (s) { return String(s).replace(/[٠-٩]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); }).replace(/[۰-۹]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }); };
+  // a surah name for matching: no «سورة», no «ال», letters folded, no diacritics or spaces
+  var nameKey = function (s) { return lenient(String(s).replace(/^\s*سور[ةه]\s+/, '')).replace(/^ال/, '').replace(/\s+/g, '').toLowerCase(); };
+  function surahsByName(t) {
+    var k = nameKey(t); if (k.length < 2) return [];
+    var out = [];
+    for (var s = 1; s <= 114 && out.length < 6; s++) {
+      var names = [data.n.ar[s - 1], (data.n[NAMES_LANG] || data.n.en)[s - 1], data.n.en[s - 1]];
+      if (names.some(function (n) { var nk = nameKey(n || ''); return nk && (nk === k || nk.indexOf(k) >= 0); })) out.push(s);
+    }
+    return out;
+  }
+  function places(raw) {
+    var t = latinDigits(raw).trim(), out = [], m;
+    if (!data || !t) return out;
+    var sName = function (s) { return (data.n[NAMES_LANG] || data.n.en)[s - 1]; };
+    var toAyah = function (s, a) { out.push({ label: GO.surah + ' ' + sName(s) + ' · ' + GO.ayah + ' ' + arDigits(a), href: BOOK + '#p=' + pageOf(s, a) + '&a=' + s + ':' + a }); };
+    // surah:ayah — by number (2:255) or by name (البقرة:255)
+    if ((m = t.match(/^(.+?)\s*[:：\/]\s*(\d{1,3})$/))) {
+      var a = +m[2], ss = /^\d{1,3}$/.test(m[1].trim()) ? [+m[1]] : surahsByName(m[1]);
+      ss.forEach(function (s) { if (s >= 1 && s <= 114 && a >= 1 && a <= data.v[s - 1]) toAyah(s, a); });
+      return out;
+    }
+    // a number: that page, and the surah of that number
+    if ((m = t.match(/^(\d{1,3})$/))) {
+      var n = +m[1];
+      if (n >= 1 && n <= 604) out.push({ label: GO.page + ' ' + arDigits(n), href: BOOK + '#p=' + n });
+      if (n >= 1 && n <= 114) out.push({ label: GO.surah + ' ' + arDigits(n) + ' · ' + sName(n), href: BOOK + '#p=' + pageOf(n, 1) });
+      return out;
+    }
+    // a surah's name, or part of it
+    surahsByName(t).forEach(function (s) { out.push({ label: GO.surah + ' ' + sName(s), href: BOOK + '#p=' + pageOf(s, 1) }); });
+    return out;
+  }
+  function placesBlock(raw) {
+    var ps = places(raw);
+    if (!ps.length) return null;
+    var box = document.createElement('div');
+    box.className = 'lt-ssite';
+    box.innerHTML = '<div class="lt-sgrp">' + esc(GO.go) + '</div>';
+    ps.forEach(function (p) {
+      var a = document.createElement('a'); a.className = 'lt-sres lt-sgo'; a.href = p.href;
+      a.innerHTML = '<div class="lt-sref" style="margin:0">' + esc(p.label) + '</div>';
+      a.addEventListener('click', function () {
+        close();
+        var u = new URL(a.href, location.href);
+        if (u.pathname === location.pathname) { setTimeout(function () { window.dispatchEvent(new HashChangeEvent('hashchange')); }, 0); }
+      });
+      box.appendChild(a);
+    });
+    return box;
+  }
+  // results shown: a place to go to first, then the site's, then the Quran's
   function showResults(q, words) {
     body.innerHTML = '';
+    var gb = placesBlock(input.value);
+    if (gb) body.appendChild(gb);
     var sb = siteBlock(input.value);
     if (sb) body.appendChild(sb);
     if (!lastHits.length) {
-      if (!sb) body.innerHTML = '<div class="lt-snote">' + esc(T.none) + '</div>';
+      if (!sb && !gb) body.innerHTML = '<div class="lt-snote">' + esc(T.none) + '</div>';
       return;
     }
     var head = document.createElement('div');
@@ -211,7 +270,7 @@
     if (need) body.innerHTML = '<div class="lt-snote">' + esc(T.loading) + '</div>';
     return Promise.all([load(), loadSite()]).then(function () { return mode === 'tr' ? loadTr() : null; });
   }
-  function hint() { body.innerHTML = '<div class="lt-snote">' + esc(mode === 'tr' ? T.hintTr : T.hint) + (T.arOnly ? '<br>' + esc(T.arOnly) : '') + '</div>'; }
+  function hint() { body.innerHTML = '<div class="lt-snote" style="white-space:pre-line;line-height:1.9">' + esc(mode === 'tr' ? T.hintTr : T.hint) + (T.arOnly ? '<br>' + esc(T.arOnly) : '') + '</div>'; }
   function open() {
     if (!ov) build();
     ov.classList.add('on');
@@ -226,7 +285,10 @@
     if (!data) return;
     if (mode === 'tr') return runTr();
     var q = cleanQuery(input.value);
-    if (q.replace(/\s/g, '').length < 2) { hint(); return; }
+    if (q.replace(/\s/g, '').length < 2) {
+      if (places(input.value).length) { lastHits = []; shown = 0; showResults(q, []); return; }   // a page or 2:255
+      hint(); return;
+    }
     var words = q.split(' ');
     var phrase = [], all = [];
     for (var i = 0; i < folded.length; i++) {
