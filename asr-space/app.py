@@ -312,7 +312,8 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         # left out)
         if append and sid not in _sess: raise HTTPException(409, "resend the whole stretch")
         if append: wav = np.concatenate([_sess[sid]["pcm"], wav])
-        _sess[sid] = {"pcm": wav, "t": now}
+        keep = {k_: v_ for k_, v_ in (_sess.get(sid) or {}).items() if k_.startswith("lead_")} if append else {}
+        _sess[sid] = dict(keep, pcm=wav, t=now)     # what was found of the words before the start: asked once a stretch
         if final: _sess.pop(sid, None)
     dur = len(wav) / SR
     if dur > 30: raise HTTPException(413, "audio too long (30 s at most per stretch)")
