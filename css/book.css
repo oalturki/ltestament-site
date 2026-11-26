@@ -2170,3 +2170,27 @@ html body.bk-mob.bk-short.bk-living .bk-mlive{ height:76px !important; padding-b
 .hq-kr button{ padding:4px 10px; font-size:12.5px; }
 .hq-pend{ color:#a07400; font-weight:700; }
 .hq-temp{ margin:4px 0 10px; }
+
+/* search and settings set apart (Othman 2026-11-26, option «أ»): two boxed buttons at the row's ends, the ornamented
+   band between them for the page's facts only (its curved ends a little shorter, so the facts keep their room) */
+body.bk-hdr .bk-hdr2{ border-width:0 !important; border-image:none !important; padding:0 56px !important; gap:2px !important; isolation:isolate; }
+body.bk-hdr .bk-hdr2::before{ content:''; position:absolute; top:0; bottom:0; left:34px; right:34px; z-index:-1; pointer-events:none;
+  border-style:solid; border-color:transparent; border-width:0 24px; border-image:url(/img/hdr-band.svg) 0 1080 fill / 0 24px stretch; }
+body.bk-hdr .bk-hdr2 .bk-h2b{ width:30px !important; height:34px !important; padding:0 !important; border:1.5px solid #c9a240 !important; border-radius:10px !important;
+  background:#fbf8ef !important; color:#8a6a1f !important; box-sizing:border-box; }
+body.bk-hdr .bk-hdr2 .bk-h2s{ right:0 !important; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:0 !important; }
+body.bk-hdr .bk-hdr2 .bk-h2b svg{ width:18px !important; height:18px !important; }
+body.bk-hdr .bk-hdr2 .bk-h2u{ min-width:0; }
+body.bk-night.bk-hdr .bk-hdr2 .bk-h2b{ background:#1d2638 !important; border-color:#9a7a2a !important; color:#d9b45a !important; }
+/* the facts a little tighter, so they fit between the two buttons on a phone */
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot{ padding:0 2px !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ width:4px; height:4px; margin-inline-start:2px; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12.5px !important; }
+body.bk-hdr .bk-hdr2 .bk-h2c{ font-size:12.5px !important; }
+/* with the two buttons outside the band: the surah's and the juz's glyphs a step smaller (they keep their own fonts) */
+.bk-hdr2 .bk-h2k.hs{ font-size:23px; } .bk-hdr2 .bk-h2jw{ width:30px; height:19px; } .bk-hdr2 .bk-h2jn{ font-size:15px; }
+@media (max-width:389px){ .bk-hdr2 .bk-h2k.hs{ font-size:20px; } .bk-hdr2 .bk-h2jw{ width:26px; height:17px; } .bk-hdr2 .bk-h2jn{ font-size:14px; gap:2px; }
+  html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ font-size:12px !important; } }
+body.bk-hdr .bk-hdr2{ padding:0 49px !important; gap:1px !important; }
+body.bk-hdr .bk-hdr2::before{ left:32px; right:32px; border-width:0 18px; border-image-width:0 18px; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot{ padding:0 1px !important; }
