@@ -582,7 +582,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     # said again, not something else), nor before the stretch's first word when an isti'adha or basmala was set aside,
     # nor after the passage's last word (آمين), nor where the words due next are what is there
     gap_other = None
-    if final and other is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
+    if final and other is None and back is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
         try:
             gap_other = speech_between(spans, hyp, heard, exp, where, surah, wav)
             if gap_other: other = gap_other
@@ -610,7 +610,8 @@ HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}
 
 
-GAP_SOUNDS = int(os.environ.get("GAP_SOUNDS", "5"))   # different sounds heard in a stretch no word due covers: something else said
+GAP_SOUNDS = int(os.environ.get("GAP_SOUNDS", "8"))   # different sounds heard in a stretch no word due covers: something else said
+GAP_SEC = float(os.environ.get("GAP_SEC", "1.2"))      # and that stretch at least this long (test set: other speech 3.3 s and more)
 
 
 def speech_between(spans, hyp, heard, exp, where, surah, wav):
@@ -619,10 +620,11 @@ def speech_between(spans, hyp, heard, exp, where, surah, wav):
     sp = sorted((v[0], v[1], k) for k, v in spans.items() if isinstance(k, int))
     if len(sp) < 1: return None
     ks = [k for _, _, k in sp]
-    # went back over words: the words heard right outnumber the words due here
-    due_sk = [skeleton(w) for w in exp[ks[0]:ks[-1] + 2]]
-    matched = sum(1 for w in hyp if any(edit_ratio(skeleton(w), d) >= 0.6 for d in due_sk))
-    if matched > len(due_sk): return None
+    # went back over words (a verse said again): the words heard that are words of the passage around here outnumber
+    # the words laid on the audio — then what no word covers is that, said again
+    near_sk = [skeleton(w) for w in exp[max(0, ks[0] - 12):ks[-1] + 3]]
+    matched = sum(1 for w in hyp if any(edit_ratio(skeleton(w), d) >= 0.75 for d in near_sk))
+    if matched > ks[-1] - ks[0] + 1: return None
     T = lp.shape[0]
     am = lp.argmax(1)
     def sounds(a, b):
@@ -648,7 +650,7 @@ def speech_between(spans, hyp, heard, exp, where, surah, wav):
     if ks[-1] + 1 < len(exp): gaps.append((sp[-1][1] + 1, T, ks[-1] + 1, ks[-1]))
     fs = (len(wav) / SR + 0.8) / T
     for a, b, k_next, k_prev in gaps:
-        if (b - a) * fs < 0.6: continue
+        if (b - a) * fs < GAP_SEC: continue
         s_ = sounds(a, b)
         near_ = set()
         if k_prev is not None: near_ |= set(ph_ids(k_prev)[-2:])
