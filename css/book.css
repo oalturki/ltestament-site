@@ -2194,3 +2194,10 @@ body.bk-hdr .bk-hdr2 .bk-h2c{ font-size:12.5px !important; }
 body.bk-hdr .bk-hdr2{ padding:0 49px !important; gap:1px !important; }
 body.bk-hdr .bk-hdr2::before{ left:32px; right:32px; border-width:0 18px; border-image-width:0 18px; }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot{ padding:0 1px !important; }
+/* one light frame around the whole row: the two buttons and the band together (Othman 2026-11-26) */
+body.bk-hdr .bk-hdr2{ border:1px solid rgba(201,162,64,.55) !important; border-radius:12px !important; background:rgba(251,248,239,.55) !important; box-sizing:border-box; }
+body.bk-hdr .bk-hdr2 .bk-h2b{ width:28px !important; height:32px !important; }
+body.bk-hdr .bk-hdr2 .bk-h2s{ right:3px !important; } body.bk-hdr .bk-hdr2 .bk-h2g{ left:3px !important; }
+body.bk-hdr .bk-hdr2::before{ left:33px; right:33px; }
+body.bk-hdr .bk-hdr2{ padding:0 50px !important; gap:0 !important; }
+body.bk-night.bk-hdr .bk-hdr2{ border-color:rgba(154,122,42,.6) !important; background:rgba(29,38,56,.5) !important; }
