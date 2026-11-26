@@ -34,13 +34,20 @@
   function load() {
     return Promise.all([
       S.c.from('rec_clips').select('*, rec_consents(age_band, sex, level)').order('created_at'),
-      S.c.from('rec_evals').select('id, clip_id, engine, detected, false_alarms, unreached, result, created_at').order('created_at')
+      S.c.from('rec_evals').select('id, clip_id, engine, detected, false_alarms, unreached, result, created_at').order('created_at'),
+      S.c.rpc('rec_reader_names')   // who recorded each clip: the profile's name, or «دعوة: …» for an invite
     ]).then(function (r) {
       if (r[0].error) throw r[0].error; if (r[1].error) throw r[1].error;
-      S.clips = r[0].data; S.evals = {};
+      S.clips = r[0].data; S.evals = {}; S.names = {};
+      (r[2].data || []).forEach(function (n) { S.names[n.clip_id] = n.reader; });
       r[1].data.forEach(function (e) { (S.evals[e.clip_id] = S.evals[e.clip_id] || []).push(e); });
       draw();
     });
+  }
+  // the recording's day and time, Riyadh time, Latin digits: «2026-11-21 19:11»
+  function when(t) {
+    var d = new Date(new Date(t).getTime() + 3 * 3600e3).toISOString();
+    return d.slice(0, 10) + ' ' + d.slice(11, 16);
   }
   function last(clip) { var l = (S.evals[clip.id] || []).filter(function (e) { return e.engine === ENGINE; }); return l[l.length - 1]; }
 
@@ -63,7 +70,7 @@
       rows.map(function (c) {
         var e = last(c), k = c.rec_consents || {};
         var det = !e ? '' : e.detected === true ? '<span class="ev-y">✓</span>' : e.detected === false ? '<span class="ev-n">✗</span>' : '—';
-        return '<tr data-id="' + c.id + '"><td>' + esc(c.task) + '</td><td>' + esc((k.age_band || '') + ' ' + (k.sex || '')) + '</td>' +
+        return '<tr data-id="' + c.id + '"><td>' + esc(c.task) + '</td><td>' + esc(S.names[c.id] || '') + '<br><small>' + esc(when(c.created_at)) + '</small></td>' +
           '<td>' + KIND[c.kind] + (c.done_as_asked === false ? ' <small>(لم يُنفَّذ)</small>' : '') + '</td><td>' + det + '</td>' +
           '<td>' + (e ? num(e.false_alarms) : '') + '</td><td>' + (e ? num(e.unreached) : '') + '</td>' +
           '<td class="ev-said">' + (e ? said(e.result) : '') + '</td><td><button class="rc-link ev-play">▶</button> <button class="rc-link ev-one">قِس</button></td></tr>';
