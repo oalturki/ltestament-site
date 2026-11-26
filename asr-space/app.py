@@ -583,13 +583,13 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     # nor after the passage's last word (آمين), nor where the words due next are what is there
     gap_other = None
     if final and other is None and not words and not seek and pos < len(exp) and dur >= GAP_SEC \
-            and os.environ.get("GAP_CHECK", "1") == "1" and ctc_model() is not None:
+            and os.environ.get("GAP_CHECK", "0") == "1" and ctc_model() is not None:
         try:
             gap_other = other_alone(wav, surah, where, exp, pos)
             if gap_other: other = gap_other; nxt = pos
         except Exception as e:
             gap_other = {"err": f"{type(e).__name__}: {e}"[:200]}
-    elif final and other is None and back is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
+    elif final and other is None and back is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "0") == "1":
         try:
             gap_other = speech_between(spans, hyp, heard, exp, where, surah, wav)
             if gap_other: other = gap_other
@@ -617,6 +617,9 @@ HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}
 
 
+# OFF by default (GAP_CHECK=1 to try it): measured 27 Nov 2026 on the test set (engines l–o) it found no other speech the
+# transcription missed in the live flow (kawthar-other, ikhlas-other stayed missed) and raised false alarms on a verse said
+# again (nas-repeat: 3 words wrongly marked, 16 unreached). Kept for the next attempt.
 GAP_SOUNDS = int(os.environ.get("GAP_SOUNDS", "8"))   # different sounds heard in a stretch no word due covers: something else said
 GAP_SEC = float(os.environ.get("GAP_SEC", "1.2"))      # and that stretch at least this long (test set: other speech 3.3 s and more)
 
