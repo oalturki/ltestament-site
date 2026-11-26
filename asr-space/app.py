@@ -347,7 +347,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     hyp = words_of(heard, pos)
     # "recite from anywhere": nothing recited yet in this passage, and the reader did not begin at its first word —
     # find where he began, and go on from there
-    sought, led, report_pos = None, [], None
+    sought, led, report_pos, lead_try = None, [], None, {}
 
     def said_before(o):
         # the passage's first o words, looked for by their sounds at the start of the stretch: {k: score} when all are
@@ -363,6 +363,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         ok_ = n_ >= o and all(f_.get(k, -20) > CTC_LEAD_MIN for k in range(o)) \
             and float(np.mean([f_[k] for k in range(o)])) >= CTC_OK
         res_ = {k: f_[k] for k in range(o)} if ok_ else None
+        lead_try.update({"o": o, "n": n_, "fit": f_})       # what was found, told back (the measure keeps it)
         if s_ is not None: s_["lead_o"], s_["lead_fit"] = o, res_
         return res_
     if seek and pos == 0 and hyp:
@@ -574,7 +575,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     return {"pos": pos if report_pos is None else report_pos, "next": nxt, "final": final, "heard": heard,
             "words": led + words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened,
-            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None, "led": len(led)}
+            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None, "led": len(led), "lead_try": lead_try or None}
 
 
 # ---- constrained check (المطابقة المقيّدة), step 2 of «منهجية نظام التسميع الذكي». The text is known: instead of asking
