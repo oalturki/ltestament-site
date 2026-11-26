@@ -347,12 +347,39 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     hyp = words_of(heard, pos)
     # "recite from anywhere": nothing recited yet in this passage, and the reader did not begin at its first word —
     # find where he began, and go on from there
-    sought = None
+    sought, led, report_pos = None, [], None
+
+    def said_before(o):
+        # the passage's first o words, looked for by their sounds at the start of the stretch: {k: score} when all are
+        # there (each a little below «said» at worst, none «not said»), else None. Kept for the session: asked once
+        if o > 16 or os.environ.get("CTC_CHECK", "1") != "1" or ctc_model() is None: return None
+        s_ = _sess.get(sid) if sid else None
+        if s_ is not None and s_.get("lead_o") == o: return s_["lead_fit"]
+        try:
+            wl = ctc_phonemes(surah, where, list(range(o)), waqf_last=False)
+            n_, f_ = ctc_prefix(ctc_lp(wav), wl) if wl else (0, {})
+        except Exception:
+            return None
+        ok_ = n_ >= o and all(f_.get(k, -20) > CTC_LEAD_MIN for k in range(o)) \
+            and float(np.mean([f_[k] for k in range(o)])) >= CTC_OK
+        res_ = {k: f_[k] for k in range(o)} if ok_ else None
+        if s_ is not None: s_["lead_o"], s_["lead_fit"] = o, res_
+        return res_
     if seek and pos == 0 and hyp:
         first_ok = len(exp) and edit_ratio(skeleton(exp[0]), skeleton(hyp[0])) >= 0.6
         if not first_ok:
             o = seek_start(exp, hyp)
-            if o: pos, sought = o, o
+            if o:
+                # the words before where the transcription placed him may have been said and not heard (a basmala said
+                # low, Al-Fatiha 1): their sounds are looked for in the audio. All there: he began at the first word
+                # (they are judged by their sounds, the rest as usual); not there: he began further on
+                lead_fit = said_before(o)
+                if lead_fit:
+                    led = [{"k": k, "ayah": where[k][0], "i": where[k][1], "text": exp[k], "fit": lead_fit[k],
+                            "status": "ok" if lead_fit[k] >= CTC_OK else "unclear", "led": True} for k in range(o)]
+                    pos, report_pos = o, 0
+                else:
+                    pos, sought = o, o
             elif len(hyp) < 8:
                 # the transcription could not place it (a voice not clear, «ما يسقصي الله يفرح»): the sounds of the
                 # passage's first words are looked for in the audio itself. Found: those words are judged by them.
@@ -544,9 +571,10 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                         run_ = []
         except Exception as e:
             fit = {"err": f"{type(e).__name__}: {e}"[:200]}
-    return {"pos": pos, "next": nxt, "final": final, "heard": heard, "words": words, "seconds": round(dur, 2),
+    return {"pos": pos if report_pos is None else report_pos, "next": nxt, "final": final, "heard": heard,
+            "words": led + words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened,
-            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None}
+            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None, "led": len(led)}
 
 
 # ---- constrained check (المطابقة المقيّدة), step 2 of «منهجية نظام التسميع الذكي». The text is known: instead of asking
@@ -558,6 +586,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
 # sounds are there is right; a word left out or changed has no good place for its sounds.
 PHON = json.load(open(os.path.join(os.path.dirname(__file__), "phon-simple.json"), encoding="utf-8"))
 CTC_OK = float(os.environ.get("CTC_OK", "-1.5"))     # a word whose score is at least this was said
+CTC_LEAD_MIN = float(os.environ.get("CTC_LEAD_MIN", "-3.5"))   # words before where he began: each at least this, to count as said
 CTC_BAD = float(os.environ.get("CTC_BAD", "-6"))     # at most this: its sounds are not in the audio (test set: said -3.7 at worst, left out -7.9 and below)
 HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}

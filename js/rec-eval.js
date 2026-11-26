@@ -5,7 +5,7 @@
    Measures: detected (the planned mistake found), false alarms (words said right marked wrong), unreached (words the
    check never got to), and on the tajweed tasks the tajweed notes on the target word and elsewhere. */
 (function () {
-  var ENGINE = 'live-2026-11-22j';   // b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again; d: constrained check (word sounds laid on the audio); e: a word whose sounds are absent is left out, or other speech; f: other speech judged over the whole run, by word pairs; g: a word heard as no Quran word, its sounds unsure, is «not understood»; h: the first words found by their sounds when the transcription cannot place them, else «not clear»
+  var ENGINE = 'live-2026-11-26k';   // k: the words before where the transcription placed the start (a basmala said low) looked for by their sounds; b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again; d: constrained check (word sounds laid on the audio); e: a word whose sounds are absent is left out, or other speech; f: other speech judged over the whole run, by word pairs; g: a word heard as no Quran word, its sounds unsure, is «not understood»; h: the first words found by their sounds when the transcription cannot place them, else «not clear»
   var app = document.getElementById('evApp');
   var AR = '٠١٢٣٤٥٦٧٨٩', num = function (n) { return String(n).replace(/[0-9]/g, function (d) { return AR[d]; }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -83,13 +83,20 @@
       b.onclick = function () { run(S.clips.filter(function (c) { return c.id === b.closest('tr').dataset.id; })); };
     });
     app.querySelectorAll('.ev-play').forEach(function (b) {
+      // ▶ plays the clip; pressed again while it plays (■), it stops. Another clip's ▶ stops the one playing
       b.onclick = function () {
+        var stop = function () { if (S.audio) { S.audio.pause(); S.audio = null; } if (S.playBtn) S.playBtn.textContent = '▶'; S.playBtn = null; };
+        if (S.playBtn === b) return stop();
+        stop();
         var c = S.clips.filter(function (x) { return x.id === b.closest('tr').dataset.id; })[0];
+        S.playBtn = b; b.textContent = '■';
         S.c.storage.from('recitations').download(c.path).then(function (r) {
           if (r.error) throw r.error;
-          if (S.audio) S.audio.pause();
-          S.audio = new Audio(URL.createObjectURL(r.data)); S.audio.play();
-        });
+          if (S.playBtn !== b) return;
+          var a = S.audio = new Audio(URL.createObjectURL(r.data));
+          a.onended = function () { if (S.audio === a) stop(); };
+          a.play();
+        }).catch(function () { if (S.playBtn === b) stop(); });
       };
     });
   }
