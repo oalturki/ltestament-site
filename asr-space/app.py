@@ -637,8 +637,11 @@ def speech_between(spans, hyp, heard, exp, where, surah, wav):
         ph = (ay[i] if i < len(ay) and ay[i] else "").replace(" ", "")
         return [_cx["id"].get(c) for c in ph if _cx["id"].get(c)]
     stripped = len(heard.split(" ‖ ")[0].split()) > len(hyp) if hyp else False
+    # before the first word: not when what was heard there is words of the passage said before it (said again)
+    before_sk = [skeleton(w) for w in exp[max(0, ks[0] - 12):ks[0]]]
+    said_before = any(edit_ratio(skeleton(w), d) >= 0.6 for w in hyp[:4] for d in before_sk)
     gaps = []
-    if not stripped: gaps.append((0, sp[0][0], ks[0], None))
+    if not stripped and not said_before: gaps.append((0, sp[0][0], ks[0], None))
     for (a0, a1, ka), (b0, b1, kb) in zip(sp, sp[1:]):
         gaps.append((a1 + 1, b0, kb, ka))
     if ks[-1] + 1 < len(exp): gaps.append((sp[-1][1] + 1, T, ks[-1] + 1, ks[-1]))
