@@ -2201,3 +2201,8 @@ body.bk-hdr .bk-hdr2 .bk-h2s{ right:3px !important; } body.bk-hdr .bk-hdr2 .bk-h
 body.bk-hdr .bk-hdr2::before{ left:33px; right:33px; }
 body.bk-hdr .bk-hdr2{ padding:0 50px !important; gap:0 !important; }
 body.bk-night.bk-hdr .bk-hdr2{ border-color:rgba(154,122,42,.6) !important; background:rgba(29,38,56,.5) !important; }
+/* the band's own thin teal line becomes the row's frame, around the buttons too; the band keeps its red frame and
+   ornament, around the middle alone (Othman 2026-11-26) */
+body.bk-hdr .bk-hdr2::before{ border-image-source:url(/img/hdr-band-in.svg); }
+body.bk-hdr .bk-hdr2{ border:1.5px solid #2ca4ab !important; border-radius:9px !important; background:#fbf8ef !important; }
+body.bk-night.bk-hdr .bk-hdr2{ border-color:#2f9a9a !important; background:#1a2230 !important; }
