@@ -633,8 +633,13 @@ def said_again(lp, surah, where, k_prev):
     for ks_ in tries:
         wl = ctc_phonemes(surah, where, ks_[-6:], waqf_last=False)
         if not wl: continue
-        f_ = ctc_words(lp, wl)
-        if f_ and float(np.mean(list(f_.values()))) >= CTC_OK: return True
+        sp_ = {}
+        f_ = ctc_words(lp, wl, sp_)
+        if not f_ or float(np.mean(list(f_.values()))) < CTC_OK: continue
+        # and those words fill most of it: a short verse («الله الصمد») finds a place for its few sounds in almost any
+        # speech, so laid on «انتظر قليلًا» it fits well but covers a small part of it
+        t0_ = min(v[0] for v in sp_.values()); t1_ = max(v[1] for v in sp_.values())
+        if (t1_ - t0_ + 1) >= 0.6 * lp.shape[0]: return True
     return False
 
 
