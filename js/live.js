@@ -298,7 +298,7 @@
       if (release) dropMic(); else releaseMic();
       o.onLevel(0);
       var drain = function () {
-        if (r0.busy || r0.queue.length) { pump(); return setTimeout(drain, 300); }
+        if (r0.busy || r0.queue.length) { pump(); return (o.tick || setTimeout)(drain, 300); }   // o.tick: the measure's own timer (a hidden tab slows setTimeout)
         if (R === r0) R = null;
         LiveRecite.active = false;
         o.onState('stopped');

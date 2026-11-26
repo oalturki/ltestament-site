@@ -139,6 +139,24 @@
     return { rate: rate, x: x };
   }
 
+  // the pace of the blocks: a timer in a worker — a page whose tab is hidden has its own timers slowed to one a second
+  // and then one a minute, which stalls the measure (a clip took twenty minutes)
+  var tick = (function () {
+    var w = null, fn = null;
+    try {
+      w = new Worker(URL.createObjectURL(new Blob(['onmessage=function(e){setTimeout(function(){postMessage(0)},e.data)}'], { type: 'text/javascript' })));
+      w.onmessage = function () { var f = fn; fn = null; if (f) f(); };
+    } catch (e) { w = null; }
+    return function (f, ms) { if (!w) return setTimeout(f, ms); fn = f; w.postMessage(ms); };
+  })();
+  var tick2 = (function () {
+    var w = null, fn = null;
+    try {
+      w = new Worker(URL.createObjectURL(new Blob(['onmessage=function(e){setTimeout(function(){postMessage(0)},e.data)}'], { type: 'text/javascript' })));
+      w.onmessage = function () { var f = fn; fn = null; if (f) f(); };
+    } catch (e) { w = null; }
+    return function (f, ms) { if (!w) return setTimeout(f, ms); fn = f; w.postMessage(ms); };
+  })();
   function measure(c) {
     var P = S.data.passages[(S.data.tasks.filter(function (t) { return t.id === c.task; })[0] || {}).p] || {};
     var t0 = Date.now();
@@ -175,6 +193,7 @@
                 });
               });
             },
+            tick: function (f, ms) { tick2(f, ms); },
             onState: function (st) { if (st === 'stopped') ok(); }
           });
           L.start();
@@ -184,10 +203,10 @@
             if (k < a.x.length) { L.feed(a.x.slice(k, k + B)); k += B; }
             else if (tail-- > 0) L.feed(sil);
             else return L.stop(true);
-            setTimeout(step, 1000 * B / a.rate / S.speed);
+            tick(step, 1000 * B / a.rate / S.speed);
           };
           step();
-        }).then(function () { return new Promise(function (ok) { setTimeout(ok, TJ[c.kind] ? 6000 : 300); }); }).then(function () {
+        }).then(function () { return new Promise(function (ok) { tick(ok, TJ[c.kind] ? 6000 : 300); }); }).then(function () {
           // every word of the passage, from the lexicon (the engine numbers words like the Mushaf)
           var words = Object.keys(L0).filter(function (loc) { var q = loc.split(':'); return +q[1] >= c.ayah && +q[1] <= c.ayah_to; });
           var inTarget = function (loc) {
