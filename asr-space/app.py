@@ -526,7 +526,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                 pass
     # the constrained check: a word the transcription called wrong, missing or unclear whose sounds are all there in
     # the audio, in order with its neighbours, was said (the transcription misheard it)
-    fit, verified = {}, 0
+    fit, verified, spans = {}, 0, {}
     if final and words and os.environ.get("CTC_CHECK", "1") == "1":
         try:
             # the words laid on the audio include a verse taken as passed over: the transcription may have missed a
@@ -534,7 +534,7 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
             said_ks = sorted({w["k"] for w in words})
             if said_ks and said_ks[-1] - said_ks[0] < 80:
                 ks = list(range(said_ks[0], said_ks[-1] + 1))
-                fit = ctc_check(wav, surah, where, ks)
+                fit = ctc_check(wav, surah, where, ks, spans)
                 unskip = set()
                 for n_, w in enumerate(words):
                     f_ = fit.get(w["k"])
@@ -575,10 +575,23 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
                         run_ = []
         except Exception as e:
             fit = {"err": f"{type(e).__name__}: {e}"[:200]}
+    # other words the transcription did not write at all (a Quran model hears «انتظر قليلًا» as nothing, or as «والنار»):
+    # the words due laid on the audio leave a stretch of it to none of them, and in it the sounds of something said
+    # (many different sounds — not a madd let run on, not a breath). Not when the reader went back over words (that is
+    # said again, not something else), nor before the stretch's first word when an isti'adha or basmala was set aside,
+    # nor after the passage's last word (آمين), nor where the words due next are what is there
+    gap_other = None
+    if final and other is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
+        try:
+            gap_other = speech_between(spans, hyp, heard, exp, where, surah, wav)
+            if gap_other: other = gap_other
+        except Exception as e:
+            gap_other = {"err": f"{type(e).__name__}: {e}"[:200]}
     return {"pos": pos if report_pos is None else report_pos, "next": nxt, "final": final, "heard": heard,
             "words": led + words, "seconds": round(dur, 2),
             "ms": int((time.time() - t0) * 1000), "sought": sought, "back": back, "skipped": len(skipped), "relistened": relistened,
-            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None, "led": len(led), "lead_try": lead_try or None}
+            "verified": verified, "fit": fit, "level": speech_level(wav), "other": other if final else None, "led": len(led), "lead_try": lead_try or None,
+            "gap": gap_other}
 
 
 # ---- constrained check (المطابقة المقيّدة), step 2 of «منهجية نظام التسميع الذكي». The text is known: instead of asking
@@ -594,6 +607,57 @@ CTC_LEAD_MIN = float(os.environ.get("CTC_LEAD_MIN", "-3.5"))   # words before wh
 CTC_BAD = float(os.environ.get("CTC_BAD", "-6"))     # at most this: its sounds are not in the audio (test set: said -3.7 at worst, left out -7.9 and below)
 HARAKA = set("\u064e\u064f\u0650")
 _cx = {"sess": None, "meta": None, "fe": None, "err": None}
+
+
+GAP_SOUNDS = int(os.environ.get("GAP_SOUNDS", "5"))   # different sounds heard in a stretch no word due covers: something else said
+
+
+def speech_between(spans, hyp, heard, exp, where, surah, wav):
+    """{"k", "text", "by": "gap", "sounds"} for something else said between (or around) the words due, else None"""
+    lp = spans.pop("_lp")
+    sp = sorted((v[0], v[1], k) for k, v in spans.items() if isinstance(k, int))
+    if len(sp) < 1: return None
+    ks = [k for _, _, k in sp]
+    # went back over words: the words heard right outnumber the words due here
+    due_sk = [skeleton(w) for w in exp[ks[0]:ks[-1] + 2]]
+    matched = sum(1 for w in hyp if any(edit_ratio(skeleton(w), d) >= 0.6 for d in due_sk))
+    if matched > len(due_sk): return None
+    T = lp.shape[0]
+    am = lp.argmax(1)
+    def sounds(a, b):
+        out, prev = [], 0
+        for t in range(max(0, a), min(T, b)):
+            x = int(am[t])
+            if x != 0 and x != prev: out.append(x)
+            prev = x
+        return out
+    def ph_ids(k):
+        a, i = where[k]
+        ay = (PHON.get(str(surah)) or [])[a - 1] if a - 1 < len(PHON.get(str(surah)) or []) else []
+        ph = (ay[i] if i < len(ay) and ay[i] else "").replace(" ", "")
+        return [_cx["id"].get(c) for c in ph if _cx["id"].get(c)]
+    stripped = len(heard.split(" ‖ ")[0].split()) > len(hyp) if hyp else False
+    gaps = []
+    if not stripped: gaps.append((0, sp[0][0], ks[0], None))
+    for (a0, a1, ka), (b0, b1, kb) in zip(sp, sp[1:]):
+        gaps.append((a1 + 1, b0, kb, ka))
+    if ks[-1] + 1 < len(exp): gaps.append((sp[-1][1] + 1, T, ks[-1] + 1, ks[-1]))
+    fs = (len(wav) / SR + 0.8) / T
+    for a, b, k_next, k_prev in gaps:
+        if (b - a) * fs < 0.6: continue
+        s_ = sounds(a, b)
+        near_ = set()
+        if k_prev is not None: near_ |= set(ph_ids(k_prev)[-2:])
+        if k_next < len(exp): near_ |= set(ph_ids(k_next)[:2])
+        s_ = [x for x in s_ if x not in near_]
+        if len(set(s_)) < GAP_SOUNDS: continue
+        # after the last word: is it the words due next (the transcription let them go)? their sounds there settle it
+        if b == T and k_next < len(exp):
+            nxt_w = ctc_phonemes(surah, where, list(range(k_next, min(len(exp), k_next + 3))), waqf_last=False)
+            f_ = ctc_words(lp[a:b], nxt_w) if nxt_w else {}
+            if f_ and float(np.mean(list(f_.values()))) >= CTC_OK: continue
+        return {"k": k_next, "text": "", "by": "gap", "sounds": len(s_), "sec": round((b - a) * fs, 2)}
+    return None
 
 
 def speech_level(wav):
@@ -631,9 +695,10 @@ def ctc_lp(wav):
     return _cx["sess"].run(None, {"mel": mel[None].astype(np.float32), "riwaya": np.array([0], np.int64)})[0][0]
 
 
-def ctc_words(lp, words):
+def ctc_words(lp, words, spans=None):
     """words: [(key, phonemes)]. The words laid along the audio in order (CTC Viterbi, start and end free).
-    Returns {key: score} (mean over a word's sounds of the log-probability at its best frame)."""
+    Returns {key: score} (mean over a word's sounds of the log-probability at its best frame). spans (a dict), when
+    given, gets each word's first and last frame on that path: {key: [t0, t1]}."""
     ids, owner = [], []
     for key, ph in words:
         prev = None
@@ -669,6 +734,8 @@ def ctc_words(lp, words):
         if ext[s_] != 0:
             u = (s_ - 1) // 2
             best[u] = max(best.get(u, NEG), float(lp[t, ext[s_]]))
+            if spans is not None:
+                sp = spans.setdefault(owner[u], [t, t]); sp[0] = min(sp[0], t); sp[1] = max(sp[1], t)
         k = bp[t, s_]
         if k == 3: break
         s_ -= int(k); t -= 1
@@ -751,7 +818,7 @@ def ctc_phonemes(surah, where, ks, waqf_last=True):
     return words
 
 
-def ctc_check(wav, surah, where, ks):
+def ctc_check(wav, surah, where, ks, spans=None):
     """the scores of the passage's words ks (in order) in this audio; the last one said as the reader stops (waqf)"""
     if ctc_model() is None: return {}
     ph_s = PHON.get(str(surah))
@@ -766,7 +833,9 @@ def ctc_check(wav, surah, where, ks):
             while ph and ph[-1] in HARAKA: ph = ph[:-1]
         words.append((k, ph))
     if not words: return {}
-    return ctc_words(ctc_lp(wav), words)
+    lp = ctc_lp(wav)
+    if spans is not None: spans["_lp"] = lp
+    return ctc_words(lp, words, spans)
 
 
 # ---- tajweed notes (the tajweed Mushaf only: the ordinary Mushaf's check is about the memorising, this one about
