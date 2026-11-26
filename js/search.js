@@ -244,7 +244,8 @@
     ov.innerHTML = '<div class="lt-sbox" dir="' + (RTL ? 'rtl' : 'ltr') + '"><div class="lt-shead">' +
       '<input class="lt-sin" type="search" dir="rtl" lang="ar" autocomplete="off" placeholder="' + esc(T.ph) + '">' +
       '<button class="lt-sx" type="button" aria-label="' + esc(T.close) + '">×</button></div>' +
-      (TRKEY ? '<div class="lt-stabs"><button type="button" data-m="tr">' + esc(T.tabTr) + '</button><button type="button" data-m="ar">' + esc(T.tabAr) + '</button></div>' : '') +
+      (TRKEY ? '<div class="lt-stabs"><button type="button" data-m="tr">' + esc(T.tabTr) + '</button><button type="button" data-m="ar">' + esc(T.tabAr) + '</button></div>' :
+       TOPICS ? '<div class="lt-stabs"><button type="button" data-m="ar">' + esc(T.tabAr) + '</button><button type="button" data-m="tp">' + esc(TP.tab) + '</button></div>' : '') +
       '<div class="lt-sbody"></div></div>';
     document.body.appendChild(ov);
     input = ov.querySelector('.lt-sin'); body = ov.querySelector('.lt-sbody');
@@ -260,7 +261,7 @@
     mode = m;
     ov.querySelectorAll('.lt-stabs button').forEach(function (b) { b.classList.toggle('on', b.dataset.m === m); });
     var tr = m === 'tr';
-    input.placeholder = tr ? T.phTr : T.ph;
+    input.placeholder = m === 'tp' ? TP.ph : tr ? T.phTr : T.ph;
     input.dir = tr && !RTL ? 'ltr' : 'rtl';
     input.lang = tr ? LANG : 'ar';
     ensure().then(function () { if (input.value.trim()) run(); else hint(); }, function () { body.innerHTML = '<div class="lt-snote">' + esc(T.err) + '</div>'; });
@@ -268,9 +269,11 @@
   function ensure() {
     var need = !data || (mode === 'tr' && !trData);
     if (need) body.innerHTML = '<div class="lt-snote">' + esc(T.loading) + '</div>';
-    return Promise.all([load(), loadSite()]).then(function () { return mode === 'tr' ? loadTr() : null; });
+    if (mode === 'tp' && !tp) body.innerHTML = '<div class="lt-snote">' + esc(T.loading) + '</div>';
+    return Promise.all([load(), loadSite()]).then(function () { return mode === 'tr' ? loadTr() : mode === 'tp' ? loadTopics() : null; });
   }
-  function hint() { body.innerHTML = '<div class="lt-snote" style="white-space:pre-line;line-height:1.9">' + esc(mode === 'tr' ? T.hintTr : T.hint) + (T.arOnly ? '<br>' + esc(T.arOnly) : '') + '</div>'; }
+  function hint() {
+    if (mode === 'tp') return tpHome(); body.innerHTML = '<div class="lt-snote" style="white-space:pre-line;line-height:1.9">' + esc(mode === 'tr' ? T.hintTr : T.hint) + (T.arOnly ? '<br>' + esc(T.arOnly) : '') + '</div>'; }
   function open() {
     if (!ov) build();
     ov.classList.add('on');
@@ -284,6 +287,7 @@
   function run() {
     if (!data) return;
     if (mode === 'tr') return runTr();
+    if (mode === 'tp') return runTopics();
     var q = cleanQuery(input.value);
     if (q.replace(/\s/g, '').length < 2) {
       if (places(input.value).length) { lastHits = []; shown = 0; showResults(q, []); return; }   // a page or 2:255
@@ -359,6 +363,150 @@
       b.onclick = function () { more(q, words); };
       body.appendChild(b);
     }
+  }
+
+  /* ---------- «المواضيع»: موسوعة التفسير الموضوعي (Arabic only; data/topics/modoee.json, tools/build_topics.py) ----------
+     The names are the encyclopedia's, shown as they are (no summary, rewording or translation), with its attribution. */
+  var TOPICS = LANG === 'ar';
+  var TP = {
+    tab: 'المواضيع', ph: 'ابحث في المواضيع… مثل: الصبر',
+    src: 'المصدر: موسوعة التفسير الموضوعي – مركز تفسير للدراسات القرآنية.',
+    site: 'موقع الموسوعة', app: 'في مصحف سورة', back: 'رجوع إلى المواضيع',
+    inTopic: 'في موضوع:', none: 'لا توجد مواضيع بهذا الاسم.'
+  };
+  var tp = null, tpP = null, tpOff = null, tpKeys = null;
+  function loadTopics() {
+    return tpP || (tpP = fetch('/data/topics/modoee.json').then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (d) {
+        tp = d;
+        // a topic's section, and the folded names to search in
+        tp.sec = []; d.s.forEach(function (s, i) { s[2].forEach(function (t) { tp.sec[t] = i; }); });
+        tpKeys = d.t.map(function (t) { return { n: lenient(t[0]), e: t[2].map(function (e) { return lenient(e[0]); }) }; });
+      }, function (e) { tpP = null; throw e; }));
+  }
+  var tpCss = document.createElement('style');
+  tpCss.textContent =
+    '.lt-tsec{border-bottom:1px solid rgba(200,155,60,.25)}' +
+    '.lt-tsec>summary,.lt-tel>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:11px 6px;font-weight:700;color:#3a3222}' +
+    '.lt-tsec>summary::-webkit-details-marker,.lt-tel>summary::-webkit-details-marker{display:none}' +
+    '.lt-tsec>summary::before,.lt-tel>summary::before{content:"";width:7px;height:7px;flex:none;border:solid #C89B3C;border-width:0 2px 2px 0;transform:rotate(135deg);transition:transform .15s;margin-inline-end:2px}' +
+    '.lt-tsec[open]>summary::before,.lt-tel[open]>summary::before{transform:rotate(45deg)}' +
+    '.lt-tn{margin-inline-start:auto;font-size:.75rem;font-weight:700;color:#8a6a1f;background:rgba(200,155,60,.15);border-radius:10px;padding:1px 8px}' +
+    '.lt-tlist{display:flex;flex-wrap:wrap;gap:6px;padding:0 6px 12px}' +
+    '.lt-tlist button{font:inherit;font-size:.9rem;padding:6px 12px;border-radius:10px;border:1px solid rgba(200,155,60,.45);background:#fff;color:#3a3222;cursor:pointer}' +
+    '.lt-tlist button:hover{background:rgba(200,155,60,.14)}' +
+    '.lt-tres{display:block;width:100%;text-align:start;font:inherit;background:none;border:none;border-bottom:1px solid rgba(200,155,60,.2);padding:11px 8px;cursor:pointer;color:inherit;border-radius:8px}' +
+    '.lt-tres:hover{background:rgba(200,155,60,.1)}.lt-tres b{display:block;font-size:1rem}.lt-tres span{font-size:.82rem;color:#8a7a55}' +
+    '.lt-tback{font:inherit;font-size:.88rem;background:none;border:none;color:#8a6a1f;cursor:pointer;padding:8px 2px;font-weight:700}' +
+    '.lt-ttitle{font-size:1.3rem;font-weight:700;color:#2a2418;padding:2px 4px 0}.lt-tcat{font-size:.85rem;color:#8a7a55;padding:0 4px 8px}' +
+    '.lt-tel{border-bottom:1px solid rgba(200,155,60,.22)}.lt-tel .lt-tel{margin-inline-start:14px;border-bottom:none}' +
+    '.lt-tel .lt-tel>summary{font-weight:600;padding:8px 6px}.lt-tel.lt-tempty>summary{cursor:default;color:#8a7a55;font-weight:600}.lt-tel.lt-tempty>summary::before{visibility:hidden}' +
+    '.lt-tay{padding:0 6px 8px}.lt-tay .lt-sres{padding:10px 8px}' +
+    '.lt-tsrc{font-size:.8rem;color:#7a6a4a;line-height:1.8;padding:14px 4px 4px;margin-top:10px;border-top:1px solid rgba(200,155,60,.35)}' +
+    '.lt-tsrc a{color:#8a6a1f;font-weight:700}';
+  document.head.appendChild(tpCss);
+
+  var tpCount = function (e) { var n = e[1].length / 3; e[2].forEach(function (s) { n += s[1].length / 3; }); return n; };
+  function tpSource() {
+    var d = document.createElement('div'); d.className = 'lt-tsrc';
+    d.innerHTML = esc(TP.src) + '<br><a href="' + tp.u[0] + '" target="_blank" rel="noopener">' + esc(TP.site) + '</a> · ' +
+      '<a href="' + tp.u[1] + '" target="_blank" rel="noopener">' + esc(TP.app) + '</a>';
+    return d;
+  }
+  function tpButton(i, sub, el) {
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'lt-tres';
+    // a topic: its name, then its section — an element: its title, then the topic it is in
+    b.innerHTML = sub ? '<b>' + esc(sub) + '</b><span>' + esc(TP.inTopic + ' ' + tp.t[i][0]) + '</span>'
+                      : '<b>' + esc(tp.t[i][0]) + '</b><span>' + esc(tp.s[tp.sec[i]][0]) + '</span>';
+    b.onclick = function () { tpTopic(i, el); };
+    return b;
+  }
+  // nothing typed: the 18 sections, each opening to its topics
+  function tpHome() {
+    if (!tp) return;
+    body.innerHTML = '';
+    tp.s.forEach(function (s) {
+      var d = document.createElement('details'); d.className = 'lt-tsec';
+      d.innerHTML = '<summary>' + esc(s[0]) + '<span class="lt-tn">' + arDigits(s[2].length) + '</span></summary>';
+      var list = document.createElement('div'); list.className = 'lt-tlist';
+      s[2].forEach(function (i) {
+        var b = document.createElement('button'); b.type = 'button'; b.textContent = tp.t[i][0];
+        b.onclick = function () { tpTopic(i); };
+        list.appendChild(b);
+      });
+      d.appendChild(list); body.appendChild(d);
+    });
+    body.appendChild(tpSource());
+  }
+  function runTopics() {
+    if (!tp) return;
+    var q = lenient(input.value.trim());
+    if (q.length < 2) return tpHome();
+    body.innerHTML = '';
+    var hits = [], els = [];
+    tpKeys.forEach(function (k, i) {
+      if (k.n.indexOf(q) >= 0) hits.push(i);
+      k.e.forEach(function (e, j) { if (e.indexOf(q) >= 0 && k.n.indexOf(q) < 0) els.push([i, j]); });
+    });
+    // a topic whose name starts with the query first
+    hits.sort(function (a, b) { return (tpKeys[a].n.indexOf(q) === 0 ? 0 : 1) - (tpKeys[b].n.indexOf(q) === 0 ? 0 : 1); });
+    if (!hits.length && !els.length) body.innerHTML = '<div class="lt-snote">' + esc(TP.none) + '</div>';
+    hits.forEach(function (i) { body.appendChild(tpButton(i)); });
+    els.slice(0, 40).forEach(function (x) { body.appendChild(tpButton(x[0], tp.t[x[0]][2][x[1]][0], x[1])); });
+    body.appendChild(tpSource());
+  }
+  // the ayat of one list of references, each a link to its place in the mushaf
+  function tpAyat(refs) {
+    if (!tpOff) { tpOff = [0]; data.v.forEach(function (n) { tpOff.push(tpOff[tpOff.length - 1] + n); }); }
+    var box = document.createElement('div'); box.className = 'lt-tay';
+    for (var r = 0; r < refs.length; r += 3) {
+      var s = refs[r], a = refs[r + 1], b = refs[r + 2], txt = [];
+      for (var x = a; x <= b; x++) {
+        txt.push(data.u[tpOff[s - 1] + x - 1].split('|').map(esc).join(' ') + ' <span class="e">' + String(x).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; }) + '</span>');
+      }
+      var el = document.createElement('a'); el.className = 'lt-sres';
+      el.href = BOOK + '#p=' + pageOf(s, a) + '&a=' + s + ':' + a;
+      el.innerHTML = '<div class="lt-sref">' + esc(T.surah + ' ' + data.n.ar[s - 1]) + ' · <span dir="ltr">' + arDigits(s) + ':' + arDigits(a) + (b > a ? '\u200E–\u200E' + arDigits(b) : '') + '</span></div>' +
+        '<div class="lt-sar" translate="no">' + txt.join(' ') + '</div>';
+      el.addEventListener('click', function () {
+        close();
+        var u = new URL(this.href, location.href);
+        if (u.pathname === location.pathname) { setTimeout(function () { window.dispatchEvent(new HashChangeEvent('hashchange')); }, 0); }
+      });
+      box.appendChild(el);
+    }
+    return box;
+  }
+  // one element (or sub-element): its title, and its ayat built when it is opened
+  function tpElement(title, refs, subs) {
+    var d = document.createElement('details'); d.className = 'lt-tel';
+    var n = refs.length / 3; subs.forEach(function (s) { n += s[1].length / 3; });
+    d.innerHTML = '<summary>' + esc(title) + (n ? '<span class="lt-tn">' + arDigits(n) + '</span>' : '') + '</summary>';
+    if (!n) { d.classList.add('lt-tempty'); d.querySelector('summary').addEventListener('click', function (e) { e.preventDefault(); }); return d; }
+    var built = false;
+    d.addEventListener('toggle', function () {
+      if (!d.open || built) return; built = true;
+      if (refs.length) d.appendChild(tpAyat(refs));
+      subs.forEach(function (s) { if (s[1].length) d.appendChild(tpElement(s[0], s[1], [])); });
+    });
+    return d;
+  }
+  function tpTopic(i, openEl) {
+    var t = tp.t[i], from = input.value;
+    body.innerHTML = '';
+    var back = document.createElement('button'); back.type = 'button'; back.className = 'lt-tback'; back.textContent = '→ ' + TP.back;
+    back.onclick = function () { input.value = from; runTopics(); };
+    body.appendChild(back);
+    body.insertAdjacentHTML('beforeend', '<div class="lt-ttitle">' + esc(t[0]) + '</div><div class="lt-tcat">' + esc(tp.s[tp.sec[i]][0]) + '</div>');
+    var target = null;
+    t[2].forEach(function (e, j) {
+      var d = tpElement(e[0], e[1], e[2]);
+      if (j === openEl) target = d;
+      body.appendChild(d);
+    });
+    body.appendChild(tpSource());
+    body.scrollTop = 0;
+    if (target && !target.classList.contains('lt-tempty')) { target.open = true; setTimeout(function () { target.scrollIntoView({ block: 'start' }); }, 0); }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addButton); else addButton();
