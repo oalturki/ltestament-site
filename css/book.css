@@ -2206,3 +2206,8 @@ body.bk-night.bk-hdr .bk-hdr2{ border-color:rgba(154,122,42,.6) !important; back
 body.bk-hdr .bk-hdr2::before{ border-image-source:url(/img/hdr-band-in.svg); }
 body.bk-hdr .bk-hdr2{ border:1.5px solid #2ca4ab !important; border-radius:9px !important; background:#fbf8ef !important; }
 body.bk-night.bk-hdr .bk-hdr2{ border-color:#2f9a9a !important; background:#1a2230 !important; }
+/* the band drawn as three backgrounds (its two ends and its middle), not as a border-image: Safari paints an SVG
+   border-image at one pixel per CSS pixel, which blurs it on a phone's dense screen; backgrounds are painted sharp */
+body.bk-hdr .bk-hdr2::before{ border:0 !important; border-image:none !important;
+  background:url(/img/hdr-band-l.svg) left top / 18px 100% no-repeat, url(/img/hdr-band-r.svg) right top / 18px 100% no-repeat,
+    url(/img/hdr-band-m.svg) 18px top / calc(100% - 36px) 100% no-repeat; }
