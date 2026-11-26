@@ -582,7 +582,14 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
     # said again, not something else), nor before the stretch's first word when an isti'adha or basmala was set aside,
     # nor after the passage's last word (آمين), nor where the words due next are what is there
     gap_other = None
-    if final and other is None and back is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
+    if final and other is None and not words and not seek and pos < len(exp) and dur >= GAP_SEC \
+            and os.environ.get("GAP_CHECK", "1") == "1" and ctc_model() is not None:
+        try:
+            gap_other = other_alone(wav, surah, where, exp, pos)
+            if gap_other: other = gap_other; nxt = pos
+        except Exception as e:
+            gap_other = {"err": f"{type(e).__name__}: {e}"[:200]}
+    elif final and other is None and back is None and spans.get("_lp") is not None and os.environ.get("GAP_CHECK", "1") == "1":
         try:
             gap_other = speech_between(spans, hyp, heard, exp, where, surah, wav)
             if gap_other: other = gap_other
@@ -612,6 +619,40 @@ _cx = {"sess": None, "meta": None, "fe": None, "err": None}
 
 GAP_SOUNDS = int(os.environ.get("GAP_SOUNDS", "8"))   # different sounds heard in a stretch no word due covers: something else said
 GAP_SEC = float(os.environ.get("GAP_SEC", "1.2"))      # and that stretch at least this long (test set: other speech 3.3 s and more)
+
+
+def said_again(lp, surah, where, k_prev):
+    """the stretch of audio lp holds words said before k_prev again: the verse of k_prev from its start, or the verse
+    before it whole"""
+    a_prev = where[k_prev][0]
+    first = next(k for k in range(k_prev + 1) if where[k][0] == a_prev)
+    tries = [list(range(first, k_prev + 1))]
+    if first > 0:
+        a0 = where[first - 1][0]
+        tries.append([k for k in range(first) if where[k][0] == a0])
+    for ks_ in tries:
+        wl = ctc_phonemes(surah, where, ks_[-6:], waqf_last=False)
+        if not wl: continue
+        f_ = ctc_words(lp, wl)
+        if f_ and float(np.mean(list(f_.values()))) >= CTC_OK: return True
+    return False
+
+
+def other_alone(wav, surah, where, exp, pos):
+    """a stretch where nothing of the passage was heard: something else said, when it holds many different sounds,
+    the words due next are not in it, and it is not the words just said, said again"""
+    lp = ctc_lp(wav)
+    am, prev, snd = lp.argmax(1), 0, set()
+    for x in am:
+        x = int(x)
+        if x != 0 and x != prev: snd.add(x)
+        prev = x
+    if len(snd) < GAP_SOUNDS: return None
+    wl = ctc_phonemes(surah, where, list(range(pos, min(len(exp), pos + 3))), waqf_last=False)
+    f_ = ctc_words(lp, wl) if wl else {}
+    if f_ and float(np.mean(list(f_.values()))) > CTC_BAD / 2: return None
+    if pos > 0 and said_again(lp, surah, where, pos - 1): return None
+    return {"k": pos, "text": "", "by": "alone", "sounds": len(snd)}
 
 
 def speech_between(spans, hyp, heard, exp, where, surah, wav):
@@ -657,6 +698,9 @@ def speech_between(spans, hyp, heard, exp, where, surah, wav):
         if k_next < len(exp): near_ |= set(ph_ids(k_next)[:2])
         s_ = [x for x in s_ if x not in near_]
         if len(set(s_)) < GAP_SOUNDS: continue
+        # the words just said, said again (a verse repeated, or the reader going back to the verse's start): their
+        # sounds fill the stretch no word covers
+        if k_prev is not None and said_again(lp[a:b], surah, where, k_prev): continue
         # after the last word: is it the words due next (the transcription let them go)? their sounds there settle it
         if b == T and k_next < len(exp):
             nxt_w = ctc_phonemes(surah, where, list(range(k_next, min(len(exp), k_next + 3))), waqf_last=False)
