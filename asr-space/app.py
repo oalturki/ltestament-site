@@ -356,8 +356,11 @@ def live(audio: UploadFile = File(...), surah: int = Form(...), start: int = For
         s_ = _sess.get(sid) if sid else None
         if s_ is not None and s_.get("lead_o") == o: return s_["lead_fit"]
         try:
+            # laid along the stretch's first seconds (they come before the words heard), all of them in order; a word not
+            # said finds no good place for its sounds (ctc_prefix stopped after «بسم» on a basmala clearly there)
             wl = ctc_phonemes(surah, where, list(range(o)), waqf_last=False)
-            n_, f_ = ctc_prefix(ctc_lp(wav), wl) if wl else (0, {})
+            f_ = ctc_words(ctc_lp(wav[: SR * 10]), wl) if wl else {}
+            n_ = len(f_)
         except Exception:
             return None
         ok_ = n_ >= o and all(f_.get(k, -20) > CTC_LEAD_MIN for k in range(o)) \
