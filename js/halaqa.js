@@ -367,12 +367,12 @@
   function state() {
     var g = S.view === 'g';
     return { p: S.page || B().cur(), v: S.view, lock: g, hide: g && !!(B().hidden && B().hidden()), focus: S.focus, title: S.ses.title, au: S.au,
-      md: g && B().mode ? B().mode() : null, t: Date.now() };
+      md: g && B().mode ? B().mode() : null, vw: g && B().view ? B().view() : null, t: Date.now() };
   }
   // the teacher's recitation, watched four times a second and sent when it changes (and every 2 s while it plays)
   function auWatch() {
     if (!S || S.role !== 'teacher' || !S.ch) return;
-    var mk = (B().mode ? B().mode() : '') + (B().hidden && B().hidden() ? 'h' : '');
+    var mk = (B().mode ? B().mode() : '') + (B().hidden && B().hidden() ? 'h' : '') + '|' + (B().view ? B().view() : '');
     if (mk !== S.modeK) { S.modeK = mk; if (S.view === 'g') S.send(); }
     var x = B().audioNow ? B().audioNow() : null, h = B().hlNow ? B().hlNow() : null, now = Date.now();
     var m = x ? { u: x.u, sq: x.sq || 0, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null } : { stop: true, h: null };
@@ -680,6 +680,8 @@
     if (t.au !== was.au || t.v !== was.v) auMode();
     if (t.v === 'i' && was.v !== 'i') { if (B().follow) B().follow(null); if (B().tjHide) B().tjHide(); }
     if (t.md && B().mode && B().mode() !== t.md) B().setMode(t.md);       // the mode the teacher set
+    // the Mushaf plain or in tajweed colours, as the teacher's (the tajweed card shows only on the colour Mushaf)
+    if (t.v !== 'i' && t.vw != null && B().view && B().view() !== null && B().view() !== t.vw) B().setView(t.vw);
     report();
   }
   /* ---------- the teacher's recitation on a student's (or the projector's) Mushaf ---------- */
@@ -716,13 +718,6 @@
   }
   function mirror(m) {
     var A = S.mA || (S.mA = new Audio());
-    if (!A._dbg) {           // what the student's sound does, in the console (diagnosing a stop after the basmala, Nov 2026)
-      A._dbg = 1;
-      ['play', 'playing', 'pause', 'ended', 'waiting', 'stalled', 'error', 'abort', 'emptied', 'loadedmetadata'].forEach(function (ev) {
-        A.addEventListener(ev, function () { try { console.log('[hq-au]', ev, (A.getAttribute('src') || '').split('/').slice(-2).join('/'), A.currentTime.toFixed(2), A.error ? A.error.code : ''); } catch (e) {} });
-      });
-    }
-    try { console.log('[hq-au] msg', m.stop ? 'stop' : (m.u || '').split('/').slice(-2).join('/'), m.t, m.p ? 'paused' : '', m.m ? 'muted' : ''); } catch (e) {}
     if (m.stop || !m.u) { A.pause(); return; }
     if (!S.unlocked) return auMode();
     if (B().playing && B().playing()) B().stopAudio();                  // his own recitation gives way to the teacher's
