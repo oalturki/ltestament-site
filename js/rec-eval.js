@@ -236,7 +236,8 @@
           return {
             clip_id: c.id, engine: ENGINE, level: (function () { try { return localStorage.getItem('lt_live_level') || 'normal'; } catch (e) { return 'normal'; } })(),
             detected: det, false_alarms: fa, unreached: unreached,
-            result: { target_cls: c.target && final[c.target] ? final[c.target].cls : (c.target && c.kind !== 'ayah' ? 'none' : undefined), slips: slips.length ? [slipHit, slips.length] : undefined, errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
+            // words left «not clear»: in the Mushaf each asks the reader to say it again (the measure, unasked, counts them)
+            result: { unclear: Object.keys(final).filter(function (l) { return final[l].cls === 'unclear'; }).length, target_cls: c.target && final[c.target] ? final[c.target].cls : (c.target && c.kind !== 'ayah' ? 'none' : undefined), slips: slips.length ? [slipHit, slips.length] : undefined, errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
                       words: words.length, ms: Date.now() - t0, speed: S.speed, title: P.title }
           };
         });

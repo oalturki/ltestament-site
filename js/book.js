@@ -3949,6 +3949,10 @@
             },
             onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
             onOther: function (p, w, text) { otherPop(w, text); },
+            // a word not clearly heard: the same card, «say it again from …» (the word itself not shown: the verse may
+            // be hidden), and the alert sound the reader chose for mistakes (not the word recited: it would give it away)
+            againUnclear: true,
+            onAgain: function (p, from) { otherPop(from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); },
             onUnclear: function () {
               toast(({ ar: 'لم يتضح الصوت، أعد بصوت أوضح وأقرب إلى الجهاز.', ur: 'آواز واضح نہیں تھی، ذرا صاف اور قریب سے دوبارہ پڑھیں۔',
                        en: 'That was not clear — say it again, a little clearer and closer to the device.',
@@ -4040,8 +4044,10 @@
         // a card asks to say it again from that word; it goes once he does, or by itself
         // worded without judging (the model may be wrong): it was not clear the words were the verse — say it again
         var OTH = { ar: ['أعد التلاوة', 'لم يتضح أن الكلام من الآية', 'ابدأ من', 'حسنًا'], en: ['Recite again', 'It was not clear the words were from the verse', 'Start from', 'OK'] };
-        var otherPop = function (w, text) {
-          var T = OTH[C.lang] || OTH.en, old = document.querySelector('.bk-othpop'); if (old) old.remove();
+        var AGN = { ar: 'لم تتضح بعض الكلمات', en: 'Some words were not clear' };
+        var otherPop = function (w, text, why) {
+          var T = (OTH[C.lang] || OTH.en).slice(), old = document.querySelector('.bk-othpop'); if (old) old.remove();
+          if (why) T[1] = why;
           var d = document.createElement('div'); d.className = 'bk-othpop'; d.dir = (C.lang === 'ar' || C.lang === 'ur') ? 'rtl' : 'ltr';
           d.innerHTML = '<b>' + esc(T[0]) + '</b><small>' + esc(T[1]) + (text ? ' <span lang="ar">«' + esc(text) + '»</span>' : '') + '</small>' +
             (w ? '<span>' + esc(T[2]) + ': <em lang="ar">' + esc(w.text) + '</em></span>' : '') + '<button type="button">' + esc(T[3]) + '</button>';
@@ -4094,7 +4100,7 @@
           n.skipA = runs.filter(wholeAyah).length; n.skipP = n.skip - n.skipA;
           var all = locs.length - skL.length;
           if (all < 1) return;
-          var pct = Math.round((n.ok + n.unclear) * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
+          var pct = Math.round(n.ok * 100 / all), secs = Math.round((Date.now() - (t0 || Date.now())) / 1000);
           var GR = [[SM[8], 'g'], [SM[9], 'm'], [SM[10], 'o']], nTj = Object.keys(tjNotes).length;
           var grade = GR[Math.min(2, (pct >= 95 ? 0 : pct >= 80 ? 1 : 2) + n.skip)];
           errL = errL.concat(skL);

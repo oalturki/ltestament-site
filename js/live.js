@@ -155,6 +155,20 @@
       var oth = res.other, again = oth && !(pt.otherAt = pt.otherAt || {})[oth.k];
       if (again) { pt.otherAt[oth.k] = 1; res.words = res.words.filter(function (x) { return x.k < oth.k; }); res.next = oth.k; }
       var pos0 = pt.pos;
+      // a word not clearly heard: as in a halaqa, neither let pass nor called wrong — he says it again, from where he
+      // paused before it (the stretch's first word: stretches are cut at his pauses). The second time at the same
+      // word it stays «not made out» (shown apart, not counted right). Only where the page asks for it (o.againUnclear):
+      // the measure on the test set judges the recording as it is
+      var askAt = null, unc = !again && o.againUnclear && res.words.filter(function (x) { return x.status === 'unclear' && x.k >= pos0; })[0];
+      if (unc) {
+        pt.uncAt = pt.uncAt || {};
+        if (!pt.uncAt[unc.k]) {
+          pt.uncAt[unc.k] = 1;
+          var ks = res.words.map(function (x) { return x.k; }).filter(function (k) { return k >= pos0; });
+          askAt = { from: Math.min.apply(null, ks), k: unc.k };
+          res.words = res.words.filter(function (x) { return x.k < askAt.from; }); res.next = askAt.from;
+        }
+      }
       res.words.forEach(function (x) {
         var w = pt.words[x.k]; if (!w) return;
         var was = w.done === 'wrong' || w.done === 'missing';
@@ -168,7 +182,8 @@
       pt.pos = Math.max(pt.pos, res.next);
       cursor();
       if (again && o.onOther) { o.onOther(P, pt.words[oth.k], oth.text); errs = []; }
-      if (o.tajweed && o.tajweed()) tjCollect(pt, res, pos0, again);
+      if (askAt && o.onAgain) { o.onAgain(P, pt.words[askAt.from], pt.words[askAt.k]); errs = []; }
+      if (o.tajweed && o.tajweed()) tjCollect(pt, res, pos0, again || !!askAt);
       if (errs.length && o.say && R) {                     // the reciter says the first word that went wrong
         R.mute = true;
         Promise.resolve(o.say(P, errs[0])).catch(noop).then(function () { setTimeout(function () { if (R) R.mute = false; }, 250); });
