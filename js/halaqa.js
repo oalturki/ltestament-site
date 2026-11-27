@@ -716,6 +716,13 @@
   }
   function mirror(m) {
     var A = S.mA || (S.mA = new Audio());
+    if (!A._dbg) {           // what the student's sound does, in the console (diagnosing a stop after the basmala, Nov 2026)
+      A._dbg = 1;
+      ['play', 'playing', 'pause', 'ended', 'waiting', 'stalled', 'error', 'abort', 'emptied', 'loadedmetadata'].forEach(function (ev) {
+        A.addEventListener(ev, function () { try { console.log('[hq-au]', ev, (A.getAttribute('src') || '').split('/').slice(-2).join('/'), A.currentTime.toFixed(2), A.error ? A.error.code : ''); } catch (e) {} });
+      });
+    }
+    try { console.log('[hq-au] msg', m.stop ? 'stop' : (m.u || '').split('/').slice(-2).join('/'), m.t, m.p ? 'paused' : '', m.m ? 'muted' : ''); } catch (e) {}
     if (m.stop || !m.u) { A.pause(); return; }
     if (!S.unlocked) return auMode();
     if (B().playing && B().playing()) B().stopAudio();                  // his own recitation gives way to the teacher's
