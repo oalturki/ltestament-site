@@ -564,7 +564,10 @@
     var go = function () {
       var n = ov.querySelector('.hq-fn').value.trim(); if (!n) return;
       store('lt_hq_first', n); ov.remove();
-      done({ id: 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: n });
+      // one device, one student: the same circle entered again keeps his first id, so the teacher sees him once (Nov 2026)
+      var tk = 'lt_hq_tid_' + (info.session || ''), id = load(tk);
+      if (!id) { id = 't' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); store(tk, id); }
+      done({ id: id, name: n });
     };
     ov.querySelector('.hq-go').onclick = go;
     ov.querySelector('.hq-fn').onkeydown = function (e) { if (e.key === 'Enter') go(); };
