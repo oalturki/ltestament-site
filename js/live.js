@@ -165,8 +165,13 @@
         if (!pt.uncAt[unc.k]) {
           pt.uncAt[unc.k] = 1;
           var ks = res.words.map(function (x) { return x.k; }).filter(function (k) { return k >= pos0; });
-          askAt = { from: Math.min.apply(null, ks), k: unc.k };
+          // from the recorded reciter's stop before the word (the page knows his phrases: o.againFrom -> a word's k);
+          // else from the reader's own pause (the stretch's first word)
+          var fk = o.againFrom ? o.againFrom(P, pt.words[unc.k], { s: pt.s, words: pt.words }) : null;
+          askAt = { from: fk != null && fk <= unc.k ? fk : Math.min.apply(null, ks), k: unc.k };
+          // the words heard before that stop are kept (judged as usual); he says it again from the stop
           res.words = res.words.filter(function (x) { return x.k < askAt.from; }); res.next = askAt.from;
+          if (askAt.from < pt.pos) pt.pos = askAt.from;   // the stop is further back than where he had reached: back to it
         }
       }
       res.words.forEach(function (x) {

@@ -3247,6 +3247,32 @@
       if (a === b && a === 0 && n > 1) b = dn(1);
       return [a, b];
     }
+    // the recorded reciter's phrases, for «say it again from …» in the live check: fetched ahead (warmStops), read at once
+    // (reciterStop: the word number his phrase holding word n begins at; the ayah's first word while not fetched yet)
+    var stopCache = {};
+    function warmStops(sN, aN) {
+      var key = sN + ':' + aN, r = wRec();
+      if (stopCache[key] || !r || !aN) return;
+      stopCache[key] = 'wait';
+      Promise.all([wordTimes(r, sN, aN), pauseMarks(sN, aN)]).then(function (res) { stopCache[key] = res; }, function () { delete stopCache[key]; });
+    }
+    function reciterStop(sN, aN, n) {
+      var c = stopCache[sN + ':' + aN];
+      if (!c || c === 'wait') { warmStops(sN, aN); return 1; }
+      var ws = c[0], marks = c[1], i = -1;
+      ws.forEach(function (x, k) { if (x[0] === n) i = k; });
+      if (i < 0) return 1;
+      // a place to begin is where he stopped at a pause mark (a silence of 0.9 s or more after a word the Mushaf marks;
+      // a reciter who reads on without silences: the mark alone) — not at a breath elsewhere, which may fall where a
+      // verse cannot be begun («إلهَ إلا هو»): no mark before the word, the ayah's start
+      var silent = false, k;
+      for (k = 0; k + 1 < ws.length; k++) if (ws[k + 1][1] - ws[k][2] > 120) silent = true;
+      for (k = i; k > 0; k--) {
+        var mk = marks.indexOf(ws[k - 1][0]) >= 0;
+        if (mk && (!silent || ws[k][1] - ws[k - 1][2] >= 900)) return ws[k][0];
+      }
+      return ws[0][0];
+    }
     // the word numbers of an ayah followed by a pause mark (from the simple text, where a mark is its own token)
     var markCache = {};
     function pauseMarks(sN, aN) {
@@ -3947,28 +3973,27 @@
             onClear: function () {
               root.querySelectorAll('.bk-mpage .tw-ti').forEach(function (e) { e.classList.remove('tw-ti'); if (!e.classList.contains('tw-done')) e.classList.remove('rv'); });
             },
-            onCursor: function (p, w) { placeCur(w ? wordEls(w, p) : null); },
+            onCursor: function (p, w) {
+              placeCur(w ? wordEls(w, p) : null);
+              var pt = live && live.__parts ? live.__parts[p] : null;
+              if (pt && w) { warmStops(pt.s, w.ayah); warmStops(pt.s, w.ayah + 1); }
+            },
             onOther: function (p, w, text) { otherPop(w, text); },
             // a word not clearly heard: the same card, «say it again from …» (the word itself not shown: the verse may
             // be hidden), and the alert sound the reader chose for mistakes (not the word recited: it would give it away)
             againUnclear: true,
-            // where to start again: the reciter's stop before the word (Minshawi's or Abdul Basit's phrase — a sound
-            // place to begin, as a teacher would give it), or the reader's own pause if that is further back
-            onAgain: function (p, from, w) {
-              var said = false, show = function (x) { if (said) return; said = true; otherPop(x || from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); };
-              var pt = live && live.__parts ? live.__parts[p] : null, r = wRec();
-              if (!pt || !w || !r || !r.timed) return show(from);
-              setTimeout(function () { show(from); }, 1500);             // timings slow to come: the reader's pause
-              Promise.all([wordTimes(r, pt.s, w.ayah), pauseMarks(pt.s, w.ayah)]).then(function (res) {
-                var ws = res[0], i = -1;
-                ws.forEach(function (x, k) { if (x[0] === w.n) i = k; });
-                if (i < 0) return show(from);
-                var n0 = ws[segOf(ws, i, res[1])[0]][0];
-                var back = from && from.ayah === w.ayah && n0 < from.n || (from && from.ayah > w.ayah);
-                var x = back && pt.words ? pt.words.filter(function (y) { return y.ayah === w.ayah && y.n === n0; })[0] : null;
-                show(x || from);
-              }, function () { show(from); });
+            // where to start again: the recorded reciter's stop before the word (Minshawi's or Abdul Basit's phrase, from
+            // his word timings and the Mushaf's pause marks — a sound place to begin, as a teacher would give it). Asked
+            // as the stretch is judged, so his phrases are fetched ahead, as the reader goes (onCursor). Not yet there:
+            // the ayah's first word
+            againFrom: function (p, w, pt) {
+              if (!pt || !w || !pt.words) return null;
+              var n0 = reciterStop(pt.s, w.ayah, w.n);
+              var x = pt.words.filter(function (y) { return y.ayah === w.ayah && y.n === n0; })[0]
+                   || pt.words.filter(function (y) { return y.ayah === w.ayah; })[0];
+              return x ? x.k : null;
             },
+            onAgain: function (p, from) { otherPop(from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); },
             onUnclear: function () {
               toast(({ ar: 'لم يتضح الصوت، أعد بصوت أوضح وأقرب إلى الجهاز.', ur: 'آواز واضح نہیں تھی، ذرا صاف اور قریب سے دوبارہ پڑھیں۔',
                        en: 'That was not clear — say it again, a little clearer and closer to the device.',
