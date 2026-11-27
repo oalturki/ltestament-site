@@ -751,7 +751,14 @@
       surahName: function (s) { return (C.lang === 'ar' || C.lang === 'ur' ? C.arabicNames : (C.uiNames || C.arabicNames))[s - 1]; },
       pageOf: function (s, a) { return pageOf(s, a); },
       // the recitation, for the live circle: what plays now (the teacher sends it), the highlight, and following it
-      audioNow: function () { return audio && playing ? { u: audio.getAttribute('src') || '', t: audio.currentTime, p: audio.paused, r: audio.playbackRate || 1, m: audio.muted } : null; },
+      // a squeezed ayah plays from a blob only this device has: the circle is told the reciter's file and that it is
+      // squeezed, and each student squeezes the same file himself (the same result, the same times)
+      audioNow: function () {
+        if (!(audio && playing)) return null;
+        var u = audio.getAttribute('src') || '', o = sqOrig[u];
+        return { u: o || u, sq: o ? 1 : 0, t: audio.currentTime, p: audio.paused, r: audio.playbackRate || 1, m: audio.muted };
+      },
+      squeezed: function (u) { return squeeze(u).then(function (x) { return x.url; }); },
       hlNow: function () { return hl; },
       follow: function (h) { if (!playing) { hlFollow = !!h; setHl(h || null); } },
       // the tajweed card: kept while the teacher has stopped (he may explain it), or taken away (leaving the circle)
@@ -1743,7 +1750,7 @@
         if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
           window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
         });
-        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=24'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
+        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=25'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -1988,7 +1995,7 @@
         var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
         // a live circle's link (?live=123456): join it (&display=1: the teacher's projector, following only)
         var rl = /[?&]live=(\d{6})\b/.exec(location.search);
-        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=24'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
+        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=25'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
@@ -3092,6 +3099,7 @@
     // (map: [start in the new file, start in the original, length], in ms). If the file cannot be read, it plays as is.
     var sqCache = {}, sqOrder = [];
     function squeezeOn() { return !!(rep && rep.squeeze); }
+    var sqOrig = {};      // a squeezed file (a local blob) → the reciter's own file it came from (the circle sends that)
     function squeeze(url) {
       if (sqCache[url]) return sqCache[url];
       var p = (window.fetch ? fetch(url) : Promise.reject()).then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); }).then(function (buf) {
@@ -3126,7 +3134,8 @@
         var hd = new DataView(new ArrayBuffer(44)), w = function (off, str) { for (var c = 0; c < str.length; c++) hd.setUint8(off + c, str.charCodeAt(c)); };
         w(0, 'RIFF'); hd.setUint32(4, 36 + len * 2, true); w(8, 'WAVE'); w(12, 'fmt '); hd.setUint32(16, 16, true); hd.setUint16(20, 1, true); hd.setUint16(22, 1, true);
         hd.setUint32(24, sr, true); hd.setUint32(28, sr * 2, true); hd.setUint16(32, 2, true); hd.setUint16(34, 16, true); w(36, 'data'); hd.setUint32(40, len * 2, true);
-        return { url: URL.createObjectURL(new Blob([hd.buffer, out.buffer], { type: 'audio/wav' })), map: map };
+        var bu = URL.createObjectURL(new Blob([hd.buffer, out.buffer], { type: 'audio/wav' })); sqOrig[bu] = url;
+        return { url: bu, map: map };
       });
       sqCache[url] = p; sqOrder.push(url);
       if (sqOrder.length > 8) { var old = sqOrder.shift(); var po = sqCache[old]; delete sqCache[old]; po.then(function (x) { setTimeout(function () { URL.revokeObjectURL(x.url); }, 60000); }, function () {}); }

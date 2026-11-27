@@ -375,7 +375,7 @@
     var mk = (B().mode ? B().mode() : '') + (B().hidden && B().hidden() ? 'h' : '');
     if (mk !== S.modeK) { S.modeK = mk; if (S.view === 'g') S.send(); }
     var x = B().audioNow ? B().audioNow() : null, h = B().hlNow ? B().hlNow() : null, now = Date.now();
-    var m = x ? { u: x.u, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null } : { stop: true, h: null };
+    var m = x ? { u: x.u, sq: x.sq || 0, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null } : { stop: true, h: null };
     var k = x ? [x.u, x.p, x.r, x.m, JSON.stringify(h)].join('|') : 'stop';
     if (k === S.auK && (!x || x.p || now - S.auAt < 2000)) return;
     S.auK = k; S.auAt = now; S.auLast = m;
@@ -728,13 +728,28 @@
     if (B().playing && B().playing()) B().stopAudio();                  // his own recitation gives way to the teacher's
     // where the teacher's recitation is now, by the message's own time of arrival (and a little for the way here)
     var rate = m.r || 1, at = function (x) { return x.t + (Date.now() - (x._at || Date.now())) / 1000 * rate + (x.p ? 0 : 0.12 * rate); };
+    // the teacher's ayah squeezed (its pauses shortened) is a file only his device has: squeezed here too, from the
+    // same reciter's file — the same result and the same times (it stopped after the basmala, Nov 2026)
+    var src = m.u;
+    if (m.sq) {
+      S.sqU = S.sqU || {};
+      src = S.sqU[m.u];
+      if (!src) {
+        if (!S.sqU['_' + m.u] && B().squeezed) {
+          S.sqU['_' + m.u] = 1;
+          B().squeezed(m.u).then(function (bu) { if (!S) return; S.sqU[m.u] = bu; if (S.au && S.au.u === m.u && remote()) mirror(S.au); },
+            function () { if (S) { S.sqU[m.u] = m.u; if (S.au && S.au.u === m.u && remote()) mirror(S.au); } });   // cannot: the plain file
+        }
+        return;
+      }
+    }
     A.defaultPlaybackRate = rate; A.muted = !!m.m;
-    if (A.getAttribute('src') !== m.u) {
+    if (A.getAttribute('src') !== src) {
       A.playbackRate = rate;
-      A.src = m.u;
+      A.src = src;
       A.addEventListener('loadedmetadata', function () {
         var x = S && S.au && S.au.u === m.u ? S.au : m;                  // the newest word of the teacher's, not the first
-        if (A.getAttribute('src') === m.u) try { A.currentTime = at(x); } catch (e) {}
+        if (A.getAttribute('src') === src) try { A.currentTime = at(x); } catch (e) {}
       }, { once: true });
     } else if (A.readyState >= 3 && !A.seeking && Date.now() - (S.mJump || 0) > 4000) {
       // the teacher's word arrives with every word: correcting at each one made the sound stutter on the students'
