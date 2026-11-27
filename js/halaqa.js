@@ -732,7 +732,9 @@
       else A.playbackRate = rate;
     }
     if (m.p) A.pause();
-    else { var pr = A.play(); if (pr && pr.catch) pr.catch(function () { S.unlocked = false; auMode(); }); }
+    // asked again only when the phone refuses to play without a tap (NotAllowedError): a play cut off by the next
+    // verse's file (AbortError, with every new ayah) is not a refusal — it asked again and again (Nov 2026)
+    else { var pr = A.play(); if (pr && pr.catch) pr.catch(function (e) { if (e && e.name === 'NotAllowedError' && S) { S.unlocked = false; auMode(); } }); }
   }
   function leave(ended) {
     if (!S) return;
