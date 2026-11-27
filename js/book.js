@@ -3952,7 +3952,23 @@
             // a word not clearly heard: the same card, «say it again from …» (the word itself not shown: the verse may
             // be hidden), and the alert sound the reader chose for mistakes (not the word recited: it would give it away)
             againUnclear: true,
-            onAgain: function (p, from) { otherPop(from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); },
+            // where to start again: the reciter's stop before the word (Minshawi's or Abdul Basit's phrase — a sound
+            // place to begin, as a teacher would give it), or the reader's own pause if that is further back
+            onAgain: function (p, from, w) {
+              var said = false, show = function (x) { if (said) return; said = true; otherPop(x || from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); };
+              var pt = live && live.__parts ? live.__parts[p] : null, r = wRec();
+              if (!pt || !w || !r || !r.timed) return show(from);
+              setTimeout(function () { show(from); }, 1500);             // timings slow to come: the reader's pause
+              Promise.all([wordTimes(r, pt.s, w.ayah), pauseMarks(pt.s, w.ayah)]).then(function (res) {
+                var ws = res[0], i = -1;
+                ws.forEach(function (x, k) { if (x[0] === w.n) i = k; });
+                if (i < 0) return show(from);
+                var n0 = ws[segOf(ws, i, res[1])[0]][0];
+                var back = from && from.ayah === w.ayah && n0 < from.n || (from && from.ayah > w.ayah);
+                var x = back && pt.words ? pt.words.filter(function (y) { return y.ayah === w.ayah && y.n === n0; })[0] : null;
+                show(x || from);
+              }, function () { show(from); });
+            },
             onUnclear: function () {
               toast(({ ar: 'لم يتضح الصوت، أعد بصوت أوضح وأقرب إلى الجهاز.', ur: 'آواز واضح نہیں تھی، ذرا صاف اور قریب سے دوبارہ پڑھیں۔',
                        en: 'That was not clear — say it again, a little clearer and closer to the device.',
