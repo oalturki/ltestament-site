@@ -1574,6 +1574,10 @@
         if (sSel2) { var hSu = AR2 ? glyphPick(sSel2, 'su') : overSel(sSel2); cSu.appendChild(hSu); }
         else cSu.onclick = function (e) { e.stopPropagation(); var h = bar.querySelector('.bk-hamb'); if (h) h.click(); };
         document.body.appendChild(hdr);
+        // a cap over the status bar, fixed at the very top in the bar's colour: iOS 26 takes the colour of a fixed element
+        // at the top for the status bar; without one it lays its own soft fade there, and the fade reached over the head
+        // row's upper edge — the haze the owner saw (Nov 2026)
+        var cap = document.createElement('div'); cap.className = 'bk-topcap'; document.body.appendChild(cap);
         // the view and the mode buttons come from the top bar into the row (and go back when the row is not used)
         var mv = [bar.querySelector('.bk-viewbtn'), bar.querySelector('.bk-tmode')].filter(Boolean).map(function (el) {
           var home = document.createComment(''); el.parentNode.insertBefore(home, el); return [el, home];
