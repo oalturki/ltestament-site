@@ -729,18 +729,21 @@
         var x = S && S.au && S.au.u === m.u ? S.au : m;                  // the newest word of the teacher's, not the first
         if (A.getAttribute('src') === m.u) try { A.currentTime = at(x); } catch (e) {}
       }, { once: true });
-    } else if (A.readyState >= 1) {
-      // a small gap is closed by playing a little faster or slower (never by jumping back, which repeats words);
-      // only a large one (a seek of the teacher's, or a stall) is jumped over
-      var d = A.currentTime - at(m);
-      if (Math.abs(d) > 1.5) { try { A.currentTime = at(m); } catch (e) {} A.playbackRate = rate; }
-      else if (!m.p && Math.abs(d) > 0.25) A.playbackRate = rate * (d > 0 ? 0.9 : 1.1);
-      else A.playbackRate = rate;
+    } else if (A.readyState >= 3 && !A.seeking && Date.now() - (S.mJump || 0) > 4000) {
+      // the teacher's word arrives with every word: correcting at each one made the sound stutter on the students'
+      // iPhones (Nov 2026) — a jump makes the phone fetch the file again and stall, the stall looks like a gap, the next
+      // word jumps again. So: nothing is corrected while the sound is still loading or just after a jump; a small gap
+      // is closed by playing a little faster or slower, with a margin so it doesn't swing at every word; only a large
+      // one (a seek of the teacher's) is jumped over, and then left alone for 4 s
+      var d = A.currentTime - at(m), ad = Math.abs(d);
+      if (ad > 3) { try { A.currentTime = at(m); } catch (e) {} A.playbackRate = rate; S.mJump = Date.now(); }
+      else if (!m.p && ad > 0.6) A.playbackRate = rate * (d > 0 ? 0.95 : 1.05);
+      else if (ad < 0.2) A.playbackRate = rate;
     }
     if (m.p) A.pause();
     // asked again only when the phone refuses to play without a tap (NotAllowedError): a play cut off by the next
     // verse's file (AbortError, with every new ayah) is not a refusal — it asked again and again (Nov 2026)
-    else { var pr = A.play(); if (pr && pr.catch) pr.catch(function (e) { if (e && e.name === 'NotAllowedError' && S) { S.unlocked = false; auMode(); } }); }
+    else if (A.paused) { var pr = A.play(); if (pr && pr.catch) pr.catch(function (e) { if (e && e.name === 'NotAllowedError' && S) { S.unlocked = false; auMode(); } }); }
   }
   // together (body.hq-noau): the teacher leads the student's Mushaf — every button but the circle's own (its bar, bubble,
   // windows, the verse card and the tajweed box the teacher opens) does nothing and says so
