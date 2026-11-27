@@ -1136,6 +1136,29 @@
       root.__setMode = setMode;
       modeSel.onchange = function () { setMode(modeSel.value); };
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
+      // in Arabic the mode list is the page's own, in the Mushaf's script (KFGQPC Hafs) — the phone's list cannot take
+      // a font (the owner, Nov 2026: «لو يكون خط القائمة مثل المصاحف»)
+      if (C.lang === 'ar' || C.lang === 'ur') {
+        var mPick = document.createElement('button'); mPick.type = 'button'; mPick.className = 'bk-gpick bk-mpick'; mPick.setAttribute('aria-label', MD[3]);
+        mPick.onclick = function (e) {
+          e.stopPropagation(); e.preventDefault();
+          var old = document.querySelector('.bk-gpov'); if (old) old.remove();
+          var ov = document.createElement('div'); ov.className = 'bk-gpov';
+          var box = document.createElement('div'); box.className = 'bk-gpbox md';
+          var r = modeBtn.getBoundingClientRect(), w = Math.min(window.innerWidth - 20, 260);
+          box.style.top = Math.round(r.bottom + 6) + 'px'; box.style.width = w + 'px';
+          box.style.left = Math.round(Math.max(10, Math.min(window.innerWidth - w - 10, r.left + r.width / 2 - w / 2))) + 'px';
+          MODES.forEach(function (m) {
+            var it = document.createElement('button'); it.type = 'button'; it.className = 'bk-gpit' + (m === curMode() ? ' on' : '');
+            it.innerHTML = '<i>' + (m === curMode() ? '✓' : '') + '</i><b class="g ht">' + esc(modeName(m)) + '</b>';
+            it.onclick = function (ev) { ev.stopPropagation(); ov.remove(); setMode(m); };
+            box.appendChild(it);
+          });
+          ov.appendChild(box); ov.onclick = function () { ov.remove(); };
+          document.body.appendChild(ov);
+        };
+        modeBtn.appendChild(mPick);
+      }
       eyeBtn.onclick = function (e) { e.stopPropagation(); var b = hideBtn(); if (b) b.click(); syncEye(); };
       /* ---- silent recitation: the words appear at the reciter's pace (his word timings, data/rec), no sound ---- */
       var SILSP = [0.75, 1, 1.25, 1.5, 2], SIL = { on: false, t: null, seq: null, i: 0, speed: 1, pace: 'hadr', sound: false, au: null, raf: 0 };
