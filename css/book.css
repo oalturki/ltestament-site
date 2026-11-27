@@ -2218,3 +2218,13 @@ body.bk-hdr .bk-hdr2::before{ border:0 !important; border-image:none !important;
   background:#fdfaf1; color:#8a6a1f; font:400 24px/1 system-ui, sans-serif; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.14); }
 body.bk-night .bk-tjbox > .bk-x, body.bk-night .bk-micbox > .bk-x{ background:#1d2638; color:#e0c27a; }
 .bk-wsx{ position:sticky; top:-10px; float:inline-end; z-index:3; background:#FBF8F0; border-radius:50%; margin:-8px -10px 4px 8px; }
+
+/* the head row on the bottom bar's ground (Othman 2026-11-27: «calm and soft»): the teal frame kept, the ornamented
+   band taken away, the cream of the bar below, and the two buttons as the bar's own (beige boxes) */
+body.bk-hdr .bk-hdr2::before{ display:none !important; }
+body.bk-hdr .bk-hdr2{ background:#f8f3e6 !important; }
+body.bk-hdr .bk-hdr2 .bk-h2b{ background:#efe6cc !important; border:0 !important; border-radius:11px !important; color:#6b5313 !important; }
+body.bk-hdr .bk-hdr2{ padding:0 40px !important; }
+body.bk-night.bk-hdr .bk-hdr2{ background:#1a2230 !important; }
+body.bk-night.bk-hdr .bk-hdr2 .bk-h2b{ background:#243049 !important; color:#d9b45a !important; }
+body.bk-hdr .bk-hdr2 .bk-h2pm{ background:#fdfaf2; }   /* the page number's box on the cream, not the band's green */
