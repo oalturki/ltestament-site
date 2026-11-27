@@ -3993,7 +3993,10 @@
                    || pt.words.filter(function (y) { return y.ayah === w.ayah; })[0];
               return x ? x.k : null;
             },
-            onAgain: function (p, from) { otherPop(from, '', AGN[C.lang] || AGN.en); if ((load('lt_live_err') || 'beep') !== 'none') tone(); },
+            onAgain: function (p, from) {
+              otherPop(from, '', AGN[C.lang] || AGN.en);
+              if ((load('lt_live_err') || 'beep') !== 'none' && live) live.hold(tone());   // the input muted while it sounds
+            },
             onUnclear: function () {
               toast(({ ar: 'لم يتضح الصوت، أعد بصوت أوضح وأقرب إلى الجهاز.', ur: 'آواز واضح نہیں تھی، ذرا صاف اور قریب سے دوبارہ پڑھیں۔',
                        en: 'That was not clear — say it again, a little clearer and closer to the device.',
@@ -4019,6 +4022,7 @@
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
               else if (st === 'stopped') liveSet(false);
               else if (st === 'denied') { liveSet(false); micHelp(); }
+              else if (st === 'lost') { liveSet(false); toast(({ ar: 'توقف الميكروفون. اضغط «سمِّع» للمتابعة.', en: 'The microphone stopped. Tap Recite to go on.' })[C.lang === 'ur' ? 'ar' : C.lang] || 'The microphone stopped. Tap Recite to go on.'); }
               else if (st === 'waking') toast(LV[3]);
               else if (st === 'error') toast(LV[4]);
             },

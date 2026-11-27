@@ -13,7 +13,7 @@
      onLevel(x)                                   // 0..1, the voice level (to show that it hears)
      onOther(p, w, text)                          // optional: words not from the Quran were heard; say it again from w
      onUnclear(p)                                 // optional: a stretch was said but nothing of the passage could be made out
-     onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'error' | 'waking'
+     onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'lost' | 'error' | 'waking'
      say(p, w) -> Promise                         // optional: the reciter says the word (the engine stops listening meanwhile)
    });
    L.start(); L.stop(); L.setParts(parts) (a new passage, keeps the microphone)
@@ -301,13 +301,21 @@
         var src = actx.createMediaStreamSource(stream), node = actx.createScriptProcessor(4096, 1, 1);
         node.onaudioprocess = r0.proc; r0.src = src; r0.node = node;
         src.connect(node); node.connect(actx.destination);
-      }).catch(function () { o.onState('denied'); });
+      }).catch(function () {
+        // the microphone was allowed when the session began: opened again without a tap (the phone allows it only
+        // from one), it can be refused. That is not «not allowed» — the session stops, once, and the page says so
+        // (the refusal dialog came back every three seconds, Nov 2026)
+        if (R !== r0) return;
+        stop(true);
+        o.onState('lost');
+      });
     }
     document.addEventListener('visibilitychange', function () { rehook(); });
     window.addEventListener('pageshow', function () { rehook(); });
     // and if no sound at all reaches the page for three seconds while it is shown, the same
     setInterval(function () {
-      if (R && !R.input && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
+      // (not while the page plays a sound — the alert tone, a word recited: on a phone it may hold the input a moment)
+      if (R && !R.input && !R.mute && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
     }, 1500);
     function stop(release) {
       if (!R) { if (release) dropMic(); return; }
