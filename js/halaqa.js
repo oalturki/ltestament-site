@@ -56,7 +56,7 @@
       colName: 'الطالب', total: 'المجموع', present: 'الحضور', following: 'المتابعة', of: 'من', pageW: 'ص',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
-      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'التلاوة بيد المعلم في الحلقة.',
+      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'المعلم يقود المصحف في الحلقة.',
       viewH: 'العرض', viewG: 'جماعي', viewI: 'فردي',
       viewHelp: 'جماعي: مصاحف الطلاب وفق جهازك في الصفحة، والوضع، وإخفاء الآيات، والتلاوة. فردي: كل طالب يتصفح مصحفه بحرية. وفي الحالين: المس رقم آية ليركّز عليها الطلاب وتظهر لهم أحكامها.',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
@@ -86,7 +86,7 @@
       colName: 'Student', total: 'Total', present: 'Present', following: 'Following', of: 'of', pageW: 'p.',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
-      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher leads the recitation in the circle.',
+      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher leads the Mushaf in the circle.',
       viewH: 'View', viewG: 'Together', viewI: 'Individual',
       viewHelp: 'Together: the students’ Mushafs follow your device — page, mode, hidden verses and recitation. Individual: each student browses freely. Either way, tap a verse number to focus the students on it and show its tajweed rules.',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
@@ -739,10 +739,12 @@
     // verse's file (AbortError, with every new ayah) is not a refusal — it asked again and again (Nov 2026)
     else { var pr = A.play(); if (pr && pr.catch) pr.catch(function (e) { if (e && e.name === 'NotAllowedError' && S) { S.unlocked = false; auMode(); } }); }
   }
-  // the student's own recitation buttons, while the teacher's recitation leads (body.hq-noau)
-  var NOAU = '.pc-pp, .pc-prev, .pc-next, [data-bk="play"], .bk-msnd, .bk-wsplay';
+  // together (body.hq-noau): the teacher leads the student's Mushaf — every button but the circle's own (its bar, bubble,
+  // windows, the verse card and the tajweed box the teacher opens) does nothing and says so
+  var HQ_OWN = '.hq-bar, .hq-bub, .hq-ov, .hq-panel, .hq-fc, .hq-note, .bk-tjbox, .tj-x';
   document.addEventListener('click', function (e) {
-    if (!document.body.classList.contains('hq-noau') || !e.target.closest || !e.target.closest(NOAU)) return;
+    if (!document.body.classList.contains('hq-noau') || !e.target.closest || e.target.closest(HQ_OWN)) return;
+    if (!e.target.closest('button, a, input, select, textarea, label, summary, [role="button"], [data-bk], .bk-mpage [data-l], .bk-flip, .bk-cover, .bk-head .hs, .bk-head > b')) return;
     e.preventDefault(); e.stopPropagation();
     var m = L().noAu || T.ar.noAu, n = document.querySelector('.hq-note');
     if (!n) { n = document.createElement('div'); n.className = 'hq-note'; document.body.appendChild(n); }
