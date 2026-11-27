@@ -3907,15 +3907,23 @@
           curMark.style.left = (r.left + window.scrollX) + 'px'; curMark.style.width = r.width + 'px';
           curMark.style.top = (r.bottom + window.scrollY - 4) + 'px';
         };
-        var liveSet = function (on) {
+        var livePaused = false;
+        // back on the page after leaving it mid-recitation: say why it stopped and how to go on
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden || !livePaused) return;
+          toast(({ ar: 'توقف التسميع عند مغادرة الصفحة. اضغط «سمِّع» للمتابعة من حيث وقفت.', en: 'Reciting paused when you left the page. Tap Recite to go on from where you were.' })[C.lang === 'ur' ? 'ar' : C.lang] || 'Reciting paused when you left the page. Tap Recite to go on from where you were.');
+        });
+        var liveSet = function (on, pause) {
           mic.classList.toggle('on', on);
           mic.querySelector('.t').textContent = on ? LV[1] : LV[0];
           root.classList.toggle('bk-living', on);
           if (root.__liveBar) root.__liveBar(on);
           if (root.__focus) root.__focus('live', on);
           if (!on && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
-          if (on) { sumW = {}; sumT0 = Date.now(); tjNotes = {}; }
-          else if (root.__liveSummary) root.__liveSummary(sumW, sumT0);
+          // paused (the page left): no summary yet, and going on keeps this session's words
+          if (on) { if (!livePaused) { sumW = {}; sumT0 = Date.now(); tjNotes = {}; } livePaused = false; }
+          else if (pause) livePaused = true;
+          else if (root.__liveSummary) { livePaused = false; root.__liveSummary(sumW, sumT0); }
           if (!on) { curMark.style.display = 'none'; mic.style.boxShadow = ''; }
         };
         // the student record: per page, the words recited and the mistakes, sent to the current profile's record
@@ -4042,10 +4050,11 @@
             },
             onLevel: function (x) { mic.style.boxShadow = '0 0 0 ' + Math.round(3 + x * 18) + 'px rgba(200,70,60,' + (0.15 + x * 0.3).toFixed(2) + ')'; },
             onState: function (st) {
-              if (st === 'listening') { famT0 = Date.now(); famAll = { done: {}, errs: {} }; }
+              if (st === 'listening' && !livePaused) { famT0 = Date.now(); famAll = { done: {}, errs: {} }; }
               if (st === 'stopped') famFlush(false);
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
               else if (st === 'stopped') liveSet(false);
+              else if (st === 'paused') { famFlush(false); liveSet(false, true); }
               else if (st === 'denied') { liveSet(false); micHelp(); }
               else if (st === 'lost') { liveSet(false); toast(({ ar: 'توقف الميكروفون. اضغط «سمِّع» للمتابعة.', en: 'The microphone stopped. Tap Recite to go on.' })[C.lang === 'ur' ? 'ar' : C.lang] || 'The microphone stopped. Tap Recite to go on.'); }
               else if (st === 'waking') toast(LV[3]);

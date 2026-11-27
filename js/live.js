@@ -13,7 +13,7 @@
      onLevel(x)                                   // 0..1, the voice level (to show that it hears)
      onOther(p, w, text)                          // optional: words not from the Quran were heard; say it again from w
      onUnclear(p)                                 // optional: a stretch was said but nothing of the passage could be made out
-     onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'denied' | 'lost' | 'error' | 'waking'
+     onState(s, detail)                           // 'mic' | 'listening' | 'stopped' | 'paused' (the page left) | 'denied' | 'lost' | 'error' | 'waking'
      say(p, w) -> Promise                         // optional: the reciter says the word (the engine stops listening meanwhile)
    });
    L.start(); L.stop(); L.setParts(parts) (a new passage, keeps the microphone)
@@ -290,7 +290,10 @@
     function rehook(force) {
       if (!R || R.input) return;
       var r0 = R;
-      if (document.hidden) { try { r0.node.disconnect(); r0.src.disconnect(); } catch (e) {} r0.seg = []; r0.speaking = false; return; }
+      // the page left (another app or tab, the screen locked): the recitation pauses and the microphone is let go at
+      // once — for privacy, and because a phone will not open it again without a tap. Back on the page, the reader taps
+      // «سمِّع» to go on from where he was (the passage and its place are kept)
+      if (document.hidden) { r0.seg = []; r0.speaking = false; stop(true, 'paused'); return; }
       if (actx && actx.state !== 'running') actx.resume();
       var live_ = MIC && MIC.getAudioTracks().some(function (t) { return t.readyState === 'live' && !t.muted; });
       if (live_ && force !== true) return;
@@ -317,7 +320,7 @@
       // (not while the page plays a sound — the alert tone, a word recited: on a phone it may hold the input a moment)
       if (R && !R.input && !R.mute && !document.hidden && R.lastT && Date.now() - R.lastT > 3000) { R.lastT = Date.now(); if (actx.state !== 'running') actx.resume(); rehook(true); }
     }, 1500);
-    function stop(release) {
+    function stop(release, st) {
       if (!R) { if (release) dropMic(); return; }
       var r0 = R;
       if (r0.seg.length && r0.segLen > 0.4) r0.queue.push(r0.seg);
@@ -329,7 +332,7 @@
         if (r0.busy || r0.queue.length) { pump(); return (o.tick || setTimeout)(drain, 300); }   // o.tick: the measure's own timer (a hidden tab slows setTimeout)
         if (R === r0) R = null;
         LiveRecite.active = false;
-        o.onState('stopped');
+        o.onState(st || 'stopped');
       };
       drain();
     }
