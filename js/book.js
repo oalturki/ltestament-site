@@ -2372,6 +2372,7 @@
         }
         setTimeout(pFill, 100);
       };
+      root.__jump = jump;
       $p('.pc-prev').onclick = function (e) { e.stopPropagation(); jump(-1); };
       $p('.pc-next').onclick = function (e) { e.stopPropagation(); jump(1); };
       var SPEEDS = [1, 1.25, 1.5, 2, 0.75];
@@ -2860,10 +2861,43 @@
       return recSurahs[r.id].then(function (m) { return m[String(s)] || []; });
     }
 
+    // the phone's lock screen and earphones (Media Session): the surah and the ayah, the reciter, and the two skip
+    // buttons as the ayah before and after — not ten seconds of a four-second ayah (the owner, Nov 2026)
+    var msKey = '', msSet = false;
+    function msMeta() {
+      var ms = navigator.mediaSession; if (!ms || !playing || !recState) return;
+      try {
+        if (!msSet) {
+          msSet = true;
+          var pp = function () { var b = q('play'); if (b) b.click(); };
+          ms.setActionHandler('play', function () { if (!playing) pp(); else if (audio) audio.play(); });
+          ms.setActionHandler('pause', function () { if (playing) pp(); });
+          ms.setActionHandler('previoustrack', function () { if (root.__jump) root.__jump(-1); });
+          ms.setActionHandler('nexttrack', function () { if (root.__jump) root.__jump(1); });
+          try { ms.setActionHandler('seekbackward', null); ms.setActionHandler('seekforward', null); } catch (e) {}
+        }
+        var st = recState, s0 = st.s, a0 = hl && hl.a && hl.s === s0 ? hl.a : st.a, bas = hl && hl.basmala;
+        if (!s0) return;
+        var k = s0 + ':' + a0 + ':' + (bas ? 'b' : '') + ':' + recId;
+        if (k === msKey) return; msKey = k;
+        var L0 = C.lang, AW = { ar: 'الآية', ur: 'آیت', en: 'Verse', fr: 'Verset', es: 'Aleya', ru: 'Аят' }[L0] || 'Verse';
+        var BW = { ar: 'البسملة', ur: 'بسم اللہ' }[L0] || 'Basmala';
+        var sn = L0 === 'ar' || L0 === 'ur' ? 'سورة ' + C.arabicNames[s0 - 1] : ((C.uiNames || (C.names && C.names[L0 === 'ru' ? 'ru' : 'en']) || C.arabicNames)[s0 - 1]);
+        var num = C.arabicDigits ? arNum(a0) : String(a0);
+        ms.metadata = new MediaMetadata({
+          title: sn + ' — ' + (bas ? BW : AW + ' ' + num),
+          artist: (rec() && rec().label) || '',
+          album: L0 === 'ar' ? 'مصحف العهد الأخير' : 'The Last Testament',
+          artwork: [{ src: '/img/icons/icon-512.png', sizes: '512x512', type: 'image/png' }, { src: '/img/icons/icon-192.png', sizes: '192x192', type: 'image/png' }]
+        });
+        ms.playbackState = 'playing';
+      } catch (e) {}
+    }
     // highlight: hl = {s, a, w} (w = word number, 0 = whole ayah) or {basmala: true}
     function setHl(h) {
       if (hl && h && hl.s === h.s && hl.a === h.a && hl.w === h.w && hl.basmala === h.basmala) return;
       hl = h; applyHl();
+      msMeta();
       if (h && h.w && document.body.classList.contains('bk-tajweed') && mushaf) tjShow(h);
     }
     // Learning tajweed with the colour Mushaf: the rules of each word (data/tajweed/p<N>.json, read from the colours
@@ -3450,6 +3484,7 @@
       if (audio) audio.pause();
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       setPlayUI();
+      try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'paused'; } catch (e) {}
     }
     function setupAudio() {
       var b = q('play'), sel = q('reciter');
