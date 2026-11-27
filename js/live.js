@@ -110,18 +110,19 @@
       var lv = 'normal'; try { lv = localStorage.getItem('lt_live_level') || 'normal'; } catch (e) {}
       fd.append('level', lv);                                      // how strict the check is (easy / normal / strict)
       R.busy = true;
-      var myP = P;
+      var myP = P, myE = pt.epoch || 0;
       return fetch(API + '/live', { method: 'POST', body: fd }).then(function (x) {
         // the service does not have this stretch's beginning (restarted, or a piece was lost): send it whole, once
         if (x.status === 409 && !again) { seg.sent = 0; return send(seg, final, true).then(function (r) { r.__again = 1; return r; }); }
         if (!x.ok) return x.text().then(function (t) { throw new Error(x.status + ' ' + t); });
         return x.json();
-      }).then(function (res) { if (res.__again) return res; R && (R.busy = false); res.part = myP; return res; },
+      }).then(function (res) { if (res.__again) return res; R && (R.busy = false); res.part = myP; res.epoch = myE; return res; },
         function (e) { R && (R.busy = false); seg.sent = 0; throw e; });
     }
     function interim(res) {
       // while a stretch goes on: show the words already heard right, never fewer than already shown (no flicker)
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
+      if ((res.epoch || 0) !== (pt.epoch || 0)) return;
       sought(pt, res);
       if (res.pos !== pt.pos) return;
       // only the words heard right one after another from the reader's place: a word is never shown before it was
@@ -142,6 +143,7 @@
     }
     function commit(res) {
       var pt = parts[res.part]; if (!pt || res.part !== P) return;
+      if ((res.epoch || 0) !== (pt.epoch || 0)) return;   // sent before the reader chose to say a verse again (restartAt)
       if (o.onResult) o.onResult(res);                    // optional: each stretch as the service judged it (the measure keeps it)
       if (res.unclear && o.onUnclear) o.onUnclear(res.part);  // a whole stretch said, nothing of the passage made out: «say it again, clearer»
       sought(pt, res);
@@ -342,6 +344,24 @@
       start: start, stop: stop, warm: function () { warm(API); },
       // a recording instead of the microphone (o.input = {rate}): the page gives it block by block, at its own pace
       feed: function (x) { if (R && R.input) R.proc({ inputBuffer: { getChannelData: function () { return x; } } }); },
+      // the reader wants to say a verse again (he tapped its number): its words and those after it in the passage are
+      // as if not yet recited (the page hides them), and the listening goes on from its first word. -> true if found
+      restartAt: function (s, a) {
+        for (var i = 0; i < parts.length; i++) {
+          var pt = parts[i];
+          if (pt.s !== s || a < pt.a || a > pt.b || !pt.words.length) continue;
+          var k0 = null;
+          pt.words.forEach(function (w) { if (w.ayah >= a) { if (k0 === null) k0 = w.k; w.done = null; w.ti = false; w.heard = null; w.skip = false; } });
+          if (k0 === null) return false;
+          pt.epoch = (pt.epoch || 0) + 1;
+          pt.pos = k0; pt.tiTo = -1; pt.started = true; pt.uncAt = {}; pt.otherAt = {}; pt.tj = null;
+          P = i;
+          if (R) { R.seg = []; R.speaking = false; R.queue = []; }
+          cursor();
+          return true;
+        }
+        return false;
+      },
       setParts: function (list) {
         loadParts(list); if (R) cursor();
         // a passage gone back to: its words recited so far are shown again as they were (the page drew them anew)

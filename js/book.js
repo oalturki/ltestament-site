@@ -4464,6 +4464,20 @@
           var l = w.getAttribute('data-l');
           if (w.classList.contains('ae')) {                // the ayah number: the whole ayah; a second tap hides it again
             var pr = l.split(':').slice(0, 2).join(':') + ':', shown = w.classList.contains('rv-ayah');
+            // an ayah already recited (some of its words shown by the reciting): the reader wants to say it again —
+            // it and what follows it are hidden, and the listening goes on from its first word (the owner, Nov 2026)
+            var said = [].some.call(root.querySelectorAll('[data-l^="' + pr + '"]'), function (x) { return x.classList.contains('tw-done') || (x.classList.contains('rv') && !x.classList.contains('rva')); });
+            if (said && !shown) {
+              var sA = +l.split(':')[0], aA = +l.split(':')[1];
+              root.querySelectorAll('.bk-mpage [data-l]').forEach(function (x) {
+                var q = x.getAttribute('data-l').split(':');
+                if (+q[0] !== sA || +q[1] < aA) return;
+                x.classList.remove('rv', 'rva', 'rv-ayah', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-skip', 'tw-ti', 'tw-hint', 'tw-tjn');
+              });
+              var lw2 = window.__bkLive; if (lw2 && lw2.restartAt) lw2.restartAt(sA, aA);
+              toast(({ ar: 'أعد التسميع من الآية ' + arNum(aA) + '.', en: 'Recite again from verse ' + aA + '.' })[C.lang === 'ur' ? 'ar' : C.lang] || 'Recite again from verse ' + aA + '.');
+              e.stopPropagation(); e.preventDefault(); return;
+            }
             root.querySelectorAll('[data-l^="' + pr + '"]').forEach(function (x) {
               // only what this tap showed is hidden again (a word shown alone, or recited, stays as it is)
               if (shown) { if (x.classList.contains('rva')) x.classList.remove('rv', 'rva'); }
