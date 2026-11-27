@@ -1774,7 +1774,7 @@
         if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
           window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
         });
-        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=27'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
+        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=28'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -2019,7 +2019,7 @@
         var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
         // a live circle's link (?live=123456): join it (&display=1: the teacher's projector, following only)
         var rl = /[?&]live=(\d{6})\b/.exec(location.search);
-        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=27'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
+        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=28'], function () { window.LtHalaqa.join(rl[1], { link: true, display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
@@ -2746,6 +2746,7 @@
       // RTL book: the left arrow moves forward. Full page only, so a home page keeps its own keys.
       if (!embed) document.addEventListener('keydown', function (e) {
         if (e.target && /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+        if (document.body.classList.contains('hq-locked')) return;
         if (e.key === 'ArrowLeft' || e.key === 'PageDown') { e.preventDefault(); go(1); }
         if (e.key === 'ArrowRight' || e.key === 'PageUp') { e.preventDefault(); go(-1); }
       });
@@ -2799,6 +2800,7 @@
         var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
         x0 = null;
         if (ZM.s > 1 || ZM.multi) { if (!e.touches.length) ZM.multi = false; return; }   // zoomed or pinching: no page turn
+        if (document.body.classList.contains('hq-locked')) return;          // the live circle, together: the teacher turns the pages
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx > 0 ? 1 : -1);
       }, { passive: true });
 

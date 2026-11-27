@@ -56,7 +56,7 @@
       colName: 'الطالب', total: 'المجموع', present: 'الحضور', following: 'المتابعة', of: 'من', pageW: 'ص',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
-      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'التحكم في المصحف عند المعلم.',
+      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'التحكم في المصحف عند المعلم.', appH: 'عندك تطبيق العهد الأخير؟', appT: 'افتح التطبيق، ثم الإعدادات ← الحلقة المباشرة، واكتب الرمز:', copyCode: 'نسخ الرمز', here: 'أكمل هنا في المتصفح', copied: 'نُسخ الرمز.', paste: 'لصق',
       viewH: 'العرض', viewG: 'جماعي', viewI: 'فردي',
       viewHelp: 'جماعي: مصاحف الطلاب وفق جهازك في الصفحة، والوضع، وإخفاء الآيات، والتلاوة. فردي: كل طالب يتصفح مصحفه بحرية. وفي الحالين: المس رقم آية ليركّز عليها الطلاب وتظهر لهم أحكامها.',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
@@ -86,7 +86,7 @@
       colName: 'Student', total: 'Total', present: 'Present', following: 'Following', of: 'of', pageW: 'p.',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
-      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher controls the Mushaf.',
+      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher controls the Mushaf.', appH: 'Have the Last Testament app?', appT: 'Open the app, then Settings → Live circle, and enter the code:', copyCode: 'Copy the code', here: 'Continue here in the browser', copied: 'Code copied.', paste: 'Paste',
       viewH: 'View', viewG: 'Together', viewI: 'Individual',
       viewHelp: 'Together: the students’ Mushafs follow your device — page, mode, hidden verses and recitation. Individual: each student browses freely. Either way, tap a verse number to focus the students on it and show its tajweed rules.',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
@@ -110,6 +110,14 @@
     box.innerHTML = '<h4>' + esc(l.joinH) + '</h4><div class="hq-row"><input class="hq-code" inputmode="numeric" maxlength="6" placeholder="' + esc(l.code) + '" dir="ltr"><button type="button" class="hq-b hq-go">' + esc(l.join) + '</button></div>' +
       '<div class="hq-t"></div>';
     sec.appendChild(box);
+    // the code copied from Safari's card: pasted with one tap (the phone asks once)
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'hq-b2 hq-pst'; pb.textContent = l.paste || T.en.paste;
+      box.querySelector('.hq-go').before(pb);
+      pb.onclick = function () {
+        navigator.clipboard.readText().then(function (x) { var d = (x || '').replace(/\D/g, ''); if (d.length === 6) box.querySelector('.hq-code').value = d; }, function () {});
+      };
+    }
     box.querySelector('.hq-go').onclick = function () {
       var c = (box.querySelector('.hq-code').value || '').replace(/\D/g, '');
       if (c.length !== 6) return toast(l.badCode);
@@ -540,6 +548,9 @@
   /* ================= a student (or the projector) ================= */
   function join(code, o) {
     o = o || {};
+    // the link opened on an iPhone in Safari: an iPhone opens every link in Safari, never in the app on the home screen,
+    // so a student who has the app is told how to enter the circle there (the owner, Nov 2026)
+    if (o.link && !o.display && iosBrowser()) return appCard(code, function () { join(code, {}); });
     fam(function () {
       client().then(function (c) {
         return c.rpc('live_join_info', { p_code: code }).then(function (r) {
@@ -554,6 +565,22 @@
         });
       }).catch(function () { toast(L().badCode); });
     });
+  }
+  function iosBrowser() {
+    var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
+    return ios && !navigator.standalone && !(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  }
+  function appCard(code, go) {
+    var l = L(), t = function (k) { return l[k] || T.en[k]; }, ov = document.createElement('div'); ov.className = 'hq-ov';
+    ov.innerHTML = '<div class="hq-box hq-app"><h3>' + esc(t('appH')) + '</h3><p>' + esc(t('appT')) + '</p>' +
+      '<b class="hq-appc" dir="ltr">' + esc(code.slice(0, 3) + ' ' + code.slice(3)) + '</b>' +
+      '<div class="hq-row"><button type="button" class="hq-b hq-cp">' + esc(t('copyCode')) + '</button><button type="button" class="hq-b2 hq-go">' + esc(t('here')) + '</button></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('.hq-cp').onclick = function () {
+      var ok = function () { toast(t('copied')); };
+      try { navigator.clipboard.writeText(code).then(ok, function () {}); } catch (e) {}
+    };
+    ov.querySelector('.hq-go').onclick = function () { ov.remove(); go(); };
   }
   // a temporary circle: the first name only (remembered on this device for the next temporary circle)
   function firstName(info, done) {

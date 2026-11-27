@@ -2260,3 +2260,7 @@ body.hq-noau .bk-bar, body.hq-noau .bk-bottom, body.hq-noau .bk-mnav, body.hq-no
 body.bk-hdr .bk-topcap{ display:block; position:fixed; top:0; left:0; right:0; height:max(1px, env(safe-area-inset-top)); background:#f8f3e6; z-index:39; pointer-events:none; }
 body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 
+
+/* the live circle's link opened in Safari: how to enter it in the app instead */
+.hq-app p{ margin:6px 0 10px; line-height:1.7; }
+.hq-app .hq-appc{ display:block; text-align:center; font-size:30px; letter-spacing:3px; color:#a8862f; margin:4px 0 14px; }
