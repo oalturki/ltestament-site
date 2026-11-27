@@ -770,6 +770,8 @@
       mode: function () { return root.classList.contains('bk-ms') ? 'silent' : root.classList.contains('bk-mt') ? 'tasmee' : root.classList.contains('bk-memo') ? 'hifz' : 'read'; },
       setMode: function (m) { if (root.__setMode) root.__setMode(m); },
       view: function () { return root.__view ? root.__view.get() : null; },
+      silNow: function () { return root.__silNow ? root.__silNow() : null; },
+      silShowTo: function (loc) { if (root.__silShowTo) root.__silShowTo(loc); },
       setView: function (v) { if (root.__view) root.__view.set(v); },
       hidden: function () { return root.classList.contains('bk-hide'); }
     };
@@ -1372,6 +1374,26 @@
         if (leave) { SIL.seq = null; if (root.__fam) root.__fam.flush(false); }
       };
       root.__silStop = silStop;
+      // the live circle: the teacher's silent recitation shown on his students' Mushafs (js/halaqa.js) — he sends the
+      // last word shown on his pages, each student shows his pages' words up to it and hides those after (Nov 2026)
+      root.__silNow = function () {
+        if (!document.body.classList.contains('bk-ms') || !SIL.seq) return null;
+        var x = SIL.seq[SIL.i - 1]; return x ? x.loc : '';
+      };
+      var slSeq = null, slPages = '';
+      root.__silShowTo = function (loc) {
+        var go = function (q) {
+          var j = -1;
+          if (loc) { for (var n = 0; n < q.length; n++) if (q[n].loc === loc) { j = n; break; } if (j < 0) return; }
+          q.forEach(function (x, k) {
+            if (k > j) return silHide(x);
+            silShowWord(x);
+            if ((k < j && !sameA(x, q[k + 1])) || (k === j && x.end != null)) silShowEnd(x);
+          });
+        };
+        if (slSeq && slPages === visible().join(',')) return go(slSeq);
+        silBuild().then(function (q) { slSeq = q; slPages = visible().join(','); go(q); });
+      };
       silBtn.onclick = function (e) { e.stopPropagation(); if (SIL.on) silStop(); else silStart(); };
       // each button's own choices: a small list opening upward from it, gone once a choice is made
       var silPop = document.createElement('div'); silPop.className = 'bk-silpop'; document.body.appendChild(silPop);
@@ -1752,7 +1774,7 @@
         if (k === 'plans') ltLoad(['/js/sync.js', '/js/plans.js'], function () {
           window.LtPlans.ui(plSec, { lang: C.lang, open: function (pg, mode) { shut(); show(pg, 0); if (curMode() !== mode) setMode(mode); } });
         });
-        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=26'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
+        if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=27'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
@@ -1997,7 +2019,7 @@
         var rm = /[?&]m=(hifz|tasmee|silent)\b/.exec(location.search); if (rm) setMode(rm[1]);
         // a live circle's link (?live=123456): join it (&display=1: the teacher's projector, following only)
         var rl = /[?&]live=(\d{6})\b/.exec(location.search);
-        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=26'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
+        if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=27'], function () { window.LtHalaqa.join(rl[1], { display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)

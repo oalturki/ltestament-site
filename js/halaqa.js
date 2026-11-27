@@ -375,8 +375,9 @@
     var mk = (B().mode ? B().mode() : '') + (B().hidden && B().hidden() ? 'h' : '') + '|' + (B().view ? B().view() : '');
     if (mk !== S.modeK) { S.modeK = mk; if (S.view === 'g') S.send(); }
     var x = B().audioNow ? B().audioNow() : null, h = B().hlNow ? B().hlNow() : null, now = Date.now();
-    var m = x ? { u: x.u, sq: x.sq || 0, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null } : { stop: true, h: null };
-    var k = x ? [x.u, x.p, x.r, x.m, JSON.stringify(h)].join('|') : 'stop';
+    var sl = S.view === 'g' && B().silNow ? B().silNow() : null;            // the silent recitation's last word shown
+    var m = x ? { u: x.u, sq: x.sq || 0, t: Math.round(x.t * 100) / 100, p: x.p, r: x.r, m: x.m, h: h || null, sl: sl } : { stop: true, h: null, sl: sl };
+    var k = (x ? [x.u, x.p, x.r, x.m, JSON.stringify(h)].join('|') : 'stop') + '|' + sl;
     if (k === S.auK && (!x || x.p || now - S.auAt < 2000)) return;
     S.auK = k; S.auAt = now; S.auLast = m;
     quiet(function () { return S.ch.send({ type: 'broadcast', event: 'au', payload: m }); });
@@ -693,6 +694,7 @@
     if (!S || S.role === 'teacher' || (S.me && S.me.pending)) return;
     m._at = Date.now(); S.au = m; S.auRecv = m._at;
     if (S.t && S.t.v === 'i') { if (S.mA) S.mA.pause(); return; }        // individual: nothing follows
+    if (m.sl != null && B().silShowTo) B().silShowTo(m.sl);              // the teacher's silent recitation, word by word
     // the teacher stopped or paused: his last word stays lit and its tajweed card stays open (he may explain it),
     // until the student closes it, he leaves, or the circle ends
     if (m.stop || m.p) { if (B().tjHold) B().tjHold(); }
