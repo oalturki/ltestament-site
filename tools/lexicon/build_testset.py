@@ -59,6 +59,25 @@ for pid, s, a0, a1, title in PASSAGES:
                        ('qalqala', lambda r: 6 in r.get('c', []))):
         hit = [x for x in allw if test(x[1])]
         if hit: tasks.append(dict(base, id=f'{pid}-{kind}', kind=kind, target=hit[len(hit) // 2][0]))
+# mistakes the check might let pass as right (the owner's rule, 27 Nov 2026: a wrong word called right is worse than
+# a right word called wrong — a student may memorise it): another word said (swap), a letter or vowel changed (harf),
+# a short word left out (short). Chosen by hand; 'say' is what the reader says instead
+CHOSEN = [
+    ('fatiha', 'swap', '1:5:4', 'نَسْتَغْفِرُ'), ('fatiha', 'harf', '1:7:3', 'أَنْعَمْتُ'), ('fatiha', 'short', '1:7:8', None),
+    ('ikhlas', 'swap', '112:4:4', 'مِثْلًا'), ('ikhlas', 'harf', '112:2:2', 'الصَّمَدَ'), ('ikhlas', 'short', '112:3:3', None),
+    ('falaq', 'swap', '113:4:5', 'العُقُولِ'), ('falaq', 'harf', '113:5:3', 'حَاقِدٍ'), ('falaq', 'short', '113:4:4', None),
+    ('nas', 'swap', '114:4:3', 'الشَّيْطَانِ'), ('nas', 'harf', '114:6:2', 'الجَنَّةِ'), ('nas', 'short', '114:5:3', None),
+    ('asr', 'swap', '103:3:7', 'بِالْخَيْرِ'), ('asr', 'harf', '103:1:1', 'العَصْرِ'),
+    ('kawthar', 'swap', '108:2:3', 'وَاذْكُرْ'), ('kawthar', 'harf', '108:1:2', 'أَعْطَيْنَاكِ'), ('kawthar', 'short', '108:3:3', None),
+    ('qadr', 'swap', '97:5:5', 'الصُّبْحِ'), ('qadr', 'harf', '97:2:4', 'لَيْلَةِ'), ('qadr', 'short', '97:1:3', None),
+]
+order = [t['p'] for t in tasks]
+for pid, kind, loc, say in CHOSEN:
+    if pid not in passages: continue
+    at = max(i for i, p_ in enumerate(order) if p_ == pid) + 1
+    e = dict(p=pid, id=f'{pid}-{kind}', kind=kind, target=loc)
+    if say: e['say'] = say
+    tasks.insert(at, e); order.insert(at, pid)
 for t in tasks: t['adult'] = t['kind'] in ADULT
 json.dump({'v': 1, 'passages': passages, 'tasks': tasks}, open(os.path.join(ROOT, 'data/testset/tasks.json'), 'w', encoding='utf-8'),
           ensure_ascii=False, separators=(',', ':'))

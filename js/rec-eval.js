@@ -5,13 +5,14 @@
    Measures: detected (the planned mistake found), false alarms (words said right marked wrong), unreached (words the
    check never got to), and on the tajweed tasks the tajweed notes on the target word and elsewhere. */
 (function () {
-  var ENGINE = 'live-2026-11-27p';   // p: the other-speech-by-sound checks (l–o) off — they found nothing more and raised false alarms; o: words said again must fill most of the stretch no word covers; n: a stretch of other speech alone (nothing of the passage) found by its sounds; words said again found by their sounds; m: l without going back, a verse said again, a short or thin stretch; l: other speech the transcription left out found by its sounds between the words due; k: the words before where the transcription placed the start (a basmala said low) looked for by their sounds; b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again; d: constrained check (word sounds laid on the audio); e: a word whose sounds are absent is left out, or other speech; f: other speech judged over the whole run, by word pairs; g: a word heard as no Quran word, its sounds unsure, is «not understood»; h: the first words found by their sounds when the transcription cannot place them, else «not clear»
+  var ENGINE = 'live-2026-11-27p';   // p measured with the new kinds too (swap, harf, short) once recorded;   // p: the other-speech-by-sound checks (l–o) off — they found nothing more and raised false alarms; o: words said again must fill most of the stretch no word covers; n: a stretch of other speech alone (nothing of the passage) found by its sounds; words said again found by their sounds; m: l without going back, a verse said again, a short or thin stretch; l: other speech the transcription left out found by its sounds between the words due; k: the words before where the transcription placed the start (a basmala said low) looked for by their sounds; b: alignment prefers the nearest match (basmala); c: long stretches end at a dip, a wrong word heard again; d: constrained check (word sounds laid on the audio); e: a word whose sounds are absent is left out, or other speech; f: other speech judged over the whole run, by word pairs; g: a word heard as no Quran word, its sounds unsure, is «not understood»; h: the first words found by their sounds when the transcription cannot place them, else «not clear»
   var app = document.getElementById('evApp');
   var AR = '٠١٢٣٤٥٦٧٨٩', num = function (n) { return String(n).replace(/[0-9]/g, function (d) { return AR[d]; }); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var KIND = { clean: 'صحيحة', word: 'ترك كلمة', ayah: 'تجاوز آية', repeat: 'تكرار آية', restart: 'رجوع لأول الآية',
-               other: 'كلام من غير الآية', madd: 'قصر مد', ghunna: 'ترك غنة', qalqala: 'ترك قلقلة' };
-  var FIND = { word: 1, ayah: 1, other: 1, madd: 1, ghunna: 1, qalqala: 1 };
+               other: 'كلام من غير الآية', madd: 'قصر مد', ghunna: 'ترك غنة', qalqala: 'ترك قلقلة',
+               swap: 'إبدال كلمة', harf: 'تغيير حرف أو حركة', short: 'ترك كلمة قصيرة' };
+  var FIND = { word: 1, ayah: 1, other: 1, madd: 1, ghunna: 1, qalqala: 1, swap: 1, harf: 1, short: 1 };
   var TJ = { madd: 1, ghunna: 1, qalqala: 1 };
   var S = { c: null, clips: [], evals: {}, data: null, lex: {}, running: false, speed: 1 };
 
@@ -225,14 +226,17 @@
             }
           });
           var det = null;
-          if (c.kind === 'word') det = tHit > 0;
+          // a word said wrong on purpose (left out, another said, a letter or vowel changed): caught when it is called
+          // wrong or missing. «Not clear» is not caught — it is not counted against the reader (the owner's rule: a
+          // mistake let pass is worse than a right word called wrong), so the measure shows it apart (target_cls)
+          if (c.kind === 'word' || c.kind === 'swap' || c.kind === 'harf' || c.kind === 'short') det = tHit > 0;
           else if (c.kind === 'ayah') det = tAll > 0 && tHit * 2 >= tAll;
           else if (c.kind === 'other') det = !!other;
           else if (TJ[c.kind]) det = tj.some(function (x) { return x.target; });
           return {
             clip_id: c.id, engine: ENGINE, level: (function () { try { return localStorage.getItem('lt_live_level') || 'normal'; } catch (e) { return 'normal'; } })(),
             detected: det, false_alarms: fa, unreached: unreached,
-            result: { slips: slips.length ? [slipHit, slips.length] : undefined, errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
+            result: { target_cls: c.target && final[c.target] ? final[c.target].cls : (c.target && c.kind !== 'ayah' ? 'none' : undefined), slips: slips.length ? [slipHit, slips.length] : undefined, errors: errors, other: other, tj: tj, stretches: stretches, tj_false: tj.filter(function (x) { return !x.target; }).length,
                       words: words.length, ms: Date.now() - t0, speed: S.speed, title: P.title }
           };
         });
