@@ -2259,3 +2259,7 @@ body.hq-noau .bk-bar, body.hq-noau .bk-bottom, body.hq-noau .bk-mnav, body.hq-no
 .bk-topcap{ display:none; }
 body.bk-hdr .bk-topcap{ display:block; position:fixed; top:0; left:0; right:0; height:max(1px, env(safe-area-inset-top)); background:#f8f3e6; z-index:39; pointer-events:none; }
 body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
+
+/* TEMPORARY test (2026-11-27, the owner's adviser): the head row 12px lower in the home-screen app only — does the
+   haze leave when the row is out of iOS's top fade? Remove or settle after the test */
+@media (display-mode: standalone){ body.bk-hdr .bk-hdr2{ margin-top:12px !important; } }
