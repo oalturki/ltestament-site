@@ -2211,3 +2211,10 @@ body.bk-night.bk-hdr .bk-hdr2{ border-color:#2f9a9a !important; background:#1a22
 body.bk-hdr .bk-hdr2::before{ border:0 !important; border-image:none !important;
   background:url(/img/hdr-band-l.svg) left top / 18px 100% no-repeat, url(/img/hdr-band-r.svg) right top / 18px 100% no-repeat,
     url(/img/hdr-band-m.svg) 18px top / calc(100% - 36px) 100% no-repeat; }
+
+/* the close button at a sheet's top, in sight however far it is scrolled (js/book.js adds it to each sheet) */
+.bk-tjbox > .bk-x, .bk-micbox > .bk-x{ position:sticky; top:-10px; float:inline-end; z-index:3; display:flex; align-items:center; justify-content:center;
+  width:36px; min-width:0; height:36px; padding:0; margin:-8px -8px 4px 8px; border:1px solid rgba(200,155,60,.5); border-radius:50%;
+  background:#fdfaf1; color:#8a6a1f; font:400 24px/1 system-ui, sans-serif; cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,.14); }
+body.bk-night .bk-tjbox > .bk-x, body.bk-night .bk-micbox > .bk-x{ background:#1d2638; color:#e0c27a; }
+.bk-wsx{ position:sticky; top:-10px; float:inline-end; z-index:3; background:#FBF8F0; border-radius:50%; margin:-8px -10px 4px 8px; }
