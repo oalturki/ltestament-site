@@ -2244,3 +2244,9 @@ body.bk-hdr .bk-hdr2 .bk-h2pm{ background:#fdfaf2; }   /* the page number's box 
 .bk-gpit.on{ background:rgba(201,162,64,.16); } .bk-gpit.on i{ color:#fff; background:#b8892e; border-radius:8px; }
 body.bk-night .bk-gpbox{ background:#1a2230; border-color:#6d5a2a; } body.bk-night .bk-gpit, body.bk-night .bk-gpit .g{ color:#e8e0cc; }
 .bk-gpit .hs{ font-size:34px; } .bk-gpit .hj{ font-size:31px; } .bk-gpit .ht{ font-size:23px; }
+
+/* the live circle, together: the student's own recitation buttons dimmed (the teacher's recitation leads) and a note */
+body.hq-noau .pc-pp, body.hq-noau .pc-prev, body.hq-noau .pc-next, body.hq-noau [data-bk="play"], body.hq-noau .bk-msnd, body.hq-noau .bk-wsplay{ opacity:.35; }
+.hq-note{ position:fixed; z-index:9500; left:50%; bottom:110px; transform:translateX(-50%); padding:9px 16px; border-radius:12px; background:rgba(30,26,18,.9); color:#fff;
+  font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s; white-space:nowrap; }
+.hq-note.on{ opacity:1; }

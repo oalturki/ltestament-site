@@ -56,7 +56,7 @@
       colName: 'الطالب', total: 'المجموع', present: 'الحضور', following: 'المتابعة', of: 'من', pageW: 'ص',
       auH: 'صوت التلاوة', auC: 'في الفصل', auR: 'عن بُعد',
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
-      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت',
+      auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'التلاوة بيد المعلم في الحلقة.',
       viewH: 'العرض', viewG: 'جماعي', viewI: 'فردي',
       viewHelp: 'جماعي: مصاحف الطلاب وفق جهازك في الصفحة، والوضع، وإخفاء الآيات، والتلاوة. فردي: كل طالب يتصفح مصحفه بحرية. وفي الحالين: المس رقم آية ليركّز عليها الطلاب وتظهر لهم أحكامها.',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
@@ -86,7 +86,7 @@
       colName: 'Student', total: 'Total', present: 'Present', following: 'Following', of: 'of', pageW: 'p.',
       auH: 'Recitation sound', auC: 'In class', auR: 'Remote',
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
-      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound',
+      auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher leads the recitation in the circle.',
       viewH: 'View', viewG: 'Together', viewI: 'Individual',
       viewHelp: 'Together: the students’ Mushafs follow your device — page, mode, hidden verses and recitation. Individual: each student browses freely. Either way, tap a verse number to focus the students on it and show its tajweed rules.',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
@@ -668,6 +668,9 @@
     var vis = B().visible();
     if (t.v !== 'i' && t.p && (vis.indexOf(t.p) < 0) && (!was.p || was.p !== t.p || t.lock)) B().show(t.p);   // together: the teacher's page
     document.body.classList.toggle('hq-locked', !!t.lock);
+    // together (the teacher's recitation, in class or remote): the recitation is the teacher's — the student's own
+    // play buttons do nothing (a second recitation over the teacher's, in the room or in his ears)
+    document.body.classList.toggle('hq-noau', t.v !== 'i');
     if (!!t.hide !== !!was.hide) B().hide(!!t.hide);
     var f0 = was.focus ? was.focus.join(':') : '', f1 = t.focus ? t.focus.join(':') : '';
     if (f0 !== f1) focusShow(t.focus);
@@ -736,8 +739,18 @@
     // verse's file (AbortError, with every new ayah) is not a refusal — it asked again and again (Nov 2026)
     else { var pr = A.play(); if (pr && pr.catch) pr.catch(function (e) { if (e && e.name === 'NotAllowedError' && S) { S.unlocked = false; auMode(); } }); }
   }
+  // the student's own recitation buttons, while the teacher's recitation leads (body.hq-noau)
+  var NOAU = '.pc-pp, .pc-prev, .pc-next, [data-bk="play"], .bk-msnd, .bk-wsplay';
+  document.addEventListener('click', function (e) {
+    if (!document.body.classList.contains('hq-noau') || !e.target.closest || !e.target.closest(NOAU)) return;
+    e.preventDefault(); e.stopPropagation();
+    var m = L().noAu || T.ar.noAu, n = document.querySelector('.hq-note');
+    if (!n) { n = document.createElement('div'); n.className = 'hq-note'; document.body.appendChild(n); }
+    n.textContent = m; n.classList.add('on'); clearTimeout(n._t); n._t = setTimeout(function () { n.classList.remove('on'); }, 2200);
+  }, true);
   function leave(ended) {
     if (!S) return;
+    document.body.classList.remove('hq-noau');
     clearInterval(S.hb); clearInterval(S.kt); if (S.wait) { S.wait.remove(); S.wait = null; }
     if (S.mA) { try { S.mA.pause(); } catch (e) {} }
     if (B().follow) B().follow(null);
