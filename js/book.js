@@ -1514,11 +1514,41 @@
         slotV.className = 'bk-h2slot'; slotM.className = 'bk-h2slot';
         hdr.insertBefore(slotV, cPg); hdr.insertBefore(slotM, cSu);
         hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
-        var hPg = overSel(pg), hJz = overSel(bar.querySelector('.bk-mjz') || pg);
+        // in Arabic the juz and surah lists are the page's own, their names in the Mushaf's calligraphy (the QPC head
+        // fonts, as the head bar shows them — the owner, Nov 2026); the phone's list cannot take a font. The page's list
+        // stays the phone's own (numbers)
+        var AR2 = C.lang === 'ar' || C.lang === 'ur';
+        var glyphPick = function (src, kind) {
+          var b = document.createElement('button'); b.type = 'button'; b.className = 'bk-gpick';
+          b.setAttribute('aria-label', src.getAttribute('aria-label') || '');
+          b.onclick = function (e) {
+            e.stopPropagation();
+            var old = document.querySelector('.bk-gpov'); if (old) old.remove();
+            var ov = document.createElement('div'); ov.className = 'bk-gpov';
+            var box = document.createElement('div'); box.className = 'bk-gpbox ' + (kind === 'su' ? 'su' : 'jz');
+            var hr = hdr.getBoundingClientRect(); box.style.top = Math.round(hr.bottom + 6) + 'px';
+            [].forEach.call(src.options, function (o) {
+              var n = +o.value; if (!n) return;
+              var it = document.createElement('button'); it.type = 'button'; it.className = 'bk-gpit' + (String(n) === String(src.value) ? ' on' : '');
+              var name = kind === 'jz' ? '<b class="g hj">' + String.fromCharCode(0xE000 + n) + '</b>'
+                : n > 1 ? '<b class="g hs">' + String.fromCharCode(0xE000 + n) + '</b>' : '<b class="g ht">سُورَةُ الفَاتِحَةِ</b>';
+              it.innerHTML = '<i>' + arNum(n) + '</i>' + name;
+              it.onclick = function (ev) { ev.stopPropagation(); ov.remove(); src.value = String(n); src.dispatchEvent(new Event('change')); };
+              box.appendChild(it);
+            });
+            ov.appendChild(box);
+            ov.onclick = function () { ov.remove(); };
+            document.body.appendChild(ov);
+            var on = box.querySelector('.on'); if (on) box.scrollTop = on.offsetTop - box.clientHeight / 2 + on.offsetHeight / 2;
+          };
+          return b;
+        };
+        var jzSrc = bar.querySelector('.bk-mjz') || pg;
+        var hPg = overSel(pg), hJz = AR2 && jzSrc !== pg ? glyphPick(jzSrc, 'jz') : overSel(jzSrc);
         cPg.appendChild(hPg); cJz.appendChild(hJz);
-        // the surah: the phone's own list, as the juz and the page (not the full index)
+        // the surah: its list (not the full index)
         var sSel2 = q('surahSel');
-        if (sSel2) { var hSu = overSel(sSel2); cSu.appendChild(hSu); }
+        if (sSel2) { var hSu = AR2 ? glyphPick(sSel2, 'su') : overSel(sSel2); cSu.appendChild(hSu); }
         else cSu.onclick = function (e) { e.stopPropagation(); var h = bar.querySelector('.bk-hamb'); if (h) h.click(); };
         document.body.appendChild(hdr);
         // the view and the mode buttons come from the top bar into the row (and go back when the row is not used)

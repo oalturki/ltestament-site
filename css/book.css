@@ -2228,3 +2228,19 @@ body.bk-hdr .bk-hdr2{ padding:0 40px !important; }
 body.bk-night.bk-hdr .bk-hdr2{ background:#1a2230 !important; }
 body.bk-night.bk-hdr .bk-hdr2 .bk-h2b{ background:#243049 !important; color:#d9b45a !important; }
 body.bk-hdr .bk-hdr2 .bk-h2pm{ background:#fdfaf2; }   /* the page number's box on the cream, not the band's green */
+
+/* the juz and surah lists of the head row, their names in the Mushaf's calligraphy (js/book.js glyphPick) */
+.bk-hdr2 .bk-gpick{ position:absolute; inset:0; width:100%; height:100%; opacity:0; border:0; padding:0; background:none; cursor:pointer; }
+.bk-gpov{ position:fixed; inset:0; z-index:9000; }
+.bk-gpbox{ position:fixed; max-height:68vh; overflow-y:auto; -webkit-overflow-scrolling:touch; background:#fbf8ef; border:1px solid rgba(201,162,64,.55);
+  border-radius:16px; box-shadow:0 10px 34px rgba(0,0,0,.22); padding:6px 0; direction:rtl; }
+.bk-gpbox.su{ left:10px; width:min(68vw, 300px); } .bk-gpbox.jz{ right:10px; width:min(66vw, 280px); }
+.bk-gpit{ display:flex; align-items:center; gap:12px; width:100%; padding:7px 16px; border:0; background:none; cursor:pointer; color:#2e2410; text-align:start; }
+.bk-gpit + .bk-gpit{ border-top:1px solid rgba(201,162,64,.18); }
+.bk-gpit i{ flex:0 0 30px; font-style:normal; font-family:'Amiri','Noto Naskh Arabic',serif; font-weight:700; font-size:16px; color:#8a6a1f; text-align:center; }
+.bk-gpit .g{ font-weight:400; line-height:1.15; color:#2e2410; }
+.bk-gpit .hs{ font-family:'QPC Head Surah'; font-size:30px; } .bk-gpit .hj{ font-family:'QPC Head Juz'; font-size:28px; }
+.bk-gpit .ht{ font-family:'KFGQPC Hafs','Amiri',serif; font-size:21px; }
+.bk-gpit.on{ background:rgba(201,162,64,.16); } .bk-gpit.on i{ color:#fff; background:#b8892e; border-radius:8px; }
+body.bk-night .bk-gpbox{ background:#1a2230; border-color:#6d5a2a; } body.bk-night .bk-gpit, body.bk-night .bk-gpit .g{ color:#e8e0cc; }
+.bk-gpit .hs{ font-size:34px; } .bk-gpit .hj{ font-size:31px; } .bk-gpit .ht{ font-size:23px; }
