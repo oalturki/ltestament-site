@@ -58,6 +58,10 @@
       auHelp: 'في الفصل: تُسمع التلاوة من جهازك وحده، والطلاب يتابعون تظليل الكلمات على مصاحفهم دون صوت. عن بُعد: تُسمع عند كل طالب على جهازه، ويضغط الطالب مرة «تفعيل الصوت». وفي الحالين شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.',
       auTip: 'شغّل التلاوة من شريط مصحفك، وأجهزة الطلاب تتبعها.', unlock: '🔊 تفعيل الصوت', noAu: 'التحكم في المصحف عند المعلم.', appH: 'عندك تطبيق العهد الأخير؟', appT: 'افتح التطبيق، ثم الإعدادات ← الحلقة المباشرة، واكتب الرمز:', copyCode: 'نسخ الرمز', here: 'أكمل هنا في المتصفح', copied: 'نُسخ الرمز.', paste: 'لصق',
       viewH: 'العرض', viewG: 'جماعي', viewI: 'فردي',
+      selHint: 'اضغط اسم طالب أو أكثر للتحكم في أجهزتهم وحدهم.', perH: 'للمحدَّدين', perTag: 'خاص', perAs: 'كالحلقة',
+      perTxt: 'النص', perShow: 'ظاهر', perHide: 'مخفي', perMode: 'الوضع', perModes: ['تلاوة', 'تحفيظ', 'تسميع', 'تسميع صامت'],
+      perFol: 'المتابعة', perFolG: 'يتبعني', perFolI: 'حرّ', perAu: 'الصوت', perAuR: 'من جهازه', perAuC: 'لا يسمع',
+      perClear: 'إلغاء التحديد', perReset: 'إعادتهم إلى إعداد الحلقة',
       viewHelp: 'جماعي: مصاحف الطلاب وفق جهازك في الصفحة، والوضع، وإخفاء الآيات، والتلاوة. فردي: كل طالب يتصفح مصحفه بحرية. وفي الحالين: المس رقم آية ليركّز عليها الطلاب وتظهر لهم أحكامها.',
       locked: 'المعلم يقود التنقل', focusH: 'الآية', rules: 'أحكام التجويد', noRules: 'لا أحكام ملوّنة في هذه الآية.',
       repH: 'تقارير الجلسات', repNone: 'لا جلسات بعد.', csv: 'تصدير Excel', inT: 'حضور', outT: 'خروج', times: 'مرات', joined: 'دخل',
@@ -88,6 +92,10 @@
       auHelp: 'In class: the recitation is heard from your device only; the students follow the highlighted words on their Mushafs, silently. Remote: it is heard on each student’s device (each taps «Turn on the sound» once). Either way, play it from your Mushaf’s bar and the students’ Mushafs follow.',
       auTip: 'Play the recitation from your Mushaf’s bar; the students’ Mushafs follow it.', unlock: '🔊 Turn on the sound', noAu: 'The teacher controls the Mushaf.', appH: 'Have the Last Testament app?', appT: 'Open the app, then Settings → Live circle, and enter the code:', copyCode: 'Copy the code', here: 'Continue here in the browser', copied: 'Code copied.', paste: 'Paste',
       viewH: 'View', viewG: 'Together', viewI: 'Individual',
+      selHint: 'Tap one or more students’ names to control their devices alone.', perH: 'Selected', perTag: 'own', perAs: 'as the circle',
+      perTxt: 'Text', perShow: 'shown', perHide: 'hidden', perMode: 'Mode', perModes: ['Recitation', 'Memorization', 'Recite back', 'Silent recite-back'],
+      perFol: 'Following', perFolG: 'follows me', perFolI: 'free', perAu: 'Sound', perAuR: 'on his device', perAuC: 'none',
+      perClear: 'Clear the selection', perReset: 'Back to the circle’s settings',
       viewHelp: 'Together: the students’ Mushafs follow your device — page, mode, hidden verses and recitation. Individual: each student browses freely. Either way, tap a verse number to focus the students on it and show its tajweed rules.',
       locked: 'The teacher leads the pages', focusH: 'Verse', rules: 'Tajweed rules', noRules: 'No coloured rules in this verse.',
       repH: 'Session reports', repNone: 'No sessions yet.', csv: 'Export to Excel', inT: 'In', outT: 'Out', times: 'times', joined: 'Joined',
@@ -356,7 +364,8 @@
   var quiet = function (f) { try { var r = f(); if (r && r.catch) r.catch(function () {}); } catch (e) {} };
   function teach(c, ses) {
     var l = L(), now = Date.now();
-    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, au: 'c', view: 'g', temp: !!ses.temp, knocks: {}, t0: now, pages: {}, st: {}, c: c };
+    S = { role: 'teacher', code: ses.code, ses: ses, lock: false, hide: false, focus: null, au: 'c', view: 'g', temp: !!ses.temp, knocks: {}, t0: now, pages: {}, st: {}, c: c,
+      sel: {}, ov: {} };   // the students selected in the table, and each one's own settings {hide, md, v, au}
     // the students' running record: {id: {name, sid, joined, st, since, in, out, outs, p}}
     ses.roster.forEach(function (x) { S.st[x.id] = { name: x.name, sid: x.sid, joined: 0, st: 'n', since: now, in: 0, out: 0, outs: 0 }; });
     var sendSt = function () { if (S && S.ch) quiet(function () { return S.ch.send({ type: 'broadcast', event: 'st', payload: state() }); }); };
@@ -378,10 +387,16 @@
     panel();
     document.addEventListener('click', ayahTap, true);
   }
+  // a student's own settings, where the teacher set any (the rest follow the circle's)
+  function ovOut() {
+    var o = {}, n = 0;
+    Object.keys(S.ov || {}).forEach(function (id) { if (Object.keys(S.ov[id]).length) { o[id] = S.ov[id]; n++; } });
+    return n ? o : null;
+  }
   function state() {
     var g = S.view === 'g';
     return { p: S.page || B().cur(), v: S.view, lock: g, hide: g && !!(B().hidden && B().hidden()), focus: S.focus, title: S.ses.title, au: S.au,
-      md: g && B().mode ? B().mode() : null, vw: g && B().view ? B().view() : null, t: Date.now() };
+      md: g && B().mode ? B().mode() : null, vw: g && B().view ? B().view() : null, ov: ovOut(), t: Date.now() };
   }
   // the teacher's recitation, watched four times a second and sent when it changes (and every 2 s while it plays)
   function auWatch() {
@@ -452,6 +467,10 @@
       '<span class="hq-seg">' + items.map(function (x, i) { return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"' + (i ? '' : ' checked') + '><span>' + esc(x[1]) + '</span></label>'; }).join('') + '</span></div>' +
       '<p class="hq-help" hidden>' + esc(help) + '</p></div>';
   }
+  function perSel(k, title, items) {
+    return '<label class="hq-pr"><span>' + esc(title) + ':</span><select data-k="' + k + '">' +
+      items.map(function (x) { return '<option value="' + x[0] + '">' + esc(x[1]) + '</option>'; }).join('') + '</select></label>';
+  }
   function panel() {
     var l = L();
     P = document.createElement('div'); P.className = 'hq-panel';
@@ -468,6 +487,13 @@
       // page · red: another page); the totals under them
       '<div class="hq-kn" hidden></div><table class="hq-tbl"><thead><tr><th>' + esc(l.colName) + '</th><th class="hq-c">' + esc(l.present) + '</th><th class="hq-c">' + esc(l.following) + '</th></tr></thead>' +
       '<tbody class="hq-rl"></tbody><tfoot><tr class="hq-tot"><td>' + esc(l.total) + '</td><td class="hq-c" data-k="in"></td><td class="hq-c" data-k="fo"></td></tr></tfoot></table>' +
+      // the students selected (a tap on a name): their own settings, the rest as the circle
+      '<p class="hq-note hq-selh">' + esc(l.selHint) + '</p><div class="hq-per" hidden><b class="hq-perh"></b>' +
+      perSel('hide', l.perTxt, [['', l.perAs], ['0', l.perShow], ['1', l.perHide]]) +
+      perSel('md', l.perMode, [['', l.perAs]].concat(['read', 'hifz', 'tasmee', 'silent'].map(function (m, i) { return [m, l.perModes[i]]; }))) +
+      perSel('v', l.perFol, [['', l.perAs], ['g', l.perFolG], ['i', l.perFolI]]) +
+      perSel('au', l.perAu, [['', l.perAs], ['r', l.perAuR], ['c', l.perAuC]]) +
+      '<div class="hq-row"><button type="button" class="hq-b2 hq-prs">' + esc(l.perReset) + '</button><button type="button" class="hq-b2 hq-pcl">' + esc(l.perClear) + '</button></div></div>' +
       '<details class="hq-disp"><summary>' + esc(l.display) + '</summary><p class="hq-note">' + esc(l.displayHelp) + '</p><div class="hq-lk"><span dir="ltr">' + esc((link + '&display=1').replace(/^https?:\/\//, '')) + '</span><button type="button" class="hq-b2 hq-cp2">' + esc(l.copy) + '</button></div></details>' +
       '<button type="button" class="hq-b hq-end">' + esc(l.end) + '</button></div>';
     document.body.appendChild(P); document.body.classList.add('hq-teaching');
@@ -487,6 +513,21 @@
     P.querySelectorAll('input[name=hqau]').forEach(function (r) { r.onchange = function () { if (this.checked) { S.au = this.value; S.send(); S.auK = null; auWatch(); } }; });
     P.querySelector('.hq-uf').onclick = function () { S.focus = null; S.send(); focusShow(null); drawPanel(); };
     P.querySelector('.hq-end').onclick = function () { if (confirm(l.endQ)) endSession(); };
+    // a tap on a student's name selects him (or lets him go); the selected ones' own settings below the table
+    P.querySelector('.hq-rl').addEventListener('click', function (e) {
+      var tr = e.target.closest && e.target.closest('tr[data-id]'); if (!tr) return;
+      var id = tr.getAttribute('data-id'); if (S.sel[id]) delete S.sel[id]; else S.sel[id] = 1; drawPanel();
+    });
+    P.querySelectorAll('.hq-per select').forEach(function (sl) { sl.onchange = function () {
+      var k = sl.getAttribute('data-k'), v = sl.value;
+      Object.keys(S.sel).forEach(function (id) {
+        var o = S.ov[id] || (S.ov[id] = {});
+        if (v === '') delete o[k]; else o[k] = k === 'hide' ? v === '1' : v;
+      });
+      S.send(); S.auK = null; auWatch(); drawPanel();
+    }; });
+    P.querySelector('.hq-prs').onclick = function () { Object.keys(S.sel).forEach(function (id) { delete S.ov[id]; }); S.send(); S.auK = null; auWatch(); drawPanel(); };
+    P.querySelector('.hq-pcl').onclick = function () { S.sel = {}; drawPanel(); };
     drawPanel();
   }
   function drawPanel() {
@@ -498,7 +539,8 @@
       var r = S.st[id]; cnt[r.st]++;
       var here = r.st === 'g' || r.st === 'y';
       var dot = function (ok, sub, t) { return '<td class="hq-c"><i class="' + (ok ? 'ok' : 'no') + '" title="' + esc(t) + '"></i>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</td>'; };
-      return '<tr class="hq-s hq-' + r.st + '"><td>' + esc(r.name) + '</td>' +
+      var own = S.ov[id] && Object.keys(S.ov[id]).length;
+      return '<tr class="hq-s hq-' + r.st + (S.sel[id] ? ' sel' : '') + '" data-id="' + esc(id) + '"><td>' + esc(r.name) + (own ? ' <em class="hq-tag">' + esc(l.perTag) + '</em>' : '') + '</td>' +
         dot(here, r.st === 'r' ? dur(now - r.since) : r.st === 'n' ? l.notYet : '', stName(l, r.st)) +
         (here ? dot(r.st === 'g', r.st === 'y' && r.p ? l.pageW + ' ' + num(r.p) : '', stName(l, r.st)) : '<td class="hq-c">–</td>') + '</tr>';
     }).join('');
@@ -510,6 +552,18 @@
     if (S.bub) S.bub.set('<span class="hq-bc hq-g"><i></i>' + num(cnt.g) + '</span>' + (cnt.y ? '<span class="hq-bc hq-y"><i></i>' + num(cnt.y) + '</span>' : '') +
       '<span class="hq-bc hq-r"><i></i>' + num(cnt.r) + '</span>');
     P.querySelector('.hq-uf').hidden = !S.focus;
+    // the selected students' own settings: each list shows their common choice («as the circle» where they differ)
+    Object.keys(S.sel).forEach(function (id) { if (!S.st[id]) delete S.sel[id]; });
+    var sel = Object.keys(S.sel), per = P.querySelector('.hq-per');
+    per.hidden = !sel.length; P.querySelector('.hq-selh').hidden = !!sel.length || !ids.length;
+    if (sel.length) {
+      per.querySelector('.hq-perh').textContent = l.perH + ' (' + num(sel.length) + '): ' + sel.map(function (id) { return S.st[id].name; }).join('، ');
+      per.querySelectorAll('select').forEach(function (sl) {
+        if (document.activeElement === sl) return;
+        var k = sl.getAttribute('data-k'), vs = sel.map(function (id) { var x = (S.ov[id] || {})[k]; return x == null ? '' : k === 'hide' ? (x ? '1' : '0') : x; });
+        sl.value = vs.every(function (x) { return x === vs[0]; }) ? vs[0] : '';
+      });
+    }
     // requests to join (a self-registered student, or one needing approval): accept or decline
     var kn = P.querySelector('.hq-kn'), ks = Object.keys(S.knocks);
     kn.hidden = !ks.length;
@@ -701,6 +755,15 @@
   }
   function applyState(t) {
     if (!S || S.role === 'teacher' || (S.me && S.me.pending)) return;     // (not before the teacher admits him)
+    // this student's own settings, where the teacher set any: over the circle's
+    var o = t.ov && S.me && t.ov[S.me.id];
+    if (o) {
+      t = Object.assign({}, t);
+      if (o.v) { t.v = o.v; t.lock = o.v === 'g'; }
+      if (o.hide != null) t.hide = o.hide;
+      if (o.md) t.md = o.md;
+      if (o.au) t.au = o.au;
+    }
     var was = S.t || {}; S.t = t;
     var vis = B().visible();
     if (t.v !== 'i' && t.p && (vis.indexOf(t.p) < 0) && (!was.p || was.p !== t.p || t.lock)) B().show(t.p);   // together: the teacher's page
@@ -727,7 +790,7 @@
     if (!S || S.role === 'teacher' || (S.me && S.me.pending)) return;
     m._at = Date.now(); S.au = m; S.auRecv = m._at;
     if (S.t && S.t.v === 'i') { if (S.mA) S.mA.pause(); return; }        // individual: nothing follows
-    if (m.sl != null && B().silShowTo) B().silShowTo(m.sl);              // the teacher's silent recitation, word by word
+    if (m.sl != null && B().silShowTo && B().mode && B().mode() === 'silent') B().silShowTo(m.sl);              // the teacher's silent recitation, word by word
     // the teacher stopped or paused: his last word stays lit and its tajweed card stays open (he may explain it),
     // until the student closes it, he leaves, or the circle ends
     if (m.stop || m.p) { if (B().tjHold) B().tjHold(); }

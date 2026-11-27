@@ -2266,3 +2266,16 @@ body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 /* the live circle's link opened in Safari: how to enter it in the app instead */
 .hq-app p{ margin:6px 0 10px; line-height:1.7; }
 .hq-app .hq-appc{ display:block; text-align:center; font-size:30px; letter-spacing:3px; color:#a8862f; margin:4px 0 14px; }
+
+/* the live circle: a student selected in the table (a tap on his name), his own settings' mark, and the selected ones' settings */
+.hq-tbl tr.hq-s[data-id]{ cursor:pointer; }
+.hq-tbl tr.hq-s.sel td{ background:rgba(200,155,60,.22); }
+.hq-tbl tr.hq-s.sel td:first-child{ box-shadow:inset -3px 0 0 #b08a35; }
+.hq-tag{ font-style:normal; font-size:11px; font-weight:700; color:#8a6a20; border:1px solid rgba(176,138,53,.6); border-radius:6px; padding:0 5px; margin-inline-start:4px; }
+.hq-selh{ margin:2px 0 8px; }
+.hq-per{ border:1px solid rgba(176,138,53,.55); border-radius:10px; padding:10px; margin:4px 0 10px; background:rgba(200,155,60,.07); }
+.hq-perh{ display:block; font-size:13.5px; margin-bottom:8px; line-height:1.6; }
+.hq-pr{ display:flex; align-items:center; gap:8px; margin:6px 0; font-size:14px; }
+.hq-pr span{ flex:0 0 74px; font-weight:700; }
+.hq-pr select{ flex:1; min-width:0; padding:6px 8px; border:1px solid rgba(140,110,40,.45); border-radius:8px; background:#fffdf7; font:inherit; font-size:15px; }
+.hq-per .hq-row{ margin-top:8px; flex-wrap:wrap; gap:6px; }
