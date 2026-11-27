@@ -156,14 +156,16 @@
       if (again) { pt.otherAt[oth.k] = 1; res.words = res.words.filter(function (x) { return x.k < oth.k; }); res.next = oth.k; }
       var pos0 = pt.pos;
       // a word not clearly heard: as in a halaqa, neither let pass nor called wrong — he says it again, from where he
-      // paused before it (the stretch's first word: stretches are cut at his pauses). The second time at the same
-      // word it stays «not made out» (shown apart, not counted right). Only where the page asks for it (o.againUnclear):
+      // paused before it (the stretch's first word: stretches are cut at his pauses), or from the recorded reciter's
+      // stop before it when the page knows it. Only where the page asks for it (o.againUnclear):
       // the measure on the test set judges the recording as it is
       var askAt = null, unc = !again && o.againUnclear && res.words.filter(function (x) { return x.status === 'unclear' && x.k >= pos0; })[0];
       if (unc) {
+        // asked again up to twice: a word is shown only once it was heard clearly (shown, the words after it could
+        // tell him what he did not remember — the owner, Nov 2026). The third time it is shown, «not made out»
         pt.uncAt = pt.uncAt || {};
-        if (!pt.uncAt[unc.k]) {
-          pt.uncAt[unc.k] = 1;
+        if ((pt.uncAt[unc.k] || 0) < 2) {
+          pt.uncAt[unc.k] = (pt.uncAt[unc.k] || 0) + 1;
           var ks = res.words.map(function (x) { return x.k; }).filter(function (k) { return k >= pos0; });
           // from the recorded reciter's stop before the word (the page knows his phrases: o.againFrom -> a word's k);
           // else from the reader's own pause (the stretch's first word)
