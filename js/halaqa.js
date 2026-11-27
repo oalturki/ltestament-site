@@ -95,6 +95,12 @@
     }
   };
   var L = function () { return T[lang()] || T.en; };
+  // the code in any digits a phone may type: Arabic-Indic (٠١٢), Persian/Urdu (۰۱۲) or full-width — as 0-9 (Nov 2026)
+  var digits = function (x) {
+    return String(x || '').replace(/[٠-٩۰-۹０-９]/g, function (d) {
+      var c = d.charCodeAt(0); return String(c - (c >= 0xFF10 ? 0xFF10 : c >= 0x06F0 ? 0x06F0 : 0x0660));
+    }).replace(/\D/g, '');
+  };
   var toast = function (t) { var d = document.createElement('div'); d.className = 'bk-toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3000); };
   var dur = function (ms) { var s = Math.round(ms / 1000), l = L(); return s < 60 ? num(s) + l.sec : num(Math.floor(s / 60)) + l.min + (s % 60 ? ' ' + num(s % 60) + l.sec : ''); };
   var client = function () { return window.Fam ? window.Fam.client() : Promise.reject('no client'); };
@@ -115,11 +121,11 @@
       var pb = document.createElement('button'); pb.type = 'button'; pb.className = 'hq-b2 hq-pst'; pb.textContent = l.paste || T.en.paste;
       box.querySelector('.hq-go').before(pb);
       pb.onclick = function () {
-        navigator.clipboard.readText().then(function (x) { var d = (x || '').replace(/\D/g, ''); if (d.length === 6) box.querySelector('.hq-code').value = d; }, function () {});
+        navigator.clipboard.readText().then(function (x) { var d = digits(x); if (d.length === 6) box.querySelector('.hq-code').value = d; }, function () {});
       };
     }
     box.querySelector('.hq-go').onclick = function () {
-      var c = (box.querySelector('.hq-code').value || '').replace(/\D/g, '');
+      var c = digits(box.querySelector('.hq-code').value);
       if (c.length !== 6) return toast(l.badCode);
       if (o && o.close) o.close();
       join(c, {});
