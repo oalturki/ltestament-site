@@ -2257,7 +2257,9 @@ body.hq-noau .bk-bar, body.hq-noau .bk-bottom, body.hq-noau .bk-mnav, body.hq-no
 
 /* the status bar's cap (js/book.js): iOS 26 colours the status bar by a fixed element at the top, instead of its fade */
 .bk-topcap{ display:none; }
-body.bk-hdr .bk-topcap{ display:block; position:fixed; top:0; left:0; right:0; height:max(1px, env(safe-area-inset-top)); background:#f8f3e6; z-index:39; pointer-events:none; }
+/* iOS finds it by hit-testing a point a few pixels below the top edge, in the middle: so it takes touches (no
+   pointer-events:none, which a hit test passes through) and reaches 10px below the status bar, whatever its height */
+body.bk-hdr .bk-topcap{ display:block; position:fixed; top:0; left:0; right:0; height:calc(env(safe-area-inset-top) + 10px); background:#f8f3e6; z-index:39; }
 body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 
 
