@@ -2366,5 +2366,9 @@ html body.bk-hdr .bk-hdr2 .bk-h2pm span{ font-family:'Amiri','Noto Naskh Arabic'
 html body.bk-night.bk-hdr .bk-hdr2 .bk-h2pm span{ color:#e8e0cc; }
 @media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2pm span{ font-size:15px; } }
 html body.bk-hdr .bk-hdr2 .bk-h2j{ margin-inline-start:-6px; } html body.bk-hdr .bk-hdr2 .bk-h2p{ margin-inline-end:-6px; }
-html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:0 !important; line-height:1 !important; }
-html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ margin:2px 0 0 !important; transform:rotate(45deg) !important; width:4px !important; height:4px !important; }
+/* the word stays on the row's middle line, level with the surah's name; the fold mark hangs under it */
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative !important; flex-direction:row !important; align-items:center !important; justify-content:center !important;
+  height:30px !important; overflow:visible !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ transform:translateY(1px); }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !important; left:50% !important; bottom:-1px !important; margin:0 !important;
+  width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }
