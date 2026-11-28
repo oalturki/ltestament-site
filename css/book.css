@@ -2372,3 +2372,15 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative !important; f
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ transform:translateY(1px); }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !important; left:50% !important; bottom:-1px !important; margin:0 !important;
   display:block !important; width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }   /* under the word it takes no width: on small phones too */
+/* the head row balanced (the owner, Nov 28): the juz and the page the same width at the two ends (the page's room
+   holds three digits, so it does not move as the number grows), the view and the mode the same width beside the
+   surah's name, and the space between them shared out evenly — the name stays in the middle */
+html body.bk-hdr .bk-hdr2{ justify-content:space-evenly !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:0 0 54px !important; width:54px; margin:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 66px !important; width:66px; justify-content:center; padding:0 !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ max-width:66px !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 1 auto !important; }
+@media (max-width:389px){
+  html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex-basis:48px !important; width:48px; }
+  html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex-basis:58px !important; width:58px; }
+  html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ max-width:58px !important; } }
