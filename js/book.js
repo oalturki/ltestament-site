@@ -1584,7 +1584,7 @@
         hb2('bk-h2s', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
         // the surah's name in the middle; the juz at the reading side, the page across from it by the settings (the owner, Nov 28)
         var cJz = hcell('bk-h2j'), slotV = document.createElement('span'), cSu = hcell('bk-h2u'), slotM = document.createElement('span'), cPg = hcell('bk-h2p');
-        slotV.className = 'bk-h2slot'; slotM.className = 'bk-h2slot';
+        slotV.className = 'bk-h2slot bk-h2sv'; slotM.className = 'bk-h2slot bk-h2sm';
         hdr.insertBefore(slotV, cSu); hdr.insertBefore(slotM, cPg);
         hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
         // in Arabic the juz and surah lists are the page's own, their names in the Mushaf's calligraphy (the QPC head
