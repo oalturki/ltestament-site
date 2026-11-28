@@ -2435,3 +2435,7 @@ body.bk-night .bk-gpbox.md .bk-gpit .ht{ color:#e8e0cc; }
 /* the pages list: in the same colours as the juz and surah lists — each page's number and the surah it opens with (the owner, Nov 28) */
 .bk-gpbox.pg{ left:10px; width:min(66vw, 280px); }
 .bk-gpbox.pg .bk-gpit i{ flex:0 0 38px; }
+/* the pages list: numbers only, centred, a narrow list */
+.bk-gpbox.pg{ width:min(40vw, 150px); }
+.bk-gpbox.pg .bk-gpit{ justify-content:center; padding:11px 10px; }
+.bk-gpbox.pg .bk-gpit i{ flex:0 0 auto; font-size:19px; }

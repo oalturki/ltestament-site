@@ -1626,9 +1626,8 @@
             [].forEach.call(src.options, function (o) {
               var n = +o.value; if (!n) return;
               var it = document.createElement('button'); it.type = 'button'; it.className = 'bk-gpit' + (String(n) === String(src.value) ? ' on' : '');
-              // a page: its number, and the surah it opens with
-              var sp = kind === 'pg' && MAP ? MAP.pages[n - 1][0] : 0;
-              var name = kind === 'pg' ? (sp > 1 ? '<b class="g hs">' + String.fromCharCode(0xE000 + sp) + '</b>' : '<b class="g ht">سُورَةُ الفَاتِحَةِ</b>')
+              // a page: its number only (a surah's name beside it repeated, and its number was taken for the surah's — the owner, Nov 28)
+              var name = kind === 'pg' ? ''
                 : kind === 'jz' ? '<b class="g hj">' + String.fromCharCode(0xE000 + n) + '</b>'
                 : n > 1 ? '<b class="g hs">' + String.fromCharCode(0xE000 + n) + '</b>' : '<b class="g ht">سُورَةُ الفَاتِحَةِ</b>';
               it.innerHTML = '<i>' + arNum(n) + '</i>' + name;
