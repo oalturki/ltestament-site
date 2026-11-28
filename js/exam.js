@@ -233,7 +233,7 @@
 
   function cfgLoad() {
     var c = null; try { c = JSON.parse(load('lt_exam_cfg') || 'null'); } catch (e) {}
-    return c || { t: 's', s: 0, a1: 1, a2: 7, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, per: 2, nTj: 10, nW: 10 };
+    return c || { t: 's', s: 0, a1: 1, a2: 7, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, per: 2, pw: 3, nTj: 10, nW: 10 };
   }
   function shares(sec) {
     var on = ORDER.filter(function (k) { return sec[k] && k !== 'tjt'; }), sum = 0, out = {};
@@ -271,6 +271,7 @@
         '<h4>الأقسام:</h4><div class="ex-cks">' + chk('hifz') + chk('tja') + chk('tjt', true, 'يُضاف بعد مراجعة المختص لشرح أحكام التجويد.') + chk('words') + '</div>' +
         '<div class="ex-opt" data-sec="hifz"><h4>الحفظ:</h4>' +
           '<div class="ex-row"><span>عدد المواضع في الصفحة:</span>' + seg('per', [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return [n, ar(n)]; }), c.per || 2) + '</div>' +
+          '<div class="ex-row"><span>بداية الموضع:</span>' + seg('pw', [[1, 'كلمة'], [3, 'ثلاث كلمات']], c.pw || 3) + '</div>' +
           '<p class="ex-note">يظهر لك: «أكمل من قوله تعالى: …»، فتكمل من حفظك. ويحكم عليه نظام التسميع، فيحتاج إلى الميكروفون.</p></div>' +
         '<div class="ex-opt" data-sec="tja"><h4>التجويد التطبيقي:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nTj', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nTj) + '</div></div>' +
         '<div class="ex-opt" data-sec="words"><h4>معاني الكلمات:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nW', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nW) + '</div></div>' +
@@ -292,7 +293,7 @@
         if (!ORDER.some(function (k) { return sec[k] && k !== 'tjt'; })) { err.textContent = 'اختر قسمًا واحدًا على الأقل.'; err.hidden = false; return; }
         var n = { t: val('t'), s: +bd.querySelector('[data-f=s]').value, a1: num(bd.querySelector('[data-f=a1]').value) || 1, a2: num(bd.querySelector('[data-f=a2]').value) || 1,
                   j: +bd.querySelector('[data-f=j]').value, h: +bd.querySelector('[data-f=h]').value, sec: sec,
-                  per: +val('per') || 2, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
+                  per: +val('per') || 2, pw: +val('pw') || 3, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
         if (n.t === 'a' && n.a2 < n.a1) { var t0 = n.a1; n.a1 = n.a2; n.a2 = t0; }
         store('lt_exam_cfg', JSON.stringify(n));
         start(n);
@@ -352,7 +353,13 @@
     var bd = sheet(SEC.hifz + ': الموضع ' + ar(i + 1) + ' من ' + ar(H.length), '<p class="ex-note">جارٍ التجهيز…</p>', finish);
     pageWords(q.p.page).then(function (by) {
       q.words = q.p.ayahs.map(function (x) { return by[x[0] + ':' + x[1]] || []; });
-      var first = q.words[0] || [], pr = first.slice(0, Math.min(3, first.length));
+      // the start shown: three words, or one word — of more than four letters (the owner, Nov 28), else the words up to
+      // more than four letters, so a short word («قل», «إن») never stands alone
+      var first = q.words[0] || [], pr;
+      if ((RUN.c.pw || 3) === 1) {
+        pr = []; var nl = 0;
+        for (var wi = 0; wi < first.length && nl <= 4; wi++) { pr.push(first[wi]); nl += len(first[wi].t).replace(/\s/g, '').length; }
+      } else pr = first.slice(0, Math.min(3, first.length));
       bd.innerHTML = '<p class="ex-ref">سورة ' + esc(D.names[f[0] - 1]) + '</p>' +
         '<p class="ex-ask">أكمل من قوله تعالى:</p><p class="ex-ayah ex-pr" lang="ar" translate="no">﴿' + esc(ayahText(pr)) + (first.length > pr.length ? ' …' : '') + '﴾</p>' +
         '<div class="ex-live"><span class="ex-st">جارٍ تشغيل الميكروفون…</span><button type="button" class="ex-again" hidden>أعد الموضع</button>' +
