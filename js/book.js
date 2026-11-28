@@ -1582,9 +1582,10 @@
         };
         var hcell = function (cls) { var c = document.createElement('span'); c.className = 'bk-h2c ' + cls; c.innerHTML = '<b></b>'; hdr.appendChild(c); return c; };
         hb2('bk-h2s', I.search, L.search, function () { var b = document.querySelector('.lt-sbtn'); if (b) b.click(); });
-        var cJz = hcell('bk-h2j'), slotV = document.createElement('span'), cPg = hcell('bk-h2p'), slotM = document.createElement('span'), cSu = hcell('bk-h2u');
+        // the surah's name in the middle; the juz at the reading side, the page across from it by the settings (the owner, Nov 28)
+        var cJz = hcell('bk-h2j'), slotV = document.createElement('span'), cSu = hcell('bk-h2u'), slotM = document.createElement('span'), cPg = hcell('bk-h2p');
         slotV.className = 'bk-h2slot'; slotM.className = 'bk-h2slot';
-        hdr.insertBefore(slotV, cPg); hdr.insertBefore(slotM, cSu);
+        hdr.insertBefore(slotV, cSu); hdr.insertBefore(slotM, cPg);
         hb2('bk-h2g', I.more, L.more, function () { moreBtn.click(); });
         // in Arabic the juz and surah lists are the page's own, their names in the Mushaf's calligraphy (the QPC head
         // fonts, as the head bar shows them — the owner, Nov 2026); the phone's list cannot take a font. The page's list

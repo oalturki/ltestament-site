@@ -2353,3 +2353,8 @@ body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 .ex-w.fixed{ color:#a87210; }
 .ex-w.unclear{ color:#8a8170; }
 .ex-pr{ color:#8a6a20; }
+
+/* the head row: the surah's name in the middle, the juz and the page at the two sides (the owner, Nov 28) */
+.bk-hdr2 .bk-h2u{ flex:0 1 auto; justify-content:center; min-width:0; }
+.bk-hdr2 .bk-h2j, .bk-hdr2 .bk-h2p{ flex:1 1 0; min-width:0; }
+.bk-hdr2 .bk-h2j{ justify-content:flex-start; } .bk-hdr2 .bk-h2p{ justify-content:flex-end; }
