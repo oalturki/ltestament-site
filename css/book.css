@@ -2381,3 +2381,4 @@ html body.bk-hdr .bk-hdr2 .bk-h2pm span{ display:inline-block; min-width:3ch; te
 html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; } html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; }
 html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 auto !important; padding:0 !important; }
 html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 1 auto !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:auto !important; }   /* the word's own width: the gaps beside it even */
