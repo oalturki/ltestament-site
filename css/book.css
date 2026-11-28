@@ -2389,3 +2389,6 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:a
 /* the surah's name larger (the owner, Nov 28) */
 html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:30px !important; }
 @media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:27px !important; } }
+/* the juz near the lens and the page near the settings: a small gap, not touching (the owner, Nov 28) */
+html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; margin-inline-start:4px !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; margin-inline-end:4px !important; }
