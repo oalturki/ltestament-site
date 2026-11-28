@@ -2385,3 +2385,6 @@ html body.bk-hdr .bk-hdr2 .bk-h2sm{ justify-content:flex-start; }    /* the mode
 html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 0 auto !important; padding:0 12px; }
 @media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex-basis:58px !important; width:58px; } html body.bk-hdr .bk-hdr2 .bk-h2u{ padding:0 8px; } }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:auto !important; }
+/* the surah's name a little larger (the owner, Nov 28) */
+html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:27px !important; }
+@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:24px !important; } }
