@@ -145,8 +145,13 @@
         Object.keys(x.notes).forEach(function (loc) {
           var l = loc.split(':'); if (!inR(rg, +l[0], +l[1])) return;
           var ns = x.notes[loc], keys = Object.keys(ns);
+          // a letter named by two rules of the word (as «يتساءلون»: واجب and جائز on its alif) is not asked: no question
+          // rather than one with a doubtful answer
+          var rl = {};
+          keys.forEach(function (k) { var y = tjOf(ns[k]) || /(?:في|\() ?(\S+)/.exec(ns[k] || ''); var lt = y && (y.letter || y[1]); if (lt) (rl[lt] = rl[lt] || {})[y.rule || ns[k]] = 1; });
           keys.forEach(function (k) {
             var q = tjOf(ns[k]); if (!q) return;
+            if (Object.keys(rl[q.letter] || {}).length > 1) return;
             var ws = x.words[l[0] + ':' + l[1]]; if (!ws) return;
             (by[q.rule] = by[q.rule] || []).push({ loc: loc, s: +l[0], a: +l[1], letter: q.letter, rule: q.rule, fam: q.fam, ws: ws });
           });
@@ -452,7 +457,7 @@
     }).join('');
     var revQ = function (k) {
       return R[k].filter(function (q) { return q.ans != null && !q.ok; }).map(function (q) {
-        return '<li><b>سورة ' + esc(D.names[q.s - 1]) + ' ' + ar(q.a) + ':</b> ' + esc(q.ask) + '<span class="ex-ws">الصواب: ' + esc(q.right) + '.</span></li>';
+        return '<li><b>سورة ' + esc(D.names[q.s - 1]) + ' ' + ar(q.a) + ':</b> ' + esc(q.ask) + '<span class="ex-ws">الصواب: ' + esc(String(q.right).replace(/[.\s]+$/, '')) + '.</span></li>';
       }).join('');
     };
     var rt = revQ('tja'), rw = revQ('words');
