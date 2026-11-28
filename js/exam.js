@@ -188,6 +188,8 @@
   var len = function (t) {
     return String(t || '').replace(/[ً-ٰٟۖ-ۭـ]/g, '').replace(/[ٱأإآا]/g, '').replace(/[ىئ]/g, 'ي').replace(/ؤ/g, 'و').replace(/ة/g, 'ه').replace(/[^ء-ي\s]/g, '').trim();
   };
+  // a word's written letters (its marks left out): «ٱلنَّبَإِ» 5, «قُلۡ» 2
+  var letters = function (t) { return String(t || '').replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640\s]/g, '').replace(/[^\u0621-\u064A\u0671-\u06D3]/g, '').length; };
   function wordQs(rg, n) {
     return J('/data/quiz/siraj.json').then(function (rows) {
       var ALL = rows.map(function (r) { return { s: r[0], a: r[1], head: r[2], mean: r[3], c: r[4] || [] }; });
@@ -358,7 +360,7 @@
       var first = q.words[0] || [], pr;
       if ((RUN.c.pw || 3) === 1) {
         pr = []; var nl = 0;
-        for (var wi = 0; wi < first.length && nl <= 4; wi++) { pr.push(first[wi]); nl += len(first[wi].t).replace(/\s/g, '').length; }
+        for (var wi = 0; wi < first.length && nl <= 4; wi++) { pr.push(first[wi]); nl += letters(first[wi].t); }
       } else pr = first.slice(0, Math.min(3, first.length));
       bd.innerHTML = '<p class="ex-ref">سورة ' + esc(D.names[f[0] - 1]) + '</p>' +
         '<p class="ex-ask">أكمل من قوله تعالى:</p><p class="ex-ayah ex-pr" lang="ar" translate="no">﴿' + esc(ayahText(pr)) + (first.length > pr.length ? ' …' : '') + '﴾</p>' +
