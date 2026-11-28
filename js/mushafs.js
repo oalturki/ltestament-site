@@ -113,7 +113,8 @@
     if (i >= 0) ls[i] = m; else ls.push(m);
     keep(ls); return m;
   }
-  function saveActive() { var a = active(); if (a) put(snap(a)); }
+  var leaving = false;   // switching: the page reloads for the other one — nothing more is saved here
+  function saveActive() { if (leaving) return; var a = active(); if (a) put(snap(a)); }
 
   function switchTo(id) {
     var from = active(), to = list().filter(function (m) { return m.id === id; })[0];
@@ -127,6 +128,7 @@
     if (!to.page && to.kind === 'khatma' && window.Khatma) { var kt = window.Khatma.stripText('ar'); if (kt && kt.page) pg = kt.page; }
     if (!to.page && to.plan && window.LtPlans) { var w = window.LtPlans.wird(to.plan, 'ar'); if (w && w.page) pg = w.page; }
     store('lt_book_page', String(pg));
+    leaving = true;
     store(ACT, to.id);
     sSet('lt_mus_go', '1');
     history.replaceState(null, '', location.pathname + location.search.replace(/[?&]s=\w+/, '') + '#p=' + pg);

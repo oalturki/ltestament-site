@@ -1818,7 +1818,7 @@
         });
         if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=30'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
-        if (k === 'mushafs') ltLoad(['/js/sync.js', '/js/push.js', '/js/khatma.js', '/js/mushafs.js?v=1'], function () { window.LtMushafs.ui(muSec, { lang: C.lang, close: shut, openSec: function (x) { goSec(x); } }); });
+        if (k === 'mushafs') ltLoad(['/js/sync.js', '/js/push.js', '/js/khatma.js', '/js/mushafs.js?v=2'], function () { window.LtMushafs.ui(muSec, { lang: C.lang, close: shut, openSec: function (x) { goSec(x); } }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
       };
@@ -2060,7 +2060,7 @@
         setTimeout(function () { location.reload(); }, 150);
       });
       window.addEventListener('lt-profile', function () { if (window.Khatma) window.Khatma.pull().then(function () { root.__strip(); }); fillMenu(); });
-      ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js', '/js/mushafs.js?v=1'], function () {
+      ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js', '/js/mushafs.js?v=2'], function () {
         if (window.LtMushafs) try { window.LtMushafs.boot(); } catch (e) {}
         if (root.__vSync) root.__vSync();
         root.__strip();
