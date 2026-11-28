@@ -2429,3 +2429,6 @@ body.bk-night .mu-note, body.bk-night .mu-sub{ color:#b9ad92; }
 .bk-viewov .bk-vgrp > .bk-vlist{ padding:4px 6px 6px; }
 body.bk-night .bk-viewov .bk-vgrp > summary{ background:rgba(217,180,90,.16); }
 body.bk-night .bk-viewov .bk-vgrp[open] > summary{ background:rgba(217,180,90,.3); }
+/* the modes list in the same letters as the Mushafs list (the owner, Nov 28: «لو يكون خط الأوضاع مثل خط المصاحف») */
+.bk-gpbox.md .bk-gpit .ht{ font-family:'Tajawal',sans-serif; font-size:14px; font-weight:700; color:#3b2f1a; }
+body.bk-night .bk-gpbox.md .bk-gpit .ht{ color:#e8e0cc; }
