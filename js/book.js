@@ -1664,11 +1664,11 @@
           var first = MAP.pages[cur - 1][0], jz0 = MAP.juz[cur - 1];
           cPg.firstChild.textContent = uiNum(cur);
           // the page number in a plain gold oval of two lines (not the ayah-end medallion: it must not read as an ayah's number)
-          if (C.lang === 'ar' || C.lang === 'ur') { cPg.firstChild.className = 'bk-h2pm'; cPg.firstChild.innerHTML = '<span>' + arNum(cur) + '</span>'; }
+          if (C.lang === 'ar' || C.lang === 'ur') { cPg.firstChild.className = 'bk-h2pm bk-h2stk'; cPg.firstChild.innerHTML = '<span>' + arNum(cur) + '</span><em aria-hidden="true">صـــ</em>'; }   // the page's number over a drawn-out «ص» (as in books)
           if (C.lang === 'ar' || C.lang === 'ur') {
             // in Arabic: the juz and the surah in the Mushaf's own calligraphy (the QPC head fonts, as the printed head)
             // «الجزء» in the Mushaf's calligraphy (the word taken from the juz head font) and the juz's number
-            cJz.firstChild.className = 'bk-h2jn'; cJz.firstChild.innerHTML = '<i class="bk-h2jw" aria-hidden="true"></i>' + arNum(jz0);
+            cJz.firstChild.className = 'bk-h2jn bk-h2stk'; cJz.firstChild.innerHTML = '<span>' + arNum(jz0) + '</span><em aria-hidden="true">جـــ</em>';   // the juz's number over a drawn-out «ج», no word «الجزء»: room in the row (the owner, Nov 28)
             cJz.setAttribute('aria-label', 'الجزء ' + arNum(jz0));
             if (first > 1) { cSu.firstChild.className = 'bk-h2k hs'; cSu.firstChild.textContent = String.fromCharCode(0xE000 + first); }
             else { cSu.firstChild.className = ''; cSu.firstChild.textContent = 'سورة ' + (C.arabicNames[0] || ''); }

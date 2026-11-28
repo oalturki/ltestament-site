@@ -2372,21 +2372,17 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative !important; f
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ transform:translateY(1px); }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !important; left:50% !important; bottom:-1px !important; margin:0 !important;
   display:block !important; width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }   /* under the word it takes no width: on small phones too */
-/* the head row (the owner, Nov 28, his third word on it): the surah's name in the very middle of the page, the view on
-   its right and the mode on its left at the same distance from it; the juz right beside the lens and the page right
-   beside the settings (those two stand out by their ground) */
+/* the head row (the owner, Nov 28 — his fourth word on it): the juz near the lens and the page near the settings, each
+   a little apart from it; both as a number over a drawn-out letter (ج, ص), the same width, so the surah's name — larger —
+   stands in the very middle; the view and the mode each in the middle of the room on its side */
 html body.bk-hdr .bk-hdr2{ justify-content:normal !important; gap:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:1 1 0 !important; width:auto; min-width:0 !important; margin:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; padding-inline-start:2px; }
-html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; padding-inline-end:2px; }
-html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 64px !important; width:64px; padding:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2sv{ justify-content:flex-end; }      /* the view: its word against the name */
-html body.bk-hdr .bk-hdr2 .bk-h2sm{ justify-content:flex-start; }    /* the mode: its word against the name */
-html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 0 auto !important; padding:0 12px; }
-@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex-basis:58px !important; width:58px; } html body.bk-hdr .bk-hdr2 .bk-h2u{ padding:0 8px; } }
+html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:0 0 40px !important; width:40px; min-width:0 !important; margin:0 !important; padding:0 !important; justify-content:center !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2j{ margin-inline-start:5px !important; } html body.bk-hdr .bk-hdr2 .bk-h2p{ margin-inline-end:5px !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2stk{ display:flex !important; flex-direction:column; align-items:center; justify-content:center; gap:0 !important; width:auto !important; height:auto !important;
+  border:0 !important; background:transparent !important; box-shadow:none !important; padding:0 !important; line-height:1; }
+html body.bk-hdr .bk-hdr2 .bk-h2stk span{ font-family:'Amiri','Noto Naskh Arabic',serif; font-weight:700; font-size:16px; line-height:1; color:#3d2f10; min-width:0; transform:none; }
+html body.bk-hdr .bk-hdr2 .bk-h2stk em{ font-style:normal; font-family:'Amiri','Noto Naskh Arabic',serif; font-size:13px; line-height:.8; color:#a8862f; margin-top:1px; }
+html body.bk-night.bk-hdr .bk-hdr2 .bk-h2stk span{ color:#e8e0cc; } html body.bk-night.bk-hdr .bk-hdr2 .bk-h2stk em{ color:#d9b45a; }
+html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:1 1 0 !important; width:auto; padding:0 !important; justify-content:center !important; min-width:0; }
+html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 0 auto !important; padding:0 4px; }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:auto !important; }
-/* the surah's name a little larger (the owner, Nov 28) */
-html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:27px !important; }
-@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:24px !important; } }
-html body.bk-hdr .bk-hdr2 .bk-h2j{ margin-inline-start:-9px !important; padding-inline-start:0; }   /* right against the lens */
-html body.bk-hdr .bk-hdr2 .bk-h2p{ margin-inline-end:-9px !important; padding-inline-end:0; }       /* right against the settings */
