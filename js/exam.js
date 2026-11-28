@@ -49,8 +49,11 @@
   // the range as [from, to], each [surah, ayah]
   function range(c) {
     var V = D.map.verses;
-    if (c.t === 's') return [[c.s, 1], [c.s, V[c.s - 1]]];
-    if (c.t === 'a') { var a1 = Math.max(1, Math.min(c.a1, V[c.s - 1])), a2 = Math.max(a1, Math.min(c.a2, V[c.s - 1])); return [[c.s, a1], [c.s, a2]]; }
+    if (c.t === 's' || c.t === 'a') {                // a surah, or some of its ayahs (from … to …)
+      var a1 = Math.max(1, Math.min(c.a1 || 1, V[c.s - 1])), a2 = Math.max(a1, Math.min(c.a2 || V[c.s - 1], V[c.s - 1]));
+      return [[c.s, a1], [c.s, a2]];
+    }
+    if (c.t === 'p') { var P0 = D.map.pages, q1 = Math.max(1, Math.min(c.p1, 604)), q2 = Math.max(q1, Math.min(c.p2, 604)); return [[P0[q1 - 1][0], P0[q1 - 1][1]], [P0[q2 - 1][2], P0[q2 - 1][3]]]; }
     if (c.t === 'j') {
       var f = D.map.juz.indexOf(c.j), l = D.map.juz.lastIndexOf(c.j), P = D.map.pages;
       return [[P[f][0], P[f][1]], [P[l][2], P[l][3]]];
@@ -61,8 +64,8 @@
   var inR = function (rg, s, a) { var k = K(s, a); return k >= K(rg[0][0], rg[0][1]) && k <= K(rg[1][0], rg[1][1]); };
   function label(c, rg) {
     var N = D.names;
-    if (c.t === 's') return 'سورة ' + N[c.s - 1];
-    if (c.t === 'a') return 'سورة ' + N[c.s - 1] + '، من الآية ' + ar(rg[0][1]) + ' إلى الآية ' + ar(rg[1][1]);
+    if (c.t === 's' || c.t === 'a') return 'سورة ' + N[c.s - 1] + (rg[0][1] === 1 && rg[1][1] === D.map.verses[c.s - 1] ? '' : '، من الآية ' + ar(rg[0][1]) + ' إلى الآية ' + ar(rg[1][1]));
+    if (c.t === 'p') { var q1 = Math.min(c.p1, c.p2), q2 = Math.max(c.p1, c.p2); return q1 === q2 ? 'الصفحة ' + ar(q1) : 'الصفحات من ' + ar(q1) + ' إلى ' + ar(q2); }
     if (c.t === 'j') return 'الجزء ' + ar(c.j);
     return 'الحزب ' + ar(c.h);
   }
@@ -235,7 +238,8 @@
 
   function cfgLoad() {
     var c = null; try { c = JSON.parse(load('lt_exam_cfg') || 'null'); } catch (e) {}
-    return c || { t: 's', s: 0, a1: 1, a2: 7, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, per: 2, pw: 3, nTj: 10, nW: 10 };
+    if (c && c.t === 'a') c.t = 's';
+    return c || { t: 's', s: 0, a1: 0, a2: 0, p1: 0, p2: 0, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, per: 2, pw: 3, nTj: 10, nW: 10 };
   }
   function shares(sec) {
     var on = ORDER.filter(function (k) { return sec[k] && k !== 'tjt'; }), sum = 0, out = {};
@@ -252,7 +256,7 @@
       if (!c.h) { var R = D.idx.rub, k = K(pg[0], pg[1]); c.h = 1; for (var i = 0; i < R.length; i += 4) if (K(R[i][0], R[i][1]) <= k) c.h = i / 4 + 1; }
       var o = function (v, t, sel) { return '<option value="' + v + '"' + (sel ? ' selected' : '') + '>' + esc(t) + '</option>'; };
       var sur = D.names.map(function (n, i) { return o(i + 1, ar(i + 1) + '. ' + n, c.s === i + 1); }).join('');
-      var nums = function (n, v, pre) { var h = ''; for (var i = 1; i <= n; i++) h += o(i, pre + ' ' + ar(i), v === i); return h; };
+      var nums = function (n, v, pre) { var h = ''; for (var i = 1; i <= n; i++) h += o(i, (pre ? pre + ' ' : '') + ar(i), v === i); return h; };
       var seg = function (name, items, val) {
         return '<div class="ex-seg" data-n="' + name + '">' + items.map(function (x) {
           return '<label><input type="radio" name="ex' + name + '" value="' + x[0] + '"' + (String(val) === String(x[0]) ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>';
@@ -262,12 +266,16 @@
         return '<label class="ex-ck' + (dis ? ' off' : '') + '"><input type="checkbox" data-k="' + k + '"' + (c.sec[k] && !dis ? ' checked' : '') + (dis ? ' disabled' : '') + '>' +
           '<span>' + esc(SEC[k]) + '</span><em data-w="' + k + '"></em>' + (note ? '<small>' + esc(note) + '</small>' : '') + '</label>';
       };
-      var bd = sheet('اختبار',
+      if (!c.p1) { c.p1 = cur; c.p2 = cur; }
+      var V = D.map.verses;
+      var bd = sheet('الاختبارات',
         '<p class="ex-note">اختبر نفسك في الحفظ والتجويد ومعاني الكلمات، في النطاق الذي تختاره.</p>' +
-        '<h4>النطاق:</h4>' + seg('t', [['s', 'سورة'], ['a', 'من آية إلى آية'], ['j', 'جزء'], ['h', 'حزب']], c.t) +
-        '<div class="ex-row" data-for="s a"><select data-f="s">' + sur + '</select></div>' +
-        '<div class="ex-row" data-for="a"><label>من الآية:<input type="text" inputmode="numeric" data-f="a1" value="' + ar(c.a1) + '"></label>' +
-          '<label>إلى الآية:<input type="text" inputmode="numeric" data-f="a2" value="' + ar(c.a2) + '"></label></div>' +
+        '<h4>النطاق:</h4>' + seg('t', [['s', 'سورة'], ['p', 'صفحات'], ['j', 'جزء'], ['h', 'حزب']], c.t) +
+        // the surah, then (if he wants part of it) its ayahs — the surah's whole by default
+        '<div class="ex-row" data-for="s"><select data-f="s">' + sur + '</select></div>' +
+        '<div class="ex-row" data-for="s"><label>من الآية:<select data-f="a1"></select></label><label>إلى الآية:<select data-f="a2"></select></label></div>' +
+        '<div class="ex-row" data-for="p"><label>من الصفحة:<select data-f="p1">' + nums(604, c.p1, '') + '</select></label>' +
+          '<label>إلى الصفحة:<select data-f="p2">' + nums(604, c.p2, '') + '</select></label></div>' +
         '<div class="ex-row" data-for="j"><select data-f="j">' + nums(30, c.j, 'الجزء') + '</select></div>' +
         '<div class="ex-row" data-for="h"><select data-f="h">' + nums(60, c.h, 'الحزب') + '</select></div>' +
         '<h4>الأقسام:</h4><div class="ex-cks">' + chk('hifz') + chk('tja') + chk('tjt', true, 'يُضاف بعد مراجعة المختص لشرح أحكام التجويد.') + chk('words') + '</div>' +
@@ -278,6 +286,16 @@
         '<div class="ex-opt" data-sec="tja"><h4>التجويد التطبيقي:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nTj', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nTj) + '</div></div>' +
         '<div class="ex-opt" data-sec="words"><h4>معاني الكلمات:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nW', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nW) + '</div></div>' +
         '<p class="ex-err" hidden></p><button type="button" class="ex-go">ابدأ الاختبار</button>');
+      // the ayah lists follow the surah chosen: from 1 to its last ayah
+      var sSel = bd.querySelector('[data-f=s]'), aS1 = bd.querySelector('[data-f=a1]'), aS2 = bd.querySelector('[data-f=a2]');
+      var fillA = function (keep) {
+        var n = V[+sSel.value - 1], v1 = keep ? c.a1 : 1, v2 = keep ? c.a2 : n, h = '';
+        for (var i = 1; i <= n; i++) h += o(i, ar(i), false);
+        aS1.innerHTML = h; aS2.innerHTML = h;
+        aS1.value = String(Math.min(Math.max(1, v1 || 1), n)); aS2.value = String(Math.min(Math.max(1, v2 || n), n));
+      };
+      fillA(c.s === +sSel.value && c.a1);
+      sSel.addEventListener('change', function () { fillA(false); });
       var val = function (n) { var r = bd.querySelector('input[name=ex' + n + ']:checked'); return r ? r.value : null; };
       var num = function (t) { return +String(t || '').replace(/[٠-٩]/g, function (d) { return DIG.indexOf(d); }).replace(/\D/g, ''); };
       var sync = function () {
@@ -293,10 +311,11 @@
       bd.querySelector('.ex-go').onclick = function () {
         var sec = sync(), err = bd.querySelector('.ex-err');
         if (!ORDER.some(function (k) { return sec[k] && k !== 'tjt'; })) { err.textContent = 'اختر قسمًا واحدًا على الأقل.'; err.hidden = false; return; }
-        var n = { t: val('t'), s: +bd.querySelector('[data-f=s]').value, a1: num(bd.querySelector('[data-f=a1]').value) || 1, a2: num(bd.querySelector('[data-f=a2]').value) || 1,
+        var n = { t: val('t'), s: +sSel.value, a1: +aS1.value || 1, a2: +aS2.value || 1, p1: +bd.querySelector('[data-f=p1]').value, p2: +bd.querySelector('[data-f=p2]').value,
                   j: +bd.querySelector('[data-f=j]').value, h: +bd.querySelector('[data-f=h]').value, sec: sec,
                   per: +bd.querySelector('[data-f=per]').value || 2, pw: +val('pw') || 3, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
-        if (n.t === 'a' && n.a2 < n.a1) { var t0 = n.a1; n.a1 = n.a2; n.a2 = t0; }
+        if (n.a2 < n.a1) { var t0 = n.a1; n.a1 = n.a2; n.a2 = t0; }
+        if (n.p2 < n.p1) { var t1 = n.p1; n.p1 = n.p2; n.p2 = t1; }
         store('lt_exam_cfg', JSON.stringify(n));
         start(n);
       };
@@ -307,7 +326,7 @@
   var RUN = null;
   function start(c) {
     var rg = range(c), sec = c.sec;
-    var bd = sheet('اختبار', '<p class="ex-note">جارٍ تجهيز الأسئلة…</p>');
+    var bd = sheet('الاختبارات', '<p class="ex-note">جارٍ تجهيز الأسئلة…</p>');
     var jobs = [
       sec.hifz ? Promise.resolve(passages(rg, c.per || 2)) : Promise.resolve([]),
       sec.tja ? tajweedQs(rg, c.nTj) : Promise.resolve([]),

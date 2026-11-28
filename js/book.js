@@ -1113,11 +1113,11 @@
       var modeName = function (m, short) { return m === 'silent' ? SL[short ? 1 : 0] : MD[MODES.indexOf(m)]; };
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
       modeSel.innerHTML = MODES.map(function (m) { return '<option value="' + m + '">' + esc(modeName(m)) + '</option>'; }).join('') +
-        (C.lang === 'ar' ? '<option value="exam">اختبار</option>' : '');
+        (C.lang === 'ar' ? '<option value="exam">الاختبارات</option>' : '');
       // the fifth service (Arabic): a test of the reader's own choosing — memorization, tajweed, word meanings (js/exam.js)
       var examOpen = function () {
         if (window.LtExam) return window.LtExam.open();
-        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=6'; sc.onload = function () { window.LtExam.open(); };
+        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=7'; sc.onload = function () { window.LtExam.open(); };
         document.head.appendChild(sc);
       };
       root.__examOpen = examOpen;
@@ -1179,7 +1179,7 @@
           });
           if (C.lang === 'ar') {
             var ex = document.createElement('button'); ex.type = 'button'; ex.className = 'bk-gpit';
-            ex.innerHTML = '<i></i><b class="g ht">اختبار</b>';
+            ex.innerHTML = '<i></i><b class="g ht">الاختبارات</b>';
             ex.onclick = function (ev) { ev.stopPropagation(); ov.remove(); examOpen(); };
             box.appendChild(ex);
           }
