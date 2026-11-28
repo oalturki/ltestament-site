@@ -2358,3 +2358,13 @@ body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 .bk-hdr2 .bk-h2u{ flex:0 1 auto; justify-content:center; min-width:0; }
 .bk-hdr2 .bk-h2j, .bk-hdr2 .bk-h2p{ flex:1 1 0 !important; min-width:0; }
 .bk-hdr2 .bk-h2j{ justify-content:flex-start; } .bk-hdr2 .bk-h2p{ justify-content:flex-end; }
+/* the head row (the owner, Nov 28): the page number plain like the juz, no box; the juz close to the lens and the page
+   close to the settings, so the middle has room; the view's and the mode's fold mark under the word */
+html body.bk-hdr .bk-hdr2 .bk-h2pm{ border:0 !important; background:transparent !important; box-shadow:none !important; width:auto !important; min-width:0 !important;
+  height:auto !important; padding:0 !important; border-radius:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2pm span{ font-family:'Amiri','Noto Naskh Arabic',serif; font-weight:700; font-size:17px; line-height:1; color:#3d2f10; transform:none; }
+html body.bk-night.bk-hdr .bk-hdr2 .bk-h2pm span{ color:#e8e0cc; }
+@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2pm span{ font-size:15px; } }
+html body.bk-hdr .bk-hdr2 .bk-h2j{ margin-inline-start:-6px; } html body.bk-hdr .bk-hdr2 .bk-h2p{ margin-inline-end:-6px; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ flex-direction:column !important; align-items:center !important; justify-content:center !important; gap:0 !important; line-height:1 !important; }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ margin:2px 0 0 !important; transform:rotate(45deg) !important; width:4px !important; height:4px !important; }
