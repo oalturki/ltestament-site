@@ -2388,3 +2388,5 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:a
 /* the surah's name a little larger (the owner, Nov 28) */
 html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:27px !important; }
 @media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:24px !important; } }
+html body.bk-hdr .bk-hdr2 .bk-h2j{ margin-inline-start:-9px !important; padding-inline-start:0; }   /* right against the lens */
+html body.bk-hdr .bk-hdr2 .bk-h2p{ margin-inline-end:-9px !important; padding-inline-end:0; }       /* right against the settings */
