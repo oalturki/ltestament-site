@@ -2371,4 +2371,4 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative !important; f
   height:30px !important; overflow:visible !important; }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ transform:translateY(1px); }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !important; left:50% !important; bottom:-1px !important; margin:0 !important;
-  width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }
+  display:block !important; width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }   /* under the word it takes no width: on small phones too */
