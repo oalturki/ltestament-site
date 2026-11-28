@@ -2372,13 +2372,16 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ position:relative !important; f
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > * span{ transform:translateY(1px); }
 html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !important; left:50% !important; bottom:-1px !important; margin:0 !important;
   display:block !important; width:5px !important; height:5px !important; border-width:0 1.7px 1.7px 0 !important; transform:translateX(-50%) rotate(45deg) !important; }   /* under the word it takes no width: on small phones too */
-/* the head row balanced (the owner, Nov 28): the juz and the page at the two ends, the same width (the page's room
-   holds three digits, so nothing moves as the number grows); the view, the name and the mode at their own widths, and the
-   space between all of them shared out evenly — the words stand apart from the surah's name by the same gap */
-html body.bk-hdr .bk-hdr2{ justify-content:space-evenly !important; gap:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:0 0 auto !important; width:auto; min-width:0 !important; margin:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2pm span{ display:inline-block; min-width:3ch; text-align:end; }   /* room for three digits */
-html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; } html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 auto !important; padding:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 1 auto !important; }
-html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:auto !important; }   /* the word's own width: the gaps beside it even */
+/* the head row (the owner, Nov 28, his third word on it): the surah's name in the very middle of the page, the view on
+   its right and the mode on its left at the same distance from it; the juz right beside the lens and the page right
+   beside the settings (those two stand out by their ground) */
+html body.bk-hdr .bk-hdr2{ justify-content:normal !important; gap:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:1 1 0 !important; width:auto; min-width:0 !important; margin:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; padding-inline-start:2px; }
+html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; padding-inline-end:2px; }
+html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 64px !important; width:64px; padding:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2slot:nth-of-type(1){ justify-content:flex-end; }      /* the view: its word against the name */
+html body.bk-hdr .bk-hdr2 .bk-h2slot:nth-of-type(2){ justify-content:flex-start; }    /* the mode: its word against the name */
+html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 0 auto !important; padding:0 12px; }
+@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex-basis:58px !important; width:58px; } html body.bk-hdr .bk-hdr2 .bk-h2u{ padding:0 8px; } }
+html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *{ min-width:0 !important; width:auto !important; }
