@@ -773,6 +773,7 @@
       liveRun: function (ext) { if (root.__liveRun) root.__liveRun(ext); },
       liveStop: function () { if (root.__liveStop) root.__liveStop(); },
       tjOn: function () { return document.body.classList.contains('bk-tajweed'); },
+      firstPhrase: function (sN, aN) { return C.__firstPhrase ? C.__firstPhrase(sN, aN) : Promise.resolve(null); },
       silNow: function () { return root.__silNow ? root.__silNow() : null; },
       silShowTo: function (loc) { if (root.__silShowTo) root.__silShowTo(loc); },
       setView: function (v) { if (root.__view) root.__view.set(v); },
@@ -1116,7 +1117,7 @@
       // the fifth service (Arabic): a test of the reader's own choosing — memorization, tajweed, word meanings (js/exam.js)
       var examOpen = function () {
         if (window.LtExam) return window.LtExam.open();
-        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=5'; sc.onload = function () { window.LtExam.open(); };
+        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=6'; sc.onload = function () { window.LtExam.open(); };
         document.head.appendChild(sc);
       };
       root.__examOpen = examOpen;
@@ -3456,6 +3457,16 @@
         return out;
       });
     }
+    // the test (js/exam.js): where the recorded reciter's first phrase of an ayah ends (its last word's number), so a
+    // question's start ends where he stops; no timings: the first pause mark; neither: null
+    C.__firstPhrase = function (sN, aN) {
+      var r = wRec();
+      return Promise.all([r ? wordTimes(r, sN, aN).catch(function () { return []; }) : Promise.resolve([]), pauseMarks(sN, aN)]).then(function (v) {
+        var ws = v[0], marks = v[1];
+        if (ws.length > 1) { var b = segOf(ws, 0, marks)[1]; return b < ws.length - 1 ? ws[b][0] : null; }
+        return marks.length ? marks[0] : null;
+      });
+    };
     C.__playWord = RECS.some(function (r) { return r.timed && r.kind === 'ayah' && !r.meaningOnly; }) ? function (loc, btn, done, seg) {
       var P = wParts(loc), ctx = wCtxGet();
       if (playing) stopAudio();

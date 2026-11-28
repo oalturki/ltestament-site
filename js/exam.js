@@ -272,7 +272,7 @@
         '<div class="ex-row" data-for="h"><select data-f="h">' + nums(60, c.h, 'الحزب') + '</select></div>' +
         '<h4>الأقسام:</h4><div class="ex-cks">' + chk('hifz') + chk('tja') + chk('tjt', true, 'يُضاف بعد مراجعة المختص لشرح أحكام التجويد.') + chk('words') + '</div>' +
         '<div class="ex-opt" data-sec="hifz"><h4>الحفظ:</h4>' +
-          '<div class="ex-row"><span>عدد المواضع في الصفحة:</span>' + seg('per', [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return [n, ar(n)]; }), c.per || 2) + '</div>' +
+          '<div class="ex-row"><span>عدد المواضع في الصفحة:</span><select data-f="per">' + [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return o(n, ar(n), (c.per || 2) === n); }).join('') + '</select></div>' +
           '<div class="ex-row"><span>بداية الموضع:</span>' + seg('pw', [[1, 'كلمة'], [3, 'ثلاث كلمات']], c.pw || 3) + '</div>' +
           '<p class="ex-note">يظهر لك: «أكمل من قوله تعالى: …»، فتكمل من حفظك. ويحكم عليه نظام التسميع، فيحتاج إلى الميكروفون.</p></div>' +
         '<div class="ex-opt" data-sec="tja"><h4>التجويد التطبيقي:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nTj', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nTj) + '</div></div>' +
@@ -295,7 +295,7 @@
         if (!ORDER.some(function (k) { return sec[k] && k !== 'tjt'; })) { err.textContent = 'اختر قسمًا واحدًا على الأقل.'; err.hidden = false; return; }
         var n = { t: val('t'), s: +bd.querySelector('[data-f=s]').value, a1: num(bd.querySelector('[data-f=a1]').value) || 1, a2: num(bd.querySelector('[data-f=a2]').value) || 1,
                   j: +bd.querySelector('[data-f=j]').value, h: +bd.querySelector('[data-f=h]').value, sec: sec,
-                  per: +val('per') || 2, pw: +val('pw') || 3, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
+                  per: +bd.querySelector('[data-f=per]').value || 2, pw: +val('pw') || 3, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
         if (n.t === 'a' && n.a2 < n.a1) { var t0 = n.a1; n.a1 = n.a2; n.a2 = t0; }
         store('lt_exam_cfg', JSON.stringify(n));
         start(n);
@@ -355,13 +355,11 @@
     var bd = sheet(SEC.hifz + ': الموضع ' + ar(i + 1) + ' من ' + ar(H.length), '<p class="ex-note">جارٍ التجهيز…</p>', finish);
     pageWords(q.p.page).then(function (by) {
       q.words = q.p.ayahs.map(function (x) { return by[x[0] + ':' + x[1]] || []; });
-      // the start shown: three words, or one word — of more than four letters (the owner, Nov 28), else the words up to
-      // more than four letters, so a short word («قل», «إن») never stands alone
-      var first = q.words[0] || [], pr;
-      if ((RUN.c.pw || 3) === 1) {
-        pr = []; var nl = 0;
-        for (var wi = 0; wi < first.length && nl <= 4; wi++) { pr.push(first[wi]); nl += letters(first[wi].t); }
-      } else pr = first.slice(0, Math.min(3, first.length));
+      var first = q.words[0] || [];
+      return promptLen(f[0], f[1], first).then(function (k) { show(first.slice(0, Math.max(1, k))); }, function () { show(first.slice(0, 3)); });
+    });
+    function show(pr) {
+      var first = q.words[0] || [];
       bd.innerHTML = '<p class="ex-ref">سورة ' + esc(D.names[f[0] - 1]) + '</p>' +
         '<p class="ex-ask">أكمل من قوله تعالى:</p><p class="ex-ayah ex-pr" lang="ar" translate="no">﴿' + esc(ayahText(pr)) + (first.length > pr.length ? ' …' : '') + '﴾</p>' +
         '<div class="ex-live"><span class="ex-st">جارٍ تشغيل الميكروفون…</span><button type="button" class="ex-again" hidden>أعد الموضع</button>' +
@@ -405,6 +403,36 @@
         });
         LIVE.start();
       }).catch(function () { st.textContent = 'تعذّر تشغيل نظام التسميع. تحقّق من الاتصال.'; bd.querySelector('.ex-again').hidden = false; });
+    }
+  }
+  // how many of the ayah's first words the question shows (the owner, Nov 28):
+  // 1) at least the chosen start — three words, or one word of more than four letters (a shorter one takes the next);
+  // 2) enough to tell this place from every other ayah that starts the same way, in its surah and in the test's range
+  //    («ٱلَّذِينَ» alone opens many ayahs);
+  // 3) carried on to where the recorded reciter stops, when that is near (up to 3 words more) — a start that ends where
+  //    he pauses reads as a whole phrase.
+  var simple = {};
+  var stext = function (sN) { return simple[sN] || (simple[sN] = J('/data/text-simple/' + sN + '.json').then(function (t) {
+    return t.map(function (ay) { return String(ay || '').split(' ').filter(function (w) { return w && !/^[\u06D6-\u06ED]+$/.test(w); }).map(len); });
+  })); };
+  function promptLen(sN, aN, hafs) {
+    var k = 3;
+    if ((RUN.c.pw || 3) === 1) { var nl = 0; k = 0; while (k < hafs.length && nl <= 4) { nl += letters(hafs[k].t); k++; } }
+    var sus = [sN];
+    for (var x = RUN.rg[0][0]; x <= RUN.rg[1][0]; x++) if (sus.indexOf(x) < 0) sus.push(x);
+    return Promise.all(sus.map(function (x) { return stext(x).then(function (t) { return { s: x, t: t }; }); })).then(function (all) {
+      var me = null; all.forEach(function (g) { if (g.s === sN) me = g.t[aN - 1]; });
+      if (!me) return k;
+      var starts = [];
+      all.forEach(function (g) {
+        g.t.forEach(function (ws, i) { if (g.s === sN && i === aN - 1) return; if (g.s !== sN && !inR(RUN.rg, g.s, i + 1)) return; starts.push(ws); });
+      });
+      var same = function (n) { return starts.some(function (ws) { if (ws.length < n) return false; for (var j = 0; j < n; j++) if (ws[j] !== me[j]) return false; return true; }); };
+      while (k < me.length && same(k)) k++;
+      return (B().firstPhrase ? B().firstPhrase(sN, aN) : Promise.resolve(null)).then(function (e) {
+        if (e && e >= k && e <= k + 3) k = e;
+        return Math.min(k, hafs.length);
+      }, function () { return Math.min(k, hafs.length); });
     });
   }
   // a place's mark out of 20: a word wrong or not said 1, put right after the alert ½, a whole ayah passed over 2; what
