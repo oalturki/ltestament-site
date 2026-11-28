@@ -1117,7 +1117,7 @@
       // the fifth service (Arabic): a test of the reader's own choosing — memorization, tajweed, word meanings (js/exam.js)
       var examOpen = function () {
         if (window.LtExam) return window.LtExam.open();
-        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=7'; sc.onload = function () { window.LtExam.open(); };
+        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=8'; sc.onload = function () { window.LtExam.open(); };
         document.head.appendChild(sc);
       };
       root.__examOpen = examOpen;
