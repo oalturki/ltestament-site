@@ -1621,12 +1621,15 @@
             e.stopPropagation();
             var old = document.querySelector('.bk-gpov'); if (old) old.remove();
             var ov = document.createElement('div'); ov.className = 'bk-gpov';
-            var box = document.createElement('div'); box.className = 'bk-gpbox ' + (kind === 'su' ? 'su' : 'jz');
+            var box = document.createElement('div'); box.className = 'bk-gpbox ' + (kind === 'su' ? 'su' : kind === 'pg' ? 'pg' : 'jz');
             var hr = hdr.getBoundingClientRect(); box.style.top = Math.round(hr.bottom + 6) + 'px';
             [].forEach.call(src.options, function (o) {
               var n = +o.value; if (!n) return;
               var it = document.createElement('button'); it.type = 'button'; it.className = 'bk-gpit' + (String(n) === String(src.value) ? ' on' : '');
-              var name = kind === 'jz' ? '<b class="g hj">' + String.fromCharCode(0xE000 + n) + '</b>'
+              // a page: its number, and the surah it opens with
+              var sp = kind === 'pg' && MAP ? MAP.pages[n - 1][0] : 0;
+              var name = kind === 'pg' ? (sp > 1 ? '<b class="g hs">' + String.fromCharCode(0xE000 + sp) + '</b>' : '<b class="g ht">سُورَةُ الفَاتِحَةِ</b>')
+                : kind === 'jz' ? '<b class="g hj">' + String.fromCharCode(0xE000 + n) + '</b>'
                 : n > 1 ? '<b class="g hs">' + String.fromCharCode(0xE000 + n) + '</b>' : '<b class="g ht">سُورَةُ الفَاتِحَةِ</b>';
               it.innerHTML = '<i>' + arNum(n) + '</i>' + name;
               it.onclick = function (ev) { ev.stopPropagation(); ov.remove(); src.value = String(n); src.dispatchEvent(new Event('change')); };
@@ -1640,7 +1643,7 @@
           return b;
         };
         var jzSrc = bar.querySelector('.bk-mjz') || pg;
-        var hPg = overSel(pg), hJz = AR2 && jzSrc !== pg ? glyphPick(jzSrc, 'jz') : overSel(jzSrc);
+        var hPg = AR2 ? glyphPick(pg, 'pg') : overSel(pg), hJz = AR2 && jzSrc !== pg ? glyphPick(jzSrc, 'jz') : overSel(jzSrc);
         cPg.appendChild(hPg); cJz.appendChild(hJz);
         // the surah: its list (not the full index)
         var sSel2 = q('surahSel');
