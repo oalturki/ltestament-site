@@ -248,9 +248,12 @@
     return out;
   }
 
-  function open() {
+  // pre: [firstPage, lastPage] — a range given by «مصاحفي» (a review plan's pages)
+  function open(pre) {
     data().then(function () {
-      var c = cfgLoad(), cur = B().cur ? B().cur() : 1, pg = D.map.pages[cur - 1];
+      var c = cfgLoad();
+      if (pre && pre[0]) { c.t = 'p'; c.p1 = pre[0]; c.p2 = pre[1] || pre[0]; }
+      var cur = B().cur ? B().cur() : 1, pg = D.map.pages[cur - 1];
       if (!c.s) c.s = pg[0];
       if (!c.j) c.j = D.map.juz[cur - 1];
       if (!c.h) { var R = D.idx.rub, k = K(pg[0], pg[1]); c.h = 1; for (var i = 0; i < R.length; i += 4) if (K(R[i][0], R[i][1]) <= k) c.h = i / 4 + 1; }

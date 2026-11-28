@@ -1495,13 +1495,22 @@
         var vb = document.createElement('button'); vb.type = 'button'; vb.className = 'bk-viewbtn';
         if (bar) bar.insertBefore(vb, pg);
         var VSUB = { '': 'مصحف المدينة النبوية — مجمع الملك فهد', '__taj': 'ألوان أحكام التجويد — مجمع الملك فهد' };
+        // a Mushaf of his own in use (مصاحفي): its name, while the Mushaf itself is shown (not a tafsir)
+        var muName = function (short) {
+          var mu = window.LtMushafs && window.LtMushafs.active(), ts = q('trSel'), v = ts ? ts.value : '';
+          if (!mu || mu.id === 'g' || (v && v !== '__taj')) return null;
+          var n = window.LtMushafs.name(mu, C.lang);
+          return short ? n.replace(/^مصحف\s+/, '') : n;
+        };
         var vName = function () {
+          if (muName()) return muName();
           var ts = q('trSel'); if (!ts) return 'المصحف';
           var o = ts.options[ts.selectedIndex];
           return o ? o.text.replace(/\s*\(.*\)$/, '') : 'المصحف';
         };
         // a short name for the narrow head bar: التجويد، الميسر، المختصر، English…
         var vShort = function () {
+          if (muName(true)) return muName(true);
           var ts = q('trSel'), o = ts && ts.options[ts.selectedIndex], v = o ? o.value : '';
           if (!o || !v) return 'المصحف';
           if (v === '__taj') return 'التجويد';
@@ -1518,7 +1527,7 @@
           return t.replace(/^التفسير\s+/, '').split(/\s+في\s+/)[0];
         };
         var vSync = function () { vb.innerHTML = '<span class="bk-vfull">' + esc(vName()) + '</span><span class="bk-vshort">' + esc(vShort()) + '</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'; };
-        setTimeout(vSync, 0);
+        setTimeout(vSync, 0); root.__vSync = vSync;
         if (q('trSel')) q('trSel').addEventListener('change', function () { setTimeout(vSync, 0); });
         vb.onclick = function (e) {
           e.stopPropagation();
@@ -1536,6 +1545,13 @@
                 '</span><i>✓</i></button>';
             }).join('') + '</div></details>';
           });
+          // «مصاحفي»: his own Mushafs (the same Mushaf, each at its place and in its settings) — opened from here, and managed
+          if (window.LtMushafs) {
+            var MU = window.LtMushafs, mua = MU.active();
+            sec += '<details class="bk-vgrp"' + (mua.id !== 'g' ? ' open' : '') + '><summary>مصاحفي</summary><div class="bk-vlist">' + MU.list().map(function (m) {
+              return '<button type="button" data-mu="' + esc(m.id) + '"' + (m.id === mua.id ? ' class="on"' : '') + '><span><b>' + esc(MU.name(m, C.lang)) + '</b></span><i>✓</i></button>';
+            }).join('') + '<button type="button" data-mu="__manage"><span><b>إدارة مصاحفي</b></span><i></i></button></div></details>';
+          }
           ov4.innerHTML = '<section class="bk-msheet" role="dialog" aria-modal="true"><div class="bk-msgrip"></div><div class="bk-mshead"><h2>اختيار المصحف أو التفسير أو الترجمة</h2>' +
             '<button type="button" class="bk-msx" aria-label="' + esc(L.close) + '">' + svg(I.x) + '</button></div><div class="bk-msbody">' + sec + '</div></section>';
           document.body.appendChild(ov4);
@@ -1553,6 +1569,13 @@
           grps.forEach(function (d) { d.addEventListener('toggle', function () { if (d.open) grps.forEach(function (o) { if (o !== d) o.open = false; }); }); });
           ov4.querySelectorAll('[data-v]').forEach(function (b) {
             b.onclick = function () { close4(); if (ts.value !== b.dataset.v) { ts.value = b.dataset.v; ts.dispatchEvent(new Event('change')); } };
+          });
+          ov4.querySelectorAll('[data-mu]').forEach(function (b) {
+            b.onclick = function () {
+              close4(); var id = b.dataset.mu;
+              if (id === '__manage') { if (root.__openSec) root.__openSec('mushafs'); return; }
+              window.LtMushafs.switchTo(id);
+            };
           });
         };
       }
@@ -1795,6 +1818,7 @@
         });
         if (k === 'halaqa') ltLoad(['/js/halaqa.js?v=30'], function () { window.LtHalaqa.ui(hqSec, { close: shut }); });
         if (k === 'remind') ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () { window.LtRemind.ui(remSec, { lang: C.lang }); });
+        if (k === 'mushafs') ltLoad(['/js/sync.js', '/js/push.js', '/js/khatma.js', '/js/mushafs.js?v=1'], function () { window.LtMushafs.ui(muSec, { lang: C.lang, close: shut, openSec: function (x) { goSec(x); } }); });
         if (k === 'khatma') ltLoad(['/js/push.js', '/js/khatma.js'], function () { window.Khatma.ui(khSec, { lang: C.lang, names: C.uiNames, close: shut, show: function (p) { show(p, 0); } }); });
         sbody.scrollTop = 0;
       };
@@ -1826,6 +1850,9 @@
       var subSec = section('subs', SBL[C.lang] || SBL.en, 'subs');
       var accInfo = function () { var p0 = null; try { if (localStorage.getItem('sb-nikwwjswwlwcqekbnpzq-auth-token')) p0 = JSON.parse(localStorage.getItem('lt_profile') || 'null'); } catch (e) {} return p0 || {}; };
       var rsBox = section('stats', (RSL[C.lang] || RSL.en), 'stats');
+      // «مصاحفي»: the same Mushaf, each with its own place and settings (js/mushafs.js)
+      var MUL = { ar: 'مصاحفي', ur: 'میرے مصاحف', en: 'My Mushafs', fr: 'Mes Mushafs', es: 'Mis Mushafs', ru: 'Мои мусхафы' };
+      var muSec = section('mushafs', MUL[C.lang] || MUL.en, 'view');
       var KHL = { ar: 'ختماتي', ur: 'میرے ختم', en: 'My khatmas', fr: 'Mes khatmas', es: 'Mis jatmas', ru: 'Мои хатмы' };
       var khSec = section('khatma', KHL[C.lang] || KHL.en, 'khatma');
       var PLL = { ar: 'خططي', ur: 'میرے منصوبے', en: 'My plans', fr: 'Mes plans', es: 'Mis planes', ru: 'Мои планы' };
@@ -1956,6 +1983,7 @@
           if (rb) rb.textContent = recTitle();
           if (secs.rec) secs.rec.dataset.title = recTitle();
         }
+        if (subs.mushafs) { var mua = window.LtMushafs && window.LtMushafs.active(); subs.mushafs.textContent = mua ? window.LtMushafs.name(mua, C.lang) : ''; }
         if (subs.khatma) {
           var kt = window.Khatma && window.Khatma.stripText(C.lang);
           subs.khatma.textContent = kt ? kt.h + ': ' + kt.v : '';
@@ -1986,6 +2014,7 @@
         gear.onclick = function (e) { e.stopPropagation(); open(); };
         bar.appendChild(gear);
       }
+      root.__openSec = function (k) { open(); goSec(k); };
       root.__modeMenu = function () { if (ov.classList.contains('on')) fillMenu(); };
       // a link to a settings page: ?open=guide (the user guide), or any section's key
       var openQ = /[?&]open=([a-z]+)/.exec(location.search);
@@ -1999,9 +2028,11 @@
       root.__strip = function () {
         var md = curMode(), h = '', v = '';
         var fv = function (k) { var e = document.querySelector('.bk-rset [data-r="' + k + '"]'); return e ? (e.tagName === 'SELECT' ? selText(e) : e.value) : ''; };
-        var kt2 = md === 'read' && window.Khatma ? window.Khatma.stripText(C.lang) : null;
-        strip.dataset.k = kt2 ? '1' : '';
-        if (kt2) { h = kt2.h; v = kt2.v.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'); }
+        var mu2 = window.LtMushafs ? window.LtMushafs.strip(C.lang) : null;
+        var kt2 = !mu2 && md === 'read' && window.Khatma ? window.Khatma.stripText(C.lang) : null;
+        strip.dataset.k = kt2 ? '1' : mu2 ? 'm' : '';
+        if (mu2) { h = mu2.h; v = mu2.v; }
+        else if (kt2) { h = kt2.h; v = kt2.v.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'); }
         else if (md === 'read') {
           // reading: the reciter and his settings are in the listening settings (not on the page); shown only when
           // something other than plain reading was set (a passage, repetition)
@@ -2016,7 +2047,7 @@
         var bt = document.querySelector('.bk-mnav'), r0 = bt ? bt.getBoundingClientRect() : null;
         strip.style.bottom = Math.round(r0 && r0.height ? window.innerHeight - r0.top + 8 : 110) + 'px';
       };
-      strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
+      strip.onclick = function (e) { e.stopPropagation(); open(); if (strip.dataset.k === 'm') goSec('mushafs'); else if (strip.dataset.k) goSec('khatma'); else openMode(curMode()); };
       // khatmas and reminders: loaded with the Mushaf, so today's wird shows on the page; a reminder opens the khatmas
       // the account's copy of this profile's reminders and bookmarks (js/sync.js); when it brings changes, show them
       ltLoad(['/js/sync.js'], function () {});
@@ -2029,7 +2060,9 @@
         setTimeout(function () { location.reload(); }, 150);
       });
       window.addEventListener('lt-profile', function () { if (window.Khatma) window.Khatma.pull().then(function () { root.__strip(); }); fillMenu(); });
-      ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js'], function () {
+      ltLoad(['/js/push.js', '/js/khatma.js', '/js/reminders.js', '/js/mushafs.js?v=1'], function () {
+        if (window.LtMushafs) try { window.LtMushafs.boot(); } catch (e) {}
+        if (root.__vSync) root.__vSync();
         root.__strip();
         window.Khatma.pull().then(function () { root.__strip(); });
         if (/[?&]k=/.test(location.search)) { open(); goSec('khatma'); }
@@ -2041,6 +2074,7 @@
         if (rl) setTimeout(function () { ltLoad(['/js/halaqa.js?v=30'], function () { window.LtHalaqa.join(rl[1], { link: true, display: /[?&]display=1\b/.test(location.search) }); }); }, 800);
       });
       window.addEventListener('lt-khatma', function () { setTimeout(root.__strip, 0); });
+      window.addEventListener('lt-mushaf', function () { setTimeout(root.__strip, 0); if (root.__vSync) root.__vSync(); fillMenu(); });
       // the Mushaf opens in reading: plain listening (the memorization method belongs to memorizing)
       setTimeout(function () { var rs = repSel(); if (rs && rs.value === 'hifz') { rs.value = 'cont'; rs.dispatchEvent(new Event('change', { bubbles: true })); } modeSync(); }, 0);
       document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('.bk-rset, .bk-msrow')) setTimeout(root.__strip, 0); }, true);

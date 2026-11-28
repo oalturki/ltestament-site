@@ -24,3 +24,7 @@ alter table public.profile_data add constraint profile_data_data_check check (pg
 
 -- The study plans (المنهج المقرر) moved into the plans above (2026-11-22): each active study plan became a plan in
 -- its profile's profile_data row ('plans'), its holidays as days off; the study plans were set inactive (kept).
+
+-- «مصاحفي» (js/mushafs.js): the reader's own Mushafs, kept the same way (migration "profile_data_mushafs", Nov 28 2026).
+alter table public.profile_data drop constraint profile_data_key_check;
+alter table public.profile_data add constraint profile_data_key_check check (key in ('reminders', 'marks', 'plans', 'mushafs'));

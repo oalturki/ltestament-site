@@ -451,5 +451,22 @@
     }
   }
 
-  window.LtPlans = { ui: ui, check: check, stripText: stripText, boot: boot, list: load, stat: function (p) { return stat(p); } };
+  // one plan's wird today (for «مصاحفي», js/mushafs.js): {h, v, page, fin} | null
+  function wird(id, lang) {
+    if (!P) return null;
+    var p = load().filter(function (x) { return x.id === id; })[0]; if (!p) return null;
+    var l = L(lang), st = stat(p);
+    if (st.fin) return { fin: true, h: l.fin, v: '', page: 0 };
+    return { h: p.freq === 'week' ? l.week : l.today, v: wirdLabel(st, lang), page: st.page, due: st.dueNow, pct: st.pct };
+  }
+  // the pages a plan covers (for a test in its range)
+  function pages(id) {
+    return boot().then(function () {
+      var p = load().filter(function (x) { return x.id === id; })[0]; if (!p) return null;
+      var lo = 1e9, hi = -1;
+      wirds(p).forEach(function (w) { P.walk(w.a_from, w.a_to, p.ord).forEach(function (g) { if (g < lo) lo = g; if (g > hi) hi = g; }); });
+      return hi < 0 ? null : [P.pageOf(lo), P.pageOf(hi)];
+    });
+  }
+  window.LtPlans = { ui: ui, check: check, stripText: stripText, boot: boot, list: load, stat: function (p) { return stat(p); }, wird: wird, pages: pages };
 })();

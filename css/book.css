@@ -2392,3 +2392,32 @@ html body.bk-hdr .bk-hdr2 .bk-h2k.hs{ font-size:30px !important; }
 /* the juz near the lens and the page near the settings: a small gap, not touching (the owner, Nov 28) */
 html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; margin-inline-start:4px !important; }
 html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; margin-inline-end:4px !important; }
+
+/* «مصاحفي» (js/mushafs.js): his own Mushafs, in the settings */
+.mu{ direction:inherit; padding:4px 2px 12px; }
+.mu-note{ margin:2px 2px 10px; color:#6a5d43; font-size:14px; line-height:1.7; }
+.mu-card{ border:1px solid rgba(176,138,53,.35); border-radius:12px; background:#fffdf7; padding:10px 12px; margin:0 0 10px; }
+.mu-card.on{ border-color:#b08a35; box-shadow:0 0 0 1px #b08a35 inset; background:#fbf4e1; }
+.mu-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.mu-nm{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.mu-nm b{ font-size:16px; color:#2b2416; }
+.mu-nm em{ font-style:normal; font-size:12px; font-weight:700; color:#fff; background:#b08a35; border-radius:6px; padding:1px 7px; }
+.mu-sub{ margin-top:3px; color:#7a6e58; font-size:13.5px; }
+.mu-open, .mu-b1{ padding:7px 16px; border:0; border-radius:10px; background:#b08a35; color:#fff; font:inherit; font-size:14px; font-weight:700; cursor:pointer; }
+.mu-b2, .mu-acts button{ padding:6px 12px; border:1px solid rgba(140,110,40,.45); border-radius:10px; background:#fffdf7; color:#5a4720; font:inherit; font-size:13.5px; cursor:pointer; }
+.mu-red{ background:#a33; }
+.mu-acts, .mu-btns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.mu-acts:empty{ display:none; }
+.mu-ext{ margin-top:8px; padding-top:8px; border-top:1px dashed rgba(176,138,53,.45); }
+.mu-ext:empty{ display:none; }
+.mu-w{ margin:0; font-size:14px; line-height:1.7; color:#3d3220; }
+.mu-form{ margin-top:8px; display:flex; flex-direction:column; gap:8px; }
+.mu-form label{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px; }
+.mu-form input, .mu-form select{ flex:1; min-width:0; padding:7px 9px; border:1px solid rgba(140,110,40,.45); border-radius:8px; background:#fff; font:inherit; font-size:16px; }
+.mu-form p{ margin:0; font-size:14px; }
+.mu-err{ color:#a33; font-weight:700; }
+.mu-new .mu-top b{ font-size:15px; color:#7a5d1e; }
+body.bk-night .mu-card{ background:#2a261d; border-color:rgba(217,180,90,.35); }
+body.bk-night .mu-card.on{ background:#332c1c; }
+body.bk-night .mu-nm b, body.bk-night .mu-w{ color:#e8e0cc; }
+body.bk-night .mu-note, body.bk-night .mu-sub{ color:#b9ad92; }
