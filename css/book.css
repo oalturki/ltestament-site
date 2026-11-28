@@ -2376,8 +2376,8 @@ html body.bk-mob.bk-hdr .bk-hdr2 .bk-h2slot > *::after{ position:absolute !impor
    holds three digits, so nothing moves as the number grows); the view, the name and the mode at their own widths, and the
    space between all of them shared out evenly — the words stand apart from the surah's name by the same gap */
 html body.bk-hdr .bk-hdr2{ justify-content:space-evenly !important; gap:0 !important; }
-html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:0 0 46px !important; width:46px; margin:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex:0 0 auto !important; width:auto; min-width:0 !important; margin:0 !important; }
+html body.bk-hdr .bk-hdr2 .bk-h2pm span{ display:inline-block; min-width:3ch; text-align:end; }   /* room for three digits */
 html body.bk-hdr .bk-hdr2 .bk-h2j{ justify-content:flex-start !important; } html body.bk-hdr .bk-hdr2 .bk-h2p{ justify-content:flex-end !important; }
 html body.bk-hdr .bk-hdr2 .bk-h2slot{ flex:0 0 auto !important; padding:0 !important; }
 html body.bk-hdr .bk-hdr2 .bk-h2u{ flex:0 1 auto !important; }
-@media (max-width:389px){ html body.bk-hdr .bk-hdr2 .bk-h2j, html body.bk-hdr .bk-hdr2 .bk-h2p{ flex-basis:42px !important; width:42px; } }
