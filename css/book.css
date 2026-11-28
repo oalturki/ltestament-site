@@ -2421,3 +2421,11 @@ body.bk-night .mu-card{ background:#2a261d; border-color:rgba(217,180,90,.35); }
 body.bk-night .mu-card.on{ background:#332c1c; }
 body.bk-night .mu-nm b, body.bk-night .mu-w{ color:#e8e0cc; }
 body.bk-night .mu-note, body.bk-night .mu-sub{ color:#b9ad92; }
+
+/* the view list: each group's name on a band of its own, so it stands apart from the items under it (the owner, Nov 28) */
+.bk-viewov .bk-vgrp{ border-bottom:0 !important; margin:0 0 6px; }
+.bk-viewov .bk-vgrp > summary{ background:#efe3c2; border-radius:8px; padding-inline:12px !important; }
+.bk-viewov .bk-vgrp[open] > summary{ background:#e2cf9c; }
+.bk-viewov .bk-vgrp > .bk-vlist{ padding:4px 6px 6px; }
+body.bk-night .bk-viewov .bk-vgrp > summary{ background:rgba(217,180,90,.16); }
+body.bk-night .bk-viewov .bk-vgrp[open] > summary{ background:rgba(217,180,90,.3); }
