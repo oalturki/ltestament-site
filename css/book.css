@@ -2344,3 +2344,12 @@ body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 .ex-bar .ex-done{ background:#b08a35 !important; color:#fff !important; border-color:#b08a35 !important; font-weight:700; }
 .ex-again{ margin-inline-start:6px; padding:3px 10px; border-radius:8px; border:1px solid #b08a35; background:#fffdf7; font:inherit; cursor:pointer; }
 .bk-mpage .ex-pr{ color:#8a6a20 !important; }
+/* «اختبار»: the memorization card — what the reader said, as he says it */
+.ex-live{ margin:10px 0 4px; padding:10px 12px; border:1px dashed rgba(176,138,53,.55); border-radius:10px; background:#fffdf7; min-height:90px; }
+.ex-st{ display:block; color:#7a5d1e; font-weight:700; font-size:14px; }
+.ex-live .ex-again{ margin:6px 0 0; }
+.ex-said{ margin:8px 0 0; font-family:'KFGQPC Hafs', 'Amiri Quran', serif; font-size:23px; line-height:2; }
+.ex-w.wrong, .ex-w.missing{ color:#b0362b; text-decoration:underline wavy rgba(176,54,43,.6); }
+.ex-w.fixed{ color:#a87210; }
+.ex-w.unclear{ color:#8a8170; }
+.ex-pr{ color:#8a6a20; }

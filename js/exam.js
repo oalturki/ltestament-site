@@ -4,11 +4,11 @@
    2) the parts he wants: memorization (by voice), applied tajweed, theoretical tajweed (closed until the tajweed
       explanations come back from the specialist's review), word meanings;
    3) the weights: memorization 70, applied tajweed 15, theoretical 5, words 10 — shared out over the parts chosen.
-   Memorization, as competitions do it: passages drawn at random over the whole range — one in every 1, 2, 3 or 5 pages,
-   each within its page, of about 3, 5 or 7 lines; the start of the passage shown, the rest recited from memory and
-   judged by the recitation check (js/live.js). Each passage is worth 20, less: a word wrong or not said 1, a word put
-   right after the alert ½, a whole ayah passed over 2, a tajweed note (on the colour Mushaf) ½; a slip the reader puts
-   right himself costs nothing (the measure of Sultan Qaboos's and al-Azhar's competitions).
+   Memorization (the owner, Nov 28): «أكمل من قوله تعالى: …» — 1 to 8 places in each page of the range, spread over the
+   page; each asked on its own card, away from the Mushaf (the page's layout reminds the reader of the verse), and the
+   reader's voice judged by the recitation check (js/live.js), the words he said shown as he says them. Each place is
+   worth 20, less: a word wrong or not said 1, a word put right after the alert ½, a whole ayah passed over 2; a slip the
+   reader puts right himself costs nothing (the measure of Sultan Qaboos's and al-Azhar's competitions).
    Applied tajweed: an ayah of the range with a word marked; which rule falls on the letter named — the right answer is
    the word's own rule in the colour Mushaf (data/tajweed/n<page>.json); the others are other rules.
    Word meanings: «السراج في بيان غريب القرآن» (data/quiz/siraj.json), as /quiz/ asks them.
@@ -90,25 +90,29 @@
   var ayahText = function (ws) { return ws.map(function (w) { return w.t; }).join(' '); };
 
   /* ---------- the questions ---------- */
-  // memorization: a passage in each block of «every» pages, inside its page, about «lines» long
-  function passages(rg, every, lines) {
+  // memorization: «per» places in each page, the page's verses (in the range) cut in «per» stretches by their lines, a
+  // place drawn in each — from an ayah leaving at least half of its stretch, to the stretch's end
+  function passages(rg, per) {
     var p0 = pageOf(rg[0][0], rg[0][1]), p1 = pageOf(rg[1][0], rg[1][1]), out = [];
-    for (var b = p0; b <= p1; b += every) {
-      var cand = [];
-      for (var p = b; p <= Math.min(p1, b + every - 1); p++) {
-        var ay = pageAyahs(p).filter(function (x) { return inR(rg, x[0], x[1]); });
-        if (ay.length) cand.push({ p: p, ay: ay });
-      }
-      if (!cand.length) continue;
-      var c = pick(cand), L = function (x) { return D.lines[x[0] - 1][x[1] - 1] || 1; };
-      // starts that leave room for most of the passage on the page; else any
-      var rest = function (i) { var n = 0; for (var j = i; j < c.ay.length; j++) n += L(c.ay[j]); return n; };
-      var starts = c.ay.map(function (x, i) { return i; }).filter(function (i) { return rest(i) >= lines * 0.6; });
-      var i0 = starts.length ? pick(starts) : 0, seg = [], n = 0;
-      for (var j = i0; j < c.ay.length && (n < lines * 0.85 || !seg.length); j++) { seg.push(c.ay[j]); n += L(c.ay[j]); }
-      var parts = [];
-      seg.forEach(function (x) { var q = parts[parts.length - 1]; if (q && q.s === x[0]) q.b = x[1]; else parts.push({ s: x[0], a: x[1], b: x[1] }); });
-      out.push({ page: c.p, ayahs: seg, parts: parts, lines: n });
+    var L = function (x) { return D.lines[x[0] - 1][x[1] - 1] || 1; };
+    for (var p = p0; p <= p1; p++) {
+      var ay = pageAyahs(p).filter(function (x) { return inR(rg, x[0], x[1]); });
+      if (!ay.length) continue;
+      var tot = 0; ay.forEach(function (x) { tot += L(x); });
+      var n = Math.min(per, ay.length), groups = [], acc = 0, g = [];
+      ay.forEach(function (x, i) {
+        g.push(x); acc += L(x);
+        var left = ay.length - i - 1, need = n - groups.length - 1;
+        if ((acc >= tot * (groups.length + 1) / n && need > 0 && left >= need) || left === need && need > 0) { groups.push(g); g = []; }
+      });
+      if (g.length) groups.push(g);
+      groups.forEach(function (gr) {
+        var gl = 0; gr.forEach(function (x) { gl += L(x); });
+        var starts = gr.map(function (x, i) { return i; }).filter(function (i) { var r = 0; for (var j = i; j < gr.length; j++) r += L(gr[j]); return r >= gl / 2; });
+        var seg = gr.slice(pick(starts.length ? starts : [0])), parts = [];
+        seg.forEach(function (x) { var q = parts[parts.length - 1]; if (q && q.s === x[0]) q.b = x[1]; else parts.push({ s: x[0], a: x[1], b: x[1] }); });
+        out.push({ page: p, ayahs: seg, parts: parts });
+      });
     }
     return out;
   }
@@ -229,7 +233,7 @@
 
   function cfgLoad() {
     var c = null; try { c = JSON.parse(load('lt_exam_cfg') || 'null'); } catch (e) {}
-    return c || { t: 's', s: 0, a1: 1, a2: 7, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, every: 1, lines: 5, nTj: 10, nW: 10 };
+    return c || { t: 's', s: 0, a1: 1, a2: 7, j: 0, h: 0, sec: { hifz: true, tja: false, tjt: false, words: false }, per: 2, nTj: 10, nW: 10 };
   }
   function shares(sec) {
     var on = ORDER.filter(function (k) { return sec[k] && k !== 'tjt'; }), sum = 0, out = {};
@@ -266,9 +270,8 @@
         '<div class="ex-row" data-for="h"><select data-f="h">' + nums(60, c.h, 'الحزب') + '</select></div>' +
         '<h4>الأقسام:</h4><div class="ex-cks">' + chk('hifz') + chk('tja') + chk('tjt', true, 'يُضاف بعد مراجعة المختص لشرح أحكام التجويد.') + chk('words') + '</div>' +
         '<div class="ex-opt" data-sec="hifz"><h4>الحفظ:</h4>' +
-          '<div class="ex-row"><span>مقطع في كل:</span>' + seg('every', [[1, 'صفحة'], [2, 'صفحتين'], [3, '٣ صفحات'], [5, '٥ صفحات']], c.every) + '</div>' +
-          '<div class="ex-row"><span>طول المقطع:</span>' + seg('lines', [[3, '٣ أسطر'], [5, '٥ أسطر'], [7, '٧ أسطر']], c.lines) + '</div>' +
-          '<p class="ex-note">تُعرض بداية كل مقطع، وتكمل من حفظك. ويحكم عليه نظام التسميع، فيحتاج إلى الميكروفون.</p></div>' +
+          '<div class="ex-row"><span>عدد المواضع في الصفحة:</span>' + seg('per', [1, 2, 3, 4, 5, 6, 7, 8].map(function (n) { return [n, ar(n)]; }), c.per || 2) + '</div>' +
+          '<p class="ex-note">يظهر لك: «أكمل من قوله تعالى: …»، فتكمل من حفظك. ويحكم عليه نظام التسميع، فيحتاج إلى الميكروفون.</p></div>' +
         '<div class="ex-opt" data-sec="tja"><h4>التجويد التطبيقي:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nTj', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nTj) + '</div></div>' +
         '<div class="ex-opt" data-sec="words"><h4>معاني الكلمات:</h4><div class="ex-row"><span>عدد الأسئلة:</span>' + seg('nW', [[5, '٥'], [10, '١٠'], [15, '١٥']], c.nW) + '</div></div>' +
         '<p class="ex-err" hidden></p><button type="button" class="ex-go">ابدأ الاختبار</button>');
@@ -289,7 +292,7 @@
         if (!ORDER.some(function (k) { return sec[k] && k !== 'tjt'; })) { err.textContent = 'اختر قسمًا واحدًا على الأقل.'; err.hidden = false; return; }
         var n = { t: val('t'), s: +bd.querySelector('[data-f=s]').value, a1: num(bd.querySelector('[data-f=a1]').value) || 1, a2: num(bd.querySelector('[data-f=a2]').value) || 1,
                   j: +bd.querySelector('[data-f=j]').value, h: +bd.querySelector('[data-f=h]').value, sec: sec,
-                  every: +val('every') || 1, lines: +val('lines') || 5, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
+                  per: +val('per') || 2, nTj: +val('nTj') || 10, nW: +val('nW') || 10 };
         if (n.t === 'a' && n.a2 < n.a1) { var t0 = n.a1; n.a1 = n.a2; n.a2 = t0; }
         store('lt_exam_cfg', JSON.stringify(n));
         start(n);
@@ -303,7 +306,7 @@
     var rg = range(c), sec = c.sec;
     var bd = sheet('اختبار', '<p class="ex-note">جارٍ تجهيز الأسئلة…</p>');
     var jobs = [
-      sec.hifz ? Promise.resolve(passages(rg, c.every, c.lines)) : Promise.resolve([]),
+      sec.hifz ? Promise.resolve(passages(rg, c.per || 2)) : Promise.resolve([]),
       sec.tja ? tajweedQs(rg, c.nTj) : Promise.resolve([]),
       sec.words ? wordQs(rg, c.nW) : Promise.resolve([])
     ];
@@ -317,69 +320,90 @@
         bd.innerHTML = '<p class="ex-note">' + esc(RUN.note.join(' ')) + ' اختر نطاقًا أوسع.</p><button type="button" class="ex-go">رجوع</button>';
         bd.querySelector('.ex-go').onclick = open; RUN = null; return;
       }
-      if (RUN.hifz.length) { close(); hifzStart(); } else mcq('tja', 0);
+      if (RUN.hifz.length) hifzGo(0); else mcq('tja', 0);
     }).catch(function () { bd.innerHTML = '<p class="ex-note">تعذّر تجهيز الأسئلة. تحقّق من الاتصال وأعد المحاولة.</p>'; });
   }
 
-  // memorization: the bar at the top, the Mushaf beneath, the verses hidden
-  var BAR = null;
-  function bar(html) {
-    if (!BAR) {
-      BAR = document.createElement('div'); BAR.className = 'ex-bar'; document.body.appendChild(BAR);
-      BAR.addEventListener('click', function (e) { e.stopPropagation(); });
-    }
-    BAR.innerHTML = html;
-    return BAR;
+  // memorization: «أكمل من قوله تعالى: …» on its own card; what the reader says appears as he says it (never ahead of him)
+  var LIVE = null;
+  function liveLib() {
+    if (window.LiveRecite) return Promise.resolve();
+    return new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = '/js/live.js'; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
   }
-  function barGone() { if (BAR) { BAR.remove(); BAR = null; } }
-  var MARKS = ['rv', 'tw-done', 'tw-err', 'tw-fix', 'tw-unc', 'tw-skip', 'tw-ti', 'tw-hint', 'tw-tjn', 'ex-pr'];
-  function clearMarks() { document.querySelectorAll('.bk-mpage [data-l]').forEach(function (e) { MARKS.forEach(function (m) { e.classList.remove(m); }); }); }
-  function hifzStart() {
-    if (B().setMode && B().mode && B().mode() !== 'tasmee') B().setMode('tasmee');
-    hifzGo(0);
+  function liveStop() { if (LIVE) { try { LIVE.stop(); } catch (e) {} LIVE = null; } }
+  // a short tone at a mistake (as in the Mushaf's recitation check)
+  var actx = null;
+  function tone() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var g = actx.createGain(), os = actx.createOscillator(); os.frequency.value = 520; g.gain.value = 0.08;
+      os.connect(g); g.connect(actx.destination); os.start(); os.stop(actx.currentTime + 0.18);
+    } catch (e) {}
   }
+  // the microphone goes off as soon as the reader leaves the page (the owner's privacy rule)
+  document.addEventListener('visibilitychange', function () { if (document.hidden && LIVE) { liveStop(); var n = OV && OV.querySelector('.ex-st'); if (n) n.textContent = 'توقّف الاستماع لمغادرتك الصفحة.'; var b = OV && OV.querySelector('.ex-again'); if (b) b.hidden = false; } });
   function hifzGo(i) {
     if (!RUN) return;
     var H = RUN.hifz;
-    if (i >= H.length) { if (B().liveStop) B().liveStop(); barGone(); clearMarks(); return mcq('tja', 0); }
-    var q = H[i], f = q.p.ayahs[0], l = q.p.ayahs[q.p.ayahs.length - 1];
-    q.rec = {}; q.tj = 0; q.over = false;
-    var where = 'سورة ' + D.names[f[0] - 1] + '، ' + (f[0] === l[0] && f[1] !== l[1] ? 'الآيات ' + ar(f[1]) + '–' + ar(l[1]) : f[0] === l[0] ? 'الآية ' + ar(f[1]) : 'من الآية ' + ar(f[1]));
-    var b = bar('<div class="ex-bt"><b>الحفظ: المقطع ' + ar(i + 1) + ' من ' + ar(H.length) + '</b><span>' + esc(where) + '.</span></div>' +
-      '<p class="ex-bn">اقرأ من حفظك، من أول الآية التي ظهرت بدايتها.</p>' +
-      '<div class="ex-bb"><button type="button" class="ex-done">أنهيتُ المقطع</button><button type="button" class="ex-end">إنهاء الاختبار</button></div>');
-    b.querySelector('.ex-done').onclick = function () { if (B().liveStop) B().liveStop(); hifzScore(i, true); };
-    b.querySelector('.ex-end').onclick = function () { if (B().liveStop) B().liveStop(); hifzScore(i, true, true); };
-    if (B().show) B().show(q.p.page);
-    setTimeout(function () {
-      if (!RUN) return;
-      clearMarks();
-      // the passage's start shown: its first two words
-      [1, 2].forEach(function (n) { document.querySelectorAll('.bk-mpage [data-l="' + f[0] + ':' + f[1] + ':' + n + '"]').forEach(function (e) { e.classList.add('rv', 'ex-pr'); }); });
-      pageWords(q.p.page).then(function (by) {
-        q.words = q.p.ayahs.map(function (x) { return by[x[0] + ':' + x[1]] || []; });
-        B().liveRun({
-          parts: q.p.parts,
-          onWord: function (s, w, cls) { q.rec[s + ':' + w.ayah + ':' + w.n] = { cls: cls, skip: !!w.skip }; },
-          onTajweed: function (s, d) { if (B().tjOn && B().tjOn()) (d.words || []).forEach(function (r) { if (r && r.ok === false) q.tj++; }); },
-          onDone: function () { hifzScore(i, false); },
-          onState: function (st) {
-            if (st === 'denied') { RUN.note.push('لم يُختبر الحفظ: لم يُسمح بالميكروفون.'); RUN.hifz = H.slice(0, i); hifzGo(H.length); }
-            else if (st === 'error' || st === 'lost') {
-              var n = BAR && BAR.querySelector('.ex-bn');
-              if (n) { n.innerHTML = 'توقّف الاستماع. <button type="button" class="ex-again">أعد المقطع</button>'; n.querySelector('.ex-again').onclick = function () { hifzGo(i); }; }
-            }
+    liveStop();
+    if (i >= H.length) return mcq('tja', 0);
+    var q = H[i], f = q.p.ayahs[0];
+    q.rec = {}; q.over = false;
+    var bd = sheet(SEC.hifz + ': الموضع ' + ar(i + 1) + ' من ' + ar(H.length), '<p class="ex-note">جارٍ التجهيز…</p>', finish);
+    pageWords(q.p.page).then(function (by) {
+      q.words = q.p.ayahs.map(function (x) { return by[x[0] + ':' + x[1]] || []; });
+      var first = q.words[0] || [], pr = first.slice(0, Math.min(3, first.length));
+      bd.innerHTML = '<p class="ex-ref">سورة ' + esc(D.names[f[0] - 1]) + '</p>' +
+        '<p class="ex-ask">أكمل من قوله تعالى:</p><p class="ex-ayah ex-pr" lang="ar" translate="no">﴿' + esc(ayahText(pr)) + (first.length > pr.length ? ' …' : '') + '﴾</p>' +
+        '<div class="ex-live"><span class="ex-st">جارٍ تشغيل الميكروفون…</span><button type="button" class="ex-again" hidden>أعد الموضع</button>' +
+        '<p class="ex-said" lang="ar" translate="no"></p></div>' +
+        '<div class="ex-bb"><button type="button" class="ex-go ex-done">انتهيت</button></div>' +
+        '<button type="button" class="ex-end2">إنهاء الاختبار</button>';
+      var said = bd.querySelector('.ex-said'), st = bd.querySelector('.ex-st');
+      var draw = function () {
+        var h = [];
+        for (var ai = 0; ai < q.words.length; ai++) {
+          var ws = q.words[ai], stop = false;
+          for (var wi = 0; wi < ws.length; wi++) {
+            var r = q.rec[ws[wi].loc]; if (!r) { stop = true; break; }
+            h.push('<span class="ex-w ' + r.cls + '">' + esc(ws[wi].t) + '</span>');
+          }
+          if (stop) break;
+          h.push('<span class="ex-an">﴿' + ar(q.p.ayahs[ai][1]) + '﴾</span>');
+        }
+        said.innerHTML = h.join(' ');
+      };
+      bd.querySelector('.ex-done').onclick = function () { liveStop(); hifzScore(i, true); };
+      bd.querySelector('.ex-end2').onclick = function () { liveStop(); hifzScore(i, true, true); };
+      bd.querySelector('.ex-again').onclick = function () { hifzGo(i); };
+      liveLib().then(function () {
+        LIVE = window.LiveRecite({
+          parts: q.p.parts, lang: 'ar', againUnclear: true,
+          onWord: function (p, w, cls, replay) {
+            if (cls === 'ti' || replay) return;
+            var s0 = q.p.parts[p].s, k = s0 + ':' + w.ayah + ':' + w.n, was = q.rec[k];
+            q.rec[k] = { cls: cls, skip: !!w.skip };
+            if ((cls === 'wrong' || cls === 'missing') && !(was && (was.cls === 'wrong' || was.cls === 'missing'))) tone();
+            draw();
+          },
+          onAgain: function (p, from) { st.textContent = 'لم تتّضح كلمة. أعد من: ' + (from ? from.text : 'أول الآية') + '.'; tone(); },
+          onDone: function () { liveStop(); hifzScore(i, false); },
+          onState: function (s) {
+            if (s === 'listening') st.textContent = 'يستمع… اقرأ من حفظك.';
+            else if (s === 'denied') { liveStop(); RUN.note.push('لم يُختبر الحفظ: لم يُسمح بالميكروفون.'); RUN.hifz = H.slice(0, i); hifzGo(H.length); }
+            else if (s === 'error' || s === 'lost') { liveStop(); st.textContent = 'توقّف الاستماع.'; bd.querySelector('.ex-again').hidden = false; }
           }
         });
-      });
-    }, 900);
+        LIVE.start();
+      }).catch(function () { st.textContent = 'تعذّر تشغيل نظام التسميع. تحقّق من الاتصال.'; bd.querySelector('.ex-again').hidden = false; });
+    });
   }
-  // a passage's mark out of 20: a word wrong or not said 1, put right after the alert ½, a whole ayah passed over 2,
-  // a tajweed note ½; what the reader put right himself costs nothing. Ended early: the rest is counted as not said.
+  // a place's mark out of 20: a word wrong or not said 1, put right after the alert ½, a whole ayah passed over 2; what
+  // the reader put right himself costs nothing. Ended early: the rest is counted as not said.
   function hifzScore(i, early, quit) {
     var q = RUN && RUN.hifz[i]; if (!q || q.over) return; q.over = true;
     var ded = 0, errs = [];
-    (q.words || []).forEach(function (ws, ai) {
+    (q.words || []).forEach(function (ws) {
       if (!ws.length) return;
       var rs = ws.map(function (w) { return q.rec[w.loc]; });
       var none = rs.every(function (r) { return !r || r.cls === 'missing' || (r.cls === 'wrong' && r.skip); });
@@ -393,12 +417,12 @@
         else if (r.cls === 'fixed') { ded += 0.5; errs.push({ loc: w.loc, t: w.t, k: 'fixed' }); }
       });
     });
-    ded += q.tj * 0.5;
-    q.ded = ded; q.pts = Math.max(0, PTS - ded); q.errs = errs; q.tjN = q.tj;
+    q.ded = ded; q.pts = Math.max(0, PTS - ded); q.errs = errs; q.tjN = 0;
     if (quit) { RUN.hifz = RUN.hifz.slice(0, i + 1); return finish(); }
-    var n = BAR && BAR.querySelector('.ex-bn');
-    if (n) n.textContent = 'المقطع ' + ar(i + 1) + ': ' + ar(r1(q.pts)) + ' من ' + ar(PTS) + '.';
-    setTimeout(function () { hifzGo(i + 1); }, 1600);
+    var bd = OV && OV.querySelector('.ex-bd'); if (!bd) return;
+    var st = bd.querySelector('.ex-st'); if (st) st.textContent = 'درجة هذا الموضع: ' + ar(r1(q.pts)) + ' من ' + ar(PTS) + '.';
+    var dn = bd.querySelector('.ex-done');
+    if (dn) { dn.textContent = i + 1 < RUN.hifz.length ? 'التالي' : (RUN.tja.length || RUN.words.length ? 'التالي' : 'النتيجة'); dn.onclick = function () { hifzGo(i + 1); }; }
   }
 
   // the questions with choices (applied tajweed, word meanings), one by one
@@ -432,10 +456,8 @@
   /* ---------- the result ---------- */
   function finish() {
     if (!RUN) return close();
-    if (B().liveStop) B().liveStop();
-    barGone(); clearMarks();
+    liveStop();
     var R = RUN; RUN = null;
-    if (B().setMode && R.mode && B().mode && B().mode() !== R.mode) B().setMode(R.mode);
     var parts = {};
     var H = R.hifz.filter(function (q) { return q.pts != null; });
     if (R.c.sec.hifz && H.length) { var got = 0; H.forEach(function (q) { got += q.pts; }); parts.hifz = got * 100 / (PTS * H.length); }
@@ -474,7 +496,6 @@
       '<p class="ex-saved" hidden></p><div class="ex-bb"><button type="button" class="ex-go">اختبار جديد</button><button type="button" class="ex-end2">إغلاق</button></div>');
     bd.querySelector('.ex-go').onclick = open;
     bd.querySelector('.ex-end2').onclick = close;
-    if (B().show && R.page) B().show(R.page);
     // kept in the reader's record (a profile of a signed-in account)
     var F = window.Fam, prof = F && F.current && F.current();
     if (prof && Object.keys(sh).length && F.ready) {
