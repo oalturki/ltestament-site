@@ -2279,3 +2279,68 @@ body.bk-night.bk-hdr .bk-topcap{ background:#1a2230; }
 .hq-pr span{ flex:0 0 74px; font-weight:700; }
 .hq-pr select{ flex:1; min-width:0; padding:6px 8px; border:1px solid rgba(140,110,40,.45); border-radius:8px; background:#fffdf7; font:inherit; font-size:15px; }
 .hq-per .hq-row{ margin-top:8px; flex-wrap:wrap; gap:6px; }
+
+/* «اختبار» (js/exam.js): the setup, the questions and the result in one sheet; the memorization bar over the Mushaf */
+.ex-ov{ position:fixed; inset:0; z-index:9000; background:rgba(20,16,8,.45); display:flex; align-items:center; justify-content:center; padding:16px 12px; }
+.ex-box{ width:100%; max-width:560px; max-height:88vh; overflow-y:auto; background:#fdfaf2; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.25); direction:rtl; color:#2b2416; }
+.ex-hd{ position:sticky; top:0; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 16px; background:#f3ead4; border-bottom:1px solid rgba(176,138,53,.4); }
+.ex-hd b{ font-size:16px; }
+.ex-x{ width:34px; height:34px; border-radius:10px; border:1px solid rgba(140,110,40,.45); background:#fffdf7; font-size:20px; line-height:1; cursor:pointer; color:#5a4720; }
+.ex-bd{ padding:14px 16px 18px; font-size:15px; line-height:1.7; }
+.ex-bd h4{ margin:14px 0 6px; font-size:15px; }
+.ex-bd h5{ margin:10px 0 4px; font-size:14px; color:#7a5d1e; }
+.ex-note{ margin:4px 0 8px; color:#5f5440; font-size:14px; }
+.ex-err{ color:#a33; font-weight:700; }
+.ex-seg{ display:inline-flex; flex-wrap:wrap; border:1px solid rgba(176,138,53,.55); border-radius:10px; overflow:hidden; }
+.ex-seg label{ position:relative; }
+.ex-seg input{ position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+.ex-seg span{ display:block; padding:7px 12px; font-size:14px; border-inline-start:1px solid rgba(176,138,53,.3); }
+.ex-seg label:first-child span{ border-inline-start:0; }
+.ex-seg input:checked + span{ background:#c2a14e; color:#fff; font-weight:700; }
+.ex-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:8px 0; }
+.ex-row > span{ font-weight:700; font-size:14px; }
+.ex-row select, .ex-row input[type=text]{ padding:7px 9px; border:1px solid rgba(140,110,40,.45); border-radius:8px; background:#fffdf7; font:inherit; font-size:15px; }
+.ex-row select{ flex:1; min-width:0; }
+.ex-row label{ display:flex; align-items:center; gap:6px; font-size:14px; font-weight:700; }
+.ex-row input[type=text]{ width:70px; text-align:center; }
+.ex-cks{ display:flex; flex-direction:column; gap:6px; }
+.ex-ck{ display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 10px; border:1px solid rgba(176,138,53,.35); border-radius:10px; background:#fffdf7; cursor:pointer; }
+.ex-ck input{ width:18px; height:18px; accent-color:#b08a35; }
+.ex-ck span{ font-weight:700; }
+.ex-ck em{ font-style:normal; margin-inline-start:auto; color:#8a6a20; font-weight:700; font-size:14px; }
+.ex-ck small{ flex-basis:100%; color:#7a6e58; font-size:12.5px; }
+.ex-ck.off{ opacity:.55; cursor:default; }
+.ex-opt{ border-top:1px dashed rgba(176,138,53,.4); margin-top:10px; }
+.ex-go{ display:block; width:100%; margin-top:14px; padding:11px; border:0; border-radius:10px; background:#b08a35; color:#fff; font:inherit; font-size:16px; font-weight:700; cursor:pointer; }
+.ex-end2{ display:block; width:100%; margin-top:8px; padding:9px; border:1px solid rgba(140,110,40,.45); border-radius:10px; background:#fffdf7; font:inherit; font-size:14px; cursor:pointer; color:#5a4720; }
+.ex-ref{ margin:0 0 6px; font-weight:700; color:#7a5d1e; }
+.ex-ayah{ font-family:'KFGQPC Hafs', 'Amiri Quran', serif; font-size:24px; line-height:2; margin:4px 0 10px; padding:10px 12px; background:#fffdf7; border:1px solid rgba(176,138,53,.3); border-radius:10px; }
+.ex-ayah mark{ background:#f2dc97; border-radius:5px; padding:0 2px; }
+.ex-an{ font-size:18px; color:#8a6a20; }
+.ex-ask{ font-weight:700; margin:6px 0; }
+.ex-opts{ display:flex; flex-direction:column; gap:8px; }
+.ex-op{ text-align:start; padding:10px 12px; border:1px solid rgba(140,110,40,.45); border-radius:10px; background:#fffdf7; font:inherit; font-size:15px; cursor:pointer; color:#2b2416; }
+.ex-op.ok{ background:#dcefd8; border-color:#4f8a43; font-weight:700; }
+.ex-op.no{ background:#f6d9d5; border-color:#b0483b; }
+.ex-op:disabled{ cursor:default; opacity:1; }
+.ex-total{ display:flex; align-items:baseline; justify-content:center; gap:8px; margin:6px 0 10px; }
+.ex-total b{ font-size:44px; color:#8a6a20; }
+.ex-tb{ width:100%; border-collapse:collapse; font-size:14px; }
+.ex-tb th{ text-align:start; padding:6px 8px; background:rgba(200,155,60,.16); }
+.ex-tb td{ padding:7px 8px; border-bottom:1px solid rgba(140,110,40,.15); }
+.ex-rv{ margin:0; padding-inline-start:18px; font-size:14px; }
+.ex-rv li{ margin:6px 0; }
+.ex-ws{ display:block; color:#5f5440; }
+.ex-ws i{ font-style:normal; font-family:'KFGQPC Hafs', 'Amiri Quran', serif; font-size:19px; }
+.ex-saved{ color:#4f7a43; font-weight:700; font-size:14px; }
+.ex-bb{ display:flex; gap:8px; }
+.ex-bb > button{ flex:1; }
+.ex-bar{ position:fixed; z-index:60; top:calc(env(safe-area-inset-top) + 64px); left:10px; right:10px; max-width:560px; margin:0 auto; direction:rtl;
+  background:#fdfaf2; border:1px solid rgba(176,138,53,.6); border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,.15); padding:10px 12px; font-size:14px; color:#2b2416; }
+.ex-bt{ display:flex; flex-wrap:wrap; gap:6px 10px; align-items:baseline; }
+.ex-bt b{ font-size:15px; }
+.ex-bn{ margin:4px 0 8px; color:#5f5440; }
+.ex-bar .ex-bb button{ padding:8px; border-radius:9px; border:1px solid rgba(140,110,40,.45); background:#fffdf7; font:inherit; font-size:14px; cursor:pointer; color:#5a4720; }
+.ex-bar .ex-done{ background:#b08a35 !important; color:#fff !important; border-color:#b08a35 !important; font-weight:700; }
+.ex-again{ margin-inline-start:6px; padding:3px 10px; border-radius:8px; border:1px solid #b08a35; background:#fffdf7; font:inherit; cursor:pointer; }
+.bk-mpage .ex-pr{ color:#8a6a20 !important; }

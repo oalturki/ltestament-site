@@ -770,6 +770,9 @@
       mode: function () { return root.classList.contains('bk-ms') ? 'silent' : root.classList.contains('bk-mt') ? 'tasmee' : root.classList.contains('bk-memo') ? 'hifz' : 'read'; },
       setMode: function (m) { if (root.__setMode) root.__setMode(m); },
       view: function () { return root.__view ? root.__view.get() : null; },
+      liveRun: function (ext) { if (root.__liveRun) root.__liveRun(ext); },
+      liveStop: function () { if (root.__liveStop) root.__liveStop(); },
+      tjOn: function () { return document.body.classList.contains('bk-tajweed'); },
       silNow: function () { return root.__silNow ? root.__silNow() : null; },
       silShowTo: function (loc) { if (root.__silShowTo) root.__silShowTo(loc); },
       setView: function (v) { if (root.__view) root.__view.set(v); },
@@ -1108,7 +1111,15 @@
       var SL = SLL[C.lang] || SLL.en;
       var modeName = function (m, short) { return m === 'silent' ? SL[short ? 1 : 0] : MD[MODES.indexOf(m)]; };
       var modeSel = document.createElement('select'); modeSel.className = 'bk-mover'; modeSel.setAttribute('aria-label', MD[3]);
-      modeSel.innerHTML = MODES.map(function (m) { return '<option value="' + m + '">' + esc(modeName(m)) + '</option>'; }).join('');
+      modeSel.innerHTML = MODES.map(function (m) { return '<option value="' + m + '">' + esc(modeName(m)) + '</option>'; }).join('') +
+        (C.lang === 'ar' ? '<option value="exam">اختبار</option>' : '');
+      // the fifth service (Arabic): a test of the reader's own choosing — memorization, tajweed, word meanings (js/exam.js)
+      var examOpen = function () {
+        if (window.LtExam) return window.LtExam.open();
+        var sc = document.createElement('script'); sc.src = '/js/exam.js?v=1'; sc.onload = function () { window.LtExam.open(); };
+        document.head.appendChild(sc);
+      };
+      root.__examOpen = examOpen;
       var modeBtn = item(I2.memo, MD[0]); modeBtn.classList.add('bk-mmode'); modeBtn.appendChild(modeSel);
       // the mode (reading, memorizing, reciting) is chosen at the top, beside what is shown; the bottom bar holds that
       // mode's own tools only, so nothing there moves from one side to the other when the mode changes
@@ -1145,7 +1156,7 @@
         if (root.__strip) root.__strip();
       };
       root.__setMode = setMode;
-      modeSel.onchange = function () { setMode(modeSel.value); };
+      modeSel.onchange = function () { if (modeSel.value === 'exam') { modeSel.value = curMode(); return examOpen(); } setMode(modeSel.value); };
       modeSel.addEventListener('click', function (e) { e.stopPropagation(); });
       // in Arabic the mode list is the page's own, in the Mushaf's script (KFGQPC Hafs) — the phone's list cannot take
       // a font (the owner, Nov 2026: «لو يكون خط القائمة مثل المصاحف»)
@@ -1165,6 +1176,12 @@
             it.onclick = function (ev) { ev.stopPropagation(); ov.remove(); setMode(m); };
             box.appendChild(it);
           });
+          if (C.lang === 'ar') {
+            var ex = document.createElement('button'); ex.type = 'button'; ex.className = 'bk-gpit';
+            ex.innerHTML = '<i></i><b class="g ht">اختبار</b>';
+            ex.onclick = function (ev) { ev.stopPropagation(); ov.remove(); examOpen(); };
+            box.appendChild(ex);
+          }
           ov.appendChild(box); ov.onclick = function () { ov.remove(); };
           document.body.appendChild(ov);
         };
@@ -4118,16 +4135,19 @@
         };
         root.__fam = { word: function (sN, w, cls) { famWord(sN, w, cls); if (!famT0) famT0 = Date.now(); }, flush: function (c) { famFlush(c); },
                        unerr: function (loc) { Object.keys(famPg).forEach(function (pg) { delete famPg[pg].errs[loc]; }); delete famAll.errs[loc]; } };
-        var startLive = function () {
-          if (busy) return setTimeout(startLive, 100);     // a page still turning: listen for the page that comes, not the one leaving
+        // ext (the test, js/exam.js): its own passage and its own ends — {parts, onWord(s, w, cls), onDone(), onState(st), onTajweed(s, d)}
+        var startLive = function (ext) {
+          if (busy) return setTimeout(function () { startLive(ext); }, 100);     // a page still turning: listen for the page that comes, not the one leaving
           if (playing) stopAudio();
-          var parts = pagePartsNow();
+          ext = ext && ext.parts ? ext : null;
+          var parts = ext ? ext.parts : pagePartsNow();
           live = LiveRecite({
             parts: parts,
             onWord: function (p, w, cls, replay) {
               if ((cls === 'ok' || cls === 'unclear') && otherPop && otherPop.shut) { otherPop.shut(); otherPop.shut = null; }
               if (cls !== 'ti' && !replay) { famWord(live.__parts[p].s, w, cls); sumW[live.__parts[p].s + ':' + w.ayah + ':' + w.n] = w.skip && (cls === 'missing' || cls === 'wrong') ? 'skip' : cls; }
               if (!replay && (cls === 'ok' || cls === 'fixed' || cls === 'unclear')) rsWord(w.text, pageOf(live.__parts[p].s, w.ayah));   // recited right
+              if (ext && ext.onWord && cls !== 'ti') ext.onWord(live.__parts[p].s, w, cls, replay);
               wordEls(w, p).forEach(function (e) {
                 e.classList.remove('tw-ti', 'tw-err', 'tw-fix', 'tw-unc', 'tw-skip');
                 e.classList.add('rv');
@@ -4172,9 +4192,10 @@
             // the tajweed Mushaf: notes on how the verses were said (the ordinary Mushaf: the memorising alone)
             lang: C.lang === 'fr' ? 'fr' : C.lang === 'ar' ? 'ar' : (C.lang === 'ur' ? 'ar' : 'en'),
             tajweed: function () { return document.body.classList.contains('bk-tajweed'); },
-            onTajweed: function (p, sN, d) { tjTake(sN, d); },
+            onTajweed: function (p, sN, d) { tjTake(sN, d); if (ext && ext.onTajweed) ext.onTajweed(sN, d); },
             onDone: function () {                             // the page is recited: the next one, and go on listening
               famFlush(true);
+              if (ext) { var e0 = ext; ext = null; live.stop(); if (e0.onDone) e0.onDone(); return; }   // the test's passage: done
               if (cur >= TOTAL) { live.stop(); return; }
               liveTurning = true;
               show(cur + (visible().length > 1 ? 2 : 1), 1);
@@ -4182,6 +4203,7 @@
             },
             onLevel: function (x) { mic.style.boxShadow = '0 0 0 ' + Math.round(3 + x * 18) + 'px rgba(200,70,60,' + (0.15 + x * 0.3).toFixed(2) + ')'; },
             onState: function (st) {
+              if (ext && ext.onState) ext.onState(st);
               if (st === 'listening' && !livePaused) { famT0 = Date.now(); famAll = { done: {}, errs: {} }; }
               if (st === 'stopped') famFlush(false);
               if (st === 'listening') { liveSet(true); toast(LV[5]); }
@@ -4210,6 +4232,15 @@
           var sc = document.createElement('script'); sc.src = '/js/live.js'; sc.onload = startLive;
           sc.onerror = function () { toast(LV[4]); }; document.head.appendChild(sc);
         };
+        // the test (js/exam.js): listen for its passage on the page shown, the verses hidden
+        root.__liveRun = function (ext) {
+          if (live && live.running) live.stop();
+          var go = function () { if (!root.classList.contains('bk-hide')) hset(true); startLive(ext); };
+          if (window.LiveRecite) return go();
+          var sc = document.createElement('script'); sc.src = '/js/live.js'; sc.onload = go;
+          sc.onerror = function () { if (ext && ext.onState) ext.onState('error'); }; document.head.appendChild(sc);
+        };
+        root.__liveStop = function () { if (live && live.running) live.stop(); };
         // the recite button in the phone bar: hides the verses and starts listening in one tap (a second tap stops)
         root.__liveToggle = function () {
           if (live && live.running) { live.stop(); return; }
